@@ -1,0 +1,63 @@
+
+## root CMakeLists.txt for pylada-crystal, minimal portion of lada to support crystal structure code
+# Constructed by Peter Graf from Mayeul's pylada CMakeLists.txt
+
+# I intend this to be run via cmake (not ccmake).
+# I am sick of the failures of the automated detection of stuff; automatically finding the _wrong_ thing is cause
+# of much time wasted.  Therefore,
+# I am thus expecting the user to HAND edit this file and enter the correct values for a couple of things:
+#####
+# CMAKE_CXX_COMPILER, PYTHON_LIBRARY, eigen_INCLUDE_DIR, CMAKE_PYINSTALL_PREFIX, CMAKE_INSTALL_PREFIX
+######
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+project (Pylada)
+set (Pylada_VERSION_MAJOR 0)
+set (Pylada_VERSION_MINOR 1)
+
+SET( CMAKE_CXX_COMPILER "g++" )
+
+# Location where cmake first looks for cmake modules.
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
+
+## python:
+### these are unreliable
+#find_package(PythonInterp REQUIRED)
+#find_package(PythonLibs REQUIRED)
+#find_package(PythonLibrary REQUIRED)
+##
+## I find that if I just set this one, then find_package works, and sets the rest of the necessary vars
+set(PYTHON_LIBRARY  "/nopt/nrel/apps/python/2.7.6-gcc-4.8.2/lib/libpython2.7.so")
+find_package(PythonLibs REQUIRED)
+
+message("about to find numpy")
+## numpy:
+find_package(numpy REQUIRED)
+
+## boost:
+find_package(Boost 1.33.0 REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
+## eigen (v.3+)
+set( eigen_INCLUDE_DIR  "/home/pgraf/opt/eigen3/")
+set( PYLADA_WITH_EIGEN3 1)
+include_directories(${eigen_INCLUDE_DIR})
+
+set(CMAKE_PYINSTALL_PREFIX "/home/pgraf/root/mylada")
+set(CMAKE_INSTALL_PREFIX "/home/pgraf/root/mylada")
+
+add_subdirectory(crystal)
+add_subdirectory(python)
+add_subdirectory(math)
+add_subdirectory(errors)
+add_subdirectory(physics)
+add_subdirectory(misc)
+
+configure_file (
+ "${PROJECT_SOURCE_DIR}/PyladaConfig.h.in"
+ "${PROJECT_BINARY_DIR}/PyladaConfig.h"
+)
+
+message ("will install in " ${CMAKE_INSTALL_PREFIX})
+message ("On peregrine, using  modules: 1) epel/6.3       2) python/2.7.4")
+message ("Still some issues with include_numpy.h")
