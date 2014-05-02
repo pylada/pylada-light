@@ -95,10 +95,13 @@ add_subdirectory(config)
 add_subdirectory(tools)
 add_subdirectory(process)
 
-# with the above, ewald and jobfolder don't need anything else:
+# with the above, ewald and jobfolder and ipython don't need anything else:
 add_subdirectory(ewald)
 
 add_subdirectory(jobfolder)
+
+add_subdirectory(ipython)
+
   
 message (STATUS ${PROJECT_SOURCE_DIR})
 configure_file (
