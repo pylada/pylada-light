@@ -1,0 +1,513 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Setting up Pylada &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="User Guide" href="../userguide.html" />
+    <link rel="next" title="Testing Pylada" href="testing.html" />
+    <link rel="prev" title="Compiling and installing" href="compile.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="testing.html" title="Testing Pylada"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="compile.html" title="Compiling and installing"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" accesskey="U">User Guide</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="setting-up-pylada">
+<span id="configuration-ug"></span><h1>Setting up Pylada<a class="headerlink" href="#setting-up-pylada" title="Permalink to this headline">¶</a></h1>
+<p>Pylada accepts a range of configuration files:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Files located in the &#8216;&#8217;config&#8217;&#8217; sub-directory where Pylada is installed</li>
+<li>Files located in one of the directories specified by <span class="target" id="index-0"></span><a class="reference internal" href="../pyapi/configuration.html#envvar-PYLADA_CONFIG_DIR"><tt class="xref std std-envvar docutils literal"><span class="pre">PYLADA_CONFIG_DIR</span></tt></a></li>
+<li>In the user configuration file &#8216;&#8217;~/.pylada&#8217;&#8216;</li>
+</ol>
+</div></blockquote>
+<p>Each file is executed and whatever is declared within is placed directly at
+the root of the pylada package. The files are read in the order given
+above. Within a given directory, files are read alphabetically. Later files
+will override previous files, e.g. &#8216;&#8217;~/.pylada&#8217;&#8217; will override any
+configuration done previously.</p>
+<p>Within an  IPython session, or during an actual calculation, the
+configuration variables all reside at the root of the <tt class="xref py py-mod docutils literal"><span class="pre">pylada</span></tt>
+package.</p>
+<div class="section" id="setting-up-ipython">
+<h2>Setting up IPython<a class="headerlink" href="#setting-up-ipython" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://ipython.org/">IPython</a> is Pylada&#8217;s main interface. In practice Pylada defines an
+extension to <a class="reference external" href="http://ipython.org/">IPython</a>. The extension can be automatically loaded when starting IPython by adding</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span><span class="o">.</span><span class="n">InteractiveShellApp</span><span class="o">.</span><span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&quot;pylada.ipython&quot;</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p>to the <a class="reference external" href="http://ipython.org/">ipython</a> configuration file (generally,
+&#8220;$HOME/.config/ipython/profile_default/ipython_config.py&#8221;).</p>
+<p>Another option is to load the extension dynamically for each <a class="reference external" href="http://ipython.org/">ipython</a> session:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">load_ext</span> <span class="n">pylada</span><span class="o">.</span><span class="n">ipython</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-external-programs">
+<span id="configuration-single-mpi-ug"></span><h2>Running external programs<a class="headerlink" href="#running-external-programs" title="Permalink to this headline">¶</a></h2>
+<p>It is unlikely that users will need to do anything here. However, it is
+possible to customize how external programs are launched by Pylada by
+redifining <tt class="xref py py-meth docutils literal"><span class="pre">pylada.launch_program()</span></tt>.</p>
+</div>
+<div class="section" id="running-mpi-calculations">
+<span id="configuration-mpi-ug"></span><h2>Running MPI calculations<a class="headerlink" href="#running-mpi-calculations" title="Permalink to this headline">¶</a></h2>
+<p>Pylada can run external MPI software, such as <a class="reference external" href="http://www.vasp.at/">VASP</a>. Such software must
+generally be started through a call to a specific MPI program. It is done
+in practice via the configuration variable <a class="reference internal" href="../pyapi/configuration.html#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">mpirun_exe</span></tt></a>.
+It can be set as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># openmpi and friends</span>
+<span class="n">mpirun_exe</span> <span class="o">=</span> <span class="s">&quot;mpirun -n {n} {placement} {program}&quot;</span>
+<span class="c"># Crays</span>
+<span class="n">mpirun_exe</span> <span class="o">=</span> <span class="s">&quot;aprun -n {n} {placement} {program}&quot;</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="../pyapi/configuration.html#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">mpirun_exe</span></tt></a> is a <a class="reference external" href="http://docs.python.org/library/stdtypes.html#str.format">format string</a>. It can take any number
+of arguments. However, two are required: &#8220;n&#8221;, which is the number of
+processes, and &#8220;program&#8221;, which is the commandline for the program to
+launch. The latter will be manufactured by Pylada internally. It is a
+placeholder at this point. The other reseverved keyword is &#8220;ppn&#8221;, the
+number of processes per node. It should only be used for that purpose.
+&#8220;placement&#8221; is useful when running MPI codes side-by-side. Please see below
+for extra setup steps required in that case.</p>
+<p>The keywords in <a class="reference internal" href="../pyapi/configuration.html#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">pylada.mpirun_exe</span></tt></a> should be defined in
+<a class="reference internal" href="../pyapi/configuration.html#pylada.default_comm" title="pylada.default_comm"><tt class="xref py py-data docutils literal"><span class="pre">pylada.default_comm</span></tt></a>. This is a dictionary which holds default
+values for the different keywords. The dictionary may hold more keywords
+than are present in <a class="reference internal" href="../pyapi/configuration.html#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">pylada.mpirun_exe</span></tt></a>. The converse is not true. It could be for instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">default_comm</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;n&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&#39;ppn&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&#39;placement&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-different-mpi-calculations-side-by-side">
+<h2>Running different MPI calculations side-by-side<a class="headerlink" href="#running-different-mpi-calculations-side-by-side" title="Permalink to this headline">¶</a></h2>
+<p>It is often possible to run calculations side-by-side. One can request 64
+processors from a supercomputer and run two <a class="reference external" href="http://www.vasp.at/">VASP</a> calculations
+simultaneously in the same PBS job. There are a fair number of steps to get this part of Pylada running:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p class="first">Set up Pylada to run a single MPI programming as described above</p>
+</li>
+<li><p class="first">Set the environment variable <a class="reference internal" href="../pyapi/configuration.html#pylada.do_multiple_mpi_programs" title="pylada.do_multiple_mpi_programs"><tt class="xref py py-data docutils literal"><span class="pre">do_multiple_mpi_programs</span></tt></a> to
+True.</p>
+</li>
+<li><p class="first">Set up <a class="reference internal" href="../pyapi/configuration.html#pylada.figure_out_machines" title="pylada.figure_out_machines"><tt class="xref py py-data docutils literal"><span class="pre">figure_out_machines</span></tt></a>. This is a string which contains
+a small python script. Pylada runs this python script at the start of
+a PBS/Slurm job to figure out the hostnames of each machine allocated
+to the job. For each <em>core</em>, the script should print out a line
+starting with &#8220;PYLADA MACHINE HOSTNAME&#8221;. It will be launched as an MPI
+program on all available cores. By default, it is the following simple
+program:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">socket</span> <span class="kn">import</span> <span class="n">gethostname</span>
+<span class="kn">from</span> <span class="nn">mpi</span> <span class="kn">import</span> <span class="n">gather</span><span class="p">,</span> <span class="n">world</span>
+<span class="n">hostname</span> <span class="o">=</span> <span class="n">gethostname</span><span class="p">()</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">gather</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">world</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+  <span class="k">for</span> <span class="n">hostname</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;PYLADA MACHINE HOSTNAME:&quot;</span><span class="p">,</span> <span class="n">hostname</span>
+<span class="n">world</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is one of two places where boost.mpi is used. By replacing
+this function with, say, call mpi4py methods, one could remove the
+boost.mpi in Pylada for most use cases.</p>
+</div>
+<p>It is important that this function prints out to the standard output
+one line per core (not one line per machine).</p>
+<p>The script is launched by
+<tt class="xref py py-meth docutils literal"><span class="pre">pylada.process.mpi.create_global_comm()</span></tt>.</p>
+</li>
+<li><p class="first">The names of the machines determined in the previous step are stored
+in <a class="reference internal" href="../pyapi/configuration.html#pylada.default_comm" title="pylada.default_comm"><tt class="xref py py-data docutils literal"><span class="pre">default_comm</span></tt></a>&#8216;s
+<tt class="xref py py-attr docutils literal"><span class="pre">pylada.process.mpi.Communicator.machines</span></tt> attribute. This is
+simply a dictionary mapping the hostnames determined previously to the
+number of cores. It is possible, however, to modify
+<a class="reference internal" href="../pyapi/configuration.html#pylada.default_comm" title="pylada.default_comm"><tt class="xref py py-data docutils literal"><span class="pre">default_comm</span></tt></a> after the <a class="reference internal" href="../pyapi/configuration.html#pylada.figure_out_machines" title="pylada.figure_out_machines"><tt class="xref py py-data docutils literal"><span class="pre">figure_out_machines</span></tt></a>
+script is launched and the results parsed. This is done via the method
+<a class="reference internal" href="../pyapi/configuration.html#pylada.modify_global_comm" title="pylada.modify_global_comm"><tt class="xref py py-meth docutils literal"><span class="pre">modify_global_comm()</span></tt></a>. This method takes a
+<tt class="xref py py-class docutils literal"><span class="pre">pylada.process.mpi.Communicator</span></tt> instance on input and
+modifes it in-place. By default, this method does nothing.</p>
+<p>On a cray, one could set it up as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">modify_global_comm</span><span class="p">(</span><span class="n">comm</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Modifies global communicator to work on cray.</span>
+
+<span class="sd">      Replaces hostnames with the host number.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">comm</span><span class="o">.</span><span class="n">machines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">del</span> <span class="n">comm</span><span class="o">.</span><span class="n">machines</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">comm</span><span class="o">.</span><span class="n">machines</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">3</span><span class="p">:]))]</span> <span class="o">=</span> <span class="n">value</span>
+</pre></div>
+</div>
+<p>This would replace the hostnames with something aprun can use for MPI
+placement. <a class="reference internal" href="../pyapi/configuration.html#pylada.modify_global_comm" title="pylada.modify_global_comm"><tt class="xref py py-meth docutils literal"><span class="pre">modify_global_comm()</span></tt></a> is runned once at the
+beginning of a Pylada PBS/Slurm script.</p>
+</li>
+<li><p class="first">To test that the hostnames where determined correctly, one should copy
+the file &#8220;process/tests/globalcomm.py&#8221; somewhere, edit it, and launch
+it. The names of the machines should be printed out correctly, with
+the right number of cores:</p>
+<div class="highlight-bash"><div class="highlight"><pre>&gt; <span class="nb">cd </span>testhere
+&gt; cp /path/to/pylada/source/process/tests/globalcomm.py
+&gt; vi globalcomm.py
+<span class="c"># This is a PBS script.</span>
+<span class="c"># Modify it so it can be launched.</span>
+&gt; qsub globalcomm.py
+<span class="c"># Then, when it finishes:</span>
+&gt; cat global_comm_out
+EXPECTED <span class="nv">N</span><span class="o">=</span>64 <span class="nv">PPN</span><span class="o">=</span>32
+FOUND
+n 64
+ppn 32
+placement <span class="s2">&quot;&quot;</span>
+MACHINES
+PYLADA MACHINE HOSTNAME hector.006 32
+PYLADA MACHINE HOSTNAME hector.006 32
+...
+</pre></div>
+</div>
+<p>The above is an example output. One should try and launch this routine
+on more than one node, with varying number of processes per node, and
+so forth.</p>
+</li>
+</ol>
+<blockquote>
+<div><ol class="arabic" start="6">
+<li><p class="first">At this point, Pylada knows the name of each machine participating in
+a PBS/Slurm job. It still needs to be told how to run an MPI job on a
+<em>subset</em> of these machines. This will depend on the actual MPI
+implementation installed on the machine. Please first read the manual
+for your machine&#8217;s MPI implementation.</p>
+<p>Pylada takes care of MPI placements by formatting the
+<a class="reference internal" href="../pyapi/configuration.html#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">mpirun_exe</span></tt></a> string adequately. For this reason, it is
+expected that <a class="reference internal" href="../pyapi/configuration.html#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">mpirun_exe</span></tt></a> contains a &#8220;{placement}&#8221; tag
+which will be replaced with the correct value at runtime.</p>
+<p>At runtime, before placing the call to an external MPI program, the
+method <tt class="xref py py-meth docutils literal"><span class="pre">pylada.machine_dependent_call_modifier()</span></tt> is called.
+It takes three arguments: a dictionary with which to format the
+<a class="reference internal" href="../pyapi/configuration.html#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">mpirun_exe</span></tt></a> string, a dictionary or
+<tt class="xref py py-data docutils literal"><span class="pre">pylada.process.mpi.Communicator</span></tt> instance containing
+information relating to MPI, a dictionary containing the environment
+variables in which to run the MPI program. The first and second
+dictionary will be merged and used to format the
+<a class="reference internal" href="../pyapi/configuration.html#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">mpirun_exe</span></tt></a> string. By default, this method creates a
+nodefile with only those machines involved in the current job. It
+then sets &#8220;placement&#8221; to &#8220;-machinefile filename&#8221; where filename is
+the nodefile.</p>
+<p>On Crays, one could use the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">machine_dependent_call_modifier</span><span class="p">(</span> <span class="n">formatter</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                     <span class="n">comm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                     <span class="n">env</span><span class="o">=</span><span class="bp">None</span> <span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Placement modifications for aprun MPI processes.</span>
+
+<span class="sd">      aprun expects the machines (not cores) to be given on the</span>
+<span class="sd">      commandline as a list of &quot;-Ln&quot; with n the machine number.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+  <span class="kn">from</span> <span class="nn">pylada</span> <span class="kn">import</span> <span class="n">default_comm</span>
+  <span class="k">if</span> <span class="n">formatter</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span>
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="s">&#39;machines&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">placement</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+  <span class="k">elif</span> <span class="nb">sum</span><span class="p">(</span><span class="n">comm</span><span class="o">.</span><span class="n">machines</span><span class="o">.</span><span class="n">itervalues</span><span class="p">())</span> <span class="o">==</span> <span class="nb">sum</span><span class="p">(</span><span class="n">default_comm</span><span class="o">.</span><span class="n">machines</span><span class="o">.</span><span class="n">itervalues</span><span class="p">()):</span>
+    <span class="n">placement</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">comm</span><span class="o">.</span><span class="n">machines</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">placement</span> <span class="o">=</span> <span class="s">&quot;-L{0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+  <span class="n">formatter</span><span class="p">[</span><span class="s">&#39;placement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">placement</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<blockquote>
+<div><p>Note that the above requires the <a class="reference internal" href="../pyapi/configuration.html#pylada.modify_global_comm" title="pylada.modify_global_comm"><tt class="xref py py-meth docutils literal"><span class="pre">pylada.modify_global_comm()</span></tt></a>
+from point 4.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">All external program calls are routed through this function,
+whether or not it is an MPI program. Hence it is necessary to check
+that the program is to be launched an MPI or not. In the case of
+serial programs, &#8220;comm&#8221; may be None.</p>
+</div>
+</div></blockquote>
+</div></blockquote>
+<ol class="arabic" start="6">
+<li><p class="first">The whole deal can be tested using &#8220;process/tests/placement.py&#8221;
+This is a PBS job which performs MPI placement on a fake job.
+It should be copied somewhere, edited, and launched.</p>
+<p>At least two arguments should be set prior to running this script.
+Check the bottom of the script. &#8220;ppn&#8221; specifies the number of
+processors per nodes. The job should be launched with 2*&#8221;ppn&#8221; cores.
+&#8220;path&#8221; should point to the source directory of Pylada. This is so that
+a small program can be found (pifunc) and used for testing. The
+program can be compiled by Pylada by setting &#8220;compile_test True&#8221; in
+<a class="reference external" href="http://www.cmake.org/">cmake</a>.</p>
+<p>&#8220;placement.py&#8221; will launch several <em>simultaneous</em> instances of the
+&#8220;pifunc&#8221; program: one long on three quarters of allocated cores, and
+two smaller calculations on one eigth of the cores each.</p>
+<p>One should check the ouput to make sure that the programs are running
+side-by-side (not all piled up on the same node), that they are
+runnning simultaneously, and that they run successfully (e.g. mpirun
+does launch them).</p>
+</li>
+</ol>
+</div></blockquote>
+</div>
+<div class="section" id="setting-up-pylada-with-pbs-slurm">
+<span id="configuration-pbs-ug"></span><h2>Setting up Pylada with PBS/Slurm<a class="headerlink" href="#setting-up-pylada-with-pbs-slurm" title="Permalink to this headline">¶</a></h2>
+<p>A ressource manager, such as pbs or slurm, takes care of allocating
+supercomputing ressources for submitted jobs. Pylada interfaces with these <cite>via</cite>
+a few global data variables:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="../pyapi/configuration.html#pylada.qsub_exe" title="pylada.qsub_exe"><tt class="xref py py-data docutils literal"><span class="pre">qsub_exe</span></tt></a></li>
+<li><a class="reference internal" href="../pyapi/configuration.html#pylada.pbs_string" title="pylada.pbs_string"><tt class="xref py py-data docutils literal"><span class="pre">pbs_string</span></tt></a></li>
+<li><a class="reference internal" href="../pyapi/configuration.html#pylada.default_pbs" title="pylada.default_pbs"><tt class="xref py py-data docutils literal"><span class="pre">default_pbs</span></tt></a></li>
+<li><a class="reference internal" href="../pyapi/configuration.html#pylada.queues" title="pylada.queues"><tt class="xref py py-data docutils literal"><span class="pre">queues</span></tt></a></li>
+<li><a class="reference internal" href="../pyapi/configuration.html#pylada.accounts" title="pylada.accounts"><tt class="xref py py-data docutils literal"><span class="pre">accounts</span></tt></a></li>
+<li><a class="reference internal" href="../pyapi/configuration.html#pylada.debug_queue" title="pylada.debug_queue"><tt class="xref py py-data docutils literal"><span class="pre">debug_queue</span></tt></a></li>
+</ul>
+</div></blockquote>
+<p><tt class="xref py py-data docutils literal"><span class="pre">pylada.qsub</span></tt> defines the executable to submit jobs.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># openpbs</span>
+<span class="n">qsub_exe</span> <span class="o">=</span> <span class="s">&quot;qsub&quot;</span>
+<span class="c"># slurn</span>
+<span class="n">qsub_exe</span> <span class="o">=</span> <span class="s">&quot;sbatch&quot;</span>
+</pre></div>
+</div>
+<p>The scripts themselves are defined <cite>via</cite> the <a class="reference external" href="http://docs.python.org/library/stdtypes.html#str.format">format string</a>
+<a class="reference internal" href="../pyapi/configuration.html#pylada.pbs_string" title="pylada.pbs_string"><tt class="xref py py-data docutils literal"><span class="pre">pylada.pbs_string</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pbs_string</span> <span class="o">=</span>  <span class="s">&quot;#! /bin/bash/</span><span class="se">\n</span><span class="s">&quot;</span>\
+<span class="gp">... </span>              <span class="s">&quot;#SBATCH --account={account}</span><span class="se">\n</span><span class="s">&quot;</span>\
+<span class="gp">... </span>              <span class="s">&quot;#SBATCH --time={walltime}</span><span class="se">\n</span><span class="s">&quot;</span>\
+<span class="gp">... </span>              <span class="s">&quot;#SBATCH -N={nnodes}</span><span class="se">\n</span><span class="s">&quot;</span>\
+<span class="gp">... </span>              <span class="s">&quot;#SBATCH -e={err}</span><span class="se">\n</span><span class="s">&quot;</span>\
+<span class="gp">... </span>              <span class="s">&quot;#SBATCH -o={out}</span><span class="se">\n</span><span class="s">&quot;</span>\
+<span class="gp">... </span>              <span class="s">&quot;#SBATCH -J={name}</span><span class="se">\n</span><span class="s">&quot;</span>\
+<span class="gp">... </span>              <span class="s">&quot;#SBATCH -D={directory}</span><span class="se">\n\n</span><span class="s">&quot;</span>\
+<span class="gp">... </span>              <span class="s">&quot;python {scriptcommand}</span><span class="se">\n</span><span class="s">&quot;</span>
+</pre></div>
+</div>
+<p>Again, there are few reserved keywords which Pylada will use to fill in the
+string.</p>
+<blockquote>
+<div><ul class="simple">
+<li>account: defines the relevant account to which the calculation is
+submitted.</li>
+<li>queue: defines the relevant queue to which the calculation is
+submitted.</li>
+<li>walltime: maximum time for which the calculation will run</li>
+<li>n: Number of processes to run the job on.</li>
+<li>ppn: Number of processes per node.</li>
+<li>nnodes: number of nodes the calculation will run. This is generally
+computed from &#8220;ppn&#8221; and &#8220;n&#8221;.</li>
+<li>err: Standard error file. Generated by Pylada.</li>
+<li>out: Standard output file. Generated by Pylada.</li>
+<li>name: Name of the job. Generated by Pylada.</li>
+<li>directory: Directory where the job is launched. Generated by Pylada.</li>
+<li>scriptcommand: Script to launch. Generated by Pylada.</li>
+</ul>
+</div></blockquote>
+<p>Most of the keywords are automatically generated by Pylada. Is is for the
+user to provide a script where the requisite number of keywords make sense
+for any particular ressource manager.</p>
+<p>Default keyword values should be stored in the dictionary
+<a class="reference internal" href="../pyapi/configuration.html#pylada.default_pbs" title="pylada.default_pbs"><tt class="xref py py-data docutils literal"><span class="pre">pylada.default_pbs</span></tt></a>.</p>
+<p>The different queues (accounts) accessible to the users can be listed in
+<a class="reference internal" href="../pyapi/configuration.html#pylada.queues" title="pylada.queues"><tt class="xref py py-data docutils literal"><span class="pre">pylada.queues</span></tt></a> (<a class="reference internal" href="../pyapi/configuration.html#pylada.accounts" title="pylada.accounts"><tt class="xref py py-data docutils literal"><span class="pre">pylada.accounts</span></tt></a>). These will be made
+available to the users <cite>via</cite> <a class="reference internal" href="ipython.html#ipython-launch-ug"><em>%launch</em></a>. If &#8220;queue&#8221;
+is not relevant to a particular supercomputer, <a class="reference internal" href="../pyapi/configuration.html#pylada.queues" title="pylada.queues"><tt class="xref py py-data docutils literal"><span class="pre">pylada.queues</span></tt></a> can
+be set to the empty tuple.</p>
+<p>The debug/interactive queue can be made more easily accessible <cite>via</cite>
+<a class="reference internal" href="../pyapi/configuration.html#pylada.debug_queue" title="pylada.debug_queue"><tt class="xref py py-data docutils literal"><span class="pre">pylada.debug_queue</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pylada</span><span class="o">.</span><span class="n">debug_queue</span> <span class="o">=</span> <span class="s">&#39;queue&#39;</span><span class="p">,</span> <span class="s">&#39;debug&#39;</span>
+</pre></div>
+</div>
+<p>The first item of the tuple is the keyword that should be set to access the
+relevant resource. The second is the relevant value. These will differ from
+supercomputer to supercomputer. In practice, the first is generally &#8220;queue&#8221;
+or &#8220;account&#8221;, and the second is something like &#8220;debug&#8221;.</p>
+<p>It is also possible to define <a class="reference internal" href="../pyapi/configuration.html#pylada.pbs_string" title="pylada.pbs_string"><tt class="xref py py-data docutils literal"><span class="pre">pbs_string</span></tt></a> as a callable which
+takes keyword arguments and return a string.
+For instance, PBSpro does not accept names longuer that fifteen characters.
+That&#8217;s just to high-tech for an expensive propietary software:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">default_pbs</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&#39;walltime&#39;</span><span class="p">:</span> <span class="s">&quot;00:55:00&quot;</span><span class="p">,</span> <span class="s">&#39;nnodes&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&#39;ppn&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+                <span class="s">&#39;account&#39;</span><span class="p">:</span> <span class="s">&#39;eO5&#39;</span><span class="p">,</span> <span class="s">&#39;header&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&#39;footer&#39;</span><span class="p">:</span> <span class="s">&quot;&quot;</span> <span class="p">}</span>
+
+<span class="k">def</span> <span class="nf">pbs_string</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="k">if</span> <span class="s">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">][:</span><span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]),</span> <span class="mi">15</span><span class="p">)]</span>
+  <span class="k">return</span> <span class="s">&quot;#! /bin/bash --login</span><span class="se">\n</span><span class="s">&quot;</span>                                      \
+         <span class="s">&quot;#PBS -e </span><span class="se">\&quot;</span><span class="s">{err}</span><span class="se">\&quot;\n</span><span class="s">&quot;</span>                                         \
+         <span class="s">&quot;#PBS -o </span><span class="se">\&quot;</span><span class="s">{out}</span><span class="se">\&quot;\n</span><span class="s">&quot;</span>                                         \
+         <span class="s">&quot;#PBS -N {name}</span><span class="se">\n</span><span class="s">&quot;</span>                                            \
+         <span class="s">&quot;#PBS -l mppwidth={n}</span><span class="se">\n</span><span class="s">&quot;</span>                                      \
+         <span class="s">&quot;#PBS -l mppnppn={ppn}</span><span class="se">\n</span><span class="s">&quot;</span>                                     \
+         <span class="s">&quot;#PBS -l walltime={walltime}</span><span class="se">\n</span><span class="s">&quot;</span>                               \
+         <span class="s">&quot;#PBS -A {account}</span><span class="se">\n</span><span class="s">&quot;</span>                                         \
+         <span class="s">&quot;#PBS -V </span><span class="se">\n\n</span><span class="s">&quot;</span>                                                \
+         <span class="s">&quot;export PYLADA_TMPDIR=/work/e05/e05/`whoami`/pylada_tmp</span><span class="se">\n</span><span class="s">&quot;</span>    \
+         <span class="s">&quot;if [ ! -e $PYLADA_TMPDIR ] ; then</span><span class="se">\n</span><span class="s">&quot;</span>                         \
+         <span class="s">&quot;  mkdir -p $PYLADA_TMPDIR</span><span class="se">\n</span><span class="s">&quot;</span>                                 \
+         <span class="s">&quot;fi</span><span class="se">\n</span><span class="s">&quot;</span>                                                        \
+         <span class="s">&quot;cd {directory}</span><span class="se">\n</span><span class="s">&quot;</span>                                            \
+         <span class="s">&quot;{header}</span><span class="se">\n</span><span class="s">&quot;</span>                                                  \
+         <span class="s">&quot;python {scriptcommand}</span><span class="se">\n</span><span class="s">&quot;</span>                                    \
+         <span class="s">&quot;{footer}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="setting-up-pylada-to-call-vasp">
+<span id="install-vasp-ug"></span><h3>Setting up Pylada to call VASP<a class="headerlink" href="#setting-up-pylada-to-call-vasp" title="Permalink to this headline">¶</a></h3>
+<p>There are only two variable specific to vasp calculations:</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><a class="reference internal" href="../pyapi/configuration.html#pylada.is_vasp_4" title="pylada.is_vasp_4"><tt class="xref py py-data docutils literal"><span class="pre">is_vasp_4</span></tt></a> defines whether the installed vasp program is
+version 4.6 or 5.0 and higher. In practice, this determines which POSCAR
+format to use, and whether or not some input options are available.</p>
+</li>
+<li><p class="first"><a class="reference internal" href="../pyapi/configuration.html#pylada.vasp_program" title="pylada.vasp_program"><tt class="xref py py-data docutils literal"><span class="pre">vasp_program</span></tt></a> defines the vasp executable. In general, it
+will be a string with path to the executable. It can also be a callable
+which takes the functional as input:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">vasp_program</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Figures out the vasp executable.</span>
+
+<span class="sd">      It is expected that two vasp executable exist, a *normal* vasp,</span>
+<span class="sd">      and a one compiled for non-collinear calculations.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">lsorbit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;lsorbit&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span>
+  <span class="k">return</span> <span class="s">&quot;vasp-4.6-nc&quot;</span> <span class="k">if</span> <span class="n">lsorbit</span>  <span class="k">else</span> <span class="s">&quot;vasp-4.6&quot;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Pylada should be <a class="reference internal" href="#configuration-mpi-ug"><em>Set up</em></a> properly to run mpi calculations.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Please follow the links for their description. Questions regarding how to
+compile should be addressed to the relevant authorities.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Setting up Pylada</a><ul>
+<li><a class="reference internal" href="#setting-up-ipython">Setting up IPython</a></li>
+<li><a class="reference internal" href="#running-external-programs">Running external programs</a></li>
+<li><a class="reference internal" href="#running-mpi-calculations">Running MPI calculations</a></li>
+<li><a class="reference internal" href="#running-different-mpi-calculations-side-by-side">Running different MPI calculations side-by-side</a></li>
+<li><a class="reference internal" href="#setting-up-pylada-with-pbs-slurm">Setting up Pylada with PBS/Slurm</a><ul>
+<li><a class="reference internal" href="#setting-up-pylada-to-call-vasp">Setting up Pylada to call VASP</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="compile.html"
+                        title="previous chapter">Compiling and installing</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="testing.html"
+                        title="next chapter">Testing Pylada</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/userguide/configuration.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="testing.html" title="Testing Pylada"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="compile.html" title="Compiling and installing"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

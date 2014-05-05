@@ -1,0 +1,1071 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pylada.dftcrystal.electronic &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="pylada.dftcrystal" href="../dftcrystal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" accesskey="U">pylada.dftcrystal</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pylada.dftcrystal.electronic</h1><div class="highlight"><pre>
+<span class="c">###############################</span>
+<span class="c">#  This file is part of PyLaDa.</span>
+<span class="c">#</span>
+<span class="c">#  Copyright (C) 2013 National Renewable Energy Lab</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit</span>
+<span class="c">#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as</span>
+<span class="c">#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It</span>
+<span class="c">#  is able to organise and launch computational jobs on PBS and SLURM.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General</span>
+<span class="c">#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at</span>
+<span class="c">#  your option) any later version.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even</span>
+<span class="c">#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c">#  Public License for more details.</span>
+<span class="c"># </span>
+<span class="c">#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see</span>
+<span class="c">#  &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">###############################</span>
+
+<span class="sd">&quot;&quot;&quot; Subpackage grouping hamiltonian and computational parameters. </span>
+
+<span class="sd">    In practice, this holds &quot;block 3&quot; input. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">__docformat__</span> <span class="o">=</span> <span class="s">&quot;restructuredtext en&quot;</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Electronic&#39;</span><span class="p">]</span>
+<span class="kn">from</span> <span class="nn">.input</span> <span class="kn">import</span> <span class="n">AttrBlock</span><span class="p">,</span> <span class="n">BoolKeyword</span>
+<span class="kn">from</span> <span class="nn">..tools.input</span> <span class="kn">import</span> <span class="n">TypedKeyword</span><span class="p">,</span> <span class="n">BaseKeyword</span>
+<span class="kn">from</span> <span class="nn">quantities</span> <span class="kn">import</span> <span class="n">UnitQuantity</span><span class="p">,</span> <span class="n">hartree</span>
+
+<span class="k">class</span> <span class="nc">Shrink</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Implements SHRINK parameter. &quot;&quot;&quot;</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;shrink&#39;</span>
+  <span class="sd">&quot;&quot;&quot; Crystal keyword. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">gallat</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Initializes Shrink keyword. </span>
+
+<span class="sd">        :param mp: </span>
+<span class="sd">           - if an integer, corresponds to IS variable of SHRINK.</span>
+<span class="sd">           - if a sequence of at most three integers, corresponds to IS1, IS2,</span>
+<span class="sd">             IS3. In that case, IS is of course set to 0. If there are only one</span>
+<span class="sd">             or two numbers, then IS2 and/or IS3 is set to one. If None, the</span>
+<span class="sd">             set to 1.</span>
+<span class="sd">        :param int gallat:</span>
+<span class="sd">           Corresponds to ISP variable of SHRINK. If None, then it is set equal</span>
+<span class="sd">           to IS1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Shrink</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">=</span> <span class="n">mp</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="o">=</span> <span class="n">gallat</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">mp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Defines the Monkhorst-Pack mesh. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mp</span>
+  <span class="nd">@mp.setter</span>
+  <span class="k">def</span> <span class="nf">mp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mp</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+      <span class="n">mp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;k-point mesh defined by at most three integers.&#39;</span><span class="p">)</span>
+      <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">mp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">mp</span> <span class="o">=</span> <span class="mi">1</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_mp</span> <span class="o">=</span> <span class="n">mp</span>
+    <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">gallat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Defines Gallat mesh for density matrix and Fermi energy. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gallat</span>
+  <span class="nd">@gallat.setter</span>
+  <span class="k">def</span> <span class="nf">gallat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span> 
+    <span class="bp">self</span><span class="o">.</span><span class="n">_gallat</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Prints raw CRYSTAL input. &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="s">&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+      <span class="n">ISP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span>
+      <span class="n">IS</span> <span class="o">=</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="mi">3</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">)))</span>
+      <span class="k">return</span> <span class="s">&#39;0 {0}</span><span class="se">\n</span><span class="s">{1}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ISP</span><span class="p">,</span> <span class="n">IS</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">ISP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span>
+      <span class="k">return</span> <span class="s">&#39;{0} {1}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">,</span> <span class="n">ISP</span><span class="p">)</span>
+  <span class="nd">@raw.setter</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets from raw CRYSTAL input. &quot;&quot;&quot;</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">IS</span><span class="p">,</span> <span class="n">ISP</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">IS</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]]</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">ISP</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="k">else</span> <span class="n">ISP</span>
+      <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">ISP</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="n">ISP</span>
+    <span class="k">else</span><span class="p">:</span> 
+      <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">=</span> <span class="n">IS</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">ISP</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="k">else</span> <span class="n">ISP</span>
+
+  <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets the keyword more easily. &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+  <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Representation of this instance. &quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;gallat={0.gallat!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mp</span><span class="p">))</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;{0.gallat!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&#39;{0.__class__.__name__}({1})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+  <span class="k">def</span> <span class="nf">__ui_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates user friendly representation. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..tools.uirepr</span> <span class="kn">import</span> <span class="n">add_to_imports</span>
+    <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gallat</span> <span class="o">==</span> <span class="n">defaults</span><span class="o">.</span><span class="n">gallat</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="o">==</span> <span class="n">defaults</span><span class="o">.</span><span class="n">mp</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="p">{}</span>
+      <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="s">&#39;{0.mp!r}, {0.gallat!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+    <span class="k">elif</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+      <span class="k">return</span> <span class="p">{</span><span class="bp">None</span><span class="p">:</span> <span class="s">&#39;shrink = {0!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+    <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()}</span>
+
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Prints SHRINK keyword &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.molecule</span> <span class="kn">import</span> <span class="n">Molecule</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="c"># The &#39;get&#39; piece is to make testing a bit easier</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;structure&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span> <span class="ow">is</span> <span class="n">Molecule</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Shrink</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_get_list</span><span class="p">(</span><span class="n">name</span><span class="p">):</span> 
+  <span class="sd">&quot;&quot;&quot; Creates getter method for AtomSpin. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">getme</span><span class="p">(</span><span class="n">this</span><span class="p">):</span> <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">getme</span>
+<span class="k">def</span> <span class="nf">_set_list</span><span class="p">(</span><span class="n">name</span><span class="p">):</span> 
+  <span class="sd">&quot;&quot;&quot; Creates setter method for AtomSpin. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">setme</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span> 
+    <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Iterable</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">TypeError</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s">&#39;Expected a sequence when setting {0} in AtomSpin.&#39;</span>   \
+                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s">&#39;Expected an iterable when setting {0} in AtomSpin.&#39;</span>  \
+                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="p">)</span>
+      <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span> 
+        <span class="k">try</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span> <span class="s">&#39;Wrong type in list when setting AtomSpin.{0}.&#39;</span>     \
+                           <span class="s">&#39;The list should be all integers.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">this</span><span class="p">,</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">setme</span>
+
+<span class="k">class</span> <span class="nc">AtomSpin</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;atomspin&#39;</span> 
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">up</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">down</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates AtomSpin instance &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">AtomSpin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="o">=</span> <span class="n">up</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="o">=</span> <span class="n">down</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">other</span> <span class="o">=</span> <span class="n">other</span>
+  <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;up&#39;</span><span class="p">,</span> <span class="s">&#39;alpha&#39;</span><span class="p">]:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;down&#39;</span><span class="p">,</span> <span class="s">&#39;beta&#39;</span><span class="p">]:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;other&#39;</span><span class="p">,</span> <span class="s">&#39;others&#39;</span><span class="p">,</span> <span class="s">&#39;irrelevant&#39;</span><span class="p">]:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">others</span>
+    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;Unknown index to AtomSpin {0}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+  <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;up&#39;</span><span class="p">,</span> <span class="s">&#39;alpha&#39;</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;down&#39;</span><span class="p">,</span> <span class="s">&#39;beta&#39;</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;other&#39;</span><span class="p">,</span> <span class="s">&#39;others&#39;</span><span class="p">,</span> <span class="s">&#39;irrelevant&#39;</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">others</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;Unknown index to AtomSpin {0}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+
+  
+  <span class="n">up</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span> <span class="n">_get_list</span><span class="p">(</span><span class="s">&#39;up&#39;</span><span class="p">),</span> <span class="n">_set_list</span><span class="p">(</span><span class="s">&#39;up&#39;</span><span class="p">),</span>
+                 <span class="n">doc</span><span class="o">=</span><span class="s">&quot;&quot;&quot; Labels of atoms with spin up. &quot;&quot;&quot;</span> <span class="p">)</span>
+  <span class="n">down</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span> <span class="n">_get_list</span><span class="p">(</span><span class="s">&#39;down&#39;</span><span class="p">),</span> <span class="n">_set_list</span><span class="p">(</span><span class="s">&#39;down&#39;</span><span class="p">),</span>
+                   <span class="n">doc</span><span class="o">=</span><span class="s">&quot;&quot;&quot; Labels of atoms with spin down. &quot;&quot;&quot;</span> <span class="p">)</span>
+  <span class="n">other</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span> <span class="n">_get_list</span><span class="p">(</span><span class="s">&#39;other&#39;</span><span class="p">),</span> <span class="n">_set_list</span><span class="p">(</span><span class="s">&#39;other&#39;</span><span class="p">),</span>
+            <span class="n">doc</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot; Labels of atoms with irrelevant atoms. </span>
+<span class="s">                  </span>
+<span class="s">		      &#39;Irrelevant&#39; is the word used by the CRYSTAL_ userguide.</span>
+<span class="s">		      This feature is likely only relevant to bash-scripts. </span>
+<span class="s">                  &quot;&quot;&quot;</span> <span class="p">)</span>
+                    
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates standard output map for AtomSpin. &quot;&quot;&quot;</span>
+    <span class="c"># If disabled returns None</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">other</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">return</span> <span class="bp">None</span>
+    <span class="c"># if not a spin polarized calculation, then disabled.</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dft</span><span class="o">.</span><span class="n">spin</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="c"># If GuessP then disabled. </span>
+    <span class="k">if</span> <span class="s">&#39;crystal&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+      <span class="n">kwargs_copy</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+      <span class="n">kwargs_copy</span><span class="p">[</span><span class="s">&#39;filework&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+      <span class="nb">map</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">scf</span><span class="o">.</span><span class="n">_input</span><span class="p">[</span><span class="s">&#39;guessp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs_copy</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">map</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;guessp&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;True&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="c"># Ok, now add ATOMSPIN stuff.</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">result</span> <span class="o">+=</span> <span class="s">&#39; 1  &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; 1</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">result</span> <span class="o">+=</span> <span class="s">&#39; -1  &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; -1</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">result</span> <span class="o">+=</span> <span class="s">&#39; 0  &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">other</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; 0</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">keyword</span><span class="p">:</span> <span class="s">&#39;{0}</span><span class="se">\n</span><span class="s">{1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">split</span><span class="p">())</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="n">result</span><span class="p">)}</span>
+  <span class="k">def</span> <span class="nf">read_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Reads input. &quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_up</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_down</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_other</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">spin</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">results</span><span class="p">[:</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">:</span><span class="mi">2</span><span class="p">]):</span>
+      <span class="k">if</span> <span class="n">spin</span> <span class="o">==</span> <span class="s">&#39;1&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+      <span class="k">elif</span> <span class="n">spin</span> <span class="o">==</span> <span class="s">&#39;-1&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+      <span class="k">elif</span> <span class="n">spin</span> <span class="o">==</span> <span class="s">&#39;0&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="s">&#39;Unexpected value when reading AtomSpin data {0}.&#39;</span>   \
+                          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">other</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Representation of the this object. &quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="p">))</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;down={0.down!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;other={0.other!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&#39;{0.__class__.__name__}({1})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+  <span class="k">def</span> <span class="nf">__ui_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates user friendly representation. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..tools.uirepr</span> <span class="kn">import</span> <span class="n">add_to_imports</span>
+
+    <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="o">==</span> <span class="n">defaults</span><span class="o">.</span><span class="n">up</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="o">==</span> <span class="n">defaults</span><span class="o">.</span><span class="n">down</span>                 \
+         <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">other</span> <span class="o">==</span> <span class="n">defaults</span><span class="o">.</span><span class="n">other</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="p">{}</span>
+      <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">up</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">up</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.up&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;{0.up!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.down&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;{0.down!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.down&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;{0.other!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">results</span>
+    <span class="k">elif</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+      <span class="k">return</span> <span class="p">{</span><span class="bp">None</span><span class="p">:</span> <span class="s">&#39;atomspin = {0!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+    <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()}</span>
+
+<span class="k">class</span> <span class="nc">SpinLock</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Implements SpinLock keyword. &quot;&quot;&quot;</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;spinlock&#39;</span>
+  <span class="sd">&quot;&quot;&quot; CRYSTAL input keyword. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nspin</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ncycles</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates the LEVSHIFT keyword. &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">SpinLock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span> <span class="o">=</span> <span class="n">nspin</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="o">=</span> <span class="n">ncycles</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">nspin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nspin</span>
+  <span class="nd">@nspin.setter</span>
+  <span class="k">def</span> <span class="nf">nspin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nspin</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_nspin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nspin</span><span class="p">)</span> <span class="k">if</span> <span class="n">nspin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">None</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">ncycles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Whether shift is kept after diagaonalization. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ncycles</span>
+  <span class="nd">@ncycles.setter</span>
+  <span class="k">def</span> <span class="nf">ncycles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncycles</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_ncycles</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">ncycles</span><span class="p">)</span> <span class="k">if</span> <span class="n">ncycles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">None</span>
+  <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets the value of this instance. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">ValueError</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s">&#39;__getitem__&#39;</span><span class="p">):</span> 
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Incorrect input to spinlock: {0}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; list [self.nspin, self.ncycles] &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span>
+    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;Levshift can be indexed with 0, 1, or -1 only.&#39;</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; sets as list [self.nspin, self.ncycles] &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;Levshift can be indexed with 0, 1, or -1 only.&#39;</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="mi">2</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; CRYSTAL input as a string &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="s">&#39;&#39;</span>
+    <span class="k">return</span> <span class="s">&#39;{0} {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nspin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span><span class="p">)</span>
+  <span class="nd">@raw.setter</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets instance from raw data &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dft</span><span class="o">.</span><span class="n">spin</span> <span class="o">!=</span> <span class="bp">True</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">SpinLock</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nspin</span><span class="p">))</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="s">&#39;ncycles={0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>        \
+                   <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;{0.__class__.__name__}({1})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+  <span class="k">def</span> <span class="nf">__ui_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates user friendly representation. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..tools.uirepr</span> <span class="kn">import</span> <span class="n">add_to_imports</span>
+
+    <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="p">{}</span>
+      <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nspin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nspin</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.nspin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;{0.nspin!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncycles</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.ncycles&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;{0.ncycles!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">results</span>
+    <span class="k">elif</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+      <span class="k">return</span> <span class="p">{</span><span class="bp">None</span><span class="p">:</span> <span class="s">&#39;levshift = {0!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+    <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()}</span>
+<span class="k">class</span> <span class="nc">BetaLock</span><span class="p">(</span><span class="n">SpinLock</span><span class="p">):</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;betalock&#39;</span>
+  
+
+<span class="k">class</span> <span class="nc">LevShift</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Implements LevShift keyword. &quot;&quot;&quot;</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;levshift&#39;</span>
+  <span class="sd">&quot;&quot;&quot; CRYSTAL input keyword. &quot;&quot;&quot;</span>
+  <span class="n">units</span> <span class="o">=</span> <span class="n">UnitQuantity</span><span class="p">(</span><span class="s">&#39;decihartree&#39;</span><span class="p">,</span> <span class="mf">0.1</span><span class="o">*</span><span class="n">hartree</span><span class="p">)</span>
+  <span class="sd">&quot;&quot;&quot; LEVSHIFT takes 0.1 * hartrees. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">lock</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates the LEVSHIFT keyword. &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">LevShift</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">shift</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">lock</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Value to which this keyword is set. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shift</span>
+  <span class="nd">@shift.setter</span>
+  <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shift</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Artificial shift between conduction and valence bands. </span>
+<span class="sd">  </span>
+<span class="sd">        Can be a regular floating point, in which case the units are 0.1 *</span>
+<span class="sd">        hartree, or a scalar signed by an unit with dimensionality of an energy.</span>
+<span class="sd">        In the latter case, the value is rescaled to 0.1 H.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">ValueError</span>
+    <span class="k">if</span> <span class="n">shift</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shift</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">shift</span><span class="p">,</span> <span class="s">&#39;rescale&#39;</span><span class="p">):</span> <span class="n">shift</span> <span class="o">=</span> <span class="n">shift</span><span class="o">.</span><span class="n">rescale</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">shift</span> <span class="o">=</span> <span class="n">shift</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shift</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;shift should be a scalar.&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_shift</span> <span class="o">=</span> <span class="n">shift</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">lock</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Whether shift is kept after diagaonalization. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span>
+  <span class="nd">@lock.setter</span>
+  <span class="k">def</span> <span class="nf">lock</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lock</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">lock</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">lock</span> <span class="o">==</span> <span class="bp">True</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets the value of this instance. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">ValueError</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s">&#39;__getitem__&#39;</span><span class="p">):</span> 
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Incorrect input to levshift: {0}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; list [self.shift, self.lock] &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span>
+    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;Levshift can be indexed with 0, 1, or -1 only.&#39;</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; sets as list [self.shift, self.lock] &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;Levshift can be indexed with 0, 1, or -1 only.&#39;</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="mi">2</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; CRYSTAL input as a string &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="s">&#39;&#39;</span>
+    <span class="k">return</span> <span class="s">&#39;{0} {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span><span class="o">+</span><span class="mf">0.01</span><span class="p">),</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="nd">@raw.setter</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets instance from raw data &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">LevShift</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="s">&#39;lock={0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>              \
+                   <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;{0.__class__.__name__}({1})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+  <span class="k">def</span> <span class="nf">__ui_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates user friendly representation. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..tools.uirepr</span> <span class="kn">import</span> <span class="n">add_to_imports</span>
+
+    <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="p">{}</span>
+      <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">results</span><span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.shift&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;{0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">))</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s">&#39;.lock&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;{0.lock!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">results</span>
+    <span class="k">elif</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+      <span class="k">return</span> <span class="p">{</span><span class="bp">None</span><span class="p">:</span> <span class="s">&#39;levshift = {0!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+    <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()}</span>
+
+<span class="k">class</span> <span class="nc">GuessP</span><span class="p">(</span><span class="n">BoolKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Implements GuessP parameter. &quot;&quot;&quot;</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;guessp&#39;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">GuessP</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">..misc</span> <span class="kn">import</span> <span class="n">latest_file</span><span class="p">,</span> <span class="n">copyfile</span>
+    <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">CRYSTAL_filenames</span> <span class="k">as</span> <span class="n">filenames</span>
+    <span class="kn">from</span> <span class="nn">.properties</span> <span class="kn">import</span> <span class="n">Properties</span>
+    
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">restart</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">restart</span><span class="o">.</span><span class="n">directory</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filenames</span><span class="p">[</span><span class="s">&#39;fort.9&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;crystal&#39;</span><span class="p">)),</span>            \
+            <span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filenames</span><span class="p">[</span><span class="s">&#39;fort.98&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;crystal&#39;</span><span class="p">))</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">latest_file</span><span class="p">(</span><span class="o">*</span><span class="n">paths</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;filework&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+      <span class="n">props</span> <span class="o">=</span> <span class="n">Properties</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">restart</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">filename</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="s">&#39;.f9&#39;</span><span class="p">:</span>
+        <span class="n">props</span><span class="o">.</span><span class="n">fmwf</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">props</span><span class="p">(</span><span class="n">outdir</span><span class="o">=</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">Properties</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+      <span class="n">props</span><span class="o">.</span><span class="n">rdfmwf</span> <span class="o">=</span> <span class="bp">True</span>
+      <span class="n">props</span><span class="p">(</span><span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+      <span class="n">copyfile</span><span class="p">(</span><span class="n">filenames</span><span class="p">[</span><span class="s">&#39;fort.9&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s">&#39;crystal&#39;</span><span class="p">),</span> <span class="s">&#39;fort.20&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">GuessP</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Broyden</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Broyden mixing parameters. &quot;&quot;&quot;</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;broyden&#39;</span>
+  <span class="sd">&quot;&quot;&quot; CRYSTAL keyword. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">w0</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">imix</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">istart</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Broyden</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="o">=</span> <span class="n">w0</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">imix</span> <span class="o">=</span> <span class="n">imix</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">istart</span> <span class="o">=</span> <span class="n">istart</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">w0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Anderson mixing parameter. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_w0</span>
+  <span class="nd">@w0.setter</span>
+  <span class="k">def</span> <span class="nf">w0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">ValueError</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_w0</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_w0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;w0 attribute expects a floating point in Broyden.&#39;</span><span class="p">)</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">imix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Percent mixing when Broyden is switched on. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imix</span>
+  <span class="nd">@imix.setter</span>
+  <span class="k">def</span> <span class="nf">imix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">ValueError</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imix</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="k">try</span><span class="p">:</span> <span class="n">dummy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;imix attribute expects an integer point in Broyden.&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="n">dummy</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">dummy</span> <span class="o">&gt;</span> <span class="mi">99</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Broyden&#39;s imix should be &gt; 0 and &lt; 100.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_imix</span> <span class="o">=</span> <span class="n">dummy</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">istart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Percent mixing when Broyden is switched on. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_istart</span>
+  <span class="nd">@istart.setter</span>
+  <span class="k">def</span> <span class="nf">istart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">ValueError</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_istart</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="k">try</span><span class="p">:</span> <span class="n">dummy</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;istart attribute expects an integer point in Broyden.&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">dummy</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span> 
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Broyden&#39;s istart should be larger than or equal to 2.&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_istart</span> <span class="o">=</span> <span class="n">dummy</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_w0</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_istart</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imix</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">keyword</span><span class="p">:</span> <span class="s">&#39;{0.w0!r} {0.imix!r} {0.istart!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+
+  <span class="k">def</span> <span class="nf">read_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__set__</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+  <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Sequence</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">TypeError</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_w0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_istart</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+      <span class="k">return</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Expected a sequence [float, int, int] in Brodyen.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span> 
+      <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&quot;Expected a sequence [float, int, int] in Brodyen.&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">imix</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">istart</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+  <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Allows access to input as sequence. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">3</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">imix</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">istart</span>
+    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;Index out-of-range in Broyden.&#39;</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Allows access to input as sequence. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">3</span><span class="p">:</span>   <span class="bp">self</span><span class="o">.</span><span class="n">w0</span>     <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">imix</span>   <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">istart</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;Index out-of-range in Broyden.&#39;</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Prints keyword to string. &quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;{0.w0!r}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">imix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;imix={0.imix!r}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;{0.imix!r}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">istart</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;istart={0.istart!r}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;{0.istart!r}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&quot;{0.__class__.__name__}({1})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="Electronic"><a class="viewcode-back" href="../../../pyapi/dftcrystal/comp.html#pylada.dftcrystal.electronic.Electronic">[docs]</a><span class="k">class</span> <span class="nc">Electronic</span><span class="p">(</span><span class="n">AttrBlock</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; DFT attribute block. &quot;&quot;&quot;</span> 
+  <span class="n">__ui_name__</span> <span class="o">=</span> <span class="s">&#39;electronics&#39;</span>
+  <span class="sd">&quot;&quot;&quot; Name used when printing this instance with ui_repr &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates the scf attribute block. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..tools.input</span> <span class="kn">import</span> <span class="n">ChoiceKeyword</span><span class="p">,</span> <span class="n">QuantityKeyword</span>
+    <span class="kn">from</span> <span class="nn">.input</span> <span class="kn">import</span> <span class="n">SetPrint</span>
+    <span class="kn">from</span> <span class="nn">.hamiltonian</span> <span class="kn">import</span> <span class="n">Dft</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Electronic</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">maxcycle</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Maximum number of electronic minimization steps.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default) or an integer. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tolinteg</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Integration truncation criteria.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default) or a sequence of 5 integers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">toldep</span>   <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Density matrix convergence criteria.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default) or an integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tolpseud</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Pseudopotential truncation criteria.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default) or an integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">toldee</span>   <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Total energy convergence criteria.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default) or an integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">testpdim</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Stop after processing input and performing symmetry analysis.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">test</span>     <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Stop after printing ressource requirement.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">symadapt</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Symmetry adapted bloch wavefunctions.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">savewf</span>   <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Save wavefunctions to disk.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">shrink</span>   <span class="o">=</span> <span class="n">Shrink</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; k-point description -- SHRINK</span>
+<span class="sd">    </span>
+<span class="sd">        The IS (or IS1, IS2, IS3) and ISP keywords are mapped to</span>
+<span class="sd">        :py:attr:`~Shrink.mp` and :py:attr:`~Shrink.gallat`. </span>
+<span class="sd">    </span>
+<span class="sd">        They can be used as follows::</span>
+<span class="sd">    </span>
+<span class="sd">          functional.shrink.mp = 5</span>
+<span class="sd">          functional.shrink.gallat = 10</span>
+<span class="sd">    </span>
+<span class="sd">        This will map IS to 5 and ISP to 10.</span>
+<span class="sd">        ISP automatically set to equal IS (or IS1) when :py:attr:`~Shrink.gallat`</span>
+<span class="sd">        is set to None::</span>
+<span class="sd">    </span>
+<span class="sd">          functional.shrink.mp = 10</span>
+<span class="sd">          functional.shrink.gallat = None</span>
+<span class="sd">    </span>
+<span class="sd">        This will print in the CRYSTAL input:</span>
+<span class="sd">    </span>
+<span class="sd">          | SHRINK</span>
+<span class="sd">          | 5 5</span>
+<span class="sd">    </span>
+<span class="sd">        Finally, setting :py:attr:`~Shrink.mp` to a sequence of at most three</span>
+<span class="sd">        integers will set IS to 0 and IS1, IS2 (defaults to 1), and IS3 (defaults</span>
+<span class="sd">        to 1) to the relevant values::</span>
+<span class="sd">    </span>
+<span class="sd">          functional.shrink.mp = [5, 6]</span>
+<span class="sd">          functional.shrink.gallat = None</span>
+<span class="sd">          </span>
+<span class="sd">        This will lead to the following input, where ISP defaulted automatically</span>
+<span class="sd">        to IS1:</span>
+<span class="sd">    </span>
+<span class="sd">          | SHRINK</span>
+<span class="sd">          | 0 5</span>
+<span class="sd">          | 5 6 1</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">        Another option it to set :py:attr:`~Shrink.mp` and</span>
+<span class="sd">        :py:attr:`~Shrink.gallat` directly::</span>
+<span class="sd">    </span>
+<span class="sd">          functional.shrink = 8, 8</span>
+<span class="sd">    </span>
+<span class="sd">        would result in the following ouput</span>
+<span class="sd">    </span>
+<span class="sd">          | SHRINK</span>
+<span class="sd">          | 8 8</span>
+<span class="sd">    </span>
+<span class="sd">        :py:attr:`~Shrink.mp` will be set to the first item. and</span>
+<span class="sd">        :py:attr:`~Shrink.gallat` to the second. There should always be two</span>
+<span class="sd">        items.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">fmixing</span>  <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Fock mixing during electronic minimiztion.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default) or an integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">levshift</span> <span class="o">=</span> <span class="n">LevShift</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Artificial shift between the valence and conduction band.</span>
+
+<span class="sd">        Opens the gap between occupied and unoccupied bands for better</span>
+<span class="sd">        numerical behavior. It can be set as follows:</span>
+
+<span class="sd">        &gt;&gt;&gt; functional.levshift = 5 * decihartree, False</span>
+<span class="sd">    </span>
+<span class="sd">        The first parameter is the amount by which to open the gap. It should</span>
+<span class="sd">        either an integer, or a signed energy quantity (see quantities_). In</span>
+<span class="sd">        the latter case, the input is converted to decihartree and rounded to</span>
+<span class="sd">        the nearest integer. </span>
+
+<span class="sd">        The second parameter specifies whether to keep (True) or remove (False)</span>
+<span class="sd">        the shift after diagonalization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ppan</span>     <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Mulliken population analysis.</span>
+<span class="sd">    </span>
+<span class="sd">        Should None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">biposize</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Size of buffer for Coulomb integrals bipolar expansions.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">exchsize</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Size of buffer for exchange integrals bipolar expansions.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">scfdir</span>   <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to reevaluate integrals at each electronic step.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">poleordr</span> <span class="o">=</span> <span class="n">ChoiceKeyword</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot; Coulomb intergrals pole truncation.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), or an integer between 0 and 6 included.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">guessp</span>   <span class="o">=</span> <span class="n">GuessP</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Reads density matrix from disk.</span>
+<span class="sd">    </span>
+<span class="sd">        - If True *and*</span>
+<span class="sd">          :py:attr:`~pylada.dftcrystal.functional.Functional.restart` is not</span>
+<span class="sd">          None, then copies crystal.f9 to fort.20 in the working directory and</span>
+<span class="sd">          adds GUESSP keyword to the input. Alternatively, if a later</span>
+<span class="sd">          crystal.f98 file is found, then it is transformed to an unformatted</span>
+<span class="sd">          file and copied to fort.20.</span>
+<span class="sd">    </span>
+<span class="sd">        - If True but :py:attr:`~pylada.dftcrystal.functional.Functional.restart`</span>
+<span class="sd">          is None or the file crystal.f9 does not exist, then does nothing.</span>
+<span class="sd">    </span>
+<span class="sd">        - If False or None, does nothing.    </span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           </span>
+<span class="sd">          There seems to be a strange bug, at least on crays, where the</span>
+<span class="sd">          crystal.f9 file is likely to be corrupt as far as the main CRYSTAL_</span>
+<span class="sd">          program can tell. However, it can still be read by PROPERTIES_ and</span>
+<span class="sd">          transformed to a valid f98 file. That file can then be transformed</span>
+<span class="sd">          back to a valid f9 file. To ensure correctness, this procedure is</span>
+<span class="sd">          followed each time an f9 file is found.</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="bp">self</span><span class="o">.</span><span class="n">dft</span>      <span class="o">=</span> <span class="n">Dft</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Holds definition of the DFT functional itself. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nofmwf</span>   <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to print formatted wavefunctions to disk.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nobipola</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to compute bielectronic integrals exactly.</span>
+
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nobipcou</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to compute bielectronic Coulomb integrals exactly.</span>
+
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nobipexc</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to compute bielectronic exchange integrals exactly.</span>
+
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nomondir</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether store monoelectronic integrals to disk. </span>
+<span class="sd">    </span>
+<span class="sd">        If True, the monoelctronic integrals are computed once at the start of</span>
+<span class="sd">        the SCF calculation and re-read from disk at each geometric</span>
+<span class="sd">        optimization step. Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nosymada</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to not use symmetry adapted functions. </span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">savewf</span>   <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to save wavefunctions at each step. </span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">mpp</span>      <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Whether to use MPP or Pcrystal when running mpi. </span>
+<span class="sd">    </span>
+<span class="sd">        If True and more than one process is requested, switches to using</span>
+<span class="sd">        MPPcrystal as opposed to Pcrystal.</span>
+<span class="sd">        This only works under the assumption that</span>
+<span class="sd">        :py:data:`pylada.crystal_program` is implemented correctly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">spinlock</span> <span class="o">=</span> <span class="n">SpinLock</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Difference in occupation between the two spin-channels. </span>
+<span class="sd">    </span>
+<span class="sd">        This object takes two values, the difference between of occupations</span>
+<span class="sd">        between the two spin channels, and the number of electronic</span>
+<span class="sd">        minimization steps during which the lock is maintained.</span>
+
+<span class="sd">        &gt;&gt;&gt; functional.spinlock.nspin   = 2</span>
+<span class="sd">        &gt;&gt;&gt; functional.spinlock.ncycles = 30</span>
+
+<span class="sd">        The above sets the :math:`\\alpha` and :math:`\\beta` occupations to</span>
+<span class="sd">        :math:`\\frac{N+2}{2}` and  :math:`\\frac{N-2}{2}` respectively, for 30</span>
+<span class="sd">        iterations of the electronic structure minimization algorithm. It</span>
+<span class="sd">        results in the input:</span>
+
+<span class="sd">          | SPINLOCK</span>
+<span class="sd">          | 2 30</span>
+
+<span class="sd">        Alternatively, the same could be done with the 2-tuple syntax:</span>
+
+<span class="sd">        &gt;&gt;&gt; functional.spinlock = 2, 30</span>
+
+<span class="sd">        If either the occupation or the cycle-lock is None, then ``SPINLOCK`` is</span>
+<span class="sd">        *disabled*.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">atomspin</span> <span class="o">=</span> <span class="n">AtomSpin</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Atomic spins.</span>
+
+<span class="sd">        Defines the atomic spins.</span>
+
+<span class="sd">        &gt;&gt;&gt; functional.atomspin.up = range(5)*2 + 1 </span>
+<span class="sd">        &gt;&gt;&gt; functional.atomspin.down = range(5)*2 + 2</span>
+
+<span class="sd">        For spin-polarized calculations, this would result in the CRYSTAL_</span>
+<span class="sd">        input:</span>
+
+<span class="sd">          | ATOMSPIN</span>
+<span class="sd">          | 8</span>
+<span class="sd">          | 2 1 4 1 6 1 8 1</span>
+<span class="sd">          | 1 -1 3 -1 5 -1 7 -1</span>
+
+<span class="sd">        There are two main variables, ``up`` and ``down``, which are lists of</span>
+<span class="sd">        atomic labels. ``up`` contains the atoms which at the start of the</span>
+<span class="sd">        calculation should have an up spin, and ``down`` those atoms with a</span>
+<span class="sd">        down spin. A third variable, ``other``, corresponds to the</span>
+<span class="sd">        &#39;&#39;irrelevant&#39;&#39; atoms, as per CRYSTAL_&#39;s input.</span>
+
+<span class="sd">        Alternatively, the ``up`` and ``down`` variables can be reached via indexing:</span>
+
+<span class="sd">        &gt;&gt;&gt; functional.atomspin[1] is functional.atomspin.up</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; functional.atomspin[-1] is functional.atomspin.down</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; functional.atomspin[0] is functional.atomspin.other</span>
+<span class="sd">        True</span>
+
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">          A number of settings will disable this keyword:</span>
+
+<span class="sd">            - py:attr:`~pylada.dftcrystal.functional.dft.spin` is False</span>
+<span class="sd">	    - py:attr:`~pylada.dftcrystal.functional.dft.spin` is None or True,</span>
+<span class="sd">	      and the appropriate wavefunction exists.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">betalock</span> <span class="o">=</span> <span class="n">BetaLock</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Locks in the number of beta electrons. </span>
+
+<span class="sd">        This tag presents the same user-interface as :py:attr:`spinlock`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">smear</span> <span class="o">=</span> <span class="n">QuantityKeyword</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">hartree</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Smearing energy, if any.</span>
+
+<span class="sd">        Expects None (default, does nothing) or an energy wich defines the</span>
+<span class="sd">        width of the smearing function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">anderson</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Applies Anderson mixing method. </span>
+<span class="sd">    </span>
+<span class="sd">        Andersen mixing does not require any input. </span>
+<span class="sd">        It expects None (default, does nothing), True or False. The latter is</span>
+<span class="sd">        equivalent to None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">broyden</span> <span class="o">=</span> <span class="n">Broyden</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Applies broyden mixing method. </span>
+<span class="sd">    </span>
+<span class="sd">        Broyden takes three inputs: </span>
+
+<span class="sd">        &gt;&gt;&gt; functional.broyden.w0     = 1e-4</span>
+<span class="sd">        &gt;&gt;&gt; functional.broyden.imix   = 50</span>
+<span class="sd">        &gt;&gt;&gt; functional.broyden.istart = 2</span>
+
+<span class="sd">        The above results in:</span>
+
+<span class="sd">          | BROYDEN</span>
+<span class="sd">          | 0.0001 50 2</span>
+
+<span class="sd">        The first attribute should be a floating point, whereas the second and</span>
+<span class="sd">        third should be integers. The second item should be between 0 and 100,</span>
+<span class="sd">        excluded, and the third larger than two.</span>
+<span class="sd">        The input can also be set and accessed as an array:</span>
+
+<span class="sd">        &gt;&gt;&gt; functional.broyden = [1e-4, 50, 2]</span>
+<span class="sd">        &gt;&gt;&gt; functional.broyden[1] = 25</span>
+<span class="sd">        &gt;&gt;&gt; functional.broyden.imix</span>
+<span class="sd">        25</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">setprint</span> <span class="o">=</span> <span class="n">SetPrint</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Extended printing request.</span>
+
+<span class="sd">        Printing options consists of (keyword, value) pairs. As such, they can</span>
+<span class="sd">        be inputed much like arrays:</span>
+
+<span class="sd">        &gt;&gt;&gt; functional.setprint[66] = -5</span>
+<span class="sd">        </span>
+<span class="sd">        Will result in the output:</span>
+
+<span class="sd">          | SETPRINT</span>
+<span class="sd">          | 1</span>
+<span class="sd">          | 66 -5</span>
+
+<span class="sd">        which prints the eigenvalues of the first five k-points at the end of</span>
+<span class="sd">        the electronic minimization loop only. The print-out options can be</span>
+<span class="sd">        found in the CRYSTAL_ user-guide.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cmplxfac</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Computaional weight of complex vs real k-points. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">postscf</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to continue despite lack of electronic convergence. &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Makes sure DFT subblock is first. &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Electronic</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+      <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;DFT&#39;</span><span class="p">:</span> <span class="k">break</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;DFT&#39;</span><span class="p">:</span> 
+      <span class="n">dft</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+      <span class="n">result</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dft</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" >pylada.dftcrystal</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,206 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>User Guide &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="index.html" />
+    <link rel="next" title="Compiling and installing" href="userguide/compile.html" />
+    <link rel="prev" title="About" href="about.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="userguide/compile.html" title="Compiling and installing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="about.html" title="About"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Pylada 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="user-guide">
+<h1>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="userguide/compile.html">Compiling and installing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userguide/compile.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/compile.html#recommended">Recommended</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/compile.html#procedure">Procedure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userguide/configuration.html">Setting up Pylada</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userguide/configuration.html#setting-up-ipython">Setting up IPython</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/configuration.html#running-external-programs">Running external programs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/configuration.html#running-mpi-calculations">Running MPI calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/configuration.html#running-different-mpi-calculations-side-by-side">Running different MPI calculations side-by-side</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/configuration.html#setting-up-pylada-with-pbs-slurm">Setting up Pylada with PBS/Slurm</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userguide/testing.html">Testing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userguide/testing.html#proof-of-existence-test">Proof of existence test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/testing.html#battery-of-tests">Battery of tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/testing.html#failure-modes-and-possible-solutions">Failure modes and possible solutions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userguide/crystal.html">Creating and Manipulating crystal structures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userguide/crystal.html#playing-with-the-crystal-structure">Playing with the crystal structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/crystal.html#more-advanced-structure-manipulation-methods">More advanced structure manipulation methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/crystal.html#example-iterating-over-the-shells-of-a-core-shell-nanowire">Example: Iterating over the shells of a core-shell nanowire</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userguide/vasp.html">Interface to VASP</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userguide/vasp/primer.html">A fast primer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/vasp/config.html">Configuring Pylada for VASP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/vasp/reading.html">Reading from pre-existing VASP files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/vasp/creating.html">Creating and Setting up the vasp functional</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/vasp/running.html">Executing a VASP calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/vasp/extract.html">Extracting results from VASP calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/vasp/relax.html">A *meta*-functional: Strain relaxation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/vasp/example.html">Example: Epitaxial relaxation method</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userguide/dftcrystal.html">Interface to CRYSTAL</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userguide/dftcrystal/config.html">Configuring Pylada for CRYSTAL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/dftcrystal/crystal.html">CRYSTAL&#8217;s approach to crystal structures</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userguide/jobfolders.html">Organized high-thoughput calculations: job-folders</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userguide/jobfolders.html#prep">Prep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/jobfolders.html#creating-and-accessing-job-folders">Creating and accessing job-folders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/jobfolders.html#making-a-job-folder-executable">Making a job-folder executable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/jobfolders.html#saving-and-loading-folders">Saving and loading folders</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userguide/ipython.html">IPython high-throughput interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userguide/ipython.html#prep">Prep</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/ipython.html#manipulating-job-folders">Manipulating job-folders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/ipython.html#launching-calculations">Launching calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="userguide/ipython.html#collecting-results">Collecting results</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/sqlDatabase.html">SQL database overview: Overview of the database system.</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nrelmatdb/sqlDatabase.html#the-wrapid-column">The wrapId column</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nrelmatdb/sqlDatabase.html#the-model-table">The model table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nrelmatdb/sqlDatabase.html#the-contrib-table">The contrib table</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/flatDatabase.html">Flat file database overview: Overview of the database system.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/webServer.html">Web overview: Overview of the web server system.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/augmentDb.html">augmentDb.py: Add additional info to the model table.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/execMimic.html">execMimic.py: Mimic execution for validity testing.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/fillDbVasp.html">fillDbVasp.py: Read files created by wrapUpload and add rows to the model table.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/queryMatDb.html">queryMatDb.py: Demo query of the NRELMatDB SQL database.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/readVasp.html">readVasp.py: Read and parse an OUTCAR or vasprun.xml file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/ScanOutcar.html">ScanOutcar.py: Extract info from OUTCAR and INCAR files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/ScanXml.html">ScanXml.py: Read and parse a vasprun.xml file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/wrapReceive.html">wrapReceive.py: Receive results sent by wrapUpload.sh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/wrapUpload.html">wrapUpload.py: Locate, extract, and upload results to the server running wrapReceive.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelmatdb/index.html">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nrelscheduler/schedMain.html">NREL Scheduler interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nrelscheduler/schedMain.html#schedmain-package"><tt class="docutils literal"><span class="pre">schedMain</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nrelscheduler/schedMain.html#schedmain-module"><tt class="docutils literal"><span class="pre">schedMain</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nrelscheduler/schedMain.html#schedmisc-module"><tt class="docutils literal"><span class="pre">schedMisc</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nrelscheduler/schedMain.html#taskclass-module"><tt class="docutils literal"><span class="pre">taskClass</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="about.html"
+                        title="previous chapter">About</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="userguide/compile.html"
+                        title="next chapter">Compiling and installing</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/userguide.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="userguide/compile.html" title="Compiling and installing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="about.html" title="About"
+             >previous</a> |</li>
+        <li><a href="index.html">Pylada 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

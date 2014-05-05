@@ -1,0 +1,555 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pylada.dftcrystal.molecule &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="pylada.dftcrystal" href="../dftcrystal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" accesskey="U">pylada.dftcrystal</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pylada.dftcrystal.molecule</h1><pre>
+###############################
+#  This file is part of PyLaDa.
+#
+#  Copyright (C) 2013 National Renewable Energy Lab
+# 
+#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
+#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
+#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
+#  is able to organise and launch computational jobs on PBS and SLURM.
+# 
+#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
+#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
+#  your option) any later version.
+# 
+#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+#  Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
+#  &lt;http://www.gnu.org/licenses/&gt;.
+###############################
+
+__docformat__ = "restructuredtext en"
+__all__ = ['Molecule']
+from ..tools.input import ListBlock, BaseKeyword
+<div class="viewcode-block" id="Molecule"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule">[docs]</a>class Molecule(ListBlock):
+  """ Base class for functional crystal structures for CRYSTAL. """
+  keyword = 'molecule'
+  def __init__(self, symmgroup=1, **kwargs):
+    """ Creates a crystal following the CRYSTAL philosophy. """
+    super(Molecule, self).__init__()
+
+    self.symmgroup = symmgroup
+    """ Symmetry group. """
+    self.atoms = []
+    """ List of atoms. """
+    for key, value in kwargs.iteritems(): setattr(self, key, value)
+
+<div class="viewcode-block" id="Molecule.add_atom"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.add_atom">[docs]</a>  def add_atom(self, *args, **kwargs):
+    """ Adds an atom to the structure. """
+    from ..crystal import Atom
+    atom = Atom(*args, **kwargs)
+    self.atoms.append(atom)
+    return self
+</div>
+  def __repr_header__(self):
+    """ Dumps representation header to string. 
+    
+        Mostly useful to limit how much should be rewritten of repr in derived
+        classes.
+    """
+    # prints construction part.
+    length = len('{0.__class__.__name__}('.format(self)) + 1
+    args = [repr(self.symmgroup)]
+    indent = ''.join([' ']*length) 
+    for key, value in self.__dict__.iteritems():
+      if key in ['atoms', 'symmgroup'] : continue
+      args.append('\\\n{2}{0}={1!r}'.format(key, value, indent))
+    return '{0.__class__.__name__}({1})'.format(self, ', '.join(args))
+
+  def __ui_repr__(self, imports, name=None, defaults=None, exclude=None):
+    """ Dumps representation to string. """
+    from ..tools.uirepr import add_to_imports
+    result = self.__repr_header__()
+    indent = ' '.join('' for i in xrange(result.find('(')+1))
+    add_to_imports(self, imports)
+
+    # prints atoms.
+    for o in self.atoms: 
+      dummy = repr(o)
+      dummy = dummy[dummy.find('(')+1:dummy.rfind(')')].rstrip().lstrip()
+      result += '\\\n{0}.add_atom({1})'.format(indent, dummy)
+
+    for item in self: 
+      if item.__class__ is BaseKeyword:
+        args = [repr(item.keyword)]
+        if getattr(item, 'raw', None) is not None: args.append(repr(item.raw))
+        result += '\\\n{0}.append({1})'.format(indent, ', '.join(args)) 
+      else:
+        add_to_imports(item, imports)
+        item = repr(item).rstrip().lstrip()
+        item = item.replace('\n', '\n' + indent)
+        result += '\\\n{0}.append({1})'.format(indent, item) 
+
+    result = result.rstrip()
+    if name is None:
+      name = getattr(self, '__ui_name__', self.__class__.__name__.lower())
+    return {name: result.rstrip()}
+
+  @property 
+  def raw(self):
+    """ Raw input for structure. """
+    from ..error import ValueError
+    from ..periodic_table import find as find_specie
+
+    
+    # symmgroup 
+    result = str(self.symmgroup).rstrip().lstrip() + '\n'
+
+    # number of atoms + atoms
+    result += '{0}\n'.format(len(self.atoms))
+    for atom in self.atoms:
+      try: n = find_specie(name=atom.type).atomic_number
+      except:
+        try: n = int(atom.type)
+        except: 
+          raise ValueError( 'Could not make sense of atomic type {0.type}.'    \
+                            .format(atom) )
+      result += '{0} {1.pos[0]} {1.pos[1]} {1.pos[2]}\n'.format(n, atom)
+    return result
+
+  @raw.setter
+  def raw(self, value):
+    """ Reads crystal input. """
+    from ..periodic_table import find as find_specie
+    if not hasattr(value, '__iter__'): value = value.splitlines()
+    self.symmgroup = int(value.pop(0))
+
+    n = int(value.pop(0))
+    self.atoms = []
+    for line in value[:n]:
+      line = line.split()
+      type = int(line[0])
+      if type &lt; 100: type = find_specie(atomic_number=type).symbol
+      self.add_atom(pos=[float(u) for u in line[1:4]], type=type)
+
+  def read_input(self, tree, owner=None, **kwargs):
+    """ Parses an input tree. """
+    from ..tools.input import Tree
+    from . import registered
+    self[:] = []
+    self.raw = tree.prefix
+    kwargs['owner'] = self
+    for key, value in tree:
+      # parses sub-block.
+      if isinstance(value, Tree): continue
+      # check for special keywords.
+      if key.lower() in registered:
+        newobject = registered[key.lower()]()
+      else: newobject = BaseKeyword(keyword=key)
+      if len(value) &gt; 0: 
+        if hasattr(newobject, 'read_input'): 
+          newobject.read_input(value, **kwargs)
+        else:
+          try: newobject.raw = getattr(value, 'raw', value)
+          except: pass
+      self.append(newobject)
+
+<div class="viewcode-block" id="Molecule.append"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.append">[docs]</a>  def append(self, keyword, raw=None):
+    """ Appends an item.
+
+        Some shortcuts are accpted:
+
+        - 'breaksym'
+        - 'keepsymm'
+        - 'angstrom'
+        - 'bohr'
+        - 'fractional'
+            
+        :return: self, so calls can be chained. 
+    """
+    from . import registered
+    if hasattr(keyword, 'lower')                                               \
+       and keyword.lower() in [ 'breaksym', 'keepsymm', 'bohr', 
+                                'fraction', 'angstrom' ]:
+      keyword = registered[keyword]()
+    super(Molecule, self).append(keyword, raw)
+    return self</div>
+<div class="viewcode-block" id="Molecule.insert"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.insert">[docs]</a>  def insert(self, i, keyword, raw=None):
+    """ Inserts item at given position. 
+
+        Some shortcuts are accpted:
+
+        - 'breaksym'
+        - 'keepsymm'
+        - 'angstrom'
+        - 'bohr'
+        - 'fractional'
+    """
+    from . import registered
+    if hasattr(keyword, 'lower')                                               \
+       and keyword.lower() in [ 'breaksym', 'keepsymm', 'bohr', 
+                                'fraction', 'angstrom' ]:
+      keyword = registered[keyword]()
+    super(Molecule, self).insert(i, keyword, raw)
+</div>
+  def __setitem__(self, i, value):
+    """ Sets an item.
+
+        Some shortcuts are accpted:
+
+        - 'breaksym'
+        - 'keepsymm'
+        - 'angstrom'
+        - 'bohr'
+        - 'fractional'
+    """
+    from . import registered
+    if hasattr(value, 'lower')                                                 \
+       and value.lower() in [ 'breaksym', 'keepsymm', 'bohr', 
+                              'fraction', 'angstrom' ]:
+      value = registered[value](value=True)
+    super(Molecule, self).__setitem__(i, value)
+
+  @property
+<div class="viewcode-block" id="Molecule.current_units"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.current_units">[docs]</a>  def current_units(self):
+    """ Current units in transformation list. 
+
+        This will one of "bohr", "angstrom", "fractional", depending on the
+        last encountered keyword in the list,
+    """
+    for u in self[::-1]:
+      if u.keyword == 'fraction':   return 'fraction'
+      elif u.keyword == 'bohr':     return 'bohr'
+      elif u.keyword == 'angstrom': return 'angstrom'
+    return 'angstrom'</div>
+  @property
+<div class="viewcode-block" id="Molecule.is_fractional"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.is_fractional">[docs]</a>  def is_fractional(self):
+    """ True if current units are fractional. """
+    return self.current_units == 'fraction'</div>
+  @property
+<div class="viewcode-block" id="Molecule.is_bohr"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.is_bohr">[docs]</a>  def is_bohr(self):
+    """ True if current units are bohrs. """
+    return self.current_units == 'bohr'</div>
+  @property
+<div class="viewcode-block" id="Molecule.is_angstrom"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.is_angstrom">[docs]</a>  def is_angstrom(self):
+    """ True if current units are angstrom. """
+    return self.current_units == 'angstrom'</div>
+  @property
+<div class="viewcode-block" id="Molecule.is_breaksym"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.is_breaksym">[docs]</a>  def is_breaksym(self):
+    """ True if currently keeping symmetries. """
+    for u in self[::-1]:
+      if u.keyword == 'keepsymm':   return False
+      elif u.keyword == 'breaksym': return True
+    return True
+    
+</div>
+<div class="viewcode-block" id="Molecule.eval"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.eval">[docs]</a>  def eval(self):
+    """ Evaluates current structure. 
+    
+        Runs crystal to evaluate current structure.
+
+        :returns: a :py:class:`~pylada.crystal.cppwrappers.Structure` instance.
+    """
+    from copy import deepcopy
+    from tempfile import mkdtemp
+    from shutil import rmtree
+    from ..misc import Changedir
+    from ..process import ProgramProcess as Process
+    from .. error import GrepError
+    from .. import crystal_program as program
+    from .extract import Extract
+    this = deepcopy(self)
+    this.append('TESTGEOM')
+    try:
+      tmpdir = mkdtemp()
+
+      with Changedir(tmpdir) as cwd:
+        # writes input file
+        with open('crystal.input', 'w') as file:
+          file.write('{0}\n'.format(getattr(self, 'name', '')))
+          file.write(this.print_input(filework=True))
+        # creates process and run it.
+        if hasattr(program, '__call__'): program = program()
+        process = Process( program, stdin='crystal.input',
+                           outdir=tmpdir, stdout='crystal.out',
+                           stderr='crystal.err', dompi=False )
+
+        process.start()
+        process.wait()
+
+        try: return Extract().input_structure
+        except GrepError:
+          message = this.print_input(filework=True) + '\n\n'
+          with Extract().__stdout__() as file: message += file.read()
+          raise ValueError(message + '\n\nInput structure is likely incorrect\n')
+    finally:
+      try: rmtree(tmpdir)
+      except: pass
+</div>
+  @property
+<div class="viewcode-block" id="Molecule.crystal_output"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.crystal_output">[docs]</a>  def crystal_output(self):
+    """ CRYSTAL program output. 
+    
+        This is a string which contains the CRYSTAL output from a geometry run.
+        Electronic calculations are not performed.
+    """
+    from copy import deepcopy
+    from tempfile import mkdtemp
+    from shutil import rmtree
+    from ..misc import Changedir
+    from ..process import ProgramProcess as Process
+    from .. import crystal_program as program
+    this = deepcopy(self)
+    this.append('TESTGEOM')
+    try:
+      tmpdir = mkdtemp()
+
+      with Changedir(tmpdir) as cwd:
+        # writes input file
+        with open('crystal.input', 'w') as file:
+          file.write('{0}\n'.format(getattr(self, 'name', '')))
+          file.write(this.print_input(filework=True))
+        # creates process and run it.
+        if hasattr(program, '__call__'): program = program(self)
+        process = Process( program, stdin='crystal.input',
+                           outdir=tmpdir, stdout='crystal.out',
+                           stderr='crystal.err', dompi=False )
+
+        process.start()
+        process.wait()
+        with open('crystal.out', 'r') as file: return file.read()
+    finally:
+      try: rmtree(tmpdir)
+      except: pass
+</div>
+  @property
+<div class="viewcode-block" id="Molecule.extprt"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.extprt">[docs]</a>  def extprt(self):
+    """ CRYSTAL external output.
+    
+        This is a string which contains the structure in CRYSTAL_'s external
+        output format. Mostly for debugging.
+    """
+    from copy import deepcopy
+    from tempfile import mkdtemp
+    from shutil import rmtree
+    from ..misc import Changedir
+    from ..process import ProgramProcess as Process
+    from .. import crystal_program as program
+    this = deepcopy(self)
+    this.append('EXTPRT')
+    this.append('TESTGEOM')
+    try:
+      tmpdir = mkdtemp()
+
+      with Changedir(tmpdir) as cwd:
+        # writes input file
+        with open('crystal.input', 'w') as file:
+          file.write('{0}\n'.format(getattr(self, 'name', '')))
+          file.write(this.print_input(filework=True))
+        # creates process and run it.
+        if hasattr(program, '__call__'): program = program(self)
+        process = Process( program, stdin='crystal.input',
+                           outdir=tmpdir, stdout='crystal.out',
+                           stderr='crystal.err', dompi=False )
+
+        process.start()
+        process.wait()
+        with open('fort.34', 'r') as file: return file.read()
+    finally:
+      try: rmtree(tmpdir)
+      except: pass
+</div>
+  @property
+<div class="viewcode-block" id="Molecule.symmetry_operators"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.symmetry_operators">[docs]</a>  def symmetry_operators(self):
+    """ Symmetry operators, as determined by CRYSTAL.
+    
+        Runs crystal to evaluate the symmetry operators on the current
+        structure.
+    """
+    from copy import deepcopy
+    from tempfile import mkdtemp
+    from shutil import rmtree
+    from ..misc import Changedir
+    from ..process import ProgramProcess as Process
+    from .. error import GrepError
+    from .. import crystal_program as program
+    from .extract import Extract
+    this = deepcopy(self)
+    this.append('TESTGEOM')
+    try:
+      tmpdir = mkdtemp()
+
+      with Changedir(tmpdir) as cwd:
+        # writes input file
+        with open('crystal.input', 'w') as file:
+          file.write('{0}\n'.format(getattr(self, 'name', '')))
+          file.write(this.print_input(filework=True))
+        # creates process and run it.
+        if hasattr(program, '__call__'): program = program(self)
+        process = Process( program, stdin='crystal.input',
+                           outdir=tmpdir, stdout='crystal.out',
+                           stderr='crystal.err', dompi=False )
+
+        process.start()
+        process.wait()
+
+        try: return Extract().symmetry_operators
+        except GrepError:
+          message = this.print_input(filework=True) + '\n\n'
+          with Extract().__stdout__() as file: message += file.read()
+          raise ValueError(message + '\n\nInput structure is likely incorrect\n')
+    finally:
+      try: rmtree(tmpdir)
+      except: pass
+</div>
+<div class="viewcode-block" id="Molecule.copy"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.copy">[docs]</a>  def copy(self):
+    """ Returns deep copy of self. """
+    from copy import deepcopy
+    return deepcopy(self)
+</div>
+<div class="viewcode-block" id="Molecule.print_input"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.molecule.Molecule.print_input">[docs]</a>  def print_input(self, **kwargs):
+    """ Returns CRYSTAL input. """
+    from warnings import warn
+    from .input import print_input
+    # corrects bug in crystal whereby mutliple atomsym commands will do
+    # shit-loads of incorrect stuff, from overallocating array to operations
+    # on unitialized arrays.
+    map = self.output_map(**kwargs)
+    indices = []
+    for i, (key, value) in  enumerate(map[0][1]):
+      if key.upper() == 'ATOMSYMM': indices.append(i)
+    if len(indices) &gt; 1:
+      warn( "ATOMSYMM present more than once in input.\n"                       \
+            "Multiple bugs in CRYSTAL make this unsafe.\n"                      \
+            "All but the last instance of ATOMSYMM will be ignored.",
+            UserWarning, 0 )
+      indices.reverse()
+      for i in indices[1:]: map[0][1].pop(i)
+    # now print map.
+    return print_input(map)</div>
+  def output_map(self, **kwargs):
+    from ..tools.input import Tree
+    from .input import find_sym, find_units
+    if 'structure' not in kwargs: kwargs['structure'] = self
+    if kwargs.get('breaksym', None) is None: kwargs['breaksym'] = True
+    if kwargs.get('units', None) is None: kwargs['units'] = 'angstrom' 
+
+    root = Tree()
+    root[self.keyword] = Tree()
+    result = root[self.keyword]
+    if getattr(self, 'raw', None) is not None:
+      result.prefix = str(self.raw)
+    for item in self:
+      keyword = getattr(item, 'keyword', None)
+      value   = getattr(item, 'raw', None)
+      if hasattr(item, 'output_map'):
+        dummy = item.output_map(**kwargs)
+        if dummy is not None:
+          result.update(dummy)
+          kwargs['breaksym'] = find_sym(result, result=kwargs['breaksym'])
+          kwargs['units'] = find_units(result, result=kwargs['units'])
+      elif value is not None:
+        result[keyword] = value
+      elif hasattr(value, '__iter__'):
+        result[keyword] =  ' '.join(str(u) for u in value)
+      else:
+        result[keyword] = str(value)
+      lowkey = keyword.lower()
+      if lowkey == 'breaksym': kwargs['breaksym'] = True
+      elif lowkey == 'keepsymm': kwargs['breaksym'] = False
+      elif lowkey == 'angstrom': kwargs['units'] = 'angstrom'
+      elif lowkey == 'bohr':     kwargs['units'] = 'bohr'
+      elif lowkey == 'fraction': kwargs['units'] = 'fractional'
+    return root</div>
+</pre>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" >pylada.dftcrystal</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

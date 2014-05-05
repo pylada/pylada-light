@@ -1,0 +1,238 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pylada.dftcrystal.external &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="pylada.dftcrystal" href="../dftcrystal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" accesskey="U">pylada.dftcrystal</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pylada.dftcrystal.external</h1><div class="highlight"><pre>
+<span class="c">###############################</span>
+<span class="c">#  This file is part of PyLaDa.</span>
+<span class="c">#</span>
+<span class="c">#  Copyright (C) 2013 National Renewable Energy Lab</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit</span>
+<span class="c">#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as</span>
+<span class="c">#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It</span>
+<span class="c">#  is able to organise and launch computational jobs on PBS and SLURM.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General</span>
+<span class="c">#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at</span>
+<span class="c">#  your option) any later version.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even</span>
+<span class="c">#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c">#  Public License for more details.</span>
+<span class="c"># </span>
+<span class="c">#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see</span>
+<span class="c">#  &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">###############################</span>
+
+<span class="n">__docformat__</span> <span class="o">=</span> <span class="s">&quot;restructuredtext en&quot;</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;External&#39;</span><span class="p">]</span>
+<span class="kn">from</span> <span class="nn">.molecule</span> <span class="kn">import</span> <span class="n">Molecule</span>
+<div class="viewcode-block" id="External"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.external.External">[docs]</a><span class="k">class</span> <span class="nc">External</span><span class="p">(</span><span class="n">Molecule</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Functional CRYSTAL-wise structure, starting from Pylada structure.</span>
+
+<span class="sd">      Provides a mixture of CRYSTAL_ and Pylada-style structures. The starting</span>
+<span class="sd">      structure is a :py:class:`~pylada.crystal.cppwrappers.Structure` instance</span>
+<span class="sd">      which is inputed into CRYSTAL_ via the EXTERNAL keyword. This instance</span>
+<span class="sd">      also accepts functional modifications which will act upon the initial</span>
+<span class="sd">      structure, much as :py:class:`~pylada.dftcrystal.crystal.Crystal`</span>
+<span class="sd">      instances.</span>
+
+<span class="sd">      There are two ways of initializing an instance. The first allows the same</span>
+<span class="sd">      interface as :py:class:`~pylada.crystal.cppwrappers.Structure`.</span>
+
+<span class="sd">      &gt;&gt;&gt; from quantities import angstrom</span>
+<span class="sd">      &gt;&gt;&gt; from pylada.dftcrystal import External</span>
+<span class="sd">      &gt;&gt;&gt; external = External([[0, 0.5, 0.5],</span>
+<span class="sd">      ...                      [0.5, 0, 0.5],</span>
+<span class="sd">      ...                      [0.5, 0.5, 0], scale=5.45*angstrom)            \\</span>
+<span class="sd">      ...                    .add_atom(0,0,0, &#39;Si&#39;)                           \\</span>
+<span class="sd">      ...                    .add_atom(0.25, 0.25, 0.25, &#39;Si&#39;)</span>
+
+<span class="sd">      The second approach is to use a predefined</span>
+<span class="sd">      :py:class:`~pylada.crystal.cppwrappers.Structure` instance:</span>
+
+<span class="sd">      &gt;&gt;&gt; from pylada.dftcrystal import External</span>
+<span class="sd">      &gt;&gt;&gt; external = External(copy=diamond)</span>
+
+<span class="sd">      Where ``diamond`` in the snippet above is the instance in question. Note</span>
+<span class="sd">      that it is deepcopied upon initialization.  In both cases, the initial</span>
+<span class="sd">      structure can be accessed as :py:attr:`initial`. </span>
+
+<span class="sd">      In both cases, CRYSTAL_ transformations can be added to modify the</span>
+<span class="sd">      initial structure.</span>
+
+<span class="sd">      &gt;&gt;&gt; external.append(&#39;bohr&#39;)</span>
+<span class="sd">      &gt;&gt;&gt; external.append(DiplaceAtoms().add_atom(0.1, 0, 0, 1))</span>
+
+<span class="sd">      In the snippet above, the displacement is in the current units of the</span>
+<span class="sd">      structure, as understood by CRYSTAL_. E.g. in &quot;bohr&quot;&#39;s here. In other</span>
+<span class="sd">      words, the transformations should reference the structure the way</span>
+<span class="sd">      CRYSTAL_ understands it. It might be indicated to use :py:meth:`eval`.</span>
+
+<span class="sd">      .. note::</span>
+<span class="sd">         </span>
+<span class="sd">         Pylada will attempt to discover the symmetries at run time. It is also</span>
+<span class="sd">         possible to enter them explicitely by setting :py:attr:`initial`&#39;s</span>
+<span class="sd">         ``spacegroup`` attribute to a list of 4x3 matrices.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;external&#39;</span>
+  <span class="sd">&quot;&quot;&quot; CRYSTAL keyword. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates a crystal following the CRYSTAL philosophy. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..crystal</span> <span class="kn">import</span> <span class="n">Structure</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;initial&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">External</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmgroup</span>
+    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;atoms&#39;</span><span class="p">]</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;copy&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Initial structure. </span>
+<span class="sd">    </span>
+<span class="sd">        This is a :py:class:`~pylada.crystal.cppwrappers.Structure` instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">Structure</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<div class="viewcode-block" id="External.add_atoms"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.external.External.add_atoms">[docs]</a>  <span class="k">def</span> <span class="nf">add_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Adds atom to initial structure. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span></div>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Alias to the initial structure. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span>
+  <span class="nd">@atoms.setter</span>
+<div class="viewcode-block" id="External.atoms"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.external.External.atoms">[docs]</a>  <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Alias to the initial structure. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">AttributeError</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s">&#39;Cannot set atoms in External instance.&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;atoms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</div>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Cell-vectors of the initial instance. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">cell</span>
+  <span class="nd">@cell.setter</span>
+<div class="viewcode-block" id="External.cell"><a class="viewcode-back" href="../../../pyapi/dftcrystal/crystal.html#pylada.dftcrystal.external.External.cell">[docs]</a>  <span class="k">def</span> <span class="nf">cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">cell</span> <span class="o">=</span> <span class="n">value</span>
+</div>
+  <span class="k">def</span> <span class="nf">__repr_header__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Dumps representation to string. &quot;&quot;&quot;</span>
+    <span class="c"># prints construction part.</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+      <span class="n">copy</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+      <span class="n">args</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">copy</span><span class="p">)</span>
+      <span class="n">args</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;(&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">args</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s">&#39;)&#39;</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="s">&#39;{0.__class__.__name__}({1})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+
+  <span class="nd">@property</span> 
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Raw input for structure. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s">&quot;&quot;</span>
+  <span class="nd">@raw.setter</span> 
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span> <span class="k">pass</span>
+
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Writes external file and calls base class. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..crystal</span> <span class="kn">import</span> <span class="n">write</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;filework&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>  <span class="n">write</span><span class="o">.</span><span class="n">crystal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">External</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" >pylada.dftcrystal</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

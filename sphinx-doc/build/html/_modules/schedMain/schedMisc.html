@@ -1,0 +1,723 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>schedMain.schedMisc &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for schedMain.schedMisc</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">subprocess</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">traceback</span>
+
+<span class="c"># Misc constants and utilities for schedMain.py</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Task status, used in taskClass.py.</span>
+<span class="n">ST_UNKNOWN</span>  <span class="o">=</span> <span class="mi">0</span>
+<span class="n">ST_INIT</span>     <span class="o">=</span> <span class="mi">1</span>
+<span class="n">ST_SUBMIT</span>   <span class="o">=</span> <span class="mi">2</span>
+<span class="n">ST_WAIT</span>     <span class="o">=</span> <span class="mi">3</span>
+<span class="n">ST_RUN</span>      <span class="o">=</span> <span class="mi">4</span>
+<span class="n">ST_OK</span>       <span class="o">=</span> <span class="mi">5</span>
+<span class="n">ST_ERROR</span>    <span class="o">=</span> <span class="mi">6</span>
+
+<span class="n">statusNames</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;wrong&#39;</span><span class="p">,</span> <span class="s">&#39;init&#39;</span><span class="p">,</span> <span class="s">&#39;submit&#39;</span><span class="p">,</span> <span class="s">&#39;wait&#39;</span><span class="p">,</span> <span class="s">&#39;run&#39;</span><span class="p">,</span> <span class="s">&#39;ok&#39;</span><span class="p">,</span> <span class="s">&#39;error&#39;</span><span class="p">]</span>
+
+<span class="c"># Various file names</span>
+
+<span class="n">NM_PREWORK</span>       <span class="o">=</span> <span class="s">&quot;preWork&quot;</span>             <span class="c"># pre-requisite tasks</span>
+<span class="n">NM_POSTOKWORK</span>    <span class="o">=</span> <span class="s">&quot;postOkWork&quot;</span>          <span class="c"># tasks to start after OK completion</span>
+<span class="n">NM_POSTERRORWORK</span> <span class="o">=</span> <span class="s">&quot;postErrorWork&quot;</span>       <span class="c"># tasks to start after error completion</span>
+<span class="n">NM_STATUS</span>        <span class="o">=</span> <span class="s">&quot;status&quot;</span>              <span class="c"># status file name</span>
+<span class="n">NM_LOCKFILE</span>      <span class="o">=</span> <span class="s">&quot;schedMain.lockFile&quot;</span>  <span class="c"># global lockfile name</span>
+
+<span class="n">dateFmt</span> <span class="o">=</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">_%H:%M:%S&#39;</span>
+
+<span class="n">cmdDirName</span> <span class="o">=</span> <span class="s">&#39;cmd&#39;</span>                  <span class="c"># name of global subdir with scripts</span>
+
+<span class="c">#=====================================================================</span>
+
+
+<span class="c"># Get info from the &quot;showq&quot; Moab command.</span>
+<span class="c"># Returns pbsMap: jobId -&gt; state, like schedmisc.ST_WAIT</span>
+<span class="c">#</span>
+<span class="c"># peregrine:</span>
+<span class="c">#   Torque for resource manager(qsub)</span>
+<span class="c">#     BatchHold, Hold, Idle, Running</span>
+<span class="c">#   Moab for workload manager</span>
+<span class="c">#</span>
+<span class="c"># stampede:</span>
+<span class="c">#   resource manager:</span>
+<span class="c">#     Simple Linux Utility for Resource Management (SLURM)</span>
+<span class="c">#     Waiting, Running, Complte</span>
+
+<div class="viewcode-block" id="getPbsIdMap"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.getPbsIdMap">[docs]</a><span class="k">def</span> <span class="nf">getPbsIdMap</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">hostType</span><span class="p">,</span> <span class="n">userId</span><span class="p">):</span>
+
+  <span class="k">if</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;peregrine&#39;</span><span class="p">:</span> <span class="n">cmdLine</span> <span class="o">=</span> <span class="s">&#39;showq&#39;</span>
+  <span class="k">elif</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;stampede&#39;</span><span class="p">:</span> <span class="n">cmdLine</span> <span class="o">=</span> <span class="s">&#39;showq&#39;</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown hostType: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hostType</span><span class="p">,))</span>
+
+  <span class="p">(</span><span class="n">qrc</span><span class="p">,</span> <span class="n">qstdout</span><span class="p">,</span> <span class="n">qstderr</span><span class="p">,</span> <span class="n">qdeltaSec</span><span class="p">)</span> <span class="o">=</span> <span class="n">runSubprocess</span><span class="p">(</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span>      <span class="c"># wkDir</span>
+    <span class="n">cmdLine</span><span class="p">,</span>          <span class="c"># cmdLine</span>
+    <span class="bp">None</span><span class="p">,</span>             <span class="c"># stdInput</span>
+    <span class="bp">False</span><span class="p">)</span>            <span class="c"># showInfo</span>
+
+  <span class="k">if</span> <span class="n">qrc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;getPbsIdMap: showq err.  rc: </span><span class="si">%d</span><span class="se">\n</span><span class="s">  stderr: </span><span class="si">%s</span><span class="se">\n</span><span class="s">  stdout: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+      <span class="o">%</span> <span class="p">(</span><span class="n">qrc</span><span class="p">,</span> <span class="n">qstderr</span><span class="p">,</span> <span class="n">qstdout</span><span class="p">,))</span>
+
+  <span class="c"># At peregrine stdout has the format:</span>
+  <span class="c">#   434982    ssulliva    Running    24    00:00:26  Fri Jan 24 12:49:42</span>
+  <span class="c">#   434981    ssulliva    Idle        1    00:01:00  Fri Jan 24 12:48:12</span>
+  <span class="c">#   428796    slany       BatchHold  32  5:00:00:00  Wed Jan 22 08:37:33</span>
+  <span class="c">#   462361    ssulliva    Canceling  24     2:37:59  Tue Feb 11 11:34:12</span>
+
+  <span class="c"># where the fields are:</span>
+  <span class="c">#   jobId     userId      status     procs  timea    timeb</span>
+  <span class="c"># if status==Running:</span>
+  <span class="c">#   timea = remaining, timeb = startTime</span>
+  <span class="c"># if status==Idle or BatchHold:</span>
+  <span class="c">#   timea = wcLimit, timeb = queueTime</span>
+
+  <span class="c"># At stampede stdout has the format:</span>
+  <span class="c"># ACTIVE JOBS--------------------</span>
+  <span class="c"># JOBID     JOBNAME    USERNAME  STATE   CORE REMAINING  STARTTIME</span>
+  <span class="c"># ==========================================================================</span>
+  <span class="c"># 2808140   ffs-rst-1  ahakbari  Running 256   44:34:33  Sun Feb 23 04:34:03</span>
+  <span class="c"># 2808152   ffs-rst-2  ahakbari  Running 256   44:34:33  Sun Feb 23 04:34:03</span>
+  <span class="c"># 2850511   qm.875     sylee78   Running 32    23:33:50  Sat Feb 22 07:33:20</span>
+  <span class="c"># WAITING JOBS--------------------</span>
+  <span class="c"># JOBID     JOBNAME    USERNAME  STATE   CORE   WCLIMIT  QUEUETIME</span>
+  <span class="c"># ==========================================================================</span>
+  <span class="c"># 2857287   mpipi      tg457571  Waiting 32     0:05:00  Fri Feb 21 10:24:35</span>
+  <span class="c"># 2857289   mpipi      rlong021  Waiting 32     0:05:00  Fri Feb 21 10:24:35</span>
+  <span class="c"># 2857303   mpipi      hmoncada  Waiting 32     0:05:00  Fri Feb 21 10:43:37</span>
+  <span class="c"># BLOCKED JOBS--</span>
+  <span class="c"># JOBID     JOBNAME    USERNAME  STATE   CORE   WCLIMIT  QUEUETIME</span>
+  <span class="c"># ==========================================================================</span>
+  <span class="c"># 2808167   ffs-rst-1  ahakbari  Waiting 256   48:00:00  Sat Feb 15 14:08:31</span>
+  <span class="c"># 2808172   ffs-rst-2  ahakbari  Waiting 256   48:00:00  Sat Feb 15 14:08:47</span>
+  <span class="c"># 2808183   ffs-rst-1  ahakbari  Waiting 256   48:00:00  Sat Feb 15 14:09:49</span>
+  <span class="c"># COMPLETING/ERRORED JOBS---------</span>
+  <span class="c"># JOBID     JOBNAME    USERNAME  STATE   CORE   WCLIMIT  QUEUETIME</span>
+  <span class="c"># ==========================================================================</span>
+  <span class="c"># 2856612   3DRun80    rkashyap  Complte 512    0:58:50  Fri Feb 21 09:08:22</span>
+  <span class="c"># 2868475   enzoSymm   tg803229  Complte 32     7:58:34  Sun Feb 23 07:58:06</span>
+
+
+  <span class="n">pbsMap</span> <span class="o">=</span> <span class="p">{}</span>                     <span class="c"># jobId -&gt; state, like ST_WAIT</span>
+  <span class="n">qlines</span> <span class="o">=</span> <span class="n">qstdout</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">qline</span> <span class="ow">in</span> <span class="n">qlines</span><span class="p">:</span>
+    <span class="n">qline</span> <span class="o">=</span> <span class="n">qline</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">qtoks</span> <span class="o">=</span> <span class="n">qline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;peregrine&#39;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qtoks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">9</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;^\d+$&#39;</span><span class="p">,</span> <span class="n">qtoks</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>   <span class="c"># ignore headings</span>
+        <span class="p">(</span><span class="n">qjobId</span><span class="p">,</span> <span class="n">quserId</span><span class="p">,</span> <span class="n">qstate</span><span class="p">)</span> <span class="o">=</span> <span class="n">qtoks</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">qstate</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;BatchHold&#39;</span><span class="p">,</span> <span class="s">&#39;Hold&#39;</span><span class="p">,</span> <span class="s">&#39;Idle&#39;</span><span class="p">,</span> <span class="s">&#39;SystemHold&#39;</span><span class="p">,</span> <span class="s">&#39;UserHold&#39;</span><span class="p">]:</span>
+          <span class="n">status</span> <span class="o">=</span> <span class="n">ST_WAIT</span>
+        <span class="k">elif</span> <span class="n">qstate</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Running&#39;</span><span class="p">]:</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ST_RUN</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="k">print</span> <span class="s">&#39;getPbsMap: unknown status: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qline</span><span class="p">,)</span>
+          <span class="n">status</span> <span class="o">=</span> <span class="n">ST_WAIT</span>              <span class="c"># assume it&#39;s some variant of wait</span>
+        <span class="n">pbsMap</span><span class="p">[</span><span class="n">qjobId</span><span class="p">]</span> <span class="o">=</span> <span class="n">status</span>
+
+    <span class="k">elif</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;stampede&#39;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qtoks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;^\d+$&#39;</span><span class="p">,</span> <span class="n">qtoks</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c"># ignore headings</span>
+        <span class="p">(</span><span class="n">qjobId</span><span class="p">,</span> <span class="n">qjobName</span><span class="p">,</span> <span class="n">quserId</span><span class="p">,</span> <span class="n">qstate</span><span class="p">)</span> <span class="o">=</span> <span class="n">qtoks</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">qstate</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Waiting&#39;</span><span class="p">]:</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ST_WAIT</span>
+        <span class="k">elif</span> <span class="n">qstate</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Running&#39;</span><span class="p">]:</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ST_RUN</span>
+        <span class="k">elif</span> <span class="n">qstate</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Complte&#39;</span><span class="p">]:</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ST_OK</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="k">print</span> <span class="s">&#39;getPbsMap: unknown status: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qline</span><span class="p">,)</span>
+          <span class="n">status</span> <span class="o">=</span> <span class="n">ST_WAIT</span>             <span class="c"># assume it&#39;s some variant of wait</span>
+        <span class="n">pbsMap</span><span class="p">[</span><span class="n">qjobId</span><span class="p">]</span> <span class="o">=</span> <span class="n">status</span>
+
+    <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown hostType: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hostType</span><span class="p">,))</span>
+
+  <span class="k">return</span> <span class="n">pbsMap</span>
+
+<span class="c">#=====================================================================</span>
+
+
+<span class="c"># Not used.</span>
+<span class="c"># Get info from the &quot;showq&quot; Moab command.</span>
+<span class="c"># Returns a map: jobName -&gt; state</span>
+<span class="c"># where state is one of the Moab tags: BatchHold, Idle, Running, etc.</span>
+</div>
+<div class="viewcode-block" id="getPbsNameMapUnused"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.getPbsNameMapUnused">[docs]</a><span class="k">def</span> <span class="nf">getPbsNameMapUnused</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">userId</span><span class="p">):</span>
+
+  <span class="c"># xxx hardcoded &#39;showq&#39;</span>
+  <span class="p">(</span><span class="n">qrc</span><span class="p">,</span> <span class="n">qstdout</span><span class="p">,</span> <span class="n">qstderr</span><span class="p">,</span> <span class="n">qdeltaSec</span><span class="p">)</span> <span class="o">=</span> <span class="n">runSubprocess</span><span class="p">(</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span>      <span class="c"># wkDir</span>
+    <span class="s">&#39;showq&#39;</span><span class="p">,</span>          <span class="c"># cmdLine</span>
+    <span class="bp">None</span><span class="p">,</span>             <span class="c"># stdInput</span>
+    <span class="bp">False</span><span class="p">)</span>            <span class="c"># showInfo</span>
+
+  <span class="k">if</span> <span class="n">qrc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;getPbsNameMap: showq err.  rc: </span><span class="si">%d</span><span class="se">\n</span><span class="s">  stderr: </span><span class="si">%s</span><span class="se">\n</span><span class="s">  stdout: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+      <span class="o">%</span> <span class="p">(</span><span class="n">qrc</span><span class="p">,</span> <span class="n">qstderr</span><span class="p">,</span> <span class="n">qstdout</span><span class="p">,))</span>
+
+  <span class="c"># stdout has the format:</span>
+  <span class="c">#   434982    ssulliva    Running    24    00:00:26  Fri Jan 24 12:49:42</span>
+  <span class="c">#   434981    ssulliva    Idle        1    00:01:00  Fri Jan 24 12:48:12</span>
+  <span class="c">#   428796    slany       BatchHold  32  5:00:00:00  Wed Jan 22 08:37:33</span>
+  <span class="c"># where the fields are:</span>
+  <span class="c">#   jobId     userId      status     procs  timea    timeb</span>
+  <span class="c"># if status==Running:</span>
+  <span class="c">#   timea = remaining, timeb = startTime</span>
+  <span class="c"># if status==Idle or BatchHold:</span>
+  <span class="c">#   timea = wcLimit, timeb = queueTime</span>
+
+  <span class="n">pbsMap</span> <span class="o">=</span> <span class="p">{}</span>                    <span class="c"># jobName -&gt; state, like ST_WAIT</span>
+  <span class="n">qlines</span> <span class="o">=</span> <span class="n">qstdout</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">qline</span> <span class="ow">in</span> <span class="n">qlines</span><span class="p">:</span>
+    <span class="n">qline</span> <span class="o">=</span> <span class="n">qline</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">qtoks</span> <span class="o">=</span> <span class="n">qline</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qtoks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>         <span class="c"># ignore the headings</span>
+      <span class="p">(</span><span class="n">qjobId</span><span class="p">,</span> <span class="n">quserId</span><span class="p">,</span> <span class="n">qstatus</span><span class="p">)</span> <span class="o">=</span> <span class="n">qtoks</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+
+      <span class="c"># Issue &#39;checkjob&#39; and scan for lines like</span>
+      <span class="c">#   AName: someJobName</span>
+      <span class="c">#   State: Running </span>
+
+      <span class="p">(</span><span class="n">crc</span><span class="p">,</span> <span class="n">cstdout</span><span class="p">,</span> <span class="n">cstderr</span><span class="p">,</span> <span class="n">cdeltaSec</span><span class="p">)</span> <span class="o">=</span> <span class="n">runSubprocess</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span>                  <span class="c"># wkDir</span>
+        <span class="s">&#39;checkjob </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qjobId</span><span class="p">,),</span>    <span class="c"># cmdLine</span>
+        <span class="bp">None</span><span class="p">,</span>                         <span class="c"># stdInput</span>
+        <span class="bp">False</span><span class="p">)</span>                        <span class="c"># showInfo</span>
+
+      <span class="k">if</span> <span class="n">crc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">throwerr</span><span class="p">(</span>
+          <span class="s">&#39;getPbsNameMap: checkjob err.  rc: </span><span class="si">%d</span><span class="se">\n</span><span class="s">  stderr: </span><span class="si">%s</span><span class="se">\n</span><span class="s">  stdout: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">crc</span><span class="p">,</span> <span class="n">cstderr</span><span class="p">,</span> <span class="n">cstdout</span><span class="p">,))</span>
+
+      <span class="n">clines</span> <span class="o">=</span> <span class="n">cstdout</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+      <span class="n">cname</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">cstate</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="k">for</span> <span class="n">cline</span> <span class="ow">in</span> <span class="n">clines</span><span class="p">:</span>
+        <span class="n">ctoks</span> <span class="o">=</span> <span class="n">cline</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ctoks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+          <span class="n">ctag</span> <span class="o">=</span> <span class="n">ctoks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+          <span class="k">if</span> <span class="n">ctag</span> <span class="o">==</span> <span class="s">&#39;aname:&#39;</span><span class="p">:</span> <span class="n">cname</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+          <span class="k">if</span> <span class="n">ctag</span> <span class="o">==</span> <span class="s">&#39;state:&#39;</span><span class="p">:</span> <span class="n">cstate</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+      <span class="k">if</span> <span class="n">cname</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">cstate</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">pbsMap</span><span class="p">[</span><span class="n">cname</span><span class="p">]</span> <span class="o">=</span> <span class="n">cstate</span>
+  <span class="k">return</span> <span class="n">pbsMap</span>
+
+
+<span class="c">#=====================================================================</span>
+
+
+<span class="c"># Call subprocess.Popen( cmd, shell=True)</span>
+<span class="c"># Returns (rc, stdout, stderr, deltaTimeSec).</span>
+</div>
+<div class="viewcode-block" id="runSubprocess"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.runSubprocess">[docs]</a><span class="k">def</span> <span class="nf">runSubprocess</span><span class="p">(</span>
+  <span class="n">wkDir</span><span class="p">,</span>        <span class="c"># work dir to use for cmd</span>
+  <span class="n">cmd</span><span class="p">,</span>          <span class="c"># command line</span>
+  <span class="n">stdInput</span><span class="p">,</span>     <span class="c"># stdin to pass to command.  Usually None.</span>
+  <span class="n">showInfo</span><span class="p">):</span>    <span class="c"># bool.  If True, print stdout and stderr.</span>
+
+  <span class="n">timea</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">showInfo</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;runSubprocess: cmd: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;runSubprocess: wkDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wkDir</span><span class="p">,)</span>
+  <span class="n">pipe</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span>
+
+  <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+    <span class="n">cmd</span><span class="p">,</span>
+    <span class="n">shell</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="n">cwd</span><span class="o">=</span><span class="n">wkDir</span><span class="p">,</span>
+    <span class="n">stdin</span><span class="o">=</span><span class="n">pipe</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">pipe</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">pipe</span><span class="p">,</span>
+    <span class="n">bufsize</span><span class="o">=</span><span class="mi">10</span><span class="o">*</span><span class="mi">1000</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span>
+  <span class="p">(</span><span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">)</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span> <span class="n">stdInput</span><span class="p">)</span>
+  <span class="n">rc</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span>
+  <span class="n">timeb</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">stdout</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">stdout</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+  <span class="k">if</span> <span class="n">stderr</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">stderr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">rc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;subprocess failed.</span><span class="se">\n</span><span class="s">&#39;</span>
+    <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;wkDir: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wkDir</span><span class="p">,)</span>
+    <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;cmd: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,)</span>
+    <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;rc: </span><span class="si">%d</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rc</span><span class="p">,)</span>
+
+  <span class="k">if</span> <span class="n">rc</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">showInfo</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">stderr</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stderr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;========== start stderr for cmd: </span><span class="si">%s</span><span class="s">  in wkDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">wkDir</span><span class="p">,)</span>
+      <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="n">stderr</span><span class="p">)</span>
+      <span class="k">print</span> <span class="s">&#39;========== end stderr for cmd: </span><span class="si">%s</span><span class="s">  in wkDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">wkDir</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="n">stdout</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stdout</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;========== start stdout for cmd: </span><span class="si">%s</span><span class="s">  in wkDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">wkDir</span><span class="p">,)</span>
+      <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="n">stdout</span><span class="p">)</span>
+      <span class="k">print</span> <span class="s">&#39;========== end stdout for cmd: </span><span class="si">%s</span><span class="s">  in wkDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">wkDir</span><span class="p">,)</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">deltaTimeSec</span><span class="p">(</span> <span class="n">timea</span><span class="p">,</span> <span class="n">timeb</span><span class="p">))</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Returns the number of tasks not OK.</span>
+</div>
+<div class="viewcode-block" id="getNumNotOk"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.getNumNotOk">[docs]</a><span class="k">def</span> <span class="nf">getNumNotOk</span><span class="p">(</span> <span class="n">tasks</span><span class="p">):</span>
+  <span class="n">num</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">if</span> <span class="n">tasks</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">ST_OK</span><span class="p">:</span> <span class="n">num</span> <span class="o">+=</span> <span class="mi">1</span>
+  <span class="k">return</span> <span class="n">num</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Returns the current date.</span>
+</div>
+<div class="viewcode-block" id="getCurDate"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.getCurDate">[docs]</a><span class="k">def</span> <span class="nf">getCurDate</span><span class="p">():</span>
+  <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Formats a date.</span>
+</div>
+<div class="viewcode-block" id="formatDate"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.formatDate">[docs]</a><span class="k">def</span> <span class="nf">formatDate</span><span class="p">(</span> <span class="n">dt</span><span class="p">):</span>
+  <span class="k">if</span> <span class="n">dt</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">res</span> <span class="o">=</span> <span class="s">&#39;None&#39;</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">res</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span> <span class="n">dateFmt</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">res</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Parses a date.</span>
+</div>
+<div class="viewcode-block" id="parseDate"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.parseDate">[docs]</a><span class="k">def</span> <span class="nf">parseDate</span><span class="p">(</span> <span class="n">stg</span><span class="p">):</span>
+  <span class="k">if</span> <span class="n">stg</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">stg</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">19</span><span class="p">:</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;parseDate: invalid stg: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stg</span><span class="p">,))</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">res</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span> <span class="n">stg</span><span class="p">,</span> <span class="n">dateFmt</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">res</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Returns the difference dateb - datea, in seconds.</span>
+</div>
+<div class="viewcode-block" id="deltaTimeSec"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.deltaTimeSec">[docs]</a><span class="k">def</span> <span class="nf">deltaTimeSec</span><span class="p">(</span> <span class="n">timea</span><span class="p">,</span> <span class="n">timeb</span><span class="p">):</span>
+  <span class="n">td</span> <span class="o">=</span> <span class="n">timeb</span> <span class="o">-</span> <span class="n">timea</span>
+  <span class="n">deltaSec</span> <span class="o">=</span> <span class="mi">24</span><span class="o">*</span><span class="mi">3600</span><span class="o">*</span><span class="n">td</span><span class="o">.</span><span class="n">days</span> <span class="o">+</span> <span class="n">td</span><span class="o">.</span><span class="n">seconds</span> <span class="o">+</span> <span class="mf">1.e-6</span><span class="o">*</span><span class="n">td</span><span class="o">.</span><span class="n">microseconds</span>
+  <span class="k">return</span> <span class="n">deltaSec</span>
+
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Writes the file (sname).status.run,</span>
+<span class="c"># with the current date.</span>
+</div>
+<div class="viewcode-block" id="setStatusRun"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.setStatusRun">[docs]</a><span class="k">def</span> <span class="nf">setStatusRun</span><span class="p">(</span> <span class="n">sname</span><span class="p">,</span> <span class="n">dirPath</span> <span class="p">):</span>
+  <span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">sname</span><span class="p">,</span> <span class="n">dirPath</span><span class="p">,</span> <span class="n">ST_RUN</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Writes the file (sname).status.ok,</span>
+<span class="c"># with the current date.</span>
+</div>
+<div class="viewcode-block" id="setStatusOk"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.setStatusOk">[docs]</a><span class="k">def</span> <span class="nf">setStatusOk</span><span class="p">(</span> <span class="n">sname</span><span class="p">,</span> <span class="n">dirPath</span> <span class="p">):</span>
+  <span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">sname</span><span class="p">,</span> <span class="n">dirPath</span><span class="p">,</span> <span class="n">ST_OK</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Writes the file (sname).status.error,</span>
+<span class="c"># with the current date, followed by the specified errMsg.</span>
+</div>
+<div class="viewcode-block" id="setStatusError"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.setStatusError">[docs]</a><span class="k">def</span> <span class="nf">setStatusError</span><span class="p">(</span> <span class="n">sname</span><span class="p">,</span> <span class="n">dirPath</span><span class="p">,</span> <span class="n">errMsg</span><span class="p">):</span>
+  <span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">sname</span><span class="p">,</span> <span class="n">dirPath</span><span class="p">,</span> <span class="n">ST_ERROR</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">errMsg</span><span class="p">)</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Writes the file (sname).status.(statusName),</span>
+<span class="c"># with the current date, followed by the specified extra info.</span>
+</div>
+<div class="viewcode-block" id="writeStatusFile"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.writeStatusFile">[docs]</a><span class="k">def</span> <span class="nf">writeStatusFile</span><span class="p">(</span> <span class="n">sname</span><span class="p">,</span> <span class="n">dirPath</span><span class="p">,</span> <span class="n">stIx</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+  <span class="n">spath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="n">dirPath</span><span class="p">,</span>
+    <span class="s">&#39;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sname</span><span class="p">,</span> <span class="n">NM_STATUS</span><span class="p">,</span> <span class="n">statusNames</span><span class="p">[</span><span class="n">stIx</span><span class="p">],))</span>
+  <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">spath</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s">&#39;writeStatusFile: status file already exists: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">spath</span><span class="p">,)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">spath</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;  old content: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">read</span><span class="p">(),)</span>
+    <span class="k">print</span> <span class="s">&#39;  new date: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">formatDate</span><span class="p">(</span> <span class="n">getCurDate</span><span class="p">()),)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">spath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+      <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="n">formatDate</span><span class="p">(</span> <span class="n">getCurDate</span><span class="p">())</span>
+      <span class="k">if</span> <span class="n">extra</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="n">extra</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Searches the allTasks list for a match on execName and taskDir.</span>
+<span class="c"># Returns the Task or None.</span>
+</div>
+<div class="viewcode-block" id="findTask"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.findTask">[docs]</a><span class="k">def</span> <span class="nf">findTask</span><span class="p">(</span> <span class="n">execName</span><span class="p">,</span> <span class="n">taskDir</span><span class="p">,</span> <span class="n">allTasks</span><span class="p">):</span>
+
+  <span class="n">toks</span> <span class="o">=</span> <span class="n">execName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;findTask: invalid execName: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">execName</span><span class="p">,))</span>
+  <span class="n">sname</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">stype</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+  <span class="n">checkNiceName</span><span class="p">(</span> <span class="n">taskDir</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="n">execName</span><span class="p">,</span> <span class="n">sname</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">stype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;sh&#39;</span><span class="p">,</span> <span class="s">&#39;py&#39;</span><span class="p">,</span> <span class="s">&#39;pbs&#39;</span><span class="p">]:</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;findTask: invalid execName: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">execName</span><span class="p">,))</span>
+
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span> <span class="n">taskDir</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;findTask: taskDir not absolute: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">taskDir</span><span class="p">,))</span>
+  <span class="k">if</span> <span class="n">taskDir</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;findTask: taskDir ends with /: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">taskDir</span><span class="p">,))</span>
+
+  <span class="n">res</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">allTasks</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">sname</span> <span class="o">==</span> <span class="n">task</span><span class="o">.</span><span class="n">sname</span> <span class="ow">and</span> <span class="n">taskDir</span> <span class="o">==</span> <span class="n">task</span><span class="o">.</span><span class="n">taskDir</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">execName</span> <span class="o">!=</span> <span class="n">task</span><span class="o">.</span><span class="n">execName</span><span class="p">:</span>
+        <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;findTask: duelling execNames for task: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="p">,))</span>
+      <span class="n">res</span> <span class="o">=</span> <span class="n">task</span>
+      <span class="k">break</span>
+
+  <span class="k">return</span> <span class="n">res</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Removes an entire directory tree.</span>
+</div>
+<div class="viewcode-block" id="rmTree"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.rmTree">[docs]</a><span class="k">def</span> <span class="nf">rmTree</span><span class="p">(</span>
+  <span class="n">ancDir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>      <span class="c"># Some ancestor dir of rmDir, for safety checking</span>
+  <span class="n">rmDir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>      <span class="c"># The directory tree to remove</span>
+
+  <span class="k">if</span> <span class="n">ancDir</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">ancDir</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;rmTree: ancDir is None or too short&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">rmDir</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;rmTree: rmDir == None&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">):</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;rmTree: ancDir is not abs&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span> <span class="n">rmDir</span><span class="p">):</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;rmTree: rmDir is not abs&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">rmDir</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;rmTree: rmDir must start with ancDir&#39;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span> <span class="n">rmDir</span><span class="p">):</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span> <span class="n">rmDir</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span> <span class="n">rmDir</span><span class="p">)</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span> <span class="n">rmDir</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="n">rmDir</span><span class="p">)</span>   <span class="c"># remove ordinary file</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;rmTree: unknown file type: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rmDir</span><span class="p">,))</span>
+
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Gets command line parameters from the command line,</span>
+<span class="c"># and overrides from globalDir/taskParms,</span>
+<span class="c"># and overrides from curDir/taskParms.</span>
+<span class="c">#</span>
+<span class="c"># The taskParms file has the format;</span>
+<span class="c">#       scriptNameRegex  dirRegex  key  value</span>
+<span class="c">#</span>
+<span class="c"># Example of file line:</span>
+<span class="c">#   ^myScript.py$  someDir/alpha  -bugLev  10</span>
+<span class="c"># For the script myScript.py, running in any directory</span>
+<span class="c"># whose absolute path contains the string &#39;someDir/alpha&#39;,</span>
+<span class="c"># set the parameter:  -bugLev 10</span>
+</div>
+<div class="viewcode-block" id="getParmMap"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.getParmMap">[docs]</a><span class="k">def</span> <span class="nf">getParmMap</span><span class="p">(</span>
+  <span class="n">scriptName</span><span class="p">,</span>
+  <span class="n">curDir</span><span class="p">,</span>
+  <span class="n">specMap</span><span class="p">):</span>
+
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">specMap</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;globalDir&#39;</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;getParms: globalDir not in specMap.  script: </span><span class="si">%s</span><span class="s">  curDir: </span><span class="si">%s</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="n">scriptName</span><span class="p">,</span> <span class="n">curDir</span><span class="p">,))</span>
+
+  <span class="n">errMsgs</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="n">rmap</span> <span class="o">=</span> <span class="p">{}</span>         <span class="c"># final result map: keyword -&gt; value</span>
+
+  <span class="c"># Get command line parms</span>
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">errMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;parms must be key/value pairs.&#39;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">errMsgs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">iarg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+      <span class="n">key</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="p">]</span>
+      <span class="n">value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">):</span>
+        <span class="n">errMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;invalid key (no -): </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+      <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>        <span class="c"># strip leading &#39;-&#39;</span>
+      <span class="n">rmap</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">getParmValue</span><span class="p">(</span> <span class="n">specMap</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">rmap</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">errMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;unknown parm: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+
+  <span class="c"># Find name of globalDir</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">rmap</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;globalDir&#39;</span><span class="p">):</span>
+    <span class="n">errMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;globalDir not specified&#39;</span><span class="p">)</span>
+
+  <span class="c"># Get overrides from globalDir/taskParms</span>
+  <span class="c"># Get overrides from curDir/taskParms</span>
+  <span class="k">for</span> <span class="n">dirName</span> <span class="ow">in</span> <span class="p">[</span> <span class="n">rmap</span><span class="p">[</span><span class="s">&#39;globalDir&#39;</span><span class="p">],</span> <span class="n">curDir</span><span class="p">]:</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">dirName</span><span class="p">,</span> <span class="s">&#39;taskParms&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">errMsgs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">fpath</span><span class="p">):</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">fpath</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+        <span class="n">flines</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+      <span class="k">for</span> <span class="n">fline</span> <span class="ow">in</span> <span class="n">flines</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">fline</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">ix</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ix</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:</span><span class="n">ix</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="n">toks</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+          <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">errMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;invalid line.  file path: &quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">  line: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> \
+              <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+          <span class="c"># Check for scriptName and dirName regex matches</span>
+          <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">scriptName</span><span class="p">)</span> \
+            <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">curDir</span><span class="p">)):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">rmap</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">getParmValue</span><span class="p">(</span> <span class="n">specMap</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rmap</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+              <span class="n">errMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;unknown parm.  file path: &quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">  line: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> \
+                <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span>
+
+  <span class="n">keys</span> <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+  <span class="n">keys</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+  <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rmap</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span> <span class="n">key</span><span class="p">):</span>
+      <span class="n">specs</span> <span class="o">=</span> <span class="n">specMap</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+      <span class="n">defVal</span> <span class="o">=</span> <span class="n">specs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>           <span class="c"># default value</span>
+      <span class="k">if</span> <span class="n">defVal</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">errMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;parm not specified: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">rmap</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">defVal</span>
+
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">errMsgs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">resObj</span> <span class="o">=</span> <span class="n">rmap</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">errMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;script: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">scriptName</span><span class="p">,)))</span>
+    <span class="n">errMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;curDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">curDir</span><span class="p">,)))</span>
+    <span class="n">resObj</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  &#39;</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">errMsgs</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+
+  <span class="k">return</span> <span class="n">resObj</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Returns None on error</span>
+</div>
+<div class="viewcode-block" id="getParmValue"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.getParmValue">[docs]</a><span class="k">def</span> <span class="nf">getParmValue</span><span class="p">(</span>
+  <span class="n">specMap</span><span class="p">,</span>
+  <span class="n">key</span><span class="p">,</span>
+  <span class="n">value</span><span class="p">):</span>
+
+  <span class="n">vres</span> <span class="o">=</span> <span class="bp">None</span>       <span class="c"># default = error</span>
+
+  <span class="n">specs</span> <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>     <span class="c"># spec = [type, default]</span>
+  <span class="k">if</span> <span class="n">specs</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">specTp</span> <span class="o">=</span> <span class="n">specs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">specTp</span> <span class="o">==</span> <span class="s">&#39;str&#39;</span><span class="p">:</span> <span class="n">vres</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">specTp</span> <span class="o">==</span> <span class="s">&#39;int&#39;</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span> <span class="n">vres</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">value</span><span class="p">)</span>
+      <span class="k">except</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">specTp</span> <span class="o">==</span> <span class="s">&#39;float&#39;</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span> <span class="n">vres</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">value</span><span class="p">)</span>
+      <span class="k">except</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">specTp</span> <span class="o">==</span> <span class="s">&#39;bool&#39;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;n&#39;</span><span class="p">:</span> <span class="n">vres</span> <span class="o">=</span> <span class="bp">False</span>
+      <span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s">&#39;y&#39;</span><span class="p">:</span> <span class="n">vres</span> <span class="o">=</span> <span class="bp">True</span>
+      <span class="c"># Else leave vres as None</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown specMap entry.  key: </span><span class="si">%s</span><span class="s">  specs: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">specs</span><span class="p">,))</span>
+
+  <span class="k">return</span> <span class="n">vres</span>
+
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Gets command line parameters from a variety of sources:</span>
+<span class="c">#   * lists, like sys.argv, with format: [key, value, key, value,...]</span>
+<span class="c">#   * maps, with format: keyword-&gt;value</span>
+<span class="c">#   * files, with lines having the format</span>
+<span class="c">#       scriptNameRegex  dirRegex  key  value</span>
+<span class="c">#</span>
+<span class="c"># The last specified value wins.</span>
+<span class="c">#</span>
+<span class="c"># Example of file line:</span>
+<span class="c">#   ^myScript.py$  someDir/alpha  -bugLev  10</span>
+<span class="c"># For the script myScript.py, running in any directory</span>
+<span class="c"># whose absolute path contains the string &#39;someDir/alpha&#39;,</span>
+<span class="c"># set the parameter:  -bugLev 10</span>
+</div>
+<div class="viewcode-block" id="getParmsOld"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.getParmsOld">[docs]</a><span class="k">def</span> <span class="nf">getParmsOld</span><span class="p">(</span>
+  <span class="n">scriptName</span><span class="p">,</span>
+  <span class="n">curDir</span><span class="p">,</span>
+  <span class="o">*</span><span class="n">specs</span><span class="p">):</span>
+
+  <span class="n">rmap</span> <span class="o">=</span> <span class="p">{}</span>         <span class="c"># final result map: keyword -&gt; value</span>
+  <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;list&#39;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">throwerr</span><span class="p">(</span>
+          <span class="s">&#39;getParms: parms must be key/value pairs.  script: </span><span class="si">%s</span><span class="s">  curDir: </span><span class="si">%s</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">scriptName</span><span class="p">,</span> <span class="n">curDir</span><span class="p">,))</span>
+      <span class="k">for</span> <span class="n">iarg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="n">iarg</span><span class="p">]</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">rmap</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;dict&#39;</span><span class="p">:</span>
+      <span class="n">keys</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+      <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">rmap</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;str&#39;</span><span class="p">:</span>        <span class="c"># file name</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">spec</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+        <span class="n">flines</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+      <span class="k">for</span> <span class="n">fline</span> <span class="ow">in</span> <span class="n">flines</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">fline</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">ix</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ix</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:</span><span class="n">ix</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="n">toks</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+          <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">throwerr</span><span class="p">(</span>
+              <span class="s">&#39;invalid parm.  script: </span><span class="si">%s</span><span class="s">  curDir: </span><span class="si">%s</span><span class="s">  file: </span><span class="si">%s</span><span class="s">  line: </span><span class="si">%s</span><span class="s">&#39;</span> \
+                <span class="o">%</span> <span class="p">(</span><span class="n">scriptName</span><span class="p">,</span> <span class="n">curDir</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">fline</span><span class="p">))</span>
+          <span class="k">if</span>    <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">scriptName</span><span class="p">)</span> \
+            <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">curDir</span><span class="p">)):</span>
+            <span class="n">resMap</span><span class="p">[</span><span class="n">toks</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+  <span class="k">return</span> <span class="n">resMap</span>
+
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Parses a boolean.</span>
+</div>
+<div class="viewcode-block" id="parseBool"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.parseBool">[docs]</a><span class="k">def</span> <span class="nf">parseBool</span><span class="p">(</span> <span class="n">stgParm</span><span class="p">):</span>
+  <span class="n">stg</span> <span class="o">=</span> <span class="n">stgParm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">stg</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;n&#39;</span><span class="p">,</span> <span class="s">&#39;no&#39;</span><span class="p">,</span> <span class="s">&#39;f&#39;</span><span class="p">,</span> <span class="s">&#39;false&#39;</span><span class="p">]:</span> <span class="n">res</span> <span class="o">=</span> <span class="bp">False</span>
+  <span class="k">elif</span> <span class="n">stg</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="s">&#39;yes&#39;</span><span class="p">,</span> <span class="s">&#39;t&#39;</span><span class="p">,</span> <span class="s">&#39;true&#39;</span><span class="p">]:</span> <span class="n">res</span> <span class="o">=</span> <span class="bp">True</span>
+  <span class="k">return</span> <span class="n">res</span>
+
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Converts fpath to a shorter name for display purposes.</span>
+<span class="c"># Strips off the ancDir prefix.</span>
+</div>
+<div class="viewcode-block" id="shortName"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.shortName">[docs]</a><span class="k">def</span> <span class="nf">shortName</span><span class="p">(</span>
+  <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># Some ancestor dir of fpath</span>
+  <span class="n">fpath</span><span class="p">):</span>         <span class="c"># The path to shorten</span>
+
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">fpath</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;shortName: fpath does not start with ancDir.  fpath: </span><span class="si">%s</span><span class="s">&#39;</span>
+      <span class="o">%</span> <span class="p">(</span><span class="n">fpath</span><span class="p">,))</span>
+  <span class="n">alen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">)</span>
+  <span class="n">tstg</span> <span class="o">=</span> <span class="n">fpath</span><span class="p">[</span><span class="n">alen</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+  <span class="k">return</span> <span class="n">tstg</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Checks that name is alphaNumeric.</span>
+<span class="c"># Calls throwerr if not.</span>
+</div>
+<div class="viewcode-block" id="checkNiceName"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.checkNiceName">[docs]</a><span class="k">def</span> <span class="nf">checkNiceName</span><span class="p">(</span>
+  <span class="n">msg</span><span class="p">,</span>     <span class="c"># Some informative message</span>
+  <span class="n">name</span><span class="p">):</span>   <span class="c"># The name to check</span>
+
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span> <span class="s">r&#39;^[a-zA-Z0-9_]+&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;checkNiceName: invalid name.  msg: </span><span class="si">%s</span><span class="s">  name: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span>
+      <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">name</span><span class="p">,))</span>
+
+<span class="c">#=====================================================================</span>
+</div>
+<div class="viewcode-block" id="mkIndent"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.mkIndent">[docs]</a><span class="k">def</span> <span class="nf">mkIndent</span><span class="p">(</span> <span class="n">ix</span><span class="p">):</span>
+  <span class="n">res</span> <span class="o">=</span> <span class="n">ix</span> <span class="o">*</span> <span class="s">&#39;  &#39;</span>
+  <span class="k">return</span> <span class="n">res</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Raises an Exception.</span>
+</div>
+<div class="viewcode-block" id="throwerr"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMisc.throwerr">[docs]</a><span class="k">def</span> <span class="nf">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="n">fullMsg</span> <span class="o">=</span> <span class="s">&#39;schedmisc.py: &#39;</span> <span class="o">+</span> <span class="n">msg</span>
+  <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span> <span class="n">fullMsg</span><span class="p">)</span>
+
+<span class="c">#=====================================================================</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

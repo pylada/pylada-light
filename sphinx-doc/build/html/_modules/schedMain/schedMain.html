@@ -1,0 +1,646 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>schedMain.schedMain &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for schedMain.schedMain</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">copy</span><span class="o">,</span> <span class="nn">getpass</span><span class="o">,</span> <span class="nn">json</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">socket</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">traceback</span>
+
+<span class="kn">import</span> <span class="nn">schedMisc</span>
+<span class="kn">import</span> <span class="nn">taskClass</span>
+
+
+<div class="viewcode-block" id="aaOverview"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.aaOverview">[docs]</a><span class="k">def</span> <span class="nf">aaOverview</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">This is the main scheduling system.</span>
+<span class="sd">Reads file initWork to create an initial list of tasks.</span>
+<span class="sd">Then executes the tasks that have satisfied their</span>
+<span class="sd">prerequisites.</span>
+
+<span class="sd">For example, suppose the initWork file contains the line::</span>
+
+<span class="sd">   alpha.sh    some/directory</span>
+
+<span class="sd">The schedMain will look in some/directory for the</span>
+<span class="sd">file alpha.preWork.  If present it contains prerequisites</span>
+<span class="sd">for alpha.sh.</span>
+
+<span class="sd">After all the prerequisites have completed with status OK,</span>
+<span class="sd">the schedMain will look for alpha.sh first in some/directory,</span>
+<span class="sd">then in globalDir/cmd.</span>
+
+<span class="sd">Then the schedMain will run alpha.sh in some/directory.</span>
+<span class="sd">If the script ends in pbs, like alpha.pbs, the schedMain</span>
+<span class="sd">will issue qsub alpha.pbs instead.</span>
+
+<span class="sd">When a task alpha.sh completes typically it writes two files::</span>
+
+<span class="sd">  alpha.postOkWork    # list of tasks to start next</span>
+<span class="sd">  alpha.status.ok     # indicates OK completion</span>
+
+<span class="sd">After noticing the file alpha.status.ok, the schedMain</span>
+<span class="sd">adds the tasks in alpha.postOkWork to its workList.</span>
+
+<span class="sd">The lines in file initWork, like all work lists</span>
+<span class="sd">(alpha.preWork, alpha.postOkWork, alpha.postErrorWork),</span>
+<span class="sd">have the format::</span>
+
+<span class="sd">  scriptName  dirPath    # scriptName may be *.sh, *.py, or *.pbs</span>
+
+<span class="sd">For example::</span>
+
+<span class="sd">   alpha.sh    some/directory</span>
+
+<span class="sd">We strip the suffix (&quot;.sh&quot; or &quot;.py&quot; or &quot;.pbs&quot;) off alpha.sh</span>
+<span class="sd">to get the base sname (alpha).</span>
+<span class="sd">The sname is the root of a handful of files related to that script</span>
+<span class="sd">in that dirPath.  Using the alpha example::</span>
+
+<span class="sd">  alpha.preWork        # Work list: prerequisites for this task</span>
+<span class="sd">  alpha.postOkWork     # Work list: tasks to start after this task</span>
+<span class="sd">                       #   writes file status.ok</span>
+<span class="sd">  alpha.postErrorWork  # Work list: tasks to start after this task</span>
+<span class="sd">                       #   writes file status.error</span>
+<span class="sd">  alpha.status.init    # time this task was initialized</span>
+<span class="sd">  alpha.status.submit  # time this task was submitted (like qsub)</span>
+<span class="sd">  alpha.status.run     # time this task was started running</span>
+<span class="sd">  alpha.status.ok      # time this task finished successfully</span>
+<span class="sd">  alpha.status.error   # time and error message if finished unssuccessfully</span>
+
+<span class="sd">Sometimes some of the status files are omitted,</span>
+<span class="sd">but either status.ok or status.error MUST be written.</span>
+
+<span class="sd">To write a status file from a shell script alpha.sh use::</span>
+
+<span class="sd">  date &#39;+%Y-%m-%d_%H:%M:%S&#39; &gt; alpha.status.ok</span>
+<span class="sd">  # Or:</span>
+<span class="sd">  date &#39;+%Y-%m-%d_%H:%M:%S&#39;  &gt; alpha.status.error</span>
+<span class="sd">  echo &#39;Some error message&#39; &gt;&gt; alpha.status.error</span>
+<span class="sd">  echo &#39;More error message&#39; &gt;&gt; alpha.status.error</span>
+
+<span class="sd">To write a status file from a python script alpha.py use::</span>
+
+<span class="sd">  import schedMisc</span>
+<span class="sd">  schedMisc.setStatusOk( &#39;alpha&#39;, os.getcwd())</span>
+<span class="sd">  # Or:</span>
+<span class="sd">  import schedMisc</span>
+<span class="sd">  schedMisc.setStatusError( &#39;alpha&#39;, os.getcwd(),</span>
+<span class="sd">    &#39;Some error message.  More error message.&#39;)</span>
+<span class="sd">  # Or:</span>
+<span class="sd">  import datetime</span>
+<span class="sd">  dateFmt = &#39;%Y-%m-%d_%H:%M:%S&#39;</span>
+<span class="sd">  dateStg = datetime.datetime.now().strftime( dateFmt)</span>
+<span class="sd">  fpath = os.path.join( os.getcwd(), &#39;alpha.status.ok&#39;)</span>
+<span class="sd">  with open( fpath, &#39;w&#39;) as fout:</span>
+<span class="sd">    print &gt;&gt; fout, dateStg</span>
+<span class="sd">  # Or:</span>
+<span class="sd">  fpath = os.path.join( os.getcwd(), &#39;alpha.status.error&#39;)</span>
+<span class="sd">  with open( fpath, &#39;w&#39;) as fout:</span>
+<span class="sd">    print &gt;&gt; fout, dateStg</span>
+<span class="sd">    print &gt;&gt; fout, &#39;Some error message&#39;</span>
+<span class="sd">    print &gt;&gt; fout, &#39;More error message&#39;</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+
+
+<span class="c">#=====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="badparms"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.badparms">[docs]</a><span class="k">def</span> <span class="nf">badparms</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  # Prints usage info and exits with rc 1.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Error: schedMain.py: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;Parms:&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -bugLev        Debug level.  Typically 0, 1, or 5.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -hostType      System type: peregrine or stampede or ...&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -globalDir     Dir containing global info, including subdir cmd&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -ancDir        An ancestor dir of all dirs to be processed&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -initWork      File containing the initial work list&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -delaySec      Schedule loop delay, seconds&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -redoAll       n/y: on restart, redo all even if prior run was ok&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -useReadOnly   n/y: only print status; do not start tasks&#39;</span>
+  <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c">#=====================================================================</span>
+
+
+<span class="c"># Gets the command line parameters and calls scheduleAll,</span>
+<span class="c"># the main scheduler loop.</span>
+</div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  See :func:`aaOverview`.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">parmSpecMap</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c"># Name           Type       Default</span>
+    <span class="s">&#39;bugLev&#39;</span><span class="p">:</span>      <span class="p">[</span> <span class="s">&#39;int&#39;</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span>     <span class="p">],</span>
+    <span class="s">&#39;hostType&#39;</span><span class="p">:</span>    <span class="p">[</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>     <span class="bp">None</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="s">&#39;globalDir&#39;</span><span class="p">:</span>   <span class="p">[</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>     <span class="bp">None</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="s">&#39;ancDir&#39;</span><span class="p">:</span>      <span class="p">[</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>     <span class="bp">None</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="s">&#39;initWork&#39;</span><span class="p">:</span>    <span class="p">[</span> <span class="s">&#39;str&#39;</span><span class="p">,</span>     <span class="bp">None</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="s">&#39;delaySec&#39;</span><span class="p">:</span>    <span class="p">[</span> <span class="s">&#39;float&#39;</span><span class="p">,</span>   <span class="bp">None</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="s">&#39;redoAll&#39;</span><span class="p">:</span>     <span class="p">[</span> <span class="s">&#39;bool&#39;</span><span class="p">,</span>    <span class="bp">None</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="s">&#39;useReadOnly&#39;</span><span class="p">:</span> <span class="p">[</span> <span class="s">&#39;bool&#39;</span><span class="p">,</span>    <span class="bp">False</span><span class="p">,</span> <span class="p">],</span>
+  <span class="p">}</span>
+
+  <span class="n">parmMap</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">getParmMap</span><span class="p">(</span> <span class="n">__file__</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">parmSpecMap</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">parmMap</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;str&#39;</span><span class="p">:</span>      <span class="c"># if error msg</span>
+    <span class="n">badparms</span><span class="p">(</span> <span class="n">parmMap</span><span class="p">)</span>
+
+  <span class="n">bugLev</span> <span class="o">=</span> <span class="n">parmMap</span><span class="p">[</span><span class="s">&#39;bugLev&#39;</span><span class="p">]</span>
+  <span class="n">hostType</span> <span class="o">=</span> <span class="n">parmMap</span><span class="p">[</span><span class="s">&#39;hostType&#39;</span><span class="p">]</span>
+  <span class="n">globalDir</span> <span class="o">=</span> <span class="n">parmMap</span><span class="p">[</span><span class="s">&#39;globalDir&#39;</span><span class="p">]</span>
+  <span class="n">ancDir</span> <span class="o">=</span> <span class="n">parmMap</span><span class="p">[</span><span class="s">&#39;ancDir&#39;</span><span class="p">]</span>
+  <span class="n">initWork</span> <span class="o">=</span> <span class="n">parmMap</span><span class="p">[</span><span class="s">&#39;initWork&#39;</span><span class="p">]</span>
+  <span class="n">delaySec</span> <span class="o">=</span> <span class="n">parmMap</span><span class="p">[</span><span class="s">&#39;delaySec&#39;</span><span class="p">]</span>
+  <span class="n">redoAll</span> <span class="o">=</span> <span class="n">parmMap</span><span class="p">[</span><span class="s">&#39;redoAll&#39;</span><span class="p">]</span>
+  <span class="n">useReadOnly</span> <span class="o">=</span> <span class="n">parmMap</span><span class="p">[</span><span class="s">&#39;useReadOnly&#39;</span><span class="p">]</span>
+
+  <span class="n">globalDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">globalDir</span><span class="p">)</span>
+  <span class="n">ancDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">)</span>
+
+  <span class="c"># Do everything</span>
+  <span class="n">rc</span> <span class="o">=</span> <span class="n">scheduleAll</span><span class="p">(</span>
+    <span class="n">bugLev</span><span class="p">,</span> <span class="n">hostType</span><span class="p">,</span> <span class="n">globalDir</span><span class="p">,</span> <span class="n">ancDir</span><span class="p">,</span>
+    <span class="n">initWork</span><span class="p">,</span> <span class="n">delaySec</span><span class="p">,</span> <span class="n">redoAll</span><span class="p">,</span> <span class="n">useReadOnly</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">rc</span>
+  
+
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Checks and writes the file &quot;schedMain.lockFile&quot;</span>
+<span class="c"># in the user&#39;s home dir to insure only one schedMain</span>
+<span class="c"># runs at a time.</span>
+<span class="c">#</span>
+<span class="c"># Sets allTasks = readWorkList( initWork).</span>
+<span class="c"># Loops repeatedly through all the allTasks list,</span>
+<span class="c"># until there is no more work to be done.</span>
+</div>
+<div class="viewcode-block" id="scheduleAll"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.scheduleAll">[docs]</a><span class="k">def</span> <span class="nf">scheduleAll</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span>         <span class="c"># Debug level.  Typically 0, 1 or 5</span>
+  <span class="n">hostType</span><span class="p">,</span>       <span class="c"># System type: peregrine or stampede or ...</span>
+  <span class="n">globalDir</span><span class="p">,</span>      <span class="c"># Dir containing global info, including subdir cmd</span>
+  <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># An ancestor dir of all dirs to be processed</span>
+  <span class="n">initWork</span><span class="p">,</span>       <span class="c"># File containing the initial work list</span>
+  <span class="n">delaySec</span><span class="p">,</span>       <span class="c"># Schedule loop delay, seconds</span>
+  <span class="n">redoAll</span><span class="p">,</span>        <span class="c"># bool: on restart, redo all even if prior run was ok</span>
+  <span class="n">useReadOnly</span><span class="p">):</span>   <span class="c"># bool: only print status; don&#39;t start tasks</span>
+ 
+  <span class="n">cmdDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">globalDir</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">cmdDirName</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span> <span class="n">cmdDir</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;scheduleAll: cmdDir not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmdDir</span><span class="p">,))</span>
+
+  <span class="c"># Use lockFile in user&#39;s home dir to make sure we don&#39;t have</span>
+  <span class="c"># multiple schedMains running for the same directory.</span>
+
+  <span class="n">lockMap</span> <span class="o">=</span> <span class="n">readLockFile</span><span class="p">()</span>
+  <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">lockMap</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">cwd</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span>
+      <span class="p">(</span><span class="s">&#39;scheduleAll: another schedMain is running.</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="o">+</span> <span class="s">&#39;  cwd: </span><span class="si">%s</span><span class="se">\n</span><span class="s">  prior schedMain: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span>
+      <span class="o">%</span> <span class="p">(</span> <span class="n">cwd</span><span class="p">,</span> <span class="n">lockMap</span><span class="p">[</span><span class="n">cwd</span><span class="p">],))</span>
+
+  <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">globalDir</span><span class="p">,</span> <span class="s">&#39;SCHED_BASH&#39;</span><span class="p">)):</span>
+    <span class="n">useSimulate</span> <span class="o">=</span> <span class="bp">True</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">useSimulate</span> <span class="o">=</span> <span class="bp">False</span>
+
+  <span class="c"># Get pbsMap: jobId -&gt; state, like schedMisc.ST_WAIT</span>
+  <span class="k">if</span> <span class="n">useSimulate</span><span class="p">:</span>
+    <span class="n">pbsMap</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">pbsMap</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">getPbsIdMap</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">hostType</span><span class="p">,</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">())</span>
+
+  <span class="c"># Get the initial work list from the current dir.</span>
+  <span class="n">wkPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">initWork</span><span class="p">)</span>
+  <span class="n">allTasks</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="n">readWorkList</span><span class="p">(</span>
+    <span class="n">bugLev</span><span class="p">,</span>         <span class="c"># Debug level.  Typically 0, 1 or 5</span>
+    <span class="n">globalDir</span><span class="p">,</span>      <span class="c"># Dir containing global info, including subdir cmd</span>
+    <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># An ancestor dir of all dirs to be processed</span>
+    <span class="n">wkPath</span><span class="p">,</span>         <span class="c"># Path of the work list to read</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span>    <span class="c"># curDir: Current working dir</span>
+    <span class="n">pbsMap</span><span class="p">,</span>         <span class="c"># Results from showq.  jobId -&gt; state, like ST_WAIT</span>
+    <span class="n">useReadOnly</span><span class="p">,</span>    <span class="c"># bool: only print status; don&#39;t start tasks</span>
+    <span class="n">redoAll</span><span class="p">,</span>        <span class="c"># redoAll: if true, force all items to run as new.</span>
+    <span class="n">allTasks</span><span class="p">)</span>       <span class="c"># Updated: list of all known Tasks</span>
+  <span class="n">lockMap</span> <span class="o">=</span> <span class="n">writeLockFile</span><span class="p">()</span>
+
+  <span class="c"># Loop until all the tasks in allTasks are complete</span>
+  <span class="n">rc</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="n">schedDone</span> <span class="o">=</span> <span class="bp">False</span>            <span class="c"># assume schedMain has more work to do</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">schedDone</span><span class="p">:</span>
+      <span class="n">checkLockFile</span><span class="p">(</span> <span class="n">lockMap</span><span class="p">)</span>
+
+      <span class="c"># One scan through allTasks</span>
+      <span class="n">schedDone</span> <span class="o">=</span> <span class="n">scheduleTasks</span><span class="p">(</span>
+        <span class="n">bugLev</span><span class="p">,</span>         <span class="c"># Debug level.  Typically 0, 1 or 5</span>
+        <span class="n">hostType</span><span class="p">,</span>       <span class="c"># System type: peregrine or stampede or ...</span>
+        <span class="n">useSimulate</span><span class="p">,</span>    <span class="c"># bool: if true, use bash instead of qsub</span>
+        <span class="n">useReadOnly</span><span class="p">,</span>    <span class="c"># bool: only print status; don&#39;t start tasks</span>
+        <span class="n">globalDir</span><span class="p">,</span>      <span class="c"># Dir containing global info, including subdir cmd</span>
+        <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># An ancestor dir of all dirs to be processed</span>
+        <span class="n">initWork</span><span class="p">,</span>       <span class="c"># File containing the initial work list</span>
+        <span class="n">allTasks</span><span class="p">)</span>       <span class="c"># Updated: list of all known Tasks</span>
+
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">useReadOnly</span><span class="p">:</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span> <span class="n">delaySec</span><span class="p">)</span>
+
+  <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">scheduleAll: caught Exception:&#39;</span>
+    <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">(</span> <span class="nb">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="n">rc</span> <span class="o">=</span> <span class="mi">1</span>
+
+  <span class="k">finally</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;scheduleAll: cleanup&#39;</span>
+    <span class="n">removeLockEntry</span><span class="p">()</span>
+
+  <span class="k">return</span> <span class="n">rc</span>
+
+<span class="c">#=====================================================================</span>
+
+
+<span class="c"># Performs one scan through the allTasks list.</span>
+<span class="c"># Returns boolean schedDone: schedMain is done.</span>
+<span class="c">#</span>
+<span class="c"># For each task in allTasks:</span>
+<span class="c">#   updateStatus: Read any taskName.status.* files; get pbs scheduler info</span>
+<span class="c">#   if task status==init and prereqs done: runTask</span>
+<span class="c">#   if task status==ok: read postOkWork list and add to our work list</span>
+</div>
+<div class="viewcode-block" id="scheduleTasks"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.scheduleTasks">[docs]</a><span class="k">def</span> <span class="nf">scheduleTasks</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span>         <span class="c"># Debug level.  Typically 0, 1 or 5</span>
+  <span class="n">hostType</span><span class="p">,</span>       <span class="c"># System type: peregrine or stampede or ...</span>
+  <span class="n">useSimulate</span><span class="p">,</span>    <span class="c"># bool: if true, use bash instead of qsub</span>
+  <span class="n">useReadOnly</span><span class="p">,</span>    <span class="c"># bool: only print status; don&#39;t start tasks</span>
+  <span class="n">globalDir</span><span class="p">,</span>      <span class="c"># Dir containing global info, including subdir cmd</span>
+  <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># An ancestor dir of all dirs to be processed</span>
+  <span class="n">initWork</span><span class="p">,</span>       <span class="c"># File containing the initial work list</span>
+  <span class="n">allTasks</span><span class="p">):</span>      <span class="c"># Updated: list of all known Tasks</span>
+
+  <span class="c"># Get pbsMap: jobId -&gt; state, like schedMisc.ST_WAIT</span>
+  <span class="k">if</span> <span class="n">useSimulate</span><span class="p">:</span> <span class="n">pbsMap</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">pbsMap</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">getPbsIdMap</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">hostType</span><span class="p">,</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">())</span>
+
+  <span class="c"># Scan allTasks and update the status of each.</span>
+  <span class="c"># If any are done, read their POSTOKWORK or POSTERRORWORK file.</span>
+  <span class="n">schedDone</span> <span class="o">=</span> <span class="bp">True</span>
+  <span class="n">isMod</span> <span class="o">=</span> <span class="bp">True</span>
+  <span class="k">while</span> <span class="n">isMod</span><span class="p">:</span>
+    <span class="n">isMod</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">allTasks</span><span class="p">:</span>
+      <span class="n">task</span><span class="o">.</span><span class="n">updateStatus</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">pbsMap</span><span class="p">)</span>
+      <span class="n">isModTmp</span> <span class="o">=</span> <span class="n">updateWorkList</span><span class="p">(</span>
+        <span class="n">bugLev</span><span class="p">,</span>         <span class="c"># Debug level.  Typically 0, 1 or 5</span>
+        <span class="n">task</span><span class="p">,</span>           <span class="c"># The task to check</span>
+        <span class="n">globalDir</span><span class="p">,</span>      <span class="c"># Dir containing global info, including subdir cmd</span>
+        <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># An ancestor dir of all dirs to be processed</span>
+        <span class="n">useReadOnly</span><span class="p">,</span>    <span class="c"># bool: only print status; don&#39;t start tasks</span>
+        <span class="n">pbsMap</span><span class="p">,</span>         <span class="c"># Results from showq.  jobId -&gt; state, like ST_WAIT</span>
+        <span class="n">allTasks</span><span class="p">)</span>       <span class="c"># Updated: list of all known Tasks</span>
+
+      <span class="n">isMod</span> <span class="o">=</span> <span class="n">isMod</span> <span class="ow">or</span> <span class="n">isModTmp</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">printTasks</span><span class="p">(</span><span class="s">&#39;scheduleTasks&#39;</span><span class="p">,</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">allTasks</span><span class="p">)</span>
+
+  <span class="c"># Start the tasks that are ready.</span>
+  <span class="n">schedDone</span> <span class="o">=</span> <span class="bp">True</span>               <span class="c"># assume nothing to do: schedMain is done</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">useReadOnly</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">allTasks</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;  scheduleTasks: loop hd. task: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">task</span><span class="o">.</span><span class="n">formatShort</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_SUBMIT</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_WAIT</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_RUN</span><span class="p">]:</span>
+        <span class="n">schedDone</span> <span class="o">=</span> <span class="bp">False</span>
+
+      <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_INIT</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">getNumNotOk</span><span class="p">(</span> <span class="n">task</span><span class="o">.</span><span class="n">preWorks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;  ********** scheduleTasks: run task: </span><span class="si">%s</span><span class="s">&#39;</span> \
+              <span class="o">%</span> <span class="n">task</span><span class="o">.</span><span class="n">formatShort</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">)</span>
+          <span class="n">task</span><span class="o">.</span><span class="n">runTask</span><span class="p">(</span> <span class="n">hostType</span><span class="p">,</span> <span class="n">globalDir</span><span class="p">,</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">pbsMap</span><span class="p">)</span>
+          <span class="n">schedDone</span> <span class="o">=</span> <span class="bp">False</span>
+
+  <span class="k">return</span> <span class="n">schedDone</span>
+
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Update the status of the given task.</span>
+<span class="c"># If it&#39;s done, read the POSTOKWORK or POSTERRORWORK file.</span>
+</div>
+<div class="viewcode-block" id="updateWorkList"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.updateWorkList">[docs]</a><span class="k">def</span> <span class="nf">updateWorkList</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span>         <span class="c"># Debug level.  Typically 0, 1 or 5</span>
+  <span class="n">task</span><span class="p">,</span>           <span class="c"># The task to check</span>
+  <span class="n">globalDir</span><span class="p">,</span>      <span class="c"># Dir containing global info, including subdir cmd</span>
+  <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># An ancestor dir of all dirs to be processed</span>
+  <span class="n">useReadOnly</span><span class="p">,</span>    <span class="c"># bool: only print status; don&#39;t start tasks</span>
+  <span class="n">pbsMap</span><span class="p">,</span>         <span class="c"># Results from showq.  jobId -&gt; state, like ST_WAIT</span>
+  <span class="n">allTasks</span><span class="p">):</span>      <span class="c"># Updated: list of all known Tasks</span>
+
+  <span class="n">isMod</span> <span class="o">=</span> <span class="bp">False</span>
+  <span class="n">mergeName</span> <span class="o">=</span> <span class="bp">None</span>     <span class="c"># name of list of new work tasks</span>
+  <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_OK</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">gotPosts</span><span class="p">:</span>
+      <span class="n">mergeName</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">NM_POSTOKWORK</span>     <span class="c"># file name for new work tasks</span>
+      <span class="n">task</span><span class="o">.</span><span class="n">gotPosts</span> <span class="o">=</span> <span class="bp">True</span>
+
+  <span class="k">elif</span> <span class="n">task</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_ERROR</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">task</span><span class="o">.</span><span class="n">gotPosts</span><span class="p">:</span>
+      <span class="n">mergeName</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">NM_POSTERRORWORK</span>  <span class="c"># file name for new work tasks</span>
+      <span class="n">task</span><span class="o">.</span><span class="n">gotPosts</span> <span class="o">=</span> <span class="bp">True</span>
+
+  <span class="c"># If we have new work from a postOkWork or postErrorWork file,</span>
+  <span class="c"># merge it into allTasks.</span>
+  <span class="k">if</span> <span class="n">mergeName</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">isMod</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="c"># If the current task is new, force all postReqs to run also.</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">isNew</span><span class="p">:</span> <span class="n">redoAll</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">redoAll</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="c"># Read sname.postOkWork or sname.postErrorWork and add to allTasks.</span>
+    <span class="n">wkname</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">sname</span><span class="p">,</span> <span class="n">mergeName</span><span class="p">,)</span>
+    <span class="n">wkPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">task</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="n">wkname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">wkPath</span><span class="p">):</span>
+      <span class="n">readWorkList</span><span class="p">(</span>
+        <span class="n">bugLev</span><span class="p">,</span>         <span class="c"># Debug level.  Typically 0, 1 or 5</span>
+        <span class="n">globalDir</span><span class="p">,</span>      <span class="c"># Dir containing global info, including subdir cmd</span>
+        <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># An ancestor dir of all dirs to be processed</span>
+        <span class="n">wkPath</span><span class="p">,</span>         <span class="c"># Path of the work list to read</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span>   <span class="c"># curDir: Current working dir</span>
+        <span class="n">pbsMap</span><span class="p">,</span>         <span class="c"># Results from showq.  jobId -&gt; state, like ST_WAIT</span>
+        <span class="n">useReadOnly</span><span class="p">,</span>    <span class="c"># bool: only print status; don&#39;t start tasks</span>
+        <span class="n">redoAll</span><span class="p">,</span>        <span class="c"># If true, force all items to run as new.</span>
+        <span class="n">allTasks</span><span class="p">)</span>       <span class="c"># Updated: list of all known Tasks</span>
+
+  <span class="k">return</span> <span class="n">isMod</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Prints a table of all tasks</span>
+</div>
+<div class="viewcode-block" id="printTasks"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.printTasks">[docs]</a><span class="k">def</span> <span class="nf">printTasks</span><span class="p">(</span> <span class="n">msg</span><span class="p">,</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">tasks</span><span class="p">):</span>
+
+  <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="si">%s</span><span class="s">:  len(tasks): </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">tasks</span><span class="p">),)</span>
+  <span class="k">print</span> <span class="s">&#39;  date: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">schedMisc</span><span class="o">.</span><span class="n">formatDate</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">getCurDate</span><span class="p">()),)</span>
+
+  <span class="c"># Coord with taskClass.py: format</span>
+  <span class="k">print</span> <span class="s">&#39;  </span><span class="si">%-20s</span><span class="s">  </span><span class="si">%-8s</span><span class="s">  </span><span class="si">%-3s</span><span class="s">  </span><span class="si">%-6s</span><span class="s">  </span><span class="si">%4s</span><span class="s">  </span><span class="si">%s</span><span class="s">&#39;</span> \
+    <span class="o">%</span> <span class="p">(</span><span class="s">&#39;execName&#39;</span><span class="p">,</span> <span class="s">&#39;jobId&#39;</span><span class="p">,</span> <span class="s">&#39;new&#39;</span><span class="p">,</span> <span class="s">&#39;status&#39;</span><span class="p">,</span> <span class="s">&#39;npre&#39;</span><span class="p">,</span> <span class="s">&#39;taskDir&#39;</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;  </span><span class="si">%-20s</span><span class="s">  </span><span class="si">%-8s</span><span class="s">  </span><span class="si">%-3s</span><span class="s">  </span><span class="si">%-6s</span><span class="s">  </span><span class="si">%4s</span><span class="s">  </span><span class="si">%s</span><span class="s">&#39;</span> \
+    <span class="o">%</span> <span class="p">(</span><span class="s">&#39;--------&#39;</span><span class="p">,</span> <span class="s">&#39;-----&#39;</span><span class="p">,</span> <span class="s">&#39;---&#39;</span><span class="p">,</span> <span class="s">&#39;------&#39;</span><span class="p">,</span> <span class="s">&#39;----&#39;</span><span class="p">,</span> <span class="s">&#39;-------&#39;</span><span class="p">,)</span>
+  <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+    <span class="k">print</span> <span class="n">task</span><span class="o">.</span><span class="n">formatTable</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">)</span>
+  <span class="k">print</span> <span class="s">&#39;&#39;</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Reads a file of work items.</span>
+<span class="c"># Updates allTasks and returns a list readTasks.</span>
+<span class="c">#</span>
+<span class="c"># In the file wkPath, each line has the format:</span>
+<span class="c">#   scriptName  dirPath</span>
+<span class="c"># We strip the suffix (&quot;.sh&quot; or &quot;.py&quot; or &quot;.pbs&quot;) off scriptName</span>
+<span class="c"># to get sname.</span>
+<span class="c"># Blank lines and lines starting with whitespace, then &#39;#&#39;, are ignored.</span>
+</div>
+<div class="viewcode-block" id="readWorkList"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.readWorkList">[docs]</a><span class="k">def</span> <span class="nf">readWorkList</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span>         <span class="c"># Debug level.  Typically 0, 1 or 5</span>
+  <span class="n">globalDir</span><span class="p">,</span>      <span class="c"># Dir containing global info, including subdir cmd</span>
+  <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># An ancestor dir of all dirs to be processed</span>
+  <span class="n">wkPath</span><span class="p">,</span>         <span class="c"># Path of the work list to read</span>
+  <span class="n">curDir</span><span class="p">,</span>         <span class="c"># Current working dir</span>
+  <span class="n">pbsMap</span><span class="p">,</span>         <span class="c"># Results from showq.  jobId -&gt; state, like ST_WAIT</span>
+  <span class="n">useReadOnly</span><span class="p">,</span>    <span class="c"># bool: only print status; don&#39;t start tasks</span>
+  <span class="n">redoAll</span><span class="p">,</span>        <span class="c"># bool.  If true, force all items to run as new.</span>
+  <span class="n">allTasks</span><span class="p">):</span>      <span class="c"># Updated: list of all known Tasks</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;    readWorkList entry.  wkPath: </span><span class="si">%s</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">wkPath</span><span class="p">),)</span>
+
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span> <span class="n">wkPath</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;readWorkList: wkPath not abs: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wkPath</span><span class="p">,))</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">wkPath</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;readWorkList: wkPath not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wkPath</span><span class="p">,))</span>
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">wkPath</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+  <span class="n">readTasks</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">):</span>
+      <span class="n">toks</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;readWorkList: invalid line.  wkPath: </span><span class="si">%s</span><span class="s">  line: </span><span class="si">%s</span><span class="s">&#39;</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">wkPath</span><span class="p">,</span> <span class="n">line</span><span class="p">,))</span>
+      <span class="p">(</span><span class="n">execName</span><span class="p">,</span> <span class="n">dirPath</span><span class="p">)</span> <span class="o">=</span> <span class="n">toks</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span> <span class="n">dirPath</span><span class="p">):</span>
+        <span class="n">dirPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">curDir</span><span class="p">,</span> <span class="n">dirPath</span><span class="p">)</span>
+      <span class="n">dirPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">dirPath</span><span class="p">)</span>     <span class="c"># get rid of ending /</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">dirPath</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">):</span>
+        <span class="n">throwerr</span><span class="p">((</span><span class="s">&#39;readWorkList: worklist dir does not start with ancDir.&#39;</span>
+          <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">  wkPath: </span><span class="si">%s</span><span class="s">  line: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">wkPath</span><span class="p">,</span> <span class="n">line</span><span class="p">,))</span>
+
+      <span class="n">task</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">findTask</span><span class="p">(</span> <span class="n">execName</span><span class="p">,</span> <span class="n">dirPath</span><span class="p">,</span> <span class="n">allTasks</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+
+        <span class="c"># Create Task and append to allTasks.</span>
+        <span class="c"># Recursive: Task() calls readWorkList for the</span>
+        <span class="c"># prereqs in dirPath / NM_PREWORK,</span>
+        <span class="c"># and readWorkList creates Tasks</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="n">taskClass</span><span class="o">.</span><span class="n">Task</span><span class="p">(</span>
+          <span class="n">bugLev</span><span class="p">,</span> <span class="n">globalDir</span><span class="p">,</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">execName</span><span class="p">,</span> <span class="n">dirPath</span><span class="p">,</span> <span class="n">pbsMap</span><span class="p">,</span>
+          <span class="n">useReadOnly</span><span class="p">,</span>    <span class="c"># bool: only print status; don&#39;t start tasks</span>
+          <span class="n">redoAll</span><span class="p">,</span>
+          <span class="n">allTasks</span><span class="p">)</span>       <span class="c"># updated</span>
+
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">redoAll</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">useReadOnly</span><span class="p">:</span>
+          <span class="n">task</span><span class="o">.</span><span class="n">resetStatus</span><span class="p">()</span>
+          <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;    readWorkList: reset task: </span><span class="si">%s</span><span class="s">&#39;</span> \
+              <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">formatShort</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">),)</span>
+
+      <span class="n">readTasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">task</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;    readWorkList exit.  wkPath: </span><span class="si">%s</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">wkPath</span><span class="p">),)</span>
+    <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">readTasks</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;      readTask: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">formatShort</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">),)</span>
+
+  <span class="k">return</span> <span class="n">readTasks</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Returns the path to the lock file in the users home dir.</span>
+</div>
+<div class="viewcode-block" id="getLockPath"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.getLockPath">[docs]</a><span class="k">def</span> <span class="nf">getLockPath</span><span class="p">():</span>
+  <span class="n">homeDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~&#39;</span><span class="p">)</span>
+  <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">homeDir</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">NM_LOCKFILE</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">path</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Reads the lockFile in the user&#39;s home dir</span>
+<span class="c"># and returns its content.</span>
+</div>
+<div class="viewcode-block" id="readLockFile"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.readLockFile">[docs]</a><span class="k">def</span> <span class="nf">readLockFile</span><span class="p">():</span>
+  <span class="n">lockMap</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="n">path</span> <span class="o">=</span> <span class="n">getLockPath</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+      <span class="n">lockMap</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span> <span class="n">fin</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">lockMap</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Writes the lockFile in the user&#39;s home dir.</span>
+</div>
+<div class="viewcode-block" id="writeLockFile"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.writeLockFile">[docs]</a><span class="k">def</span> <span class="nf">writeLockFile</span><span class="p">():</span>
+  <span class="n">lockMap</span> <span class="o">=</span> <span class="n">readLockFile</span><span class="p">()</span>
+  <span class="n">lockMap</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;host&#39;</span><span class="p">:</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">(),</span>
+    <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">(),</span>
+    <span class="s">&#39;pid&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">(),</span>
+    <span class="s">&#39;date&#39;</span><span class="p">:</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">formatDate</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">getCurDate</span><span class="p">()),</span>
+  <span class="p">}</span>
+
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">getLockPath</span><span class="p">(),</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span> <span class="n">lockMap</span><span class="p">,</span> <span class="n">fout</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">lockMap</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Checks that the lockFile in the user&#39;s home dir</span>
+<span class="c"># has the specified value.</span>
+</div>
+<div class="viewcode-block" id="checkLockFile"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.checkLockFile">[docs]</a><span class="k">def</span> <span class="nf">checkLockFile</span><span class="p">(</span> <span class="n">lockMap</span><span class="p">):</span>
+  <span class="n">lmap</span> <span class="o">=</span> <span class="n">readLockFile</span><span class="p">()</span>
+  <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+  <span class="k">if</span> <span class="n">lockMap</span><span class="p">[</span><span class="n">cwd</span><span class="p">]</span> <span class="o">!=</span> <span class="n">lmap</span><span class="p">[</span><span class="n">cwd</span><span class="p">]:</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;checkLockFile: lockValue mismatch.</span><span class="se">\n</span><span class="s">  old: </span><span class="si">%s</span><span class="se">\n</span><span class="s">  new: </span><span class="si">%s</span><span class="s">&#39;</span>
+      <span class="o">%</span> <span class="p">(</span><span class="n">lockMap</span><span class="p">[</span><span class="n">cwd</span><span class="p">],</span> <span class="n">lmap</span><span class="p">[</span><span class="n">cwd</span><span class="p">],))</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Removes the lockFile in the user&#39;s home dir.</span>
+</div>
+<div class="viewcode-block" id="removeLockEntry"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.removeLockEntry">[docs]</a><span class="k">def</span> <span class="nf">removeLockEntry</span><span class="p">():</span>
+  <span class="n">lockMap</span> <span class="o">=</span> <span class="n">readLockFile</span><span class="p">()</span>
+  <span class="k">del</span> <span class="n">lockMap</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()]</span>
+
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">getLockPath</span><span class="p">(),</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span> <span class="n">lockMap</span><span class="p">,</span> <span class="n">fout</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Raises an Exception.</span>
+</div>
+<div class="viewcode-block" id="throwerr"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.schedMain.throwerr">[docs]</a><span class="k">def</span> <span class="nf">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="n">fullMsg</span> <span class="o">=</span> <span class="s">&#39;schedMain.py: &#39;</span> <span class="o">+</span> <span class="n">msg</span>
+  <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span> <span class="n">fullMsg</span><span class="p">)</span>
+
+<span class="c">#=====================================================================</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

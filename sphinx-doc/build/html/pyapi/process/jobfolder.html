@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Parallel execution of a job-folder &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Process Module" href="../process.html" />
+    <link rel="next" title="Parallel execution of a job-folder with per-folder numbers of processors" href="pool.html" />
+    <link rel="prev" title="Execution of a callable" href="call.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pool.html" title="Parallel execution of a job-folder with per-folder numbers of processors"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="call.html" title="Execution of a callable"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../process.html" accesskey="U">Process Module</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="parallel-execution-of-a-job-folder">
+<h1>Parallel execution of a job-folder<a class="headerlink" href="#parallel-execution-of-a-job-folder" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pylada.process.jobfolder.JobFolderProcess">
+<em class="property">class </em><tt class="descclassname">pylada.process.jobfolder.</tt><tt class="descname">JobFolderProcess</tt><big>(</big><em>jobfolder</em>, <em>outdir</em>, <em>maxtrials=1</em>, <em>nbpools=1</em>, <em>keepalive=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="process.html#pylada.process.process.Process" title="pylada.process.process.Process"><tt class="xref py py-class docutils literal"><span class="pre">pylada.process.process.Process</span></tt></a></p>
+<p>Executes folder in child processes.</p>
+<p>Expects a jobfolder on input. Executable job-folders are launched in
+parallel, with up to <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.nbpools" title="pylada.process.jobfolder.JobFolderProcess.nbpools"><tt class="xref py py-attr docutils literal"><span class="pre">nbpools</span></tt></a> running
+instances. Each instance is allocated an equal number of processors.</p>
+<p>If a folder does not execute correctly, then the failure code or
+exception is stored in <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.errors" title="pylada.process.jobfolder.JobFolderProcess.errors"><tt class="xref py py-attr docutils literal"><span class="pre">errors</span></tt></a> until all folders have been
+executed. Only then is a <a class="reference internal" href="../process.html#pylada.process.Fail" title="pylada.process.Fail"><tt class="xref py py-exc docutils literal"><span class="pre">Fail</span></tt></a> exception raised.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The executable folders are determined when the process is first
+created. To modify <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.jobfolder" title="pylada.process.jobfolder.JobFolderProcess.jobfolder"><tt class="xref py py-attr docutils literal"><span class="pre">jobfolder</span></tt></a>, one should call
+<a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.update" title="pylada.process.jobfolder.JobFolderProcess.update"><tt class="xref py py-meth docutils literal"><span class="pre">update()</span></tt></a>.</p>
+</div>
+<div class="admonition-see-also admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="pool.html#pylada.process.pool.PoolProcess" title="pylada.process.pool.PoolProcess"><tt class="xref py py-class docutils literal"><span class="pre">PoolProcess</span></tt></a></p>
+</div>
+<dl class="method">
+<dt id="pylada.process.jobfolder.JobFolderProcess.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>jobfolder</em>, <em>outdir</em>, <em>maxtrials=1</em>, <em>nbpools=1</em>, <em>keepalive=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>jobfolder</strong> (<a class="reference internal" href="../jobfolder/jobfolder.html#pylada.jobfolder.jobfolder.JobFolder" title="pylada.jobfolder.jobfolder.JobFolder"><tt class="xref py py-class docutils literal"><span class="pre">JobFolder</span></tt></a>) &#8211; Jobfolder for which executable folders should be launched.
+The name of the folders to launch are determined which
+<a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.__init__" title="pylada.process.jobfolder.JobFolderProcess.__init__"><tt class="xref py py-meth docutils literal"><span class="pre">__init__()</span></tt></a> is acalled. If <tt class="docutils literal"><span class="pre">jobfolder</span></tt> changes, then one
+should call <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.update" title="pylada.process.jobfolder.JobFolderProcess.update"><tt class="xref py py-meth docutils literal"><span class="pre">update()</span></tt></a>.</li>
+<li><strong>outdir</strong> (<em>str</em>) &#8211; Path where the python child process should be executed.</li>
+<li><strong>nbpools</strong> (<em>int</em>) &#8211; Maximum number of executable folders to run in parallel. The
+processors will splitted into <em>n</em> of approximately equal length, where
+<em>n</em> is <tt class="docutils literal"><span class="pre">nbpool</span></tt> or the remaining number of executable jobs, which
+ever is smallest.</li>
+<li><strong>keepalive</strong> (<em>bool</em>) &#8211; Whether to relinquish communicator once jobs are completed.  If
+True, the communicator is not relinquished. The jobfolder can be
+<a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.update" title="pylada.process.jobfolder.JobFolderProcess.update"><tt class="xref py py-meth docutils literal"><span class="pre">updated</span></tt></a> and new jobs started. To finally
+relinquish the communicator, <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.keepalive" title="pylada.process.jobfolder.JobFolderProcess.keepalive"><tt class="xref py py-attr docutils literal"><span class="pre">keepalive</span></tt></a> should be set to
+False.  Both <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.kill" title="pylada.process.jobfolder.JobFolderProcess.kill"><tt class="xref py py-meth docutils literal"><span class="pre">kill()</span></tt></a> and <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.terminate" title="pylada.process.jobfolder.JobFolderProcess.terminate"><tt class="xref py py-meth docutils literal"><span class="pre">terminate()</span></tt></a> ignore this
+attribute and relinquish the communicator. However, since both side
+effects, this may not be the best way to do so.</li>
+<li><strong>maxtrials</strong> (<em>int</em>) &#8211; Maximum number of times to try re-launching each process upon
+failure.</li>
+<li><strong>kwargs</strong> &#8211; Keyword arguments to the functionals in the executable folders. These
+arguments will be applied indiscriminately to all folders.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.jobfolder.JobFolderProcess._cleanup">
+<tt class="descname">_cleanup</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess._cleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess._cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleans up after currently running processes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.done">
+<tt class="descname">done</tt><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.done"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.done" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if job already finished.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.errors">
+<tt class="descname">errors</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map between name of failed jobs and exception.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.jobfolder">
+<tt class="descname">jobfolder</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.jobfolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Jobfolder for which executable folders should be launched.</p>
+<p>The name of the folders to launch are determined which
+<a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.__init__" title="pylada.process.jobfolder.JobFolderProcess.__init__"><tt class="xref py py-meth docutils literal"><span class="pre">__init__()</span></tt></a> is acalled. If <tt class="docutils literal"><span class="pre">jobfolder</span></tt> changes, then one
+should call <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.update" title="pylada.process.jobfolder.JobFolderProcess.update"><tt class="xref py py-meth docutils literal"><span class="pre">update()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.keepalive">
+<tt class="descname">keepalive</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.keepalive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether to relinquish communicator once jobs are completed.</p>
+<p>If True, the communicator is not relinquished. The jobfolder can be
+<a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.update" title="pylada.process.jobfolder.JobFolderProcess.update"><tt class="xref py py-meth docutils literal"><span class="pre">updated</span></tt></a> and new jobs started. To finally relinquish
+the communicator, <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.keepalive" title="pylada.process.jobfolder.JobFolderProcess.keepalive"><tt class="xref py py-attr docutils literal"><span class="pre">keepalive</span></tt></a> should be set to False.  Both
+<a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.kill" title="pylada.process.jobfolder.JobFolderProcess.kill"><tt class="xref py py-meth docutils literal"><span class="pre">kill()</span></tt></a> and <a class="reference internal" href="#pylada.process.jobfolder.JobFolderProcess.terminate" title="pylada.process.jobfolder.JobFolderProcess.terminate"><tt class="xref py py-meth docutils literal"><span class="pre">terminate()</span></tt></a> ignore this attribute and
+relinquish the communicator. However, since both side effects, this may
+not be the best way to do so.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.jobfolder.JobFolderProcess.kill">
+<tt class="descname">kill</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.kill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills all currently running processes.</p>
+<p>Relinquishes communicator, even if
+<tt class="xref py py-attr docutils literal"><span class="pre">keepalive</span></tt> is True.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.nbjobsleft">
+<tt class="descname">nbjobsleft</tt><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.nbjobsleft"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.nbjobsleft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of jobs left.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.nbpools">
+<tt class="descname">nbpools</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.nbpools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of executable folders to launch in parallel.</p>
+<p>The processors will splitted into <em>n</em> of approximately equal length,
+where <em>n</em> is <tt class="docutils literal"><span class="pre">nbpool</span></tt> or the remaining number of executable jobs,
+which ever is smallest.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.nbrunning_processes">
+<tt class="descname">nbrunning_processes</tt><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.nbrunning_processes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.nbrunning_processes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of running processes.</p>
+<p>For simple processes, this will be one or zero.
+For multitasking processes this may be something more.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.outdir">
+<tt class="descname">outdir</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.outdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execution directory of the folder.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.params">
+<tt class="descname">params</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Keyword arguments to the functionals in the executable folders.</p>
+<p>These arguments will be applied indiscriminately to all folders.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.jobfolder.JobFolderProcess.poll">
+<tt class="descname">poll</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.poll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.poll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Polls current job.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.jobfolder.JobFolderProcess.process">
+<tt class="descname">process</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of currently running processes.</p>
+<p>Each item consists of an index into the job-folder,
+an instance derived from <a class="reference internal" href="process.html#pylada.process.process.Process" title="pylada.process.process.Process"><tt class="xref py py-class docutils literal"><span class="pre">Process</span></tt></a>,
+e.g. <a class="reference internal" href="call.html#pylada.process.call.CallProcess" title="pylada.process.call.CallProcess"><tt class="xref py py-class docutils literal"><span class="pre">CallProcess</span></tt></a>, and a communicator
+used by that process.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.jobfolder.JobFolderProcess.start">
+<tt class="descname">start</tt><big>(</big><em>comm</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start executing job-folders.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.jobfolder.JobFolderProcess.terminate">
+<tt class="descname">terminate</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.terminate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills all currently running processes.</p>
+<p>Relinquishes communicator, even if
+<tt class="xref py py-attr docutils literal"><span class="pre">keepalive</span></tt> is True.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.jobfolder.JobFolderProcess.update">
+<tt class="descname">update</tt><big>(</big><em>jobfolder</em>, <em>deleteold=False</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates list of jobs.</p>
+<p>Adds jobfolders which are not in <tt class="docutils literal"><span class="pre">self.jobfolder</span></tt> but in the input.
+Updates jobs which are in <tt class="docutils literal"><span class="pre">self.jobfolder</span></tt> and input if not currently
+running.  Does nothing if are job is currently running.
+If <tt class="docutils literal"><span class="pre">deleteold</span></tt> is True, then removed finished jobs from job-folder.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.jobfolder.JobFolderProcess.wait">
+<tt class="descname">wait</tt><big>(</big><em>sleep=1</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/jobfolder.html#JobFolderProcess.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.jobfolder.JobFolderProcess.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Waits for all job-folders to execute and finish.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="call.html"
+                        title="previous chapter">Execution of a callable</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pool.html"
+                        title="next chapter">Parallel execution of a job-folder with per-folder numbers of processors</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pyapi/process/jobfolder.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pool.html" title="Parallel execution of a job-folder with per-folder numbers of processors"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="call.html" title="Execution of a callable"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../process.html" >Process Module</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

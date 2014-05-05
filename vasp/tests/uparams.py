@@ -64,7 +64,8 @@ def test():
   a.species = {'A': Specie([U(2, 0, 0.5)]), 'B': Specie([]), 'X': Specie([])}
   a.ldau = False
   assert a.ldau == False
-  assert o.output_map() is None
+  print o
+  assert o.output_map(vasp=a) is None
   # now prints U
   a.ldau = True
   map = o.output_map(vasp=a, structure=structure)
@@ -87,7 +88,7 @@ def test():
   a.species = {'A': Specie([U(2, 0, 0.5)]), 'B': Specie([U(2, 0, -0.5), nlep(2, 1, -1.0)]), 'X': Specie([])}
   a.ldau = False
   assert a.ldau == False
-  assert o.output_map() is None
+  assert o.output_map(vasp=a) is None
   a.ldau = True
   map = o.output_map(vasp=a, structure=structure)
   assert map['LDAU'] == '.TRUE.'

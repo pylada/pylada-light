@@ -1,0 +1,245 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Forwarding dictionary &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="JobFolder Module" href="../jobfolder.html" />
+    <link rel="next" title="Process Module" href="../process.html" />
+    <link rel="prev" title="Extract base classes" href="extract.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../process.html" title="Process Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="extract.html" title="Extract base classes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../jobfolder.html" accesskey="U">JobFolder Module</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pylada.jobfolder.forwarding_dict">
+<span id="forwarding-dictionary"></span><h1>Forwarding dictionary<a class="headerlink" href="#module-pylada.jobfolder.forwarding_dict" title="Permalink to this headline">¶</a></h1>
+<p>Special dictioanry class to forward attributes indefinitely.</p>
+<dl class="class">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict">
+<em class="property">class </em><tt class="descclassname">pylada.jobfolder.forwarding_dict.</tt><tt class="descname">ForwardingDict</tt><big>(</big><em>ordered=True</em>, <em>readonly=None</em>, <em>naked_end=None</em>, <em>only_existing=None</em>, <em>_attr_list=None</em>, <em>dictionary=None</em><big>)</big><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">_abcoll.MutableMapping</span></tt></p>
+<p>An <em>ordered</em> dictionary which forwards attributes.</p>
+<p>Overloads the <tt class="docutils literal"><span class="pre">.</span></tt> operator to access items for which the particular
+attribute exists. The return is another instance of
+<tt class="xref py py-class docutils literal"><span class="pre">ForwaringDict</span></tt>. In this manner, attributes can chained with
+calls to the``.`` operator. The values of forwarded attributes can also
+be changed.</p>
+<dl class="method">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>ordered=True</em>, <em>readonly=None</em>, <em>naked_end=None</em>, <em>only_existing=None</em>, <em>_attr_list=None</em>, <em>dictionary=None</em><big>)</big><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a ForwardingDict instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>readonly</strong> (<em>bool</em>) &#8211; Whether or not the items in the dictionary can be modified. If None,
+defaults to <tt class="xref py py-data docutils literal"><span class="pre">pylada.jobparams_read_only</span></tt>.</li>
+<li><strong>naked_end</strong> (<em>bool</em>) &#8211; When only one item exists with the last forwarded attribute, whether
+it should be returned itself, or whether a
+<a class="reference internal" href="#pylada.jobfolder.forwarding_dict.ForwardingDict" title="pylada.jobfolder.forwarding_dict.ForwardingDict"><tt class="xref py py-class docutils literal"><span class="pre">ForwardingDict</span></tt></a> should still be returned. Former is
+easier when examining objects interactively, latter is better in
+scripts. If None, defaults to <a class="reference internal" href="../configuration.html#pylada.jobparams_naked_end" title="pylada.jobparams_naked_end"><tt class="xref py py-data docutils literal"><span class="pre">pylada.jobparams_naked_end</span></tt></a>.</li>
+<li><strong>only_existing</strong> (<em>bool</em>) &#8211; When setting attributes, whether to allow creation of new attributes
+for items which do not posses it. If None, defaults to
+<a class="reference internal" href="../configuration.html#pylada.jobparams_only_existing" title="pylada.jobparams_only_existing"><tt class="xref py py-data docutils literal"><span class="pre">pylada.jobparams_only_existing</span></tt></a></li>
+<li><strong>_attr_list</strong> &#8211; A list of strings making up the attributes to unroll. Private.</li>
+<li><strong>dictionary</strong> (<em>dict</em>) &#8211; Initializes items from items in dictionary.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.readonly">
+<tt class="descname">readonly</tt><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.readonly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether items can be modified in parallel using attribute syntax.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.naked_end">
+<tt class="descname">naked_end</tt><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.naked_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether last item is returned as is or wrapped in ForwardingDict.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.only_existing">
+<tt class="descname">only_existing</tt><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.only_existing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether attributes can be added or only modified.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.dictionary">
+<tt class="descname">dictionary</tt><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.dictionary" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dictionary for which to unroll attributes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.root">
+<tt class="descname">root</tt><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict.root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a ForwardingDict with root grandparent.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.parent">
+<tt class="descname">parent</tt><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict.parent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a ForwardingDict with parent items of self, eg unrolled once.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.keys">
+<tt class="descname">keys</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.copy">
+<tt class="descname">copy</tt><big>(</big><em>append=None</em>, <em>dict=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a shallow copy of this object.</p>
+<dl class="docutils">
+<dt>:param str append <span class="classifier-delimiter">:</span> <span class="classifier">str or None</span></dt>
+<dd>Append value to a deepcopy of a list of attributes. Ignored if None.</dd>
+<dt>:param kwargs <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>Any other attribute to set in the ForwardingDict instance. Note
+that only attributes of the ForwardingDict instance are
+set/modified. This is not propagated to the object the dict holds.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.__getitem__">
+<tt class="descname">__getitem__</tt><big>(</big><em>key</em><big>)</big><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.__setitem__">
+<tt class="descname">__setitem__</tt><big>(</big><em>key</em>, <em>value</em><big>)</big><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict.__setitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add/modify item to dictionary.</p>
+<p>Items can be truly added only to root dictionary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.__getattr__">
+<tt class="descname">__getattr__</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict.__getattr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.__getattr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a Forwarding dict with next requested attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.forwarding_dict.ForwardingDict.__setattr__">
+<tt class="descname">__setattr__</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="reference internal" href="../../_modules/pylada/jobfolder/forwarding_dict.html#ForwardingDict.__setattr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.forwarding_dict.ForwardingDict.__setattr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forwards attribute setting.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="extract.html"
+                        title="previous chapter">Extract base classes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../process.html"
+                        title="next chapter">Process Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pyapi/jobfolder/forwardingdict.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../process.html" title="Process Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="extract.html" title="Extract base classes"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../jobfolder.html" >JobFolder Module</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

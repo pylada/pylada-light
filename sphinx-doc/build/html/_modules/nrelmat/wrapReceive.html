@@ -1,0 +1,522 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>nrelmat.wrapReceive &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for nrelmat.wrapReceive</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># Copyright 2013 National Renewable Energy Laboratory, Golden CO, USA</span>
+<span class="c"># This file is part of NREL MatDB.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License</span>
+<span class="c"># along with NREL MatDB.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span><span class="o">,</span> <span class="nn">json</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">psutil</span>
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+<span class="kn">import</span> <span class="nn">fillDbVasp</span>
+<span class="kn">import</span> <span class="nn">augmentDb</span>
+<span class="kn">import</span> <span class="nn">wrapUpload</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="n">vdirName</span> <span class="o">=</span> <span class="s">&#39;vdir&#39;</span>
+
+<span class="c">#====================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">badparms</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Error: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;Parms:&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -bugLev      &lt;int&gt;      debug level&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -func        &lt;string&gt;   readIncoming / redoArch&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -useCommit   &lt;boolean&gt;  false/true: do we commit changes to the DB.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -allowExc    &lt;boolean&gt;  false/true: continue after error.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -inDir       &lt;string&gt;   Input dir for uploaded files.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -archDir     &lt;string&gt;   Dir used for work and archiving.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -logFile     &lt;string&gt;   Log file name.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -inSpec      &lt;string&gt;   inSpecJsonFile&#39;</span>
+  <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../nrelmatdb/wrapReceive.html#nrelmat.wrapReceive.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  This is the receiver for data uploaded by wrapUpload.py.</span>
+
+<span class="sd">  It updates the model and contrib tables.</span>
+<span class="sd">  The function is determined by the **-func** parameter; see below.</span>
+
+<span class="sd">  This function calls fillDbVasp.py and augmentDb.py.</span>
+
+<span class="sd">  Command line parameters:</span>
+
+<span class="sd">  ==============  =========    ==============================================</span>
+<span class="sd">  Parameter       Type         Description</span>
+<span class="sd">  ==============  =========    ==============================================</span>
+<span class="sd">  **-bugLev**     integer      Debug level.  Normally 0.</span>
+<span class="sd">  **-func**       string       Function.  See below.</span>
+<span class="sd">  **-useCommit**  boolean      false/true: do we commit changes to the DB.</span>
+<span class="sd">  **-allowExc**   boolean      false/true: continue after error.</span>
+<span class="sd">  **-inDir**      string       Input dir for uploaded files.</span>
+<span class="sd">  **-archDir**    string       Dir used for work and archiving.</span>
+<span class="sd">  **-logFile**    string       Log file name.</span>
+<span class="sd">  **-inSpec**     string       JSON file containing parameters.  See below.</span>
+<span class="sd">  ==============  =========    ==============================================</span>
+
+<span class="sd">  **Values for the -func Parameter:**</span>
+
+<span class="sd">  **readIncoming**</span>
+<span class="sd">    Every few seconds list the files in inDir.</span>
+<span class="sd">    For each file name matching ``wrapId.zzflag``, call function</span>
+<span class="sd">    :func:`gatherArchive` to process the three files:</span>
+<span class="sd">    ``wrapId.json``, ``wrapId.tgz``, and ``wrapId.zzflag``.</span>
+<span class="sd">    Since program :mod:`wrapUpload` always writes</span>
+<span class="sd">    the flag file last, the other two should already be present.</span>
+
+<span class="sd">  **redoArch**</span>
+<span class="sd">    Re-process all the subDirs found in archDir by calling</span>
+<span class="sd">    function :func:`processTree` for each subDir.</span>
+<span class="sd">    This is useful when someone changes the database tables,</span>
+<span class="sd">    for example by adding an new column.</span>
+<span class="sd">    Then one can use the following to recreate the tables</span>
+<span class="sd">    with the new column. ::</span>
+
+<span class="sd">      fillDbVasp.py -func createTableModel -deleteTable true</span>
+<span class="sd">      fillDbVasp.py -func createTableContrib -deleteTable true</span>
+<span class="sd">      wrapReceive.py -func redoArch</span>
+
+<span class="sd">  **inSpec File Parameters:**</span>
+
+<span class="sd">  ===================    ==============================================</span>
+<span class="sd">  Parameter              Description</span>
+<span class="sd">  ===================    ==============================================</span>
+<span class="sd">  **dbhost**             Database hostname.</span>
+<span class="sd">  **dbport**             Database port number.</span>
+<span class="sd">  **dbuser**             Database user name.</span>
+<span class="sd">  **dbpswd**             Database password.</span>
+<span class="sd">  **dbname**             Database database name.</span>
+<span class="sd">  **dbschema**           Database schema name.</span>
+<span class="sd">  **dbtablemodel**       Database name of the &quot;model&quot; table.</span>
+<span class="sd">  **dbtablecontrib**     Database name of the &quot;contrib&quot; table.</span>
+<span class="sd">  ===================    ==============================================</span>
+
+<span class="sd">  **inSpec file example:**::</span>
+
+<span class="sd">    {</span>
+<span class="sd">      &quot;dbhost&quot;         : &quot;scctest&quot;,</span>
+<span class="sd">      &quot;dbport&quot;         : &quot;6432&quot;,</span>
+<span class="sd">      &quot;dbuser&quot;         : &quot;x&quot;,</span>
+<span class="sd">      &quot;dbpswd&quot;         : &quot;x&quot;,</span>
+<span class="sd">      &quot;dbname&quot;         : &quot;cidlada&quot;,</span>
+<span class="sd">      &quot;dbschema&quot;       : &quot;satom&quot;,</span>
+<span class="sd">      &quot;dbtablemodel&quot;   : &quot;model&quot;,</span>
+<span class="sd">      &quot;dbtablecontrib&quot; : &quot;contrib&quot;</span>
+<span class="sd">    }</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">bugLev</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">func</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">useCommit</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">allowExc</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">inDir</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">archDir</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">logFile</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">inSpec</span> <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;Parms must be key/value pairs&#39;</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">iarg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="p">]</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-bugLev&#39;</span><span class="p">:</span> <span class="n">bugLev</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-func&#39;</span><span class="p">:</span> <span class="n">func</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-useCommit&#39;</span><span class="p">:</span> <span class="n">useCommit</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseBoolean</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-allowExc&#39;</span><span class="p">:</span> <span class="n">allowExc</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseBoolean</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-inDir&#39;</span><span class="p">:</span> <span class="n">inDir</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-archDir&#39;</span><span class="p">:</span> <span class="n">archDir</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-logFile&#39;</span><span class="p">:</span> <span class="n">logFile</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-inSpec&#39;</span><span class="p">:</span> <span class="n">inSpec</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;unknown key: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -bugLev&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">func</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -func&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">useCommit</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -useCommit&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">allowExc</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -allowExc&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">inDir</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -inDir&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">archDir</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -archDir&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">logFile</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -logFile&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">inSpec</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -inSpec&#39;</span><span class="p">)</span>
+
+  <span class="k">print</span> <span class="s">&#39;wrapReceive: func: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;wrapReceive: useCommit: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">useCommit</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;wrapReceive: allowExc: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">allowExc</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;wrapReceive: inDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inDir</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;wrapReceive: archDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">archDir</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;wrapReceive: logFile: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">logFile</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;wrapReceive: inSpec: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inSpec</span><span class="p">,)</span>
+
+  <span class="n">inDirPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">inDir</span><span class="p">)</span>
+  <span class="n">archDirPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">archDir</span><span class="p">)</span>
+  <span class="n">logPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">logFile</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span> <span class="n">inDirPath</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;inDir is not a dir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inDirPath</span><span class="p">,))</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span> <span class="n">archDirPath</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;archDir is not a dir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">archDirPath</span><span class="p">,))</span>
+
+  <span class="n">flog</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span> <span class="n">logPath</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">)</span>
+  <span class="c"># xxx use flog</span>
+
+  <span class="c"># Quit if there&#39;s a duplicate process already running.</span>
+  <span class="n">checkDupProcs</span><span class="p">()</span>
+
+  <span class="k">if</span> <span class="n">func</span> <span class="o">==</span> <span class="s">&#39;readIncoming&#39;</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;main: checking inDirPath: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inDirPath</span><span class="p">,))</span>
+      <span class="n">fnames</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span> <span class="n">inDirPath</span><span class="p">)</span>
+      <span class="n">fnames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+      <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fnames</span><span class="p">:</span>
+        <span class="c"># If matches, returns (wrapId, adate, userid, hostname).</span>
+        <span class="n">wrapId</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseUui</span><span class="p">(</span> <span class="n">fname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wrapId</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.zzflag&#39;</span><span class="p">):</span>
+          <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;main: wrapId: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,))</span>
+
+          <span class="n">excStg</span> <span class="o">=</span> <span class="bp">None</span>
+          <span class="k">try</span><span class="p">:</span> 
+            <span class="n">gatherArchive</span><span class="p">(</span>
+              <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">allowExc</span><span class="p">,</span> <span class="n">inDirPath</span><span class="p">,</span> <span class="n">archDirPath</span><span class="p">,</span>
+              <span class="n">wrapId</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">)</span>
+          <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">excStg</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span> <span class="n">exc</span><span class="p">)</span>
+            <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;caught: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">excStg</span><span class="p">,))</span>
+            <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+
+          <span class="k">if</span> <span class="n">excStg</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;archived </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,))</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;error for </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,</span> <span class="n">excStg</span><span class="p">,))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">allowExc</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span> <span class="n">excStg</span><span class="p">)</span>
+
+      <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>                     <span class="c"># poll interval</span>
+
+  <span class="c"># Re-process the subDirs under archDir.</span>
+  <span class="k">elif</span> <span class="n">func</span> <span class="o">==</span> <span class="s">&#39;redoArch&#39;</span><span class="p">:</span>
+    <span class="n">fnames</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span> <span class="n">archDirPath</span><span class="p">)</span>
+    <span class="n">fnames</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">fnames</span><span class="p">:</span>
+      <span class="c"># If matches, returns (wrapId, adate, userid, hostname).</span>
+      <span class="n">wrapId</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseUui</span><span class="p">(</span> <span class="n">fname</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">wrapId</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;main: wrapId: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,))</span>
+        <span class="n">subDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">archDirPath</span><span class="p">,</span> <span class="n">wrapId</span><span class="p">)</span>
+
+        <span class="n">excStg</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">try</span><span class="p">:</span> 
+          <span class="n">processTree</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">allowExc</span><span class="p">,</span> <span class="n">subDir</span><span class="p">,</span> <span class="n">wrapId</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
+          <span class="n">excStg</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span> <span class="n">exc</span><span class="p">)</span>
+          <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;caught: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">excStg</span><span class="p">,))</span>
+          <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">excStg</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+          <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;archived </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,))</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;error for </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,</span> <span class="n">excStg</span><span class="p">,))</span>
+          <span class="k">if</span> <span class="ow">not</span> <span class="n">allowExc</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span> <span class="n">excStg</span><span class="p">)</span>
+
+  <span class="k">else</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;invalid func&#39;</span><span class="p">)</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="gatherArchive"><a class="viewcode-back" href="../../nrelmatdb/wrapReceive.html#nrelmat.wrapReceive.gatherArchive">[docs]</a><span class="k">def</span> <span class="nf">gatherArchive</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">allowExc</span><span class="p">,</span> <span class="n">inDirPath</span><span class="p">,</span> <span class="n">archDirPath</span><span class="p">,</span> <span class="n">wrapId</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Moves inDirPath/wrapId.* to archDir and adds the info to the database.</span>
+
+<span class="sd">  Moves inDirPath/wrapId{.json,.tgz,.zzflag} to the new dir archDir/wrapId.</span>
+<span class="sd">  Untars the .tgz file.</span>
+<span class="sd">  Then calls function :func:`processTree` to add the info to the database.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * useCommit (bool): do we commit changes to the DB.</span>
+<span class="sd">  * allowExc (bool): do we continue after error.</span>
+<span class="sd">  * inDirPath (str): Absolute path of the command line parm ``inDir``.</span>
+<span class="sd">  * archDirPath (str): Absolute path of the command line parm ``archDir``.</span>
+<span class="sd">  * wrapId (str): The wrapId extracted from the current filename.</span>
+<span class="sd">  * inSpec (str): Name of JSON file containing DB parameters.</span>
+<span class="sd">                  See description at :func:`main`.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;gatherArchive: inDirPath: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inDirPath</span><span class="p">,))</span>
+    <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;gatherArchive: archDirPath: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">archDirPath</span><span class="p">,))</span>
+    <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;gatherArchive: wrapId: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,))</span>
+
+  <span class="c"># Check paths</span>
+  <span class="n">jsonPathOld</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">inDirPath</span><span class="p">,</span> <span class="n">wrapId</span><span class="o">+</span><span class="s">&#39;.json&#39;</span><span class="p">))</span>
+  <span class="n">archPathOld</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">inDirPath</span><span class="p">,</span> <span class="n">wrapId</span><span class="o">+</span><span class="s">&#39;.tgz&#39;</span><span class="p">))</span>
+  <span class="n">flagPathOld</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">inDirPath</span><span class="p">,</span> <span class="n">wrapId</span><span class="o">+</span><span class="s">&#39;.zzflag&#39;</span><span class="p">))</span>
+  <span class="n">wrapUpload</span><span class="o">.</span><span class="n">checkFileFull</span><span class="p">(</span> <span class="n">jsonPathOld</span><span class="p">)</span>
+  <span class="n">wrapUpload</span><span class="o">.</span><span class="n">checkFileFull</span><span class="p">(</span> <span class="n">archPathOld</span><span class="p">)</span>
+  <span class="n">wrapUpload</span><span class="o">.</span><span class="n">checkFile</span><span class="p">(</span> <span class="n">flagPathOld</span><span class="p">)</span>
+
+  <span class="c"># Move (actually copy, then remove the old one)</span>
+  <span class="c"># x.json, x.tgz, x.zzflag to subDir==archDir/wrapId</span>
+  <span class="n">subDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">archDirPath</span><span class="p">,</span> <span class="n">wrapId</span><span class="p">)</span>
+  <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span> <span class="n">subDir</span><span class="p">)</span>
+  <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span> <span class="n">jsonPathOld</span><span class="p">,</span> <span class="n">subDir</span><span class="p">)</span>
+  <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span> <span class="n">archPathOld</span><span class="p">,</span> <span class="n">subDir</span><span class="p">)</span>
+  <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span> <span class="n">flagPathOld</span><span class="p">,</span> <span class="n">subDir</span><span class="p">)</span>
+  <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="n">jsonPathOld</span><span class="p">)</span>
+  <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="n">archPathOld</span><span class="p">)</span>
+  <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="n">flagPathOld</span><span class="p">)</span>
+
+  <span class="n">jsonPathNew</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">subDir</span><span class="p">,</span> <span class="n">wrapId</span><span class="o">+</span><span class="s">&#39;.json&#39;</span><span class="p">))</span>
+  <span class="n">archPathNew</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">subDir</span><span class="p">,</span> <span class="n">wrapId</span><span class="o">+</span><span class="s">&#39;.tgz&#39;</span><span class="p">))</span>
+  <span class="n">flagPathNew</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">subDir</span><span class="p">,</span> <span class="n">wrapId</span><span class="o">+</span><span class="s">&#39;.zzflag&#39;</span><span class="p">))</span>
+
+  <span class="n">vdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">subDir</span><span class="p">,</span> <span class="n">vdirName</span><span class="p">)</span>
+  <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span> <span class="n">vdir</span><span class="p">)</span>
+
+  <span class="c"># Untar wrapId.tgz in subDir==archDir/wrapId</span>
+
+  <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/bin/tar&#39;</span><span class="p">,</span> <span class="s">&#39;-xzf&#39;</span><span class="p">,</span> <span class="n">archPathNew</span><span class="p">]</span>
+  <span class="n">wrapUpload</span><span class="o">.</span><span class="n">runSubprocess</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">vdir</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>  <span class="c"># print stdout = False</span>
+
+  <span class="c"># xxx Here we could delete archPathNew.</span>
+
+  <span class="n">processTree</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">allowExc</span><span class="p">,</span> <span class="n">subDir</span><span class="p">,</span> <span class="n">wrapId</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">)</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+
+</div>
+<div class="viewcode-block" id="processTree"><a class="viewcode-back" href="../../nrelmatdb/wrapReceive.html#nrelmat.wrapReceive.processTree">[docs]</a><span class="k">def</span> <span class="nf">processTree</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">allowExc</span><span class="p">,</span> <span class="n">subDir</span><span class="p">,</span> <span class="n">wrapId</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calls :mod:`fillDbVasp` to add info to the database,</span>
+<span class="sd">  and :mod:`augmentDb` to fill additional DB columns.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * useCommit (bool): do we commit changes to the DB.</span>
+<span class="sd">  * allowExc (bool): do we continue after error.</span>
+<span class="sd">  * wrapId (str): The wrapId extracted from the current filename.</span>
+<span class="sd">  * subDir (str): archDirPath/wrapId</span>
+<span class="sd">  * inSpec (str): Name of JSON file containing DB parameters.</span>
+<span class="sd">                  See description at :func:`main`.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;processTree: wrapId: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,))</span>
+    <span class="n">wrapUpload</span><span class="o">.</span><span class="n">logit</span><span class="p">(</span><span class="s">&#39;processTree: subDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">subDir</span><span class="p">,))</span>
+
+  <span class="n">fillDbVasp</span><span class="o">.</span><span class="n">fillDbVasp</span><span class="p">(</span>
+    <span class="n">bugLev</span><span class="p">,</span>
+    <span class="s">&#39;fillTable&#39;</span><span class="p">,</span>     <span class="c"># func</span>
+    <span class="n">useCommit</span><span class="p">,</span>
+    <span class="n">allowExc</span><span class="p">,</span>
+    <span class="bp">False</span><span class="p">,</span>           <span class="c"># deleteTable</span>
+    <span class="n">subDir</span><span class="p">,</span>
+    <span class="n">wrapId</span><span class="p">,</span>
+    <span class="n">inSpec</span><span class="p">)</span>
+
+  <span class="c"># Fill in additional columns in the model table</span>
+  <span class="n">augmentDb</span><span class="o">.</span><span class="n">augmentDb</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">)</span>
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="checkDupProcs"><a class="viewcode-back" href="../../nrelmatdb/wrapReceive.html#nrelmat.wrapReceive.checkDupProcs">[docs]</a><span class="k">def</span> <span class="nf">checkDupProcs</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Tests if a process with the same program name as ours</span>
+<span class="sd">  is already running, and if so, quits.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * None</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * None</span>
+
+<span class="sd">  **Raises**</span>
+
+<span class="sd">  * Exception (via throwerr) if another process has the same name.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">mypid</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
+  <span class="n">myproc</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span> <span class="n">mypid</span><span class="p">)</span>
+  <span class="n">mypgm</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">mycmdline</span> <span class="o">=</span> <span class="n">myproc</span><span class="o">.</span><span class="n">cmdline</span>
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mycmdline</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="n">mypgm</span> <span class="o">=</span> <span class="n">mycmdline</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">mypgmPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">mypgm</span><span class="p">)</span>
+
+  <span class="n">pids</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">get_pid_list</span><span class="p">()</span>
+  <span class="n">pids</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+  <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">pids</span><span class="p">:</span>
+    <span class="n">proc</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span> <span class="n">pid</span><span class="p">)</span>
+    <span class="n">cmdline</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">cmdline</span>
+    <span class="c"># print &#39;\npid: %d  cmdline: %s&#39; % (pid, cmdline,)</span>
+    <span class="k">if</span> <span class="n">pid</span> <span class="o">!=</span> <span class="n">mypid</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mycmdline</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cmdline</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c"># print &#39;cmdline[0]: &#39;, cmdline[0], &#39;  cmdline[1]: &#39;, cmdline[1]</span>
+        <span class="n">pgm</span> <span class="o">=</span> <span class="n">cmdline</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">pgmPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">pgm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pgmPath</span> <span class="o">==</span> <span class="n">mypgmPath</span><span class="p">:</span>
+          <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;Apparently a duplicate process is already running.&#39;</span>
+            <span class="o">+</span> <span class="s">&#39;  pid: </span><span class="si">%d</span><span class="s">  cmdline: </span><span class="si">%s</span><span class="s">  pgmPath: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="n">cmdline</span><span class="p">,</span> <span class="n">pgmPath</span><span class="p">))</span>
+
+
+
+<span class="c">#====================================================================</span>
+</div>
+<div class="viewcode-block" id="throwerr"><a class="viewcode-back" href="../../nrelmatdb/wrapReceive.html#nrelmat.wrapReceive.throwerr">[docs]</a><span class="k">def</span> <span class="nf">throwerr</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Prints an error message and raises Exception.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * msg (str): Error message.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * (Never returns)</span>
+<span class="sd">  </span>
+<span class="sd">  **Raises**</span>
+
+<span class="sd">  * Exception</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">print</span> <span class="s">&#39;Error: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,)</span>
+  <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+
+<span class="c">#====================================================================</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

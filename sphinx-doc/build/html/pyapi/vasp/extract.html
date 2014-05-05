@@ -1,0 +1,895 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Extraction classes &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Vasp Module" href="../vasp.html" />
+    <link rel="next" title="pylada.vasp.extract.base" href="extractbase.html" />
+    <link rel="prev" title="Relaxation methods" href="relax.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="extractbase.html" title="pylada.vasp.extract.base"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="relax.html" title="Relaxation methods"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../vasp.html" accesskey="U">Vasp Module</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pylada.vasp.extract">
+<span id="extraction-classes"></span><h1>Extraction classes<a class="headerlink" href="#module-pylada.vasp.extract" title="Permalink to this headline">¶</a></h1>
+<p>Instances of the extraction classes are returned by calls to the
+<a class="reference internal" href="functional.html#pylada.vasp.functional.Vasp" title="pylada.vasp.functional.Vasp"><tt class="xref py py-class docutils literal"><span class="pre">vasp</span></tt></a> and affiliated methods. They
+simply grep the OUTCAR for values of interest, e.g. eigenvalues or vasp
+parameters. Indeed, these should contain an <tt class="docutils literal"><span class="pre">Extract</span></tt> attribute which refers
+to a class capable of handling the output of the method or vasp object. They
+can be instanciated as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">vasp</span><span class="o">.</span><span class="n">Extract</span><span class="p">(</span><span class="s">&#39;outdir&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">vasp</span><span class="o">.</span><span class="n">epitaxial</span><span class="o">.</span><span class="n">Extract</span><span class="p">(</span><span class="s">&#39;outdir&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Where outdir is the location of the relevant calculation.
+The results from the calculations can then be accessed as attributes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">total_energy</span>
+<span class="go">array(-666.667) * eV</span>
+</pre></div>
+</div>
+<p>It is possible to extract calculations from a complete folder tree:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pylada.vasp</span> <span class="kn">import</span> <span class="n">MassExtract</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">MassExtract</span><span class="p">(</span><span class="s">&#39;outdir&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">total_energy</span>
+<span class="go">{</span>
+<span class="go">  &#39;/some/path&#39;:       array(-666.667) * eV,</span>
+<span class="go">  &#39;/some/otherpath&#39;:  array(-999.996) * eV,</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<p>The extraction classes are separated into I/O (<a class="reference internal" href="mixin.html#pylada.vasp.extract.mixin.IOMixin" title="pylada.vasp.extract.mixin.IOMixin"><tt class="xref py py-class docutils literal"><span class="pre">IOMixin</span></tt></a>) and actual methods to grep the OUTCAR for
+results (<a class="reference internal" href="extractbase.html#pylada.vasp.extract.base.ExtractBase" title="pylada.vasp.extract.base.ExtractBase"><tt class="xref py py-class docutils literal"><span class="pre">ExtractBase</span></tt></a>). This
+setup makes it convenient to change the kind of object that can be grepped,
+from the standard file on a hard-disk, to a file in a database.</p>
+<p><a class="reference internal" href="#pylada.vasp.extract.Extract" title="pylada.vasp.extract.Extract"><tt class="xref py py-class docutils literal"><span class="pre">Extract</span></tt></a> derives from the following classes.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="extractbase.html">pylada.vasp.extract.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixin.html">pylada.vasp.extract.mixin</a></li>
+</ul>
+</div>
+<dl class="class">
+<dt id="pylada.vasp.extract.Extract">
+<em class="property">class </em><tt class="descclassname">pylada.vasp.extract.</tt><tt class="descname">Extract</tt><big>(</big><em>directory=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/vasp/extract.html#Extract"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.vasp.extract.Extract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">pylada.tools.extract.AbstractExtractBase</span></tt>, <a class="reference internal" href="mixin.html#pylada.vasp.extract.mixin.IOMixin" title="pylada.vasp.extract.mixin.IOMixin"><tt class="xref py py-class docutils literal"><span class="pre">pylada.vasp.extract.mixin.IOMixin</span></tt></a>, <a class="reference internal" href="extractbase.html#pylada.vasp.extract.base.ExtractBase" title="pylada.vasp.extract.base.ExtractBase"><tt class="xref py py-class docutils literal"><span class="pre">pylada.vasp.extract.base.ExtractBase</span></tt></a></p>
+<p>Extracts DFT data from an OUTCAR.</p>
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.HubbardU_NLEP">
+<tt class="descname">HubbardU_NLEP</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.HubbardU_NLEP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hubbard U/NLEP parameters.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.LDAUType">
+<tt class="descname">LDAUType</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.LDAUType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of LDA+U performed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.algo">
+<tt class="descname">algo</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.algo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the kind of algorithms.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.all_total_energies">
+<tt class="descname">all_total_energies</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.all_total_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps total energies for all electronic steps from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.alphabet">
+<tt class="descname">alphabet</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.alphabet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps alpha+bet from OUTCAR</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.cbm">
+<tt class="descname">cbm</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.cbm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns Condunction Band Minimum.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.vasp.extract.Extract.copy">
+<tt class="descname">copy</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#pylada.vasp.extract.Extract.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a shallow copy of this object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Any keyword argument is set as an attribute of this object.
+The attribute must exist.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.datetime">
+<tt class="descname">datetime</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.datetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps execution date and time.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.density">
+<tt class="descname">density</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes density of the material.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.dielectric_constant">
+<tt class="descname">dielectric_constant</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.dielectric_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dielectric constant of the material.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.directory">
+<tt class="descname">directory</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory where output should be found.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ediff">
+<tt class="descname">ediff</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ediff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps EDIFF from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ediffg">
+<tt class="descname">ediffg</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ediffg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps EDIFFG from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.eigenvalues">
+<tt class="descname">eigenvalues</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.eigenvalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps eigenvalues from OUTCAR.</p>
+<p>In spin-polarized cases, the leading dimension of the numpy array are
+spins, followed by kpoints, and finally with bands. In spin-unpolarized
+cases, the leading dimension are the kpoints, followed by the bands.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.electronic_dielectric_constant">
+<tt class="descname">electronic_dielectric_constant</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.electronic_dielectric_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Electronic contribution to the dielectric constant.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.electropot">
+<tt class="descname">electropot</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.electropot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps average atomic electrostatic potentials from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.encut">
+<tt class="descname">encut</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.encut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Energy cutoff.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.energies_sigma0">
+<tt class="descname">energies_sigma0</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.energies_sigma0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps total energy extrapolated to $sigma=0$ from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.energy">
+<tt class="descname">energy</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps total energy from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.energy_sigma0">
+<tt class="descname">energy_sigma0</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.energy_sigma0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps total energy extrapolated to $sigma=0$ from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.errors">
+<tt class="descname">errors</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.errors" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of errors.</p>
+<p>Errors that are encountered more than once are not repeated.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.extraelectron">
+<tt class="descname">extraelectron</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.extraelectron" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns charge state of the system.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.fermi0K">
+<tt class="descname">fermi0K</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.fermi0K" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fermi energy at zero kelvin.</p>
+<p>This procedure recomputes the fermi energy using a step-function.
+It avoids negative occupation numbers. As such, it may be different
+from the fermi energy given by vasp, depeneding on the smearing and the
+smearing function.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.fermi_energy">
+<tt class="descname">fermi_energy</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.fermi_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps fermi energy from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.fft">
+<tt class="descname">fft</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.fft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps recommended or actual fft setting from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.forces">
+<tt class="descname">forces</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.forces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forces on each atom.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.functional">
+<tt class="descname">functional</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns vasp functional used for calculation.</p>
+<p>The vasp functional is the python object used to generate the OUTCAR
+over which this extraction object acts. Pylada pastes a representation
+of the functional at the end of the OUTCAR. This is what is extracted.
+Hence this attribute will work only on OUTCAR&#8217;s generated by Pylada.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.halfmetallic">
+<tt class="descname">halfmetallic</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.halfmetallic" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if the material is half-metallic.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ialgo">
+<tt class="descname">ialgo</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ialgo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the kind of algorithms.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ibrion">
+<tt class="descname">ibrion</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ibrion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps IBRION from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.icharg">
+<tt class="descname">icharg</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.icharg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps ICHARG from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.initial_structure">
+<tt class="descname">initial_structure</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.initial_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structure at start of calculations.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ionic_charges">
+<tt class="descname">ionic_charges</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ionic_charges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps ionic_charges from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ionic_dielectric_constant">
+<tt class="descname">ionic_dielectric_constant</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ionic_dielectric_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ionic contribution to the dielectric constant.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ions_per_specie">
+<tt class="descname">ions_per_specie</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ions_per_specie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for stoichiometry.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.is_dft">
+<tt class="descname">is_dft</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.is_dft" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this is a DFT calculation, as opposed to GW.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.is_gw">
+<tt class="descname">is_gw</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.is_gw" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if this is a GW calculation, as opposed to DFT.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.is_running">
+<tt class="descname">is_running</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.is_running" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if program is running on this functional.</p>
+<p>A file &#8216;.pylada_is_running&#8217; is created in the output folder when it is
+set-up to run <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a>. The same file is removed when <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> returns
+(more specifically, when the <tt class="xref py py-class docutils literal"><span class="pre">pylada.process.ProgramProcess</span></tt> is
+polled). Hence, this file serves as a marker of those jobs which are
+currently running.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.isif">
+<tt class="descname">isif</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.isif" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps ISIF from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ismear">
+<tt class="descname">ismear</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ismear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps smearing function from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ispin">
+<tt class="descname">ispin</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ispin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps ISPIN from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.istart">
+<tt class="descname">istart</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.istart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps ISTART from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.isym">
+<tt class="descname">isym</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.isym" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps ISYM from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.iterTimes">
+<tt class="descname">iterTimes</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.iterTimes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of pairs: [[cpuTime,realTime], ...]
+from lines like:</p>
+<div class="highlight-python"><pre>LOOP+:  cpu time   22.49: real time   24.43</pre>
+</div>
+<p>or sometimes like:</p>
+<div class="highlight-python"><pre>LOOP+:  VPU time   42.93: CPU time   43.04
+In this case "CPU" is wall time, and "VPU" is CPU.
+See: http://cms.mpi.univie.ac.at/vasp-forum/forum_viewtopic.php?3.336</pre>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.vasp.extract.Extract.iterfiles">
+<tt class="descname">iterfiles</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#pylada.vasp.extract.Extract.iterfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>iterates over input/output files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stout</strong> (<em>bool</em>) &#8211; Include standard output files</li>
+<li><strong>errors</strong> (<em>bool</em>) &#8211; Include stderr files.</li>
+<li><strong>input</strong> (<em>bool</em>) &#8211; Include INCAR file</li>
+<li><strong>wavefunctions</strong> (<em>bool</em>) &#8211; Include WAVECAR file</li>
+<li><strong>dos</strong> (<em>bool</em>) &#8211; Include DOSCAR file</li>
+<li><strong>charge</strong> (<em>bool</em>) &#8211; Include CHGCAR file</li>
+<li><strong>structure</strong> (<em>bool</em>) &#8211; Include POSCAR file</li>
+<li><strong>contcar</strong> (<em>bool</em>) &#8211; Include CONTCAR file</li>
+<li><strong>procar</strong> (<em>bool</em>) &#8211; Include PROCAR file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.kpoints">
+<tt class="descname">kpoints</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.kpoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps k-points from OUTCAR.</p>
+<p>Numpy array where each row is a k-vector in cartesian units.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lasph">
+<tt class="descname">lasph</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lasph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LASPH from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lcharg">
+<tt class="descname">lcharg</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lcharg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LWAVE from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lcompat">
+<tt class="descname">lcompat</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lcompat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LCOMPAT from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lcorr">
+<tt class="descname">lcorr</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lcorr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LCORR from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ldiag">
+<tt class="descname">ldiag</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ldiag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LDIAG from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.ldipol">
+<tt class="descname">ldipol</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.ldipol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LDIPOL from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lelf">
+<tt class="descname">lelf</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lelf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LELF from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lgga_compat">
+<tt class="descname">lgga_compat</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lgga_compat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LGGA_COMPAT from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lmaxmix">
+<tt class="descname">lmaxmix</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lmaxmix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LMAXMIX from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lnoncollinear">
+<tt class="descname">lnoncollinear</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lnoncollinear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LNONCOLLINEAR from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lorbit">
+<tt class="descname">lorbit</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lorbit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LORBIT from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lreal">
+<tt class="descname">lreal</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lreal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LREAL from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lreal_compat">
+<tt class="descname">lreal_compat</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lreal_compat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LREAL_COMPAT from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lsecvar">
+<tt class="descname">lsecvar</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lsecvar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LSECVAR from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lsorbit">
+<tt class="descname">lsorbit</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lsorbit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LSORBIT from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lvhar">
+<tt class="descname">lvhar</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lvhar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LVHAR from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lvtot">
+<tt class="descname">lvtot</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lvtot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LVTOT from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.lwave">
+<tt class="descname">lwave</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.lwave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps LWAVE from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.magnetization">
+<tt class="descname">magnetization</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.magnetization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps partial charges from OUTCAR.</p>
+<p>This is a numpy array where the first dimension is the ion (eg one row
+per ion), and the second the partial charges for each angular momentum.
+The total is not included.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.metagga">
+<tt class="descname">metagga</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.metagga" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps METAGGA from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.moment">
+<tt class="descname">moment</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.moment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns magnetic moment from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.multiplicity">
+<tt class="descname">multiplicity</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.multiplicity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps multiplicity of each k-point from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps POSCAR title from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.nbands">
+<tt class="descname">nbands</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.nbands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of bands in calculation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.nbprocs">
+<tt class="descname">nbprocs</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.nbprocs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of bands in calculation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.nelect">
+<tt class="descname">nelect</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.nelect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps nelect from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.nelm">
+<tt class="descname">nelm</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.nelm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps NELM from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.nelmdl">
+<tt class="descname">nelmdl</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.nelmdl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps NELMDL from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.nelmin">
+<tt class="descname">nelmin</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.nelmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps NELMIN from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.nonscf">
+<tt class="descname">nonscf</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.nonscf" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if non-selfconsistent calculation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.nsw">
+<tt class="descname">nsw</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.nsw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps NSW from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.nupdown">
+<tt class="descname">nupdown</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.nupdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps NUPDOWN from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.occupations">
+<tt class="descname">occupations</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.occupations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps occupations from OUTCAR.</p>
+<p>In spin-polarized cases, the leading dimension of the numpy array are
+spins, followed by kpoints, and finally with bands. In spin-unpolarized
+cases, the leading dimension are the kpoints, followed by the bands.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.partial_charges">
+<tt class="descname">partial_charges</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.partial_charges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps partial charges from OUTCAR.</p>
+<p>This is a numpy array where the first dimension is the ion (eg one row
+per ion), and the second the partial charges for each angular momentum.
+The total is not included.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.potim">
+<tt class="descname">potim</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.potim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps POTIM from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.precision">
+<tt class="descname">precision</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps PREC from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.pressure">
+<tt class="descname">pressure</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.pressure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps last pressure from OUTCAR</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.pressures">
+<tt class="descname">pressures</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.pressures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps all pressures from OUTCAR</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.pseudopotential">
+<tt class="descname">pseudopotential</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.pseudopotential" title="Permalink to this definition">¶</a></dt>
+<dd><p>Title of the first POTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.pulay_pressure">
+<tt class="descname">pulay_pressure</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.pulay_pressure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps pressure from OUTCAR</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.qp_eigenvalues">
+<tt class="descname">qp_eigenvalues</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.qp_eigenvalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps quasi-particle eigenvalues from OUTCAR.</p>
+<p>In spin-polarized cases, the leading dimension of the numpy array are
+spins, followed by kpoints, and finally with bands. In spin-unpolarized
+cases, the leading dimension are the kpoints, followed by the bands.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.reciprocal_volume">
+<tt class="descname">reciprocal_volume</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.reciprocal_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reciprocal space volume (including 2pi).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.recommended_fft">
+<tt class="descname">recommended_fft</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.recommended_fft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps recommended or actual fft setting from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.relaxation">
+<tt class="descname">relaxation</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.relaxation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the kind of relaxation performed in this calculation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.self_energies">
+<tt class="descname">self_energies</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.self_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps self-energies of each eigenvalue from OUTCAR.</p>
+<p>In spin-polarized cases, the leading dimension of the numpy array are
+spins, followed by kpoints, and finally with bands. In spin-unpolarized
+cases, the leading dimension are the kpoints, followed by the bands.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.sigma">
+<tt class="descname">sigma</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.sigma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps smearing function from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.species">
+<tt class="descname">species</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps species from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.stoichiometry">
+<tt class="descname">stoichiometry</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.stoichiometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stoichiometry of the compound.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.stress">
+<tt class="descname">stress</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.stress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns final total stress.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.stresses">
+<tt class="descname">stresses</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.stresses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns total stress at each relaxation step.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.success">
+<tt class="descname">success</tt><a class="reference internal" href="../../_modules/pylada/vasp/extract.html#Extract.success"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.vasp.extract.Extract.success" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if calculation was successfull.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.system">
+<tt class="descname">system</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.system" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps system title from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.total_energies">
+<tt class="descname">total_energies</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.total_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps total energies for all ionic steps from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.total_energy">
+<tt class="descname">total_energy</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.total_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps total energy from OUTCAR.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.vasp.extract.Extract.uncache">
+<tt class="descname">uncache</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.vasp.extract.Extract.uncache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uncache values.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.valence">
+<tt class="descname">valence</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.valence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps number of valence bands from OUTCAR.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.vbm">
+<tt class="descname">vbm</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.vbm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns Valence Band Maximum.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.volume">
+<tt class="descname">volume</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unit-cell volume.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.warnings">
+<tt class="descname">warnings</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.warnings" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of warnings.</p>
+<p>Warnings that are encountered more than once are not repeated.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.vasp.extract.Extract.xc_g0">
+<tt class="descname">xc_g0</tt><a class="headerlink" href="#pylada.vasp.extract.Extract.xc_g0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Greps XC(G=0) from OUTCAR</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pylada.vasp.extract.MassExtract">
+<em class="property">class </em><tt class="descclassname">pylada.vasp.extract.</tt><tt class="descname">MassExtract</tt><big>(</big><em>path=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/vasp/extract.html#MassExtract"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.vasp.extract.MassExtract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../jobfolder/extract.html#pylada.jobfolder.extract.AbstractMassExtract" title="pylada.jobfolder.extract.AbstractMassExtract"><tt class="xref py py-class docutils literal"><span class="pre">pylada.jobfolder.extract.AbstractMassExtract</span></tt></a></p>
+<p>Extracts all Vasp calculations in directory and sub-directories.</p>
+<p>Trolls through all subdirectories for vasp calculations, and organises
+results as a dictionary where keys are the name of the diretories.</p>
+<p>Usage is simply:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pylada.vasp</span> <span class="kn">import</span> <span class="n">MassExtract</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">MassExtract</span><span class="p">(</span><span class="s">&#39;path&#39;</span><span class="p">)</span> <span class="c"># or nothing if path is current directory.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">success</span>
+<span class="go">{</span>
+<span class="go">  &#39;/some/path/&#39;:      True,</span>
+<span class="go">  &#39;/some/other/path&#39;: True</span>
+<span class="go">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">eigenvalues</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="relax.html"
+                        title="previous chapter">Relaxation methods</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="extractbase.html"
+                        title="next chapter">pylada.vasp.extract.base</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pyapi/vasp/extract.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="extractbase.html" title="pylada.vasp.extract.base"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="relax.html" title="Relaxation methods"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../vasp.html" >Vasp Module</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

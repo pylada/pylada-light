@@ -1,0 +1,250 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Result mass extraction &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="JobFolder Module" href="../jobfolder.html" />
+    <link rel="next" title="Extract base classes" href="extract.html" />
+    <link rel="prev" title="Result mass extraction" href="manipulator.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="extract.html" title="Extract base classes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="manipulator.html" title="Result mass extraction"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../jobfolder.html" accesskey="U">JobFolder Module</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pylada.jobfolder.massextract">
+<span id="result-mass-extraction"></span><h1>Result mass extraction<a class="headerlink" href="#module-pylada.jobfolder.massextract" title="Permalink to this headline">¶</a></h1>
+<p>Classes to manipulate output from job-folder calculations.</p>
+<dl class="class">
+<dt id="pylada.jobfolder.massextract.MassExtract">
+<em class="property">class </em><tt class="descclassname">pylada.jobfolder.massextract.</tt><tt class="descname">MassExtract</tt><big>(</big><em>path=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/jobfolder/massextract.html#MassExtract"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="extract.html#pylada.jobfolder.extract.AbstractMassExtract" title="pylada.jobfolder.extract.AbstractMassExtract"><tt class="xref py py-class docutils literal"><span class="pre">pylada.jobfolder.extract.AbstractMassExtract</span></tt></a></p>
+<p>Collects extraction properties from different folders.</p>
+<p>Collects extractors across executable folders. The results are presented
+as attributes of an instance of <a class="reference internal" href="#pylada.jobfolder.massextract.MassExtract" title="pylada.jobfolder.massextract.MassExtract"><tt class="xref py py-class docutils literal"><span class="pre">MassExtract</span></tt></a>, and arranged as
+directory where the key is the name of the job and the value obtained
+from an instance of that job&#8217;s Extract. This class is set-up to fail
+silently, and hence is of limited use for diagnosis.</p>
+<p>For properties to be forwarded, the functional should have an <tt class="docutils literal"><span class="pre">Extract</span></tt>
+attribute which takes a directory path as argument.</p>
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.avoid">
+<tt class="descname">avoid</tt><big>(</big><em>excludes</em><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.avoid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new object with further exclusions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>excludes</strong> (<em>str or list of str or None</em>) &#8211; Pattern or patterns to exclude from output.</td>
+</tr>
+</tbody>
+</table>
+<p>The goal of this function is to work as an <em>anti</em> operator [], i.e. by
+excluding from the output anything that matches the patterns, rather
+including only those which match the pattern.
+This is strickly equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">other</span> <span class="o">=</span> <span class="n">massextract</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">excludes</span><span class="o">=</span><span class="n">excludes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">other</span><span class="o">.</span><span class="n">excludes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">massextract</span><span class="o">.</span><span class="n">excludes</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and then doing calculations with <tt class="docutils literal"><span class="pre">other</span></tt>. The advantage is that it
+can all be done on one line.</p>
+<p>If the <tt class="docutils literal"><span class="pre">excludes</span></tt> argument is None or an empty list, then the
+returned object will not exlude anything.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.jobfolder.massextract.MassExtract.excludes">
+<tt class="descname">excludes</tt><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.excludes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pattern or List of patterns to ignore. or None.</p>
+<p><tt class="xref py py-attr docutils literal"><span class="pre">unix_re</span></tt> determines whether these are unix-command-line like
+patterns or true python regex.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.items">
+<tt class="descname">items</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates through all extraction objects and names.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.iterfiles">
+<tt class="descname">iterfiles</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.iterfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates over output/input files.</p>
+<p>This is rerouted to all extraction objects.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.iteritems">
+<tt class="descname">iteritems</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates through all extraction objects and names.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.iterkeys">
+<tt class="descname">iterkeys</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.iterkeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates through all extraction objects.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.itervalues">
+<tt class="descname">itervalues</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.itervalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates through all extraction objects.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.jobfolder.massextract.MassExtract.jobfolder">
+<tt class="descname">jobfolder</tt><a class="reference internal" href="../../_modules/pylada/jobfolder/massextract.html#MassExtract.jobfolder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.jobfolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Root of the job-folder wrapped by this instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.keys">
+<tt class="descname">keys</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates through all extraction objects.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.jobfolder.massextract.MassExtract.rootpath">
+<tt class="descname">rootpath</tt><a class="reference internal" href="../../_modules/pylada/jobfolder/massextract.html#MassExtract.rootpath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.rootpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Root of the directory tree where computational results can be found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.shallow_copy">
+<tt class="descname">shallow_copy</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.shallow_copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a shallow copy.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> &#8211; Any keyword attribute will modify the corresponding
+attribute of the copy.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.uncache">
+<tt class="descname">uncache</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.uncache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uncache values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.jobfolder.massextract.MassExtract.values">
+<tt class="descname">values</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.jobfolder.massextract.MassExtract.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterates through all extraction objects.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="manipulator.html"
+                        title="previous chapter">Result mass extraction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="extract.html"
+                        title="next chapter">Extract base classes</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pyapi/jobfolder/massextract.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="extract.html" title="Extract base classes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="manipulator.html" title="Result mass extraction"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../jobfolder.html" >JobFolder Module</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,623 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pylada.dftcrystal.hamiltonian &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="pylada.dftcrystal" href="../dftcrystal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" accesskey="U">pylada.dftcrystal</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pylada.dftcrystal.hamiltonian</h1><div class="highlight"><pre>
+<span class="c">###############################</span>
+<span class="c">#  This file is part of PyLaDa.</span>
+<span class="c">#</span>
+<span class="c">#  Copyright (C) 2013 National Renewable Energy Lab</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit</span>
+<span class="c">#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as</span>
+<span class="c">#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It</span>
+<span class="c">#  is able to organise and launch computational jobs on PBS and SLURM.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General</span>
+<span class="c">#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at</span>
+<span class="c">#  your option) any later version.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even</span>
+<span class="c">#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c">#  Public License for more details.</span>
+<span class="c"># </span>
+<span class="c">#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see</span>
+<span class="c">#  &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">###############################</span>
+
+<span class="n">__docformat__</span> <span class="o">=</span> <span class="s">&quot;restructuredtext en&quot;</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Dft&#39;</span><span class="p">]</span>
+<span class="kn">from</span> <span class="nn">.input</span> <span class="kn">import</span> <span class="n">AttrBlock</span><span class="p">,</span> <span class="n">BoolKeyword</span>
+<span class="kn">from</span> <span class="nn">..tools.input</span> <span class="kn">import</span> <span class="n">BaseKeyword</span><span class="p">,</span> <span class="n">ChoiceKeyword</span><span class="p">,</span> <span class="n">TypedKeyword</span>
+
+<span class="k">class</span> <span class="nc">Exchange</span><span class="p">(</span><span class="n">ChoiceKeyword</span><span class="p">):</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;exchange&#39;</span>
+  <span class="sd">&quot;&quot;&quot; Corresponding CRYSTAL keyword. &quot;&quot;&quot;</span>
+  <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;becke&#39;</span><span class="p">,</span> <span class="s">&#39;lda&#39;</span><span class="p">,</span> <span class="s">&#39;pbe&#39;</span><span class="p">,</span> <span class="s">&#39;pbesol&#39;</span><span class="p">,</span> <span class="s">&#39;pwgga&#39;</span><span class="p">,</span> <span class="s">&#39;sogga&#39;</span><span class="p">,</span> <span class="s">&#39;vbh&#39;</span><span class="p">,</span> <span class="s">&#39;wcgga&#39;</span><span class="p">]</span>
+  <span class="sd">&quot;&quot;&quot;&quot; Set of values from which to choose. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span> 
+    <span class="nb">super</span><span class="p">(</span><span class="n">Exchange</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">excludes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;b3lyp&#39;</span><span class="p">,</span> <span class="s">&#39;b3pw&#39;</span><span class="p">,</span> <span class="s">&#39;pbe0&#39;</span><span class="p">,</span> <span class="s">&#39;soggaxc&#39;</span><span class="p">]</span>
+    <span class="sd">&quot;&quot;&quot; keywords incompatible with this one. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Makes sure that excluded keywords are set to False. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">ValueError</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Exchange and Correlations cannot be None.&#39;</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Exchange</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__set__</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excludes</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Print EXCHANGE keyword. </span>
+
+<span class="sd">        Also checks whether one of global keywords is set, in which case does</span>
+<span class="sd">        not print.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">inst</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dft</span>
+    <span class="k">if</span> <span class="n">inst</span><span class="o">.</span><span class="n">pbe0</span> <span class="ow">or</span> <span class="n">inst</span><span class="o">.</span><span class="n">b3lyp</span> <span class="ow">or</span> <span class="n">inst</span><span class="o">.</span><span class="n">b3pw</span> <span class="ow">or</span> <span class="n">inst</span><span class="o">.</span><span class="n">soggaxc</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">keyword</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()}</span>
+
+<span class="k">class</span> <span class="nc">Correlation</span><span class="p">(</span><span class="n">Exchange</span><span class="p">):</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;correlat&#39;</span>
+  <span class="sd">&quot;&quot;&quot; Corresponding CRYSTAL keyword. &quot;&quot;&quot;</span>
+  <span class="n">values</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;lyp&#39;</span><span class="p">,</span> <span class="s">&#39;p86&#39;</span><span class="p">,</span> <span class="s">&#39;pbe&#39;</span><span class="p">,</span> <span class="s">&#39;pbesol&#39;</span><span class="p">,</span> <span class="s">&#39;pwgga&#39;</span><span class="p">,</span> <span class="s">&#39;pwlsd&#39;</span><span class="p">,</span> <span class="s">&#39;pz&#39;</span><span class="p">,</span>
+             <span class="s">&#39;vbh&#39;</span><span class="p">,</span> <span class="s">&#39;wl&#39;</span><span class="p">,</span> <span class="s">&#39;vwn&#39;</span><span class="p">]</span>
+  <span class="sd">&quot;&quot;&quot; Set of values from which to choose. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Correlation</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">GlobalExc</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Takes care of global keywords for exchange-correlation. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyword</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">GlobalExc</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="n">keyword</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">values</span>
+    <span class="sd">&quot;&quot;&quot; Values against which to test. &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; True if global keyword is set. &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+      <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+      <span class="k">else</span><span class="p">:</span> 
+        <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">a</span><span class="o">-</span><span class="n">b</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+      <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="n">instance</span><span class="o">.</span><span class="n">exchange</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>                                 \
+           <span class="ow">and</span> <span class="n">instance</span><span class="o">.</span><span class="n">correlat</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>                             \
+           <span class="ow">and</span> <span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">instance</span><span class="o">.</span><span class="n">hybrid</span><span class="p">)</span>                           \
+           <span class="ow">and</span> <span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">instance</span><span class="o">.</span><span class="n">nonlocal</span><span class="o">.</span><span class="n">exchange</span><span class="p">)</span>                \
+           <span class="ow">and</span> <span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">instance</span><span class="o">.</span><span class="n">nonlocal</span><span class="o">.</span><span class="n">correlation</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inst</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets to global if value is True. </span>
+<span class="sd">    </span>
+<span class="sd">        If False, ignores.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+      <span class="n">inst</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="n">inst</span><span class="o">.</span><span class="n">correlat</span><span class="p">,</span> <span class="n">inst</span><span class="o">.</span><span class="n">hybrid</span><span class="p">,</span>                               \
+        <span class="n">inst</span><span class="o">.</span><span class="n">nonlocal</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="n">inst</span><span class="o">.</span><span class="n">nonlocal</span><span class="o">.</span><span class="n">correlation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dft</span><span class="p">):</span> 
+      <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">keyword</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span> <span class="bp">None</span><span class="p">}</span>
+  <span class="k">def</span> <span class="nf">read_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; True if ever read. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__set__</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">NonLocal</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Non-local weight parameters. &quot;&quot;&quot;</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;NONLOCAL&#39;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xc</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">NonLocal</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot; Exchange weight. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="sd">&quot;&quot;&quot; Correlation weight. &quot;&quot;&quot;</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span>
+    <span class="k">return</span> <span class="s">&#39;{0} {1}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+  <span class="nd">@raw.setter</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+  <span class="k">def</span> <span class="nf">disable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Sets exchange and correlation to None. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">inst</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dft</span>
+    <span class="k">if</span> <span class="n">inst</span><span class="o">.</span><span class="n">pbe0</span> <span class="ow">or</span> <span class="n">inst</span><span class="o">.</span><span class="n">b3lyp</span> <span class="ow">or</span> <span class="n">inst</span><span class="o">.</span><span class="n">b3pw</span> <span class="ow">or</span> <span class="n">inst</span><span class="o">.</span><span class="n">soggaxc</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-8</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-8</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">NonLocal</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; list [self.shift, self.lock] &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span>
+    <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;nonlocal can be indexed with 0, 1, or -1 only.&#39;</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; sets as list [self.shift, self.lock] &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IndexError</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s">&#39;nonlocal can be indexed with 0, 1, or -1 only.&#39;</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="mi">2</span>
+  <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets from (x, c) tuple. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">ValueError</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&#39;Expected (xchange, corr) tuple&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">correlat</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Dumps representation of self. &quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;corr={0.correlation!r}&#39;</span><span class="o">.</span><span class="n">formas</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exchange</span><span class="p">))</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">correlation</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&#39;{0.__class__.__name__}({1})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+  <span class="k">def</span> <span class="nf">__ui_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">..tools.uirepr</span> <span class="kn">import</span> <span class="n">add_to_imports</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;__ui_name__&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+      <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()}</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">correlation</span> <span class="ow">is</span> <span class="bp">None</span>
+    <span class="k">elif</span> <span class="n">defaults</span><span class="o">.</span><span class="n">correlation</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">defaults</span><span class="o">.</span><span class="n">correlation</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">correlation</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-8</span> 
+    <span class="k">if</span> <span class="n">issame</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">exchange</span> <span class="ow">is</span> <span class="bp">None</span>
+      <span class="k">elif</span> <span class="n">defaults</span><span class="o">.</span><span class="n">exchange</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="bp">False</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">defaults</span><span class="o">.</span><span class="n">exchange</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-8</span> 
+    <span class="k">if</span> <span class="n">issame</span><span class="p">:</span> <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="s">&#39;{0.exchange!r}, {0.correlation!r}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">)}</span>
+      
+            
+
+
+<span class="k">class</span> <span class="nc">Hybrid</span><span class="p">(</span><span class="n">TypedKeyword</span><span class="p">):</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;hybrid&#39;</span>
+  <span class="sd">&quot;&quot;&quot; Crystal input keyword. &quot;&quot;&quot;</span>
+  <span class="nb">type</span> <span class="o">=</span> <span class="nb">float</span>
+  <span class="sd">&quot;&quot;&quot; Keyword must conform to this type, if not None. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Hybrid</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">inst</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dft</span>
+    <span class="k">if</span> <span class="n">inst</span><span class="o">.</span><span class="n">pbe0</span> <span class="ow">or</span> <span class="n">inst</span><span class="o">.</span><span class="n">b3lyp</span> <span class="ow">or</span> <span class="n">inst</span><span class="o">.</span><span class="n">b3pw</span> <span class="ow">or</span> <span class="n">inst</span><span class="o">.</span><span class="n">soggaxc</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Hybrid</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Radial</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Defines radial CRYSTAL keyword. &quot;&quot;&quot;</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;radial&#39;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intervals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nbpoints</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates RADIAL keyword &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Radial</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="o">=</span> <span class="n">intervals</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span>  <span class="o">=</span> <span class="n">nbpoints</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Upper limits of the intervals in ascending order &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intervals</span>
+  <span class="nd">@intervals.setter</span>
+  <span class="k">def</span> <span class="nf">intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span> 
+    <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="nb">all</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="nb">input</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intervals</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_intervals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+    <span class="c"># sanity check</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">&gt;</span> <span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])):</span>
+      <span class="k">raise</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;Interval limits are not given in ascending order&#39;</span><span class="p">)</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">nbpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Number of integration points per interval &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbpoints</span>
+  <span class="nd">@nbpoints.setter</span>
+  <span class="k">def</span> <span class="nf">nbpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span> 
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbpoints</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_nbpoints</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Raw CRYSTAL input &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="s">&#39;&#39;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span><span class="p">))</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span>
+    <span class="k">return</span> <span class="s">&#39;{0}</span><span class="se">\n</span><span class="s">{1}</span><span class="se">\n</span><span class="s">{2}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+  <span class="nd">@raw.setter</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets value from CRYSTAL input &quot;&quot;&quot;</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Prints CRYSTAL input &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="nb">input</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">crystal</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dft</span>
+    <span class="k">if</span> <span class="n">crystal</span><span class="o">.</span><span class="n">lgrid</span> <span class="ow">or</span> <span class="n">crystal</span><span class="o">.</span><span class="n">xlgrid</span> <span class="ow">or</span> <span class="n">crystal</span><span class="o">.</span><span class="n">xxlgrid</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="c"># sanity check</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;Different number of interval limits and points per interval&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Radial</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">()</span>
+  <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Dumps representation of self. &quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;nbpoints={0.nbpoints!r}&#39;</span><span class="o">.</span><span class="n">formas</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">))</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&#39;{0.__class__.__name__}({1})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+  <span class="k">def</span> <span class="nf">__ui_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="nb">all</span><span class="p">,</span> <span class="nb">abs</span>
+    <span class="kn">from</span> <span class="nn">..tools.uirepr</span> <span class="kn">import</span> <span class="n">add_to_imports</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;__ui_name__&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+      <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()}</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">nbpoints</span> <span class="ow">is</span> <span class="bp">None</span>
+    <span class="k">elif</span> <span class="n">defaults</span><span class="o">.</span><span class="n">nbpoints</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">array</span><span class="p">(</span><span class="n">defaults</span><span class="o">.</span><span class="n">nbpoints</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">issame</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span>
+      <span class="k">elif</span> <span class="n">defaults</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="bp">False</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">issame</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">array</span><span class="p">(</span><span class="n">defaults</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-8</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">issame</span><span class="p">:</span> <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">{</span> <span class="s">&#39;{0}.intervals&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">):</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">),</span> 
+             <span class="s">&#39;{0}.nbpoints&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">):</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nbpoints</span><span class="p">)</span> <span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Angular</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Defines angular CRYSTAL keyword. &quot;&quot;&quot;</span>
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;angular&#39;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intervals</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates RADIAL keyword &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Angular</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="o">=</span> <span class="n">intervals</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">levels</span>  <span class="o">=</span> <span class="n">levels</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Upper limits of the intervals in ascending order &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intervals</span>
+  <span class="nd">@intervals.setter</span>
+  <span class="k">def</span> <span class="nf">intervals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span> 
+    <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="nb">all</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="nb">input</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_intervals</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_intervals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+    <span class="c"># sanity check</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="o">&gt;</span> <span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])):</span>
+      <span class="k">raise</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;Interval limits are not given in ascending order&#39;</span><span class="p">)</span>
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">levels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot; Accuracy level of each interval &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_levels</span>
+  <span class="nd">@levels.setter</span>
+  <span class="k">def</span> <span class="nf">levels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span> 
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_levels</span> <span class="o">=</span> <span class="bp">None</span><span class="p">;</span> <span class="k">return</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_levels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Raw CRYSTAL input &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="s">&#39;&#39;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">))</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span>
+    <span class="k">return</span> <span class="s">&#39;{0}</span><span class="se">\n</span><span class="s">{1}</span><span class="se">\n</span><span class="s">{2}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="s">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+  <span class="nd">@raw.setter</span>
+  <span class="k">def</span> <span class="nf">raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets value from CRYSTAL input &quot;&quot;&quot;</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">levels</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Prints CRYSTAL input &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="nb">input</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="n">crystal</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dft</span>
+    <span class="k">if</span> <span class="n">crystal</span><span class="o">.</span><span class="n">lgrid</span> <span class="ow">or</span> <span class="n">crystal</span><span class="o">.</span><span class="n">xlgrid</span> <span class="ow">or</span> <span class="n">crystal</span><span class="o">.</span><span class="n">xxlgrid</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+    <span class="c"># sanity check</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="nb">input</span><span class="p">(</span><span class="s">&#39;Different number of interval limits and points per interval&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Angular</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">output_map</span><span class="p">()</span>
+  <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Dumps representation of self. &quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;levels={0.levels!r}&#39;</span><span class="o">.</span><span class="n">formas</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">))</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&#39;{0.__class__.__name__}({1})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+  <span class="k">def</span> <span class="nf">__ui_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="nb">all</span><span class="p">,</span> <span class="nb">abs</span>
+    <span class="kn">from</span> <span class="nn">..tools.uirepr</span> <span class="kn">import</span> <span class="n">add_to_imports</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;__ui_name__&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">defaults</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">defaults</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="n">add_to_imports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">)</span>
+      <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()}</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">levels</span> <span class="ow">is</span> <span class="bp">None</span>
+    <span class="k">elif</span> <span class="n">defaults</span><span class="o">.</span><span class="n">levels</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">array</span><span class="p">(</span><span class="n">defaults</span><span class="o">.</span><span class="n">levels</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">issame</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span>
+      <span class="k">elif</span> <span class="n">defaults</span><span class="o">.</span><span class="n">intervals</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">issame</span> <span class="o">=</span> <span class="bp">False</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">issame</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">array</span><span class="p">(</span><span class="n">defaults</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-8</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">issame</span><span class="p">:</span> <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">{</span> <span class="s">&#39;{0}.intervals&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">):</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">),</span> 
+             <span class="s">&#39;{0}.levels&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">):</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">)</span> <span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">GlobalGridKeyword</span><span class="p">(</span><span class="n">BaseKeyword</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Defines global grid keywords &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">keyword</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">GlobalGridKeyword</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="n">keyword</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Values against which to test. &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; True if global keyword is set. &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+      <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span><span class="p">,</span> <span class="nb">abs</span><span class="p">,</span> <span class="nb">any</span>
+      <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+      <span class="k">else</span><span class="p">:</span> 
+        <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">):</span> <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">array</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">-</span><span class="n">array</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">):</span> <span class="k">return</span> <span class="bp">False</span>
+      <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">return</span> <span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">instance</span><span class="o">.</span><span class="n">radial</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span>                     \
+           <span class="ow">and</span> <span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">instance</span><span class="o">.</span><span class="n">radial</span><span class="o">.</span><span class="n">nbpoints</span><span class="p">)</span>                  \
+           <span class="ow">and</span> <span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">instance</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span>                \
+           <span class="ow">and</span> <span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">instance</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">levels</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inst</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets to global if value is True. </span>
+<span class="sd">    </span>
+<span class="sd">        If False, ignores.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+      <span class="n">inst</span><span class="o">.</span><span class="n">radial</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span> <span class="n">inst</span><span class="o">.</span><span class="n">radial</span><span class="o">.</span><span class="n">nbpoints</span><span class="p">,</span>                             \
+        <span class="n">inst</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">intervals</span><span class="p">,</span> <span class="n">inst</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">levels</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+  <span class="k">def</span> <span class="nf">output_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get__</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;crystal&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dft</span><span class="p">):</span> 
+      <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">keyword</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+  <span class="k">def</span> <span class="nf">read_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; True if ever read. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">__set__</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Dft"><a class="viewcode-back" href="../../../pyapi/dftcrystal/comp.html#pylada.dftcrystal.hamiltonian.Dft">[docs]</a><span class="k">class</span> <span class="nc">Dft</span><span class="p">(</span><span class="n">AttrBlock</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; DFT attribute block. </span>
+<span class="sd">  </span>
+<span class="sd">      Holds parameters relative to the Hamiltonian used in the calculation.</span>
+<span class="sd">      These parameters can be accessed indirectly in tha functional:</span>
+
+<span class="sd">      &gt;&gt;&gt; functional.dft.b3lyp = True</span>
+<span class="sd">      &gt;&gt;&gt; functional.dft.xxlgrid = True</span>
+<span class="sd">     </span>
+<span class="sd">      The above would set the Hamiltonian to the B3LYP exchange-correlation</span>
+<span class="sd">      functional and the integration grid to 64 fl.oz.</span>
+<span class="sd">  &quot;&quot;&quot;</span> 
+  <span class="n">keyword</span> <span class="o">=</span> <span class="s">&#39;DFT&#39;</span>
+  <span class="sd">&quot;&quot;&quot; CRYSTAL keyword. &quot;&quot;&quot;</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates the DFT attribute block. &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Dft</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">exchange</span> <span class="o">=</span> <span class="n">Exchange</span><span class="p">()</span> 
+    <span class="sd">&quot;&quot;&quot; Exchange functional. </span>
+<span class="sd">    </span>
+<span class="sd">        Name of the exchange functional to use.  It should be one of the</span>
+<span class="sd">        following: &#39;becke&#39;, &#39;lda&#39;, &#39;pbe&#39;, &#39;pbesol&#39;, &#39;pwgga&#39;, &#39;sogga&#39;, &#39;vbh&#39;,</span>
+<span class="sd">        &#39;wcgga&#39;, or None(default).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">correlat</span> <span class="o">=</span> <span class="n">Correlation</span><span class="p">()</span> 
+    <span class="sd">&quot;&quot;&quot; Correlation functional. </span>
+<span class="sd">    </span>
+<span class="sd">        Name of the correlation functional to use. It can be one of the</span>
+<span class="sd">        following: &#39;lyp&#39;, &#39;p86&#39;, &#39;pbe&#39;, &#39;pbesol&#39;, &#39;pwgga&#39;, &#39;pwlsd&#39;, &#39;pz&#39;,</span>
+<span class="sd">        &#39;vbh&#39;, &#39;wl&#39;, &#39;vwn&#39;, or None. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">hybrid</span>   <span class="o">=</span> <span class="n">Hybrid</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Amount of exchange to add to functional. </span>
+<span class="sd">    </span>
+<span class="sd">        It should be a floating point or None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nonlocal</span> <span class="o">=</span> <span class="n">NonLocal</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Non-local weights on exchange-correlation. </span>
+<span class="sd">    </span>
+<span class="sd">        A tuple of two floating point which sets the weights of the non-local</span>
+<span class="sd">        part of the exchange (first) and of the correlations (second). It can</span>
+<span class="sd">        also be None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">spin</span>     <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">(</span><span class="n">keyword</span><span class="o">=</span><span class="s">&#39;spin&#39;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; If True, then perform spin-polarized calculation. </span>
+<span class="sd">    </span>
+<span class="sd">        It should be None(default), True, or False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">b3lyp</span>    <span class="o">=</span> <span class="n">GlobalExc</span><span class="p">(</span><span class="s">&#39;b3lyp&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;becke&#39;</span><span class="p">,</span> <span class="s">&#39;lyp&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.81</span><span class="p">])</span>
+    <span class="sd">&quot;&quot;&quot; B3LYP global keyword.</span>
+<span class="sd">    </span>
+<span class="sd">        Sets :py:attr:`exchange`, :py:attr:`correlat`, :py:attr:`nonlocal`</span>
+<span class="sd">        correctly for this functional. Since it acts on/checks upon other</span>
+<span class="sd">        attributes, it can only be set to True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">b3pw</span>     <span class="o">=</span> <span class="n">GlobalExc</span><span class="p">(</span><span class="s">&#39;b3pw&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;becke&#39;</span><span class="p">,</span> <span class="s">&#39;pwgga&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.81</span><span class="p">])</span>
+    <span class="sd">&quot;&quot;&quot; B3PW global keyword.</span>
+<span class="sd">    </span>
+<span class="sd">        Sets :py:attr:`exchange`, :py:attr:`correlat`, :py:attr:`nonlocal`</span>
+<span class="sd">        correctly for this functional. Since it acts on/checks upon other</span>
+<span class="sd">        attributes, it can only be set to True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">pbe0</span>     <span class="o">=</span> <span class="n">GlobalExc</span><span class="p">(</span><span class="s">&#39;pbe0&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;pbe&#39;</span><span class="p">,</span> <span class="s">&#39;pbe&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">])</span>
+    <span class="sd">&quot;&quot;&quot; PBE0 global keyword. </span>
+<span class="sd">    </span>
+<span class="sd">        Sets :py:attr:`exchange`, :py:attr:`correlat`, :py:attr:`nonlocal`</span>
+<span class="sd">        correctly for this functional. Since it acts on/checks upon other</span>
+<span class="sd">        attributes, it can only be set to True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">soggaxc</span>  <span class="o">=</span> <span class="n">GlobalExc</span><span class="p">(</span><span class="s">&#39;soggaxc&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;sogga&#39;</span><span class="p">,</span> <span class="s">&#39;pbe&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">])</span>
+    <span class="sd">&quot;&quot;&quot; SOGGAXC global keyword. </span>
+<span class="sd">    </span>
+<span class="sd">        Sets :py:attr:`exchange`, :py:attr:`correlat`, :py:attr:`nonlocal`</span>
+<span class="sd">        correctly for this functional. Since it acts on/checks upon other</span>
+<span class="sd">        attributes, it can only be set to True.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">angular</span>  <span class="o">=</span> <span class="n">Angular</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Angular integration grid.</span>
+<span class="sd">    </span>
+<span class="sd">        Contains two attributes ``intervals`` and ``levels`` which can be used</span>
+<span class="sd">        to set the angular grid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">radial</span>   <span class="o">=</span> <span class="n">Radial</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Radial integration grid.</span>
+<span class="sd">    </span>
+<span class="sd">        Contains two attributes ``intervals`` and ``nbpoints`` which can be used</span>
+<span class="sd">        to set the radial integration grid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lgrid</span>    <span class="o">=</span> <span class="n">GlobalGridKeyword</span><span class="p">((</span> <span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">75</span><span class="p">],</span>
+                                        <span class="p">[</span><span class="mf">0.1667</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">3.05</span><span class="p">,</span> <span class="mf">9999.0</span><span class="p">],</span> 
+                                        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">8</span><span class="p">]</span> <span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot; Preset large integration grid. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xlgrid</span>   <span class="o">=</span> <span class="n">GlobalGridKeyword</span><span class="p">((</span> <span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">75</span><span class="p">],</span>
+                                        <span class="p">[</span><span class="mf">0.1667</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">9999.0</span><span class="p">],</span> 
+                                        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">12</span><span class="p">]</span> <span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot; Preset extra large integration grid. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">xxlgrid</span>  <span class="o">=</span> <span class="n">GlobalGridKeyword</span><span class="p">((</span> <span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">99</span><span class="p">],</span>
+                                        <span class="p">[</span><span class="mf">0.1667</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">9999.0</span><span class="p">],</span> 
+                                        <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">14</span><span class="p">]</span> <span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot; Preset extra extra large integration grid. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tollgrid</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; DFT grid weight tolerance.</span>
+<span class="sd">    </span>
+<span class="sd">        Should be None(default) or an integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tolldens</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; DFT density tolerance </span>
+
+<span class="sd">        Should be None(default) or an integer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">__ui_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates user friendly representation. &quot;&quot;&quot;</span>
+    <span class="n">exclude</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">exclude</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">exclude</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">b3lyp</span><span class="p">:</span> <span class="n">exclude</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;b3lyp&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">b3pw</span><span class="p">:</span> <span class="n">exclude</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;b3pw&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pbe0</span><span class="p">:</span> <span class="n">exclude</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;pbe0&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">soggaxc</span><span class="p">:</span> <span class="n">exclude</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;soggaxc&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">b3lyp</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">b3pw</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">pbe0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">soggaxc</span><span class="p">:</span> 
+      <span class="n">exclude</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;exchange&#39;</span><span class="p">,</span> <span class="s">&#39;correlat&#39;</span><span class="p">,</span> <span class="s">&#39;hybrid&#39;</span><span class="p">,</span> <span class="s">&#39;nonlocal&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">lgrid</span><span class="p">:</span> <span class="n">exclude</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;lgrid&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">xlgrid</span><span class="p">:</span> <span class="n">exclude</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;xlgrid&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">xxlgrid</span><span class="p">:</span> <span class="n">exclude</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;xxlgrid&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lgrid</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">lgrid</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">xxlgrid</span><span class="p">:</span>
+      <span class="n">exclude</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s">&#39;angular&#39;</span><span class="p">,</span> <span class="s">&#39;radial&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Dft</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__ui_repr__</span><span class="p">(</span><span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">exclude</span><span class="p">)</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" >pylada.dftcrystal</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

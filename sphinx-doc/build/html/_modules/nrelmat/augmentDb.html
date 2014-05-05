@@ -1,0 +1,890 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>nrelmat.augmentDb &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for nrelmat.augmentDb</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># Copyright 2013 National Renewable Energy Laboratory, Golden CO, USA</span>
+<span class="c"># This file is part of NREL MatDB.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License</span>
+<span class="c"># along with NREL MatDB.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">import</span> <span class="nn">datetime</span><span class="o">,</span> <span class="nn">fractions</span><span class="o">,</span> <span class="nn">json</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+<span class="kn">import</span> <span class="nn">wrapUpload</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">badparms</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Prints an error msg and usage info, and exits with rc 1.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Error: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;Parms:&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -bugLev      &lt;int&gt;      debug level&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -useCommit   &lt;boolean&gt;  false/true: do we commit changes to the DB.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -inSpec      &lt;string&gt;   inSpecJsonFile&#39;</span>
+  <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  This program adds additional information to the model database table.</span>
+<span class="sd">  The following functions in this file fill the indicated columns</span>
+<span class="sd">  in the model table.  The columns must have been created previously</span>
+<span class="sd">  by the fillDbVasp.py function createTable.</span>
+
+<span class="sd">  ==============  ===========   ==============================================</span>
+<span class="sd">  Function        Column        Notes</span>
+<span class="sd">  ==============  ===========   ==============================================</span>
+<span class="sd">  addChemforms    formula       Standard chemical formula: ``&quot;H2 O&quot;``.</span>
+
+<span class="sd">  addChemForms    chemtext      Structured formula, easier for parsing.</span>
+<span class="sd">                                Every token is surrounded by spaces, and</span>
+<span class="sd">                                single occurance atoms have the explicit</span>
+<span class="sd">                                &quot;1&quot; count:</span>
+<span class="sd">                                ``&quot; H 2 O 1 &quot;``.</span>
+
+<span class="sd">  addMinenergy    minenergyid   == mident having min energyperatom</span>
+<span class="sd">                                for this formula and symgroupnum.</span>
+<span class="sd">  ==============  ===========   ==============================================</span>
+
+
+<span class="sd">  Command line parameters:</span>
+
+<span class="sd">  ==============  ===========   ===============================================</span>
+<span class="sd">  Parameter       Type          Description</span>
+<span class="sd">  ==============  ===========   ===============================================</span>
+<span class="sd">  **-bugLev**     integer       Debug level.  Normally 0.</span>
+<span class="sd">  **-useCommit**  boolean       false/true: do we commit changes to the DB.</span>
+<span class="sd">  **-inSpec**     string        JSON file containing DB parameters.  See below.</span>
+<span class="sd">  ==============  ===========   ===============================================</span>
+
+<span class="sd">  **inSpec File Parameters:**</span>
+
+<span class="sd">  ===================    ==============================================</span>
+<span class="sd">  Parameter              Description</span>
+<span class="sd">  ===================    ==============================================</span>
+<span class="sd">  **dbhost**             Database hostname.</span>
+<span class="sd">  **dbport**             Database port number.</span>
+<span class="sd">  **dbuser**             Database user name.</span>
+<span class="sd">  **dbpswd**             Database password.</span>
+<span class="sd">  **dbname**             Database database name.</span>
+<span class="sd">  **dbschema**           Database schema name.</span>
+<span class="sd">  **dbtablemodel**       Database name of the &quot;model&quot; table.</span>
+<span class="sd">  **dbtableicsd**        Database name of the &quot;icsd&quot; table.</span>
+<span class="sd">  ===================    ==============================================</span>
+
+<span class="sd">  **inSpec file example:**::</span>
+
+<span class="sd">    {</span>
+<span class="sd">      &quot;dbhost&quot;         : &quot;scctest&quot;,</span>
+<span class="sd">      &quot;dbport&quot;         : &quot;6432&quot;,</span>
+<span class="sd">      &quot;dbuser&quot;         : &quot;x&quot;,</span>
+<span class="sd">      &quot;dbpswd&quot;         : &quot;x&quot;,</span>
+<span class="sd">      &quot;dbname&quot;         : &quot;cidlada&quot;,</span>
+<span class="sd">      &quot;dbschema&quot;       : &quot;satom&quot;,</span>
+<span class="sd">      &quot;dbtablemodel&quot;   : &quot;model&quot;</span>
+<span class="sd">      &quot;dbtableicsd&quot;    : &quot;icsd&quot;</span>
+<span class="sd">    }</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">bugLev</span>     <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">useCommit</span>  <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">inSpec</span>     <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;Parms must be key/value pairs&#39;</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">iarg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="p">]</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span>   <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-bugLev&#39;</span><span class="p">:</span> <span class="n">bugLev</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-useCommit&#39;</span><span class="p">:</span> <span class="n">useCommit</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseBoolean</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-inSpec&#39;</span><span class="p">:</span> <span class="n">inSpec</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;unknown key: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -bugLev&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">useCommit</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -useCommit&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">inSpec</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -inSpec&#39;</span><span class="p">)</span>
+
+  <span class="n">augmentDb</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">)</span>
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="augmentDb"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.augmentDb">[docs]</a><span class="k">def</span> <span class="nf">augmentDb</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Adds additional information to the model database table.</span>
+
+<span class="sd">  See documentation for the :func:`main` function.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * useCommit (bool): do we commit changes to the DB.</span>
+<span class="sd">  * inSpec (str): Name of JSON file containing DB parameters.</span>
+<span class="sd">                  See description at :func:`main`.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">print</span> <span class="s">&#39;augmentDb: useCommit: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">useCommit</span><span class="p">,)</span>
+
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">inSpec</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+    <span class="n">specMap</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span> <span class="n">fin</span><span class="p">)</span>
+
+  <span class="n">dbhost</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbhost&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbport</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbport&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbuser</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbuser&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbpswd</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbpswd&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbname</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbschema</span>     <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbschema&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbtablemodel</span> <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbtablemodel&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbtableicsd</span>  <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbtableicsd&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">dbhost</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbhost&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbport</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbport&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbuser</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbuser&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbpswd</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbpswd&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbname&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbschema</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>     <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbschema&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbtablemodel</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbtablemodel&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbtableicsd</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>  <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbtableicsd&#39;</span><span class="p">)</span>
+  <span class="n">dbport</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">dbport</span><span class="p">)</span>
+
+  <span class="n">queryCols</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s">&#39;model.mident&#39;</span><span class="p">,</span>
+    <span class="s">&#39;model.energyperatom&#39;</span><span class="p">,</span>
+    <span class="s">&#39;model.typenames&#39;</span><span class="p">,</span>
+    <span class="s">&#39;model.typenums&#39;</span><span class="p">,</span>
+    <span class="s">&#39;model.typepseudos&#39;</span><span class="p">,</span>
+    <span class="s">&#39;model.netcharge&#39;</span><span class="p">,</span>
+    <span class="s">&#39;model.meta_standards&#39;</span><span class="p">,</span>
+    <span class="s">&#39;icsd.symgroupnum&#39;</span><span class="p">]</span>
+
+  <span class="n">conn</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">cursor</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+      <span class="n">host</span><span class="o">=</span><span class="n">dbhost</span><span class="p">,</span>
+      <span class="n">port</span><span class="o">=</span><span class="n">dbport</span><span class="p">,</span>
+      <span class="n">user</span><span class="o">=</span><span class="n">dbuser</span><span class="p">,</span>
+      <span class="n">password</span><span class="o">=</span><span class="n">dbpswd</span><span class="p">,</span>
+      <span class="n">database</span><span class="o">=</span><span class="n">dbname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;main: got conn.  dbhost: </span><span class="si">%s</span><span class="s">  dbport: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbhost</span><span class="p">,</span> <span class="n">dbport</span><span class="p">,)</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;set search_path to </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">dbschema</span><span class="p">,))</span>
+
+    <span class="n">db_rows</span> <span class="o">=</span> <span class="n">dbQuery</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span>
+      <span class="n">dbtablemodel</span><span class="p">,</span> <span class="n">dbtableicsd</span><span class="p">,</span> <span class="n">queryCols</span><span class="p">)</span>
+
+    <span class="n">curCols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="n">queryCols</span><span class="p">)</span>       <span class="c"># shallow copy</span>
+
+    <span class="n">newCols</span> <span class="o">=</span> <span class="n">addChemforms</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">curCols</span><span class="p">,</span> <span class="n">db_rows</span><span class="p">)</span>   <span class="c"># updates db_rows</span>
+    <span class="n">curCols</span> <span class="o">+=</span> <span class="n">newCols</span>
+
+    <span class="c"># addMinenergy uses the formula created by addChemforms</span>
+    <span class="n">newCols</span> <span class="o">=</span> <span class="n">addMinenergy</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">curCols</span><span class="p">,</span> <span class="n">db_rows</span><span class="p">)</span>   <span class="c"># updates db_rows</span>
+    <span class="n">curCols</span> <span class="o">+=</span> <span class="n">newCols</span>
+
+    <span class="n">newCols</span> <span class="o">=</span> <span class="n">addEnthalpy</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">curCols</span><span class="p">,</span> <span class="n">db_rows</span><span class="p">)</span>   <span class="c"># updates db_rows</span>
+    <span class="n">curCols</span> <span class="o">+=</span> <span class="n">newCols</span>
+
+    <span class="n">dbUpdate</span><span class="p">(</span>
+      <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span>
+      <span class="n">dbtablemodel</span><span class="p">,</span> <span class="n">queryCols</span><span class="p">,</span> <span class="n">curCols</span><span class="p">,</span> <span class="n">db_rows</span><span class="p">)</span>
+
+  <span class="k">finally</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">cursor</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">conn</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="getIcol"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.getIcol">[docs]</a><span class="k">def</span> <span class="nf">getIcol</span><span class="p">(</span> <span class="n">names</span><span class="p">,</span> <span class="n">nm</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Returns the index of nm in names.  Calls throwerr if not found.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * names (str[]): The list of strings.</span>
+<span class="sd">  * nm (str): The query string.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * ix(int): index of nm in names.</span>
+
+<span class="sd">  Raises: Exception if nm not in names.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown column name: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nm</span><span class="p">,))</span>
+  <span class="k">return</span> <span class="n">names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span> <span class="n">nm</span><span class="p">)</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="c"># Adds columns: formula, chemtext.</span>
+<span class="c"># Example:</span>
+<span class="c">#   original = &#39;H4 O2&#39;</span>
+<span class="c">#   formula  = &#39;H2 O&#39;       # factor out the greatest common divisor</span>
+<span class="c">#   chemtext = &#39; H 2 O 1 &#39;  # every token is surrounded by spaces</span>
+<span class="c">#</span>
+<span class="c"># Returns newCols.  Updates db_rows.</span>
+</div>
+<div class="viewcode-block" id="addChemforms"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.addChemforms">[docs]</a><span class="k">def</span> <span class="nf">addChemforms</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">curCols</span><span class="p">,</span> <span class="n">db_rows</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the formula and chemtext fields.</span>
+
+<span class="sd">  Appends two elements to each row:</span>
+
+<span class="sd">  formula:</span>
+<span class="sd">    chemical formula, determined from typenames and typenums,</span>
+<span class="sd">    and factoring by the greatest common divison.</span>
+<span class="sd">    Elements are in alphabetic order.</span>
+<span class="sd">    For example, ``&#39;H2 O&#39;``.</span>
+
+<span class="sd">  chemtext:</span>
+<span class="sd">    Same as the formula, but every token is surrounded</span>
+<span class="sd">    spaces and singletons have an explicit &#39;1&#39;,</span>
+<span class="sd">    for ease in parsing.</span>
+<span class="sd">    For example, ``&#39; H 2 O 1 &#39;``.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curCols (str[]): List of column names.</span>
+<span class="sd">  * db_rows (str[][]): Database rows: [irow][icol].</span>
+<span class="sd">                         We append two elements to each row.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * newCols (str[]): list of new column names == [&#39;formula&#39;, &#39;chemtext&#39;]</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addChemforms beg: curCols: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curCols</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;addChemforms beg: num rows: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">),)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;addChemforms beg: len of first row: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]),)</span>
+      <span class="k">print</span> <span class="s">&#39;addChemforms beg: first row: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">],)</span>
+
+  <span class="n">icolmident</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.mident&#39;</span><span class="p">)</span>
+  <span class="n">icolnames</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.typenames&#39;</span><span class="p">)</span>
+  <span class="n">icolnums</span>  <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.typenums&#39;</span><span class="p">)</span>
+
+  <span class="c"># Add new columns to each row</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">db_rows</span><span class="p">:</span>
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolmident</span><span class="p">]</span>
+    <span class="n">tnames</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolnames</span><span class="p">]</span>
+    <span class="n">tnums</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolnums</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">tnames</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">tnums</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">tlen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">tnames</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span> <span class="n">tnums</span><span class="p">)</span> <span class="o">!=</span> <span class="n">tlen</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;tlen mismatch&#39;</span><span class="p">)</span>
+
+      <span class="c"># Replace tnums with tnums / gcd( tnums)</span>
+      <span class="k">if</span> <span class="n">tlen</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">tnums</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">gcd</span> <span class="o">=</span> <span class="n">tnums</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">tlen</span><span class="p">):</span>
+          <span class="n">gcd</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">gcd</span><span class="p">(</span> <span class="n">gcd</span><span class="p">,</span> <span class="n">tnums</span><span class="p">[</span><span class="n">jj</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tlen</span><span class="p">):</span>
+          <span class="n">tnums</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">/=</span> <span class="n">gcd</span>
+
+      <span class="c"># In readVasp we insure that the typenames and atomnames</span>
+      <span class="c"># are in alphabetic order.</span>
+
+      <span class="c"># For chemtext we insert an initial and final blank,</span>
+      <span class="c"># so every value is surrounded by spaces,</span>
+      <span class="c"># for easier handling in SQL.</span>
+      <span class="n">formula</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+      <span class="n">chemtext</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+      <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tlen</span><span class="p">):</span>
+        <span class="c"># Coordinate formula format with pyramid: views.py: vwQueryStd</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">formula</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span>
+        <span class="n">formula</span> <span class="o">+=</span> <span class="n">tnames</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">tnums</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="n">formula</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tnums</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+        <span class="n">chemtext</span> <span class="o">+=</span> <span class="s">&#39; </span><span class="si">%s</span><span class="s"> </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tnames</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">tnums</span><span class="p">[</span><span class="n">ii</span><span class="p">],)</span>
+      <span class="n">chemtext</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span>
+
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span><span class="s">&#39;addChemforms: mident: </span><span class="si">%d</span><span class="s">  tnames: </span><span class="si">%s</span><span class="s">  tnums: </span><span class="si">%s</span><span class="s">&#39;</span>
+          <span class="o">+</span> <span class="s">&#39;  formula: </span><span class="si">%s</span><span class="s">  chemtext: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">tnames</span><span class="p">,</span> <span class="n">tnums</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span> <span class="n">formula</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span> <span class="n">chemtext</span><span class="p">),)</span>
+      <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">formula</span><span class="p">)</span>
+      <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">chemtext</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">row</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">]</span>
+
+  <span class="n">newCols</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;formula&#39;</span><span class="p">,</span> <span class="s">&#39;chemtext&#39;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addChemforms end: newCols: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newCols</span><span class="p">,)</span>
+  <span class="k">return</span> <span class="n">newCols</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="c"># Returns newCols.  Updates db_rows.</span>
+<span class="c"># addMinenergy uses the formula created by addChemforms</span>
+</div>
+<div class="viewcode-block" id="addMinenergy"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.addMinenergy">[docs]</a><span class="k">def</span> <span class="nf">addMinenergy</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">curCols</span><span class="p">,</span> <span class="n">db_rows</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the min energyperatom for each formula.</span>
+
+<span class="sd">  Appends an element to each row:</span>
+
+<span class="sd">  minenergyid == the mident of the row having the min energyperatom</span>
+<span class="sd">  for this formula.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curCols (str[]): List of column names.</span>
+<span class="sd">  * db_rows (str[][]): Database rows: [irow][icol].</span>
+<span class="sd">                         We append one element to each row.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * newCols (str[]): list of new column names == [&#39;minenergyid&#39;].</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addMinenergy beg: curCols: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curCols</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;addMinenergy beg: num rows: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">),)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;addMinenergy beg: len of first row: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]),)</span>
+      <span class="k">print</span> <span class="s">&#39;addMinenergy beg: first row: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">],)</span>
+
+  <span class="n">icolMident</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.mident&#39;</span><span class="p">)</span>
+  <span class="n">icolEnergy</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.energyperatom&#39;</span><span class="p">)</span>
+  <span class="n">icolSymgroupnum</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;icsd.symgroupnum&#39;</span><span class="p">)</span>
+  <span class="n">icolFormula</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;formula&#39;</span><span class="p">)</span>     <span class="c"># newly added column</span>
+
+  <span class="n">minMap</span> <span class="o">=</span> <span class="p">{}</span>       <span class="c"># (formula,symgroupnum) -&gt; [minEnergy, mident]</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">db_rows</span><span class="p">:</span>
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolMident</span><span class="p">]</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolEnergy</span><span class="p">]</span>
+    <span class="n">symgroupnum</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolSymgroupnum</span><span class="p">]</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolFormula</span><span class="p">]</span>
+
+    <span class="n">formulaSymnum</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">symgroupnum</span><span class="p">,)</span> <span class="c"># symgroupnum may be None</span>
+
+    <span class="n">pair</span> <span class="o">=</span> <span class="n">minMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">formulaSymnum</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pair</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">energy</span> <span class="o">&lt;</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+      <span class="n">minMap</span><span class="p">[</span><span class="n">formulaSymnum</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">energy</span><span class="p">,</span> <span class="n">mident</span><span class="p">]</span>
+
+  <span class="c"># Add new column minenergyid to each row</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">db_rows</span><span class="p">:</span>
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolMident</span><span class="p">]</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolFormula</span><span class="p">]</span>
+    <span class="n">symgroupnum</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolSymgroupnum</span><span class="p">]</span>           <span class="c"># symgroupnum may be None</span>
+    <span class="n">formulaSymnum</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">symgroupnum</span><span class="p">,)</span>
+
+    <span class="n">pair</span> <span class="o">=</span> <span class="n">minMap</span><span class="p">[</span><span class="n">formulaSymnum</span><span class="p">]</span>      <span class="c"># [minEnergy, minId]</span>
+    <span class="n">minId</span> <span class="o">=</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;addMinenergy: mident: </span><span class="si">%d</span><span class="s">  formula: </span><span class="si">%s</span><span class="s">  symgrp: </span><span class="si">%s</span><span class="s">  minId: </span><span class="si">%d</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">symgroupnum</span><span class="p">,</span> <span class="n">minId</span><span class="p">,)</span>
+    <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">minId</span><span class="p">)</span>      <span class="c"># mident having the min energy for this formula</span>
+
+  <span class="n">newCols</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;minenergyid&#39;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addMinenergy end: newCols: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newCols</span><span class="p">,)</span>
+  <span class="k">return</span> <span class="n">newCols</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="c"># Returns newCols.  Updates db_rows.</span>
+</div>
+<div class="viewcode-block" id="addEnthalpy"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.addEnthalpy">[docs]</a><span class="k">def</span> <span class="nf">addEnthalpy</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">curCols</span><span class="p">,</span> <span class="n">db_rows</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the enthalpy of formation per atom, for all structures.</span>
+
+<span class="sd">  Appends an element to each row.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curCols (str[]): List of column names.</span>
+<span class="sd">  * db_rows (str[][]): Database rows: [irow][icol].</span>
+<span class="sd">                       We append one element to each row.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * newCols (str[]): list of new column names == [&#39;enthalpy&#39;].</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addEnthalpy beg: curCols: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curCols</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;addEnthalpy beg: num rows: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">),)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;addEnthalpy beg: len of first row: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]),)</span>
+      <span class="k">print</span> <span class="s">&#39;addEnthalpy beg: first row: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">],)</span>
+
+  <span class="n">icolMident</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.mident&#39;</span><span class="p">)</span>
+  <span class="n">icolEnergy</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.energyperatom&#39;</span><span class="p">)</span>
+  <span class="n">icolTypenames</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.typenames&#39;</span><span class="p">)</span>
+  <span class="n">icolTypenums</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.typenums&#39;</span><span class="p">)</span>
+  <span class="n">icolTypepseudos</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.typepseudos&#39;</span><span class="p">)</span>
+  <span class="n">icolNetcharge</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.netcharge&#39;</span><span class="p">)</span>
+  <span class="n">icolMeta_standards</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.meta_standards&#39;</span><span class="p">)</span>
+  <span class="n">icolFormula</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;formula&#39;</span><span class="p">)</span>     <span class="c"># newly added column</span>
+
+  <span class="c"># Add new column enthalpy to each row</span>
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">db_rows</span><span class="p">:</span>
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolMident</span><span class="p">]</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolFormula</span><span class="p">]</span>
+    <span class="n">typenames</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolTypenames</span><span class="p">]</span>
+    <span class="n">typenums</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolTypenums</span><span class="p">]</span>
+    <span class="n">typepseudos</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolTypepseudos</span><span class="p">]</span>
+    <span class="n">netcharge</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolNetcharge</span><span class="p">]</span>
+    <span class="n">meta_standards</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolMeta_standards</span><span class="p">]</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolEnergy</span><span class="p">]</span>
+    <span class="n">enthalpy</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c">#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>
+    <span class="k">if</span> <span class="n">netcharge</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">netcharge</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;augment: netcharge not 0: mident: </span><span class="si">%s</span><span class="s">  formula: </span><span class="si">%s</span><span class="s">  netcharge: </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span> <span class="n">mident</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">netcharge</span><span class="p">,)</span>
+    <span class="c">#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>
+
+    <span class="k">if</span> <span class="s">&#39;fere&#39;</span> <span class="ow">in</span> <span class="n">meta_standards</span> <span class="ow">and</span> <span class="n">netcharge</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">enthalpy</span> <span class="o">=</span> <span class="n">calcEnthalpy</span><span class="p">(</span>
+        <span class="n">mident</span><span class="p">,</span> <span class="n">typenames</span><span class="p">,</span> <span class="n">typenums</span><span class="p">,</span> <span class="n">typepseudos</span><span class="p">,</span> <span class="n">energy</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;addEnthalpy: mident: </span><span class="si">%d</span><span class="s">  formula: </span><span class="si">%s</span><span class="s">  energy: </span><span class="si">%s</span><span class="s">  enthalpy: </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">enthalpy</span><span class="p">,)</span>
+
+    <span class="n">row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">enthalpy</span><span class="p">)</span>
+
+  <span class="n">newCols</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;enthalpy&#39;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addEnthalpy end: newCols: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newCols</span><span class="p">,)</span>
+  <span class="k">return</span> <span class="n">newCols</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+
+
+
+</div>
+<div class="viewcode-block" id="calcEnthalpy"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.calcEnthalpy">[docs]</a><span class="k">def</span> <span class="nf">calcEnthalpy</span><span class="p">(</span>
+  <span class="n">mident</span><span class="p">,</span>
+  <span class="n">typenames</span><span class="p">,</span>
+  <span class="n">typenums</span><span class="p">,</span>
+  <span class="n">typepseudos</span><span class="p">,</span>
+  <span class="n">energy</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the enthalpy of formation per atom, for a single structure.</span>
+
+<span class="sd">  **Parameters (using example magnetitie, Fe3 O4)**:</span>
+
+<span class="sd">  * mident (int): The unique DB identifier.</span>
+<span class="sd">  * typenames (str[]): List of unique type names, ex. [&#39;Fe&#39;, &#39;O&#39;]</span>
+<span class="sd">  * typenums (int[]): Number of each unique type, ex. [3, 4]</span>
+<span class="sd">  * typepseudos (str[]): Pseudopotential for each type,</span>
+<span class="sd">      [&#39;PAW_PBE Fe 06Sep2000&#39;, &#39;PAW_PBE O_s 07Sep2000&#39;]</span>
+<span class="sd">  * energy (float): final total energy without entropy, per atom in cell</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * enthalpy (float): enthalpy of formation per atom</span>
+
+<span class="sd">  See:</span>
+<span class="sd">  DOI: 10.1103/PhysRevB.85.115104</span>
+
+<span class="sd">  http://prb.aps.org/pdf/PRB/v85/i11/e115104</span>
+<span class="sd">  Correcting density functional theory for accurate predictions</span>
+<span class="sd">  of compound enthalpies of formation:</span>
+<span class="sd">  Fitted elemental-phase reference energies</span>
+<span class="sd">  Vladan Stevanovic, Stephan Lany, Xiuwen Zhang, Alex Zunger</span>
+
+<span class="sd">  page 11, Table V: mu^{FERE}</span>
+
+<span class="sd">  Email from Stevanovic, Monday, August 12, 2013 5:45 PM</span>
+<span class="sd">  For the enthalpy of formation calculations I will use the</span>
+<span class="sd">  following example. So, if we have a ternary compound with the</span>
+<span class="sd">  chemical formula A_mB_nX_l, where A, B and X represent the</span>
+<span class="sd">  symbols of the elements forming the compound and if N=m+n+l the</span>
+<span class="sd">  total number of atoms in the compound the enthalpy of formation</span>
+<span class="sd">  can be calculated as:</span>
+
+<span class="sd">      dHf (eV/atom) = [Etot(eV/atom) * N - (m*musMap[&#39;A&#39;]</span>
+<span class="sd">      + n*musMap[&#39;B&#39;] + l*musMap[&#39;X&#39;] ) ] / N</span>
+
+<span class="sd">  where Etot(eV/atom) is the VASP total energy per atom which is</span>
+<span class="sd">  currently listed in the database and musMap[&#39;A&#39;],</span>
+<span class="sd">  musMap[&#39;B&#39;], and musMap[&#39;X&#39;] you read from the attached</span>
+<span class="sd">  dictionary.</span>
+
+
+<span class="sd">  This is the same as:</span>
+
+<span class="sd">      enthalpy = - sum_i( n_i * mus_i) / sum( n_i)</span>
+
+<span class="sd">  where n_i = number of element i, and mus_i = mus value for element i.</span>
+<span class="sd">  We use this calculation for ALL structures, not just ternaries.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">musList</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c"># Element Pseudopotential  FERE value</span>
+    <span class="c"># ------- ---------------  ----------</span>
+    <span class="p">[</span> <span class="s">&#39;Ag&#39;</span><span class="p">,</span>  <span class="s">&#39;Ag&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.82700958541595615</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Al&#39;</span><span class="p">,</span>  <span class="s">&#39;Al&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.02</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;As&#39;</span><span class="p">,</span>  <span class="s">&#39;As&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">5.06</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Au&#39;</span><span class="p">,</span>  <span class="s">&#39;Au&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">2.2303410086960551</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ba&#39;</span><span class="p">,</span>  <span class="s">&#39;Ba_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.3944992462870172</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Be&#39;</span><span class="p">,</span>  <span class="s">&#39;Be&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.3972092621754264</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Bi&#39;</span><span class="p">,</span>  <span class="s">&#39;Bi_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">4.3853003286558812</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ca&#39;</span><span class="p">,</span>  <span class="s">&#39;Ca_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.64</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Cd&#39;</span><span class="p">,</span>  <span class="s">&#39;Cd&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.56</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Cl&#39;</span><span class="p">,</span>  <span class="s">&#39;Cl&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">1.6262437135301639</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Co&#39;</span><span class="p">,</span>  <span class="s">&#39;Co&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">4.7543486260270402</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Cr&#39;</span><span class="p">,</span>  <span class="s">&#39;Cr_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">7.2224146752384204</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Cu&#39;</span><span class="p">,</span>  <span class="s">&#39;Cu&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">1.9725806522979044</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;F&#39;</span><span class="p">,</span>   <span class="s">&#39;F&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">1.7037867766570287</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Fe&#39;</span><span class="p">,</span>  <span class="s">&#39;Fe&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">6.1521343161090325</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ga&#39;</span><span class="p">,</span>  <span class="s">&#39;Ga_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">2.37</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ge&#39;</span><span class="p">,</span>  <span class="s">&#39;Ge_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">4.137439286830797</span><span class="p">,</span>    <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Hf&#39;</span><span class="p">,</span>  <span class="s">&#39;Hf_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">7.397695761161847</span><span class="p">,</span>    <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Hg&#39;</span><span class="p">,</span>  <span class="s">&#39;Hg&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.12361566177444684</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;In&#39;</span><span class="p">,</span>  <span class="s">&#39;In_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">2.31</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ir&#39;</span><span class="p">,</span>  <span class="s">&#39;Ir&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">5.964577394407752</span><span class="p">,</span>    <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;K&#39;</span><span class="p">,</span>   <span class="s">&#39;K_sv&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.80499202755075006</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;La&#39;</span><span class="p">,</span>  <span class="s">&#39;La&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.6642174822805287</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Li&#39;</span><span class="p">,</span>  <span class="s">&#39;Li_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.6529591953887741</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Mg&#39;</span><span class="p">,</span>  <span class="s">&#39;Mg&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.99</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Mn&#39;</span><span class="p">,</span>  <span class="s">&#39;Mn&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">6.9965778258511993</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;N&#39;</span><span class="p">,</span>   <span class="s">&#39;N&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">8.51</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;N&#39;</span><span class="p">,</span>   <span class="s">&#39;N_s&#39;</span><span class="p">,</span>    <span class="o">-</span><span class="mf">8.51</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Na&#39;</span><span class="p">,</span>  <span class="s">&#39;Na_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.0640326227725869</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Nb&#39;</span><span class="p">,</span>  <span class="s">&#39;Nb_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">6.6867516375690608</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ni&#39;</span><span class="p">,</span>  <span class="s">&#39;Ni&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.5687859474688026</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;O&#39;</span><span class="p">,</span>   <span class="s">&#39;O_s&#39;</span><span class="p">,</span>    <span class="o">-</span><span class="mf">4.76</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;O&#39;</span><span class="p">,</span>   <span class="s">&#39;O&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">4.73</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;P&#39;</span><span class="p">,</span>   <span class="s">&#39;P&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">5.64</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Pd&#39;</span><span class="p">,</span>  <span class="s">&#39;Pd&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.1174044624888873</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Pt&#39;</span><span class="p">,</span>  <span class="s">&#39;Pt&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.9527597082085424</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Rb&#39;</span><span class="p">,</span>  <span class="s">&#39;Rb_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.6750560483522855</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Rh&#39;</span><span class="p">,</span>  <span class="s">&#39;Rh&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">4.7622899695820369</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;S&#39;</span><span class="p">,</span>   <span class="s">&#39;S&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">4.00</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Sb&#39;</span><span class="p">,</span>  <span class="s">&#39;Sb&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">4.2862260747305099</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Sc&#39;</span><span class="p">,</span>  <span class="s">&#39;Sc_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">4.6302422200922519</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Se&#39;</span><span class="p">,</span>  <span class="s">&#39;Se&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.55</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Si&#39;</span><span class="p">,</span>  <span class="s">&#39;Si&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">4.9927748122726356</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Sn&#39;</span><span class="p">,</span>  <span class="s">&#39;Sn_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">3.7894939351245469</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Sr&#39;</span><span class="p">,</span>  <span class="s">&#39;Sr_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.1674559193419329</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ta&#39;</span><span class="p">,</span>  <span class="s">&#39;Ta_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">8.8184831379805324</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Te&#39;</span><span class="p">,</span>  <span class="s">&#39;Te&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.2503408197224912</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ti&#39;</span><span class="p">,</span>  <span class="s">&#39;Ti_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">5.5167842601434147</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;V&#39;</span><span class="p">,</span>   <span class="s">&#39;V_pv&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">6.4219725884764864</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Y&#39;</span><span class="p">,</span>   <span class="s">&#39;Y_sv&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">4.812621315561298</span><span class="p">,</span>    <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Zn&#39;</span><span class="p">,</span>  <span class="s">&#39;Zn&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.84</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Zr&#39;</span><span class="p">,</span>  <span class="s">&#39;Zr_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">5.8747056261113126</span><span class="p">,</span>   <span class="p">],</span>
+  <span class="p">]</span>
+
+  <span class="n">musMap</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">musList</span><span class="p">:</span>
+    <span class="n">musMap</span><span class="p">[</span><span class="n">ele</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ele</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+  <span class="k">if</span> <span class="n">typenums</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">typenums</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">enthalpy</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="k">else</span><span class="p">:</span>
+
+    <span class="n">totNum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span> <span class="n">typenums</span><span class="p">)</span>
+
+    <span class="n">enthalpy</span> <span class="o">=</span> <span class="n">energy</span>
+
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">typepseudos</span><span class="p">)):</span>
+      <span class="n">pseudoStg</span> <span class="o">=</span> <span class="n">typepseudos</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>          <span class="c"># like &#39;PAW_PBE Ca_pv 06Sep2000&#39;</span>
+      <span class="n">num</span> <span class="o">=</span> <span class="n">typenums</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+      <span class="n">toks</span> <span class="o">=</span> <span class="n">pseudoStg</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;bad pseudo.  mident: </span><span class="si">%s</span><span class="s">  names: </span><span class="si">%s</span><span class="s">  nums: </span><span class="si">%s</span><span class="s">  pseudos: </span><span class="si">%s</span><span class="s">&#39;</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">typenames</span><span class="p">,</span> <span class="n">typenums</span><span class="p">,</span> <span class="n">typepseudos</span><span class="p">,))</span>
+      <span class="n">pseudoName</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">mufere</span> <span class="o">=</span> <span class="n">musMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">pseudoName</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">mufere</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;no pseudo &quot;</span><span class="si">%s</span><span class="s">&quot;.  mident: </span><span class="si">%s</span><span class="s">  names: </span><span class="si">%s</span><span class="s">  nums: </span><span class="si">%s</span><span class="s">  pseudos: </span><span class="si">%s</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">pseudoName</span><span class="p">,</span> <span class="n">mident</span><span class="p">,</span> <span class="n">typenames</span><span class="p">,</span> <span class="n">typenums</span><span class="p">,</span> <span class="n">typepseudos</span><span class="p">,)</span>
+        <span class="n">enthalpy</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="k">if</span> <span class="n">enthalpy</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">enthalpy</span> <span class="o">-=</span> <span class="n">num</span> <span class="o">*</span> <span class="n">mufere</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">totNum</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">enthalpy</span>
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="dbQuery"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.dbQuery">[docs]</a><span class="k">def</span> <span class="nf">dbQuery</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">dbtablemodel</span><span class="p">,</span> <span class="n">dbtableicsd</span><span class="p">,</span> <span class="n">queryCols</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Issues a DB SQL query and returns the results.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * conn (psycopg2.connection): Open DB connection</span>
+<span class="sd">  * cursor (psycopg2.cursor): Open DB cursor</span>
+<span class="sd">  * dbtablemodel (str): Database name of the &quot;model&quot; table.</span>
+<span class="sd">  * dbtableicsd (str): Database name of the &quot;icsd&quot; table.</span>
+<span class="sd">  * queryCols (str[]): List of column names to be retrieved.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * db_rows(str[][]): Database rows: [irow][icol].</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">queryCols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;model.mident&#39;</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;first col must be mident&#39;</span><span class="p">)</span>
+  <span class="n">db_rows</span> <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="n">nmStg</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">queryCols</span><span class="p">)</span>
+  <span class="n">sqlMsg</span> <span class="o">=</span> <span class="s">&#39;SELECT </span><span class="si">%s</span><span class="s"> FROM </span><span class="si">%s</span><span class="s"> LEFT OUTER JOIN </span><span class="si">%s</span><span class="s"> ON (model.icsdnum = icsd.icsdnum) ORDER BY mident&#39;</span> \
+    <span class="o">%</span> <span class="p">(</span><span class="n">nmStg</span><span class="p">,</span> <span class="n">dbtablemodel</span><span class="p">,</span> <span class="n">dbtableicsd</span><span class="p">)</span>
+
+  <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span> <span class="n">sqlMsg</span><span class="p">)</span>
+  <span class="n">db_rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+  <span class="n">db_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">desc</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">]</span>
+
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span> <span class="n">queryCols</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">db_cols</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;db_cols mismatch: query: </span><span class="si">%s</span><span class="s">  db: </span><span class="si">%s</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="n">queryCols</span><span class="p">,</span> <span class="n">db_cols</span><span class="p">,))</span>
+
+  <span class="c"># Convert rows from tuples to lists so we can modify them later</span>
+  <span class="k">for</span> <span class="n">irow</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">db_rows</span><span class="p">)):</span>
+    <span class="n">db_rows</span><span class="p">[</span><span class="n">irow</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span> <span class="n">db_rows</span><span class="p">[</span><span class="n">irow</span><span class="p">])</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;dbQuery end: queryCols: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">queryCols</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;dbQuery end: len( db_rows): </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span> <span class="n">db_rows</span><span class="p">))</span>
+  <span class="k">return</span> <span class="n">db_rows</span>
+
+
+
+
+
+<span class="c">#====================================================================</span>
+
+<span class="c"># On entry curCols is the same as queryCols but has some appended columns.</span>
+<span class="c"># The rows match curCols.</span>
+<span class="c"># Write the appended values for each row to the db.</span>
+</div>
+<div class="viewcode-block" id="dbUpdate"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.dbUpdate">[docs]</a><span class="k">def</span> <span class="nf">dbUpdate</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span>
+  <span class="n">dbtablemodel</span><span class="p">,</span> <span class="n">queryCols</span><span class="p">,</span> <span class="n">curCols</span><span class="p">,</span> <span class="n">db_rows</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Issues a DB SQL update.</span>
+
+<span class="sd">  Updates every row for just the newly added columns,</span>
+<span class="sd">  which are curCols - queryCols.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * useCommit (bool): do we commit changes to the DB.</span>
+<span class="sd">  * conn (psycopg2.connection): Open DB connection</span>
+<span class="sd">  * cursor (psycopg2.cursor): Open DB cursor</span>
+<span class="sd">  * dbtablemodel (str): Database name of the &quot;model&quot; table.</span>
+<span class="sd">  * queryCols (str[]): List of original column names.</span>
+<span class="sd">  * curCols (str[]): List of current column names == queryCols + new cols.</span>
+<span class="sd">  * db_rows(str[][]): Database rows: [irow][icol].</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;dbUpdate beg: queryCols: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">queryCols</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;dbUpdate beg: curCols:   </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curCols</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;dbUpdate beg: len( db_rows): </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span> <span class="n">db_rows</span><span class="p">))</span>
+  <span class="n">qlen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">queryCols</span><span class="p">)</span>
+  <span class="n">updLen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">curCols</span><span class="p">)</span> <span class="o">-</span> <span class="n">qlen</span>
+  <span class="n">icolmid</span> <span class="o">=</span> <span class="n">getIcol</span><span class="p">(</span> <span class="n">curCols</span><span class="p">,</span> <span class="s">&#39;model.mident&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">icolmid</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;first col must be mident&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">curCols</span><span class="p">[:</span><span class="n">qlen</span><span class="p">]</span> <span class="o">!=</span> <span class="n">queryCols</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;curCols mismatch&#39;</span><span class="p">)</span>
+
+  <span class="n">newCols</span> <span class="o">=</span> <span class="n">curCols</span><span class="p">[</span><span class="n">qlen</span><span class="p">:]</span>
+  <span class="n">colStg</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">newCols</span><span class="p">)</span>
+
+  <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">db_rows</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">!=</span> <span class="n">qlen</span> <span class="o">+</span> <span class="n">updLen</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;wrong row len&#39;</span><span class="p">)</span>
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">icolmid</span><span class="p">]</span>
+
+    <span class="c"># Convert the values to strings suitable for Postgresql</span>
+    <span class="n">updStgs</span> <span class="o">=</span> <span class="n">updLen</span> <span class="o">*</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">updLen</span><span class="p">):</span>
+      <span class="n">val</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">qlen</span><span class="o">+</span><span class="n">ii</span><span class="p">]</span>
+      <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;NULL&#39;</span>
+      <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> \
+        <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> \
+        <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+      <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">val</span><span class="p">,)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\\\</span><span class="s">&#39;</span><span class="p">)</span>     <span class="c"># replace \ with \\</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span>  <span class="s">&#39;</span><span class="se">\\</span><span class="s">&quot;&#39;</span><span class="p">)</span>      <span class="c"># replace &quot; with \&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\\&#39;</span><span class="s">&#39;</span><span class="p">)</span>     <span class="c"># replace &#39; with \&#39;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;E</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">msg</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span>            <span class="c"># use escaped strings</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown type.  val: </span><span class="si">%s</span><span class="s">  type: </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">),))</span>
+      <span class="n">updStgs</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg</span>
+
+    <span class="n">updStg</span> <span class="o">=</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">updStgs</span><span class="p">)</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;UPDATE </span><span class="si">%s</span><span class="s"> SET (</span><span class="si">%s</span><span class="s">) = (</span><span class="si">%s</span><span class="s">) WHERE mident = </span><span class="si">%s</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span> <span class="n">dbtablemodel</span><span class="p">,</span> <span class="n">colStg</span><span class="p">,</span> <span class="n">updStg</span><span class="p">,</span> <span class="n">mident</span><span class="p">,))</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;dbUpdate: update done&#39;</span>
+
+  <span class="k">if</span> <span class="n">useCommit</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;dbUpdate: commit done&#39;</span>
+
+
+<span class="c">#====================================================================</span>
+</div>
+<div class="viewcode-block" id="throwerr"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.throwerr">[docs]</a><span class="k">def</span> <span class="nf">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Prints an error message and raises Exception.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * msg (str): Error message.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * (Never returns)</span>
+
+<span class="sd">  **Raises**</span>
+
+<span class="sd">  * Exception</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">print</span> <span class="n">msg</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">msg</span>
+  <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+
+<span class="c">#====================================================================</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

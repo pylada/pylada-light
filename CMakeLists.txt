@@ -102,6 +102,10 @@ add_subdirectory(jobfolder)
 
 add_subdirectory(ipython)
 
+add_custom_target(sphinx-doc ALL
+		  COMMAND make html
+		  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx-doc)
+
   
 message (STATUS ${PROJECT_SOURCE_DIR})
 configure_file (

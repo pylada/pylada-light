@@ -429,7 +429,7 @@ class Ediffg(TypedKeyword):
     return super(Ediffg, self).__set__(instance, value)
 
 class EdiffgPerAtom(TypedKeyword):
-  """ Sets the relative energy convergence criteria for ionic relaxation.
+  """ Sets the relativeq energy convergence criteria for ionic relaxation.
 
       - if positive: EDIFFG_ is set to this value *times* the number of atoms
         in the structure. This means that the criteria is for the total energy per atom.
@@ -795,6 +795,7 @@ class IStruc(AliasKeyword):
             a.pos = b.pos
         structure.cell = other.cell
         structure.scale = other.scale
+        print "setting cell and scale!"
         if bugLev >= 5:
           print 'keywords: IStruct.output: outdir: %s' % (outdir,)
           print 'keywords: IStruct.output: new structure:\n%s' % (structure,)
@@ -842,9 +843,11 @@ class LDAU(BoolKeyword):
   def output_map(self, **kwargs):
     from ..crystal import specieset
     from ..error import ValueError, ConfigError, internal
+    import pylada
     ###from .. import vasp_has_nlep
     vasp = kwargs['vasp']
     has_nlep = getattr( vasp, 'has_nlep', False)
+    has_nlep = pylada.vasp_has_nlep
     if bugLev >= 5:
       print 'vasp/keywords: ldau.output_map:'
       print '    has_nlep: %s' % (has_nlep,)

@@ -1,0 +1,191 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pylada.error &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="pylada" href="../pylada.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pylada.html" accesskey="U">pylada</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pylada.error</h1><div class="highlight"><pre>
+<span class="c">###############################</span>
+<span class="c">#  This file is part of PyLaDa.</span>
+<span class="c">#</span>
+<span class="c">#  Copyright (C) 2013 National Renewable Energy Lab</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit</span>
+<span class="c">#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as</span>
+<span class="c">#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It</span>
+<span class="c">#  is able to organise and launch computational jobs on PBS and SLURM.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General</span>
+<span class="c">#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at</span>
+<span class="c">#  your option) any later version.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even</span>
+<span class="c">#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c">#  Public License for more details.</span>
+<span class="c"># </span>
+<span class="c">#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see</span>
+<span class="c">#  &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">###############################</span>
+
+<span class="sd">&quot;&quot;&quot; Holds exceptions declared by Pylada. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="root"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.root">[docs]</a><span class="k">class</span> <span class="nc">root</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="input"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.input">[docs]</a><span class="k">class</span> <span class="nc">input</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all input Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="out_of_range"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.out_of_range">[docs]</a><span class="k">class</span> <span class="nc">out_of_range</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all out-of-range Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="internal"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.internal">[docs]</a><span class="k">class</span> <span class="nc">internal</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all internal (cpp) Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="infinite_loop"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.infinite_loop">[docs]</a><span class="k">class</span> <span class="nc">infinite_loop</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all infinite-loops Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="ValueError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.ValueError">[docs]</a><span class="k">class</span> <span class="nc">ValueError</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all ValueError Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="KeyError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.KeyError">[docs]</a><span class="k">class</span> <span class="nc">KeyError</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all KeyError Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="AttributeError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.AttributeError">[docs]</a><span class="k">class</span> <span class="nc">AttributeError</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all AttributeError Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="IndexError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.IndexError">[docs]</a><span class="k">class</span> <span class="nc">IndexError</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all IndexError Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="TypeError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.TypeError">[docs]</a><span class="k">class</span> <span class="nc">TypeError</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all TypeError Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="NotImplementedError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.NotImplementedError">[docs]</a><span class="k">class</span> <span class="nc">NotImplementedError</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="ne">NotImplementedError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all NotImplementedError Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="ImportError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.ImportError">[docs]</a><span class="k">class</span> <span class="nc">ImportError</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="ne">ImportError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all ImportError Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="IOError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.IOError">[docs]</a><span class="k">class</span> <span class="nc">IOError</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root for all ImportError Pylada exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="Math"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.Math">[docs]</a><span class="k">class</span> <span class="nc">Math</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root of math exceptions. &quot;&quot;&quot;</span>
+  <span class="k">pass</span></div>
+<div class="viewcode-block" id="singular_matrix"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.singular_matrix">[docs]</a><span class="k">class</span> <span class="nc">singular_matrix</span><span class="p">(</span><span class="n">Math</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Singular matrix. &quot;&quot;&quot;</span>
+  <span class="k">pass</span></div>
+<div class="viewcode-block" id="interactive"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.interactive">[docs]</a><span class="k">class</span> <span class="nc">interactive</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Interactive usage error. &quot;&quot;&quot;</span>
+  <span class="k">pass</span></div>
+<div class="viewcode-block" id="GrepError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.GrepError">[docs]</a><span class="k">class</span> <span class="nc">GrepError</span><span class="p">(</span><span class="ne">AttributeError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Raised when property could not be grepped from some OUTCAR. &quot;&quot;&quot;</span>
+  <span class="k">pass</span></div>
+<div class="viewcode-block" id="ConfigError"><a class="viewcode-back" href="../../pyapi/error.html#pylada.error.ConfigError">[docs]</a><span class="k">class</span> <span class="nc">ConfigError</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Some sort of Pylada configuration error. &quot;&quot;&quot;</span>
+</div>
+<span class="k">class</span> <span class="nc">ExternalRunFailed</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Thrown when an external run has failed. &quot;&quot;&quot;</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pylada.html" >pylada</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

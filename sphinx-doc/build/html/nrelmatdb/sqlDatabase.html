@@ -1,0 +1,453 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>NREL MatDB SQL Database Overview &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="Indices and tables" href="index.html" />
+    <link rel="next" title="NREL MatDB Flat File Database Overview" href="flatDatabase.html" />
+    <link rel="prev" title="Indices and tables" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="flatDatabase.html" title="NREL MatDB Flat File Database Overview"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Indices and tables"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Indices and tables</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="nrel-matdb-sql-database-overview">
+<h1>NREL MatDB SQL Database Overview<a class="headerlink" href="#nrel-matdb-sql-database-overview" title="Permalink to this headline">¶</a></h1>
+<p>The SQL database consists of two tables, model and contrib.
+The column wrapId is used to link them.</p>
+<div class="section" id="the-wrapid-column">
+<h2>The wrapId column<a class="headerlink" href="#the-wrapid-column" title="Permalink to this headline">¶</a></h2>
+<p>A wrapId uniquely identifies a single invocation of wrapUpload.py
+to upload a group of directories.
+A typical wrapId is:</p>
+<div class="highlight-python"><pre>@2013.08.13@12.58.22.735311@someUser@home.someUser.redmesa.old.td.testlada.2013.04.06.Fe.O@</pre>
+</div>
+<p>The wrapId is broken into fields separated by &#8220;&#64;&#8221;:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Date, yyyy.mm.dd</li>
+<li>Time, hh.mm.ss.uuuuuu  where uuuuuu is microseconds padded to 6 characters</li>
+<li>User name.</li>
+<li>Top directory specified to wrapUpload, with &#8220;/&#8221; replaced by &#8221;.&#8221;.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="the-model-table">
+<h2>The model table<a class="headerlink" href="#the-model-table" title="Permalink to this headline">¶</a></h2>
+<p>The model table has an auto-increment key, mident.
+The mident value is used as a unique indentifier for entries
+in the MatDB.  The model table has about 60 columns,
+and the columns fall into a few main categories:</p>
+<div class="section" id="general-metadata-columns">
+<h3>General metadata columns<a class="headerlink" href="#general-metadata-columns" title="Permalink to this headline">¶</a></h3>
+<p>Some example general metadata columns are:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="12%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column</th>
+<th class="head">SQL type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>mident</td>
+<td>serial</td>
+<td>Unique auto-increment ID</td>
+</tr>
+<tr class="row-odd"><td>wrapid</td>
+<td>text</td>
+<td>Upload identifier, link with contrib table</td>
+</tr>
+<tr class="row-even"><td>abspath</td>
+<td>text</td>
+<td>Absolute path to dir</td>
+</tr>
+<tr class="row-odd"><td>relpath</td>
+<td>text</td>
+<td>Relative path below topDir</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="icsd-info-columns">
+<h3>ICSD info columns<a class="headerlink" href="#icsd-info-columns" title="Permalink to this headline">¶</a></h3>
+<p>The ICSD info is present only on runs adhering
+to the ICSD file naming conventions.
+To extract ICSD info from the file names, file names must be like:</p>
+<div class="highlight-python"><pre>.../icsd_083665/icsd_083665.cif/ls-anti-ferro-7/relax_cellshape/1
+         ^^^^^^                 ^^^^^^^^      ^ ^^^^^^^^^^^^^^^ ^
+        icsdNum                 magType  magNum relaxType       relaxNum</pre>
+</div>
+<p>Some example ICSD information columns are:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="13%" />
+<col width="67%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column</th>
+<th class="head">SQL type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>icsdNum</td>
+<td>int</td>
+<td>ICSD number in CIF file</td>
+</tr>
+<tr class="row-odd"><td>magType</td>
+<td>text</td>
+<td>type of magnetic moment hs-ferro, etc.</td>
+</tr>
+<tr class="row-even"><td>magNum</td>
+<td>int</td>
+<td>number of hs-anti-ferro or ls-anti-ferro</td>
+</tr>
+<tr class="row-odd"><td>relaxType</td>
+<td>text</td>
+<td>Type of run: relax-cellshape, etc.</td>
+</tr>
+<tr class="row-even"><td>relaxNum</td>
+<td>int</td>
+<td>Folder num for relax runs</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="vasp-input-columns">
+<h3>VASP input columns<a class="headerlink" href="#vasp-input-columns" title="Permalink to this headline">¶</a></h3>
+<p>Some example VASP input columns are:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="13%" />
+<col width="67%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column</th>
+<th class="head">SQL type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>encut_ev</td>
+<td>double</td>
+<td>VASP ENCUT parameter from INCAR</td>
+</tr>
+<tr class="row-odd"><td>ibrion</td>
+<td>int</td>
+<td>VASP IBRION parameter from INCAR</td>
+</tr>
+<tr class="row-even"><td>isif</td>
+<td>int</td>
+<td>VASP ISIF parameter from INCAR</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="vasp-output-columns">
+<h3>VASP output columns<a class="headerlink" href="#vasp-output-columns" title="Permalink to this headline">¶</a></h3>
+<p>The majority of the columns in the model table are VASP
+output values.
+Some example VASP output columns are:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="33%" />
+<col width="32%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column</th>
+<th class="head">SQL type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>typeNames</td>
+<td>text[]</td>
+<td>[&#8216;Mo&#8217;, &#8216;S&#8217;]</td>
+</tr>
+<tr class="row-odd"><td>typeNums</td>
+<td>int[]</td>
+<td>[2, 4]</td>
+</tr>
+<tr class="row-even"><td>finalBasisMat</td>
+<td>double precision[][]</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>finalRecipBasisMat</td>
+<td>double precision[][]</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>finalForceMat_ev_ang</td>
+<td>double precision[][]</td>
+<td>eV/angstrom</td>
+</tr>
+<tr class="row-odd"><td>finalStressMat_kbar</td>
+<td>double precision[][]</td>
+<td>kbar</td>
+</tr>
+<tr class="row-even"><td>finalPressure_kbar</td>
+<td>double precision</td>
+<td>kbar</td>
+</tr>
+<tr class="row-odd"><td>eigenMat</td>
+<td>double precision[][]</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>energyNoEntrp</td>
+<td>double precision</td>
+<td>eV</td>
+</tr>
+<tr class="row-odd"><td>energyPerAtom</td>
+<td>double precision</td>
+<td>eV</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="author-metadata-columns">
+<h3>Author metadata columns<a class="headerlink" href="#author-metadata-columns" title="Permalink to this headline">¶</a></h3>
+<p>The author metadata columns derive from the <tt class="docutils literal"><span class="pre">metadata</span></tt> files
+specified by the researcher.
+Some example author metadata columns are:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="12%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column</th>
+<th class="head">SQL type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>hashstring</td>
+<td>text</td>
+<td>sha512 of our vasprun.xml</td>
+</tr>
+<tr class="row-odd"><td>meta_parents</td>
+<td>text[]</td>
+<td>sha512 of parent vasprun.xml, or null</td>
+</tr>
+<tr class="row-even"><td>meta_firstName</td>
+<td>text</td>
+<td>metadata: first name</td>
+</tr>
+<tr class="row-odd"><td>meta_lastName</td>
+<td>text</td>
+<td>metadata: last name</td>
+</tr>
+<tr class="row-even"><td>meta_publications</td>
+<td>text[]</td>
+<td>metadata: publication DOI or placeholder</td>
+</tr>
+<tr class="row-odd"><td>meta_standards</td>
+<td>text[]</td>
+<td>metadata: controlled vocab keywords</td>
+</tr>
+<tr class="row-even"><td>meta_keywords</td>
+<td>text[]</td>
+<td>metadata: uncontrolled vocab keywords</td>
+</tr>
+<tr class="row-odd"><td>meta_notes</td>
+<td>text</td>
+<td>metadata: notes</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="the-contrib-table">
+<h2>The contrib table<a class="headerlink" href="#the-contrib-table" title="Permalink to this headline">¶</a></h2>
+<p>The contrib table is brief, consisting of ...</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="15%" />
+<col width="63%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Column</th>
+<th class="head">SQL type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>wrapid</td>
+<td>text</td>
+<td>wrapId for this upload, link with model table</td>
+</tr>
+<tr class="row-odd"><td>curdate</td>
+<td>timestamp</td>
+<td>date, time of this wrapId</td>
+</tr>
+<tr class="row-even"><td>userid</td>
+<td>text</td>
+<td>user id doing the upload</td>
+</tr>
+<tr class="row-odd"><td>hostname</td>
+<td>text</td>
+<td>hostname of the upload</td>
+</tr>
+<tr class="row-even"><td>topDir</td>
+<td>text</td>
+<td>top level dir of the upload</td>
+</tr>
+<tr class="row-odd"><td>numkeptdir</td>
+<td>int</td>
+<td>num of subdirs uploaded</td>
+</tr>
+<tr class="row-even"><td>reldirs</td>
+<td>text[]</td>
+<td>list of relative subdirs</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">NREL MatDB SQL Database Overview</a><ul>
+<li><a class="reference internal" href="#the-wrapid-column">The wrapId column</a></li>
+<li><a class="reference internal" href="#the-model-table">The model table</a><ul>
+<li><a class="reference internal" href="#general-metadata-columns">General metadata columns</a></li>
+<li><a class="reference internal" href="#icsd-info-columns">ICSD info columns</a></li>
+<li><a class="reference internal" href="#vasp-input-columns">VASP input columns</a></li>
+<li><a class="reference internal" href="#vasp-output-columns">VASP output columns</a></li>
+<li><a class="reference internal" href="#author-metadata-columns">Author metadata columns</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-contrib-table">The contrib table</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Indices and tables</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="flatDatabase.html"
+                        title="next chapter">NREL MatDB Flat File Database Overview</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelmatdb/sqlDatabase.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="flatDatabase.html" title="NREL MatDB Flat File Database Overview"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Indices and tables"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" >Indices and tables</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

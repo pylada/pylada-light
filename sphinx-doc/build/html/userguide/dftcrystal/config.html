@@ -1,0 +1,152 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Configuring Pylada for CRYSTAL &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Interface to CRYSTAL" href="../dftcrystal.html" />
+    <link rel="next" title="CRYSTAL’s approach to crystal structures" href="crystal.html" />
+    <link rel="prev" title="Interface to CRYSTAL" href="../dftcrystal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="crystal.html" title="CRYSTAL’s approach to crystal structures"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../dftcrystal.html" title="Interface to CRYSTAL"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" accesskey="U">Interface to CRYSTAL</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="configuring-pylada-for-crystal">
+<span id="dftcrystal-config-ug"></span><h1>Configuring Pylada for CRYSTAL<a class="headerlink" href="#configuring-pylada-for-crystal" title="Permalink to this headline">¶</a></h1>
+<p>Pylada calls <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> as an external program. By default, it expects to find the
+&#8216;crystal&#8217;, &#8216;Pcrystal&#8217;, and &#8216;MPPcrystal&#8217; programs in your path. However, it is
+possible to configure  this in your ~/.pylada file by modifying the global
+parameter <a class="reference internal" href="../../pyapi/configuration.html#pylada.crystal_program" title="pylada.crystal_program"><tt class="xref py py-data docutils literal"><span class="pre">crystal_program</span></tt></a>. For instance, one could add in
+~/.pylada:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">crystal_program</span> <span class="o">=</span> <span class="s">&quot;/path/to/crystal&quot;</span>
+</pre></div>
+</div>
+<p>In this case, however, Pylada will not be able to differentiate between serial,
+parallel, and massively parallel version of <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a>. This is affored by
+defining <a class="reference internal" href="../../pyapi/configuration.html#pylada.crystal_program" title="pylada.crystal_program"><tt class="xref py py-data docutils literal"><span class="pre">crystal_program</span></tt></a> as a callable. By <em>default</em>, it is
+the following:</p>
+<p>As can be seen above, Pylada can automatically determine which version of
+<a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> to call (and does so by default). In the above, <tt class="docutils literal"><span class="pre">self</span></tt> will be the
+functional making the call, or None, <tt class="docutils literal"><span class="pre">structure</span></tt> will be a crystal structure,
+or None, and <tt class="docutils literal"><span class="pre">comm</span></tt> will be a dictionary indicating how <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> will be run.</p>
+<p>Similarly, a <a class="reference internal" href="../../pyapi/configuration.html#pylada.properties_program" title="pylada.properties_program"><tt class="xref py py-data docutils literal"><span class="pre">properties_program</span></tt></a> variable exists which should
+contain the path to the properties program.  Finally, there is a
+<a class="reference internal" href="../../pyapi/configuration.html#pylada.crystal_inplace" title="pylada.crystal_inplace"><tt class="xref py py-data docutils literal"><span class="pre">crystal_inplace</span></tt></a> which controls whether <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> is launched
+directly within the output directory, or whithin a temporary directory. The
+latter case avoids clutter in the output directories since only a few files are
+copied back at the end of a run. If <a class="reference internal" href="../../pyapi/configuration.html#pylada.crystal_inplace" title="pylada.crystal_inplace"><tt class="xref py py-data docutils literal"><span class="pre">crystal_inplace</span></tt></a> is False,
+then the files are placed in a temporary directory. This temporary directory is
+itself located within <span class="target" id="index-0"></span><a class="reference internal" href="../../pyapi/configuration.html#envvar-PYLADA_TMPDIR"><tt class="xref std std-envvar docutils literal"><span class="pre">PYLADA_TMPDIR</span></tt></a> (if the environment variable
+exists), or within <cite>PBS_TMPDIR</cite> (if that exists), or in the default temporary
+directory of the system. A special link <cite>workdir</cite> will be created within the
+output for the duration of the crystal run.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../dftcrystal.html"
+                        title="previous chapter">Interface to CRYSTAL</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="crystal.html"
+                        title="next chapter">CRYSTAL&#8217;s approach to crystal structures</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/userguide/dftcrystal/config.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="crystal.html" title="CRYSTAL’s approach to crystal structures"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../dftcrystal.html" title="Interface to CRYSTAL"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="../dftcrystal.html" >Interface to CRYSTAL</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

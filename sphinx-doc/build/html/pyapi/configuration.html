@@ -1,0 +1,577 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Configuring Pylada &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="Python API" href="../pyapi.html" />
+    <link rel="next" title="crystal" href="crystal.html" />
+    <link rel="prev" title="Python API" href="../pyapi.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="crystal.html" title="crystal"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../pyapi.html" title="Python API"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../pyapi.html" accesskey="U">Python API</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="configuring-pylada">
+<span id="pylada-config"></span><h1>Configuring Pylada<a class="headerlink" href="#configuring-pylada" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="environment-variables">
+<h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h2>
+<dl class="envvar">
+<dt id="envvar-PYLADA_CONFIG_DIR">
+<tt class="descname">PYLADA_CONFIG_DIR</tt><a class="headerlink" href="#envvar-PYLADA_CONFIG_DIR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Environment variable specifying the path(s) to the configuration directories.</p>
+</dd></dl>
+
+<dl class="envvar">
+<dt id="envvar-PYLADA_DATA_DIRECTORY">
+<tt class="descname">PYLADA_DATA_DIRECTORY</tt><a class="headerlink" href="#envvar-PYLADA_DATA_DIRECTORY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Environment variable specifying the path to the root of the data directories.</p>
+</dd></dl>
+
+<dl class="envvar">
+<dt id="envvar-PYLADA_TMPDIR">
+<tt class="descname">PYLADA_TMPDIR</tt><a class="headerlink" href="#envvar-PYLADA_TMPDIR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optional environment variable specifying the path to the root of temporary
+directories Pylada might need to create.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="configuration-variables">
+<h2>Configuration variables<a class="headerlink" href="#configuration-variables" title="Permalink to this headline">¶</a></h2>
+<p>Configuration variables exist in the <tt class="xref py py-mod docutils literal"><span class="pre">pylada</span></tt> module itself. However,
+they can be added within separate files. Which files will depend upon the user.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Files located in the config sub-directory where pylada is installed</li>
+<li>Files located in one of the directories specified by <span class="target" id="index-0"></span><a class="reference internal" href="#envvar-PYLADA_CONFIG_DIR"><tt class="xref std std-envvar docutils literal"><span class="pre">PYLADA_CONFIG_DIR</span></tt></a></li>
+<li>In the user configuration file ~/.pylada</li>
+</ul>
+</div></blockquote>
+<p>Each file is executed and whatever is declared within is placed directly at the
+root of the <tt class="xref py py-mod docutils literal"><span class="pre">pylada</span></tt> package. The files are read in that order. Within a
+given directory, files are read alphabetically. Later files can override
+previous files.</p>
+<div class="section" id="general">
+<h3>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
+<dl class="data">
+<dt id="pylada.verbose_representation">
+<tt class="descclassname">pylada.</tt><tt class="descname">verbose_representation</tt><a class="headerlink" href="#pylada.verbose_representation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether functionals should be represented/printed verbosely, e.g. each and
+every attribute, or whether attributes which have not changed from the
+default should be stripped. The former is safer since it should defaults
+may change over time, and the representation can become inaccurate.
+Defaults to False.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.ipython_verbose_representation">
+<tt class="descclassname">pylada.</tt><tt class="descname">ipython_verbose_representation</tt><a class="headerlink" href="#pylada.ipython_verbose_representation" title="Permalink to this definition">¶</a></dt>
+<dd><p>When in ipython and if not None, then changes
+<a class="reference internal" href="#pylada.verbose_representation" title="pylada.verbose_representation"><tt class="xref py py-data docutils literal"><span class="pre">verbose_representation</span></tt></a> to this value. Makes it a bit easier on
+the eyes in ipython, while keeping things accurate during actual
+calculations. Ignored if None. Defaults to False.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Only taken into account at ipython start-up. It is ignored if Pylada is
+launched within python.</p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="crystal">
+<span id="dftcrystal-config"></span><h3>CRYSTAL<a class="headerlink" href="#crystal" title="Permalink to this headline">¶</a></h3>
+<p>These are the variables generally declared in config/dftcrystal.py</p>
+<dl class="data">
+<dt id="pylada.crystal_inplace">
+<tt class="descclassname">pylada.</tt><tt class="descname">crystal_inplace</tt><a class="headerlink" href="#pylada.crystal_inplace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether calculation should be runned directly in the output directory, or
+in a temporary directory. The latter case avoid clutter, as only a small
+set of files are copied back to the output directory. Note that some files
+(notably &#8220;crystal.out&#8221;) are created in the output directory from start,
+and linked to the temporary directory. As such, these files will always be
+there, even if a job is forcefully killed before Pylada has had a change to
+copy things back. If <a class="reference internal" href="#pylada.crystal_inplace" title="pylada.crystal_inplace"><tt class="xref py py-data docutils literal"><span class="pre">crystal_inplace</span></tt></a> is False, then the
+files are placed in a temporary directory. This temporary directory is
+itself located within <span class="target" id="index-1"></span><a class="reference internal" href="#envvar-PYLADA_TMPDIR"><tt class="xref std std-envvar docutils literal"><span class="pre">PYLADA_TMPDIR</span></tt></a> (if the environment variable
+exists), or within <cite>PBS_TMPDIR</cite> (if that exists), or in the default
+temporary directory of the system. A special link <cite>workdir</cite> will be
+created within the output for the duration of the crystal run.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.crystal_program">
+<tt class="descclassname">pylada.</tt><tt class="descname">crystal_program</tt><a class="headerlink" href="#pylada.crystal_program" title="Permalink to this definition">¶</a></dt>
+<dd><p>It can be a string defining the path to the serial <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> program.
+Or it can be a callable which takes three arguments and returns a string
+to the appropriate <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> program. It is the following by default.</p>
+<p>The three arguments are meant to describe the job for which <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> is
+lauched as accurately as possible. The first, <tt class="docutils literal"><span class="pre">self</span></tt>, will be the
+functional making the call, or None. The second, <tt class="docutils literal"><span class="pre">structure</span></tt>, will be
+the crystal structure to be computed, or None. The third, <tt class="docutils literal"><span class="pre">comm</span></tt>, is a
+dictionary defining the MPI call, if an MPI call. It contains, for
+instance, the number of processors on which <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> should be runned.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is important that the path to the serial code be returned when
+<tt class="docutils literal"><span class="pre">self</span></tt> is None, as it allows Pylada to perform the crystalline
+transforms using <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> directly, and hence to interpret a crystal
+structure exactly as <a class="reference external" href="http://www.crystal.unito.it/">CRYSTAL</a> would.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.properties_program">
+<tt class="descclassname">pylada.</tt><tt class="descname">properties_program</tt><a class="headerlink" href="#pylada.properties_program" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string defining the path to the <a class="reference external" href="http://www.crystal.unito.it/">properties</a> program. By default, it is
+&#8220;properties&#8221;, expecting the program to be in the path.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="vasp">
+<span id="vasp-config"></span><h3>VASP<a class="headerlink" href="#vasp" title="Permalink to this headline">¶</a></h3>
+<p>These variables are generally declared in config/vasp.py</p>
+<dl class="data">
+<dt id="pylada.is_vasp_4">
+<tt class="descclassname">pylada.</tt><tt class="descname">is_vasp_4</tt><a class="headerlink" href="#pylada.is_vasp_4" title="Permalink to this definition">¶</a></dt>
+<dd><p>If it exists and is True, some vasp parameters will fail if used with
+vasp-5 only options. If it does not exist or is false, then these
+parameters are allowed.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.vasp_program">
+<tt class="descclassname">pylada.</tt><tt class="descname">vasp_program</tt><a class="headerlink" href="#pylada.vasp_program" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signifies which vasp executable to use. It can take the following values:</p>
+<ul>
+<li><p class="first">string: Should be the path to the vasp executable. It can be either
+a full path, or an executable within the environment&#8217;s $PATH
+variable.</p>
+</li>
+<li><p class="first">callable: The callable is invoked with a
+<a class="reference internal" href="vasp/functional.html#pylada.vasp.functional.Vasp" title="pylada.vasp.functional.Vasp"><tt class="xref py py-class docutils literal"><span class="pre">Vasp</span></tt></a> instance as its first argument,
+the structure upon which the calculation is performed as its second, and
+the communicator as its last.  It should return a string, as described
+above. In other words, different vasp executables can be used depending
+on the type of calculation and on the system.</p>
+<p>For instance, the following function chooses between a <em>normal</em> vasp and
+vasp compiled for perturbative spin-orbit calculations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">vasp_program</span><span class="p">(</span><span class="n">vasp</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">comm</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Path to the vasp executable.</span>
+
+<span class="sd">      Returns a vasp compiled for spin-orbit if lsorbit is True.</span>
+<span class="sd">      Otherwise, returnthe path to the normal vasp.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">return</span> <span class="s">&quot;vasp-4.6-nc&quot;</span> <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vasp</span><span class="p">,</span> <span class="s">&#39;lsorbit&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="o">==</span> <span class="bp">True</span> <span class="k">else</span> <span class="s">&quot;vasp-4.6&quot;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.vasp_has_nlep">
+<tt class="descclassname">pylada.</tt><tt class="descname">vasp_has_nlep</tt><a class="headerlink" href="#pylada.vasp_has_nlep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defaults to False. If NLEP <a class="footnote-reference" href="#id2" id="id1">[*]</a> should be allowed, then this parameter
+should be set to True.</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[*]</a></td><td><a class="reference external" href="http://link.aps.org/doi/10.1103/PhysRevB.77.241201">Phys. Rev. B 77, 241201(R) (2008)</a></td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="external-programs">
+<span id="mpi-config"></span><h3>External programs<a class="headerlink" href="#external-programs" title="Permalink to this headline">¶</a></h3>
+<p>These variables are generally declared in config/mpi.py</p>
+<dl class="data">
+<dt id="pylada.mpirun_exe">
+<tt class="descclassname">pylada.</tt><tt class="descname">mpirun_exe</tt><a class="headerlink" href="#pylada.mpirun_exe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format string to launch mpi programs. It accepts as arguments
+<tt class="docutils literal"><span class="pre">program</span></tt>,&nbsp;<tt class="docutils literal"><span class="pre">n</span></tt>, <tt class="docutils literal"><span class="pre">ppn</span></tt> as well as anything you want
+to throw at it:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">program</span></tt>: program (with commandline arguments) to launch</li>
+<li><tt class="docutils literal"><span class="pre">placement</span></tt>: used to place an executable on specific nodes and processors</li>
+<li><tt class="docutils literal"><span class="pre">n</span></tt>: number of processes to launch program</li>
+<li><tt class="docutils literal"><span class="pre">ppn</span></tt>: number of processes per nodes</li>
+</ul>
+<p>In general, it takes the following form:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mpirun_exe</span> <span class="o">=</span> <span class="s">&quot;mpirun -n {n} {placement} {program}&quot;</span>
+</pre></div>
+</div>
+<p>The actual commandline is executed by <tt class="xref py py-func docutils literal"><span class="pre">launch_program()</span></tt>.
+The latter executes via <a class="reference external" href="http://docs.python.org/library/subprocess.html#popen-constructor">Popen</a> a commandline obtained through the <a class="reference external" href="http://docs.python.org/library/stdtypes.html#str.format">format</a>
+method of a python string. The arguments to format are those mentioned
+above as well as anything passed on to <tt class="xref py py-func docutils literal"><span class="pre">launch_program()</span></tt>.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.default_comm">
+<tt class="descclassname">pylada.</tt><tt class="descname">default_comm</tt><a class="headerlink" href="#pylada.default_comm" title="Permalink to this definition">¶</a></dt>
+<dd><p>An dictionary with <tt class="docutils literal"><span class="pre">n</span></tt> and <tt class="docutils literal"><span class="pre">ppn</span></tt>, as well as any other variable to be
+used in conjunction with <a class="reference internal" href="#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">mpirun_exe</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.do_multiple_mpi_programs">
+<tt class="descclassname">pylada.</tt><tt class="descname">do_multiple_mpi_programs</tt><a class="headerlink" href="#pylada.do_multiple_mpi_programs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean defining whether to attempt to figure out which machines pylada
+can run on. This is only necessary if you will run different mpi
+executable simultaneously in the same PBS job.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.figure_out_machines">
+<tt class="descclassname">pylada.</tt><tt class="descname">figure_out_machines</tt><a class="headerlink" href="#pylada.figure_out_machines" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string which defines a python program to get the hostnames of the
+machines Pylada can run on. This program must print to the standard output
+the names of the machines, one per line, and nothing else. Defaults to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">figure_out_machines</span> <span class="o">=</span>  <span class="s">&#39;from socket import gethostname</span><span class="se">\n</span><span class="s">&#39;</span>                 \
+                       <span class="s">&#39;from boost.mpi import gather, world</span><span class="se">\n</span><span class="s">&#39;</span>            \
+                       <span class="s">&#39;hostname = gethostname()</span><span class="se">\n</span><span class="s">&#39;</span>                       \
+                       <span class="s">&#39;results = gather(world, hostname, 0)</span><span class="se">\n</span><span class="s">&#39;</span>           \
+                       <span class="s">&#39;if world.rank == 0:</span><span class="se">\n</span><span class="s">&#39;</span>                            \
+                       <span class="s">&#39;  for hostname in results:</span><span class="se">\n</span><span class="s">&#39;</span>                     \
+                       <span class="s">&#39;    print &quot;PYLADA MACHINE HOSTNAME:&quot;, hostname</span><span class="se">\n</span><span class="s">&#39;</span> \
+                       <span class="s">&#39;world.barrier()</span><span class="se">\n</span><span class="s">&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylada.modify_global_comm">
+<tt class="descclassname">pylada.</tt><tt class="descname">modify_global_comm</tt><big>(</big><em>pylada.process.mpi.Communicator</em><big>)</big> &rarr; None<a class="headerlink" href="#pylada.modify_global_comm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called after figuring the hostnames of the nodes Pylada should run on. It is
+a callable tacking the global communicator as sole input. It should modify
+the callable such that <a class="reference internal" href="#pylada.placement" title="pylada.placement"><tt class="xref py py-data docutils literal"><span class="pre">placement</span></tt></a> can make sense of a
+communicator and issue the correct placement configuration to the mpirun
+program. By default, this function does nothing.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylada.placement">
+<tt class="descclassname">pylada.</tt><tt class="descname">placement</tt><big>(</big><em>pylada.process.mpi.Communicator</em><big>)</big> &rarr; str<a class="headerlink" href="#pylada.placement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callable which takes an <tt class="xref py py-class docutils literal"><span class="pre">Communicator</span></tt> and returns a
+string which tells the mpirun program which nodes to run on. The string is
+substituted for &#8220;{placement}&#8221; in <a class="reference internal" href="#pylada.mpirun_exe" title="pylada.mpirun_exe"><tt class="xref py py-data docutils literal"><span class="pre">mpirun_exe</span></tt></a>. In most
+cases (e.g. default), this means writing a machine file to disk and
+telling mpirun where it is with &#8220;-machinefile&#8221;.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="job-folder">
+<h3>Job-folder<a class="headerlink" href="#job-folder" title="Permalink to this headline">¶</a></h3>
+<dl class="data">
+<dt id="pylada.jobparams_readonly">
+<tt class="descclassname">pylada.</tt><tt class="descname">jobparams_readonly</tt><a class="headerlink" href="#pylada.jobparams_readonly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether instances of
+<a class="reference internal" href="jobfolder/forwardingdict.html#pylada.jobfolder.forwarding_dict.ForwardingDict" title="pylada.jobfolder.forwarding_dict.ForwardingDict"><tt class="xref py py-class docutils literal"><span class="pre">ForwardingDict</span></tt></a> are read only
+by default. In practice, objects which use forwarding dictionaries
+generally dictate whether it should read-only or not, depending on what
+these objects do. This parameter should presently not have any effect.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.jobparams_naked_end">
+<tt class="descclassname">pylada.</tt><tt class="descname">jobparams_naked_end</tt><a class="headerlink" href="#pylada.jobparams_naked_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether mass collectors and manipulators, such as
+<a class="reference internal" href="jobfolder/manipulator.html#pylada.jobfolder.manipulator.JobParams" title="pylada.jobfolder.manipulator.JobParams"><tt class="xref py py-class docutils literal"><span class="pre">JobParams</span></tt></a> should return an object
+as is, rather than a
+<a class="reference internal" href="jobfolder/forwardingdict.html#pylada.jobfolder.forwarding_dict.ForwardingDict" title="pylada.jobfolder.forwarding_dict.ForwardingDict"><tt class="xref py py-class docutils literal"><span class="pre">ForwardingDict</span></tt></a>, when it is the
+only item left. Practical when checking results in ipython, not so much
+when writing scripts.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.jobparams_only_existing">
+<tt class="descclassname">pylada.</tt><tt class="descname">jobparams_only_existing</tt><a class="headerlink" href="#pylada.jobparams_only_existing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether, when setting parameters with
+<a class="reference internal" href="jobfolder/manipulator.html#pylada.jobfolder.manipulator.JobParams" title="pylada.jobfolder.manipulator.JobParams"><tt class="xref py py-class docutils literal"><span class="pre">JobParams</span></tt></a>, new attributes should
+be created for those items which do not possess that attribute, or whether
+<a class="reference internal" href="jobfolder/manipulator.html#pylada.jobfolder.manipulator.JobParams" title="pylada.jobfolder.manipulator.JobParams"><tt class="xref py py-class docutils literal"><span class="pre">JobParams</span></tt></a> should content itself
+with only modifying pre-existing attributes. Beware if set to True.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.unix_re">
+<tt class="descclassname">pylada.</tt><tt class="descname">unix_re</tt><a class="headerlink" href="#pylada.unix_re" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether mass collectors and manipulators, such as
+<a class="reference internal" href="jobfolder/manipulator.html#pylada.jobfolder.manipulator.JobParams" title="pylada.jobfolder.manipulator.JobParams"><tt class="xref py py-class docutils literal"><span class="pre">JobParams</span></tt></a>, accept regex as
+indices, or whether to use bash-like substitutions. The former is more
+powerfull, and the latter much simpler.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="computational-ressources-and-job-submission">
+<h3>Computational ressources and job submission<a class="headerlink" href="#computational-ressources-and-job-submission" title="Permalink to this headline">¶</a></h3>
+<dl class="data">
+<dt id="pylada.qsub_exe">
+<tt class="descclassname">pylada.</tt><tt class="descname">qsub_exe</tt><a class="headerlink" href="#pylada.qsub_exe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to qsub. Can be relative. Defaults to &#8220;qsub&#8221;.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.qsub_array_exe">
+<tt class="descclassname">pylada.</tt><tt class="descname">qsub_array_exe</tt><a class="headerlink" href="#pylada.qsub_array_exe" title="Permalink to this definition">¶</a></dt>
+<dd><p>A format string to launch PBS arrays.</p>
+<p>If not None, if should be a tuple consisting of the command to launch job
+arrays and the name of the environment variable holding the job index.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">qsub_array_exe</span> <span class="o">=</span> <span class="s">&#39;qsub -J 1-{nbjobs}&#39;</span><span class="p">,</span> <span class="s">&#39;$PBS_ARRAY_INDEX&#39;</span>
+</pre></div>
+</div>
+<p>The format <tt class="docutils literal"><span class="pre">{array}</span></tt> will receive the arrays to launch.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Slurm does not do job-arrays.</p>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.pbs_string">
+<tt class="descclassname">pylada.</tt><tt class="descname">pbs_string</tt><a class="headerlink" href="#pylada.pbs_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>String from which to create <a class="reference external" href="http://www.mcs.anl.gov/research/projects/openpbs/">pbs</a>/<a class="reference external" href="https://computing.llnl.gov/linux/slurm/">slurm</a> submission scripts. For instance,
+the following is for the <a class="reference external" href="https://computing.llnl.gov/linux/slurm/">slurm</a> ressource manager:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pbs_string</span> <span class="o">=</span> <span class="s">&quot;#! /bin/bash/</span><span class="se">\n</span><span class="s">&quot;</span>                  \
+             <span class="s">&quot;#SBATCH --account={account}</span><span class="se">\n</span><span class="s">&quot;</span>    \
+             <span class="s">&quot;#SBATCH --time={walltime}</span><span class="se">\n</span><span class="s">&quot;</span>      \
+             <span class="s">&quot;#SBATCH -N {nnodes}</span><span class="se">\n</span><span class="s">&quot;</span>            \
+             <span class="s">&quot;#SBATCH -e {err}.%j</span><span class="se">\n</span><span class="s">&quot;</span>            \
+             <span class="s">&quot;#SBATCH -o {out}.%j</span><span class="se">\n</span><span class="s">&quot;</span>            \
+             <span class="s">&quot;#SBATCH -J {name}</span><span class="se">\n</span><span class="s">&quot;</span>              \
+             <span class="s">&quot;#SBATCH -D {directory}</span><span class="se">\n\n</span><span class="s">&quot;</span>       \
+             <span class="s">&quot;python {scriptcommand}</span><span class="se">\n</span><span class="s">&quot;</span>
+</pre></div>
+</div>
+<p>There are number of keywords which should appear:</p>
+<blockquote>
+<div><ul class="simple">
+<li>walltime: defines how long the job should run. It will generally be
+provided when calling launch in ipython.</li>
+<li>n: The number of processes to request from the resource manager.</li>
+<li>nnodes: The number of nodes to request from the resource manager.
+Generally, it will be generated automatically from <tt class="docutils literal"><span class="pre">n</span></tt> and
+<a class="reference internal" href="#pylada.default_pbs" title="pylada.default_pbs"><tt class="xref py py-data docutils literal"><span class="pre">default_pbs</span></tt></a>&#8216;s relevant information.</li>
+<li>err: A file where to log errors from this job. This filename will be
+generated automatically.</li>
+<li>out: A file where to log output from this job. This filename will be
+generated automatically.</li>
+<li>name: The name of the job. Also generated automatically.</li>
+<li>directory: The directory where the job will take place. Also
+generated automatically.</li>
+<li>scriptcommand: You do want something to happen, right? Generated
+automatically.</li>
+<li>account: Relevant to <a class="reference external" href="https://computing.llnl.gov/linux/slurm/">slurm</a> only. Selected by user when launching job.</li>
+</ul>
+</div></blockquote>
+<p>Any number of parameters can be further provided, as long as they exist in
+<a class="reference internal" href="#pylada.default_pbs" title="pylada.default_pbs"><tt class="xref py py-data docutils literal"><span class="pre">default_pbs</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.default_pbs">
+<tt class="descclassname">pylada.</tt><tt class="descname">default_pbs</tt><a class="headerlink" href="#pylada.default_pbs" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary which contains the parameters relevant to <a class="reference internal" href="#pylada.pbs_string" title="pylada.pbs_string"><tt class="xref py py-data docutils literal"><span class="pre">pbs_string</span></tt></a>.
+Additionally, it should contain:</p>
+<blockquote>
+<div><ul class="simple">
+<li>ppn: Number of processes per node.</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.debug_queue">
+<tt class="descclassname">pylada.</tt><tt class="descname">debug_queue</tt><a class="headerlink" href="#pylada.debug_queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>How to select the debug queue. First part of the tuple is the keyword
+argument to modify when calling the pbs job, and the second is its value.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylada.ipython_qstat">
+<tt class="descclassname">pylada.</tt><tt class="descname">ipython_qstat</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.ipython_qstat" title="Permalink to this definition">¶</a></dt>
+<dd><p>An ipython magic function which returns all jobs submitted by the user.
+Once provided, it will be automatically imported into the ipython session
+by the pylada extension, where is called <tt class="docutils literal"><span class="pre">qstat</span></tt>.  This will change
+somewhat from one supercomputer to the next, depending on the type of
+ressource manager it uses. Here is what the function looks like for
+<a class="reference external" href="https://computing.llnl.gov/linux/slurm/">slurm</a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">ipython_qstat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; squeue --user=`whoami` -o &quot;%7i %.3C %3t  --   %50j&quot; &quot;&quot;&quot;</span>
+  <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+  <span class="kn">from</span> <span class="nn">IPython.utils.text</span> <span class="kn">import</span> <span class="n">SList</span>
+  <span class="kn">from</span> <span class="nn">getpass</span> <span class="kn">import</span> <span class="n">getuser</span>
+
+  <span class="c"># finds user name.</span>
+  <span class="n">whoami</span> <span class="o">=</span> <span class="n">getuser</span><span class="p">()</span>
+  <span class="n">squeue</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">([</span><span class="s">&quot;squeue&quot;</span><span class="p">,</span> <span class="s">&quot;--user=&quot;</span> <span class="o">+</span> <span class="n">whoami</span><span class="p">,</span> <span class="s">&quot;-o&quot;</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\&quot;</span><span class="si">%7i</span><span class="s"> %.3C %3t    %j</span><span class="se">\&quot;</span><span class="s">&quot;</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">squeue</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">SList</span><span class="p">([</span><span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span>
+  <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">grep</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>An this one is for the <a class="reference external" href="http://www.pbsworks.com/Product.aspx?id=1">PBSpro</a> ressource managers:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">ipython_qstat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Prints jobs of current user. &quot;&quot;&quot;</span>
+  <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+  <span class="kn">from</span> <span class="nn">IPython.utils.text</span> <span class="kn">import</span> <span class="n">SList</span>
+  <span class="c"># get user jobs ids</span>
+  <span class="n">jobs</span>   <span class="o">=</span> <span class="n">SList</span><span class="p">(</span><span class="n">Popen</span><span class="p">([</span><span class="s">&#39;qstat&#39;</span><span class="p">,</span> <span class="s">&#39;-f&#39;</span><span class="p">],</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>                           \
+                <span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">))</span>
+  <span class="n">names</span>  <span class="o">=</span> <span class="p">[</span> <span class="n">u</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>                               \
+             <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">jobs</span><span class="o">.</span><span class="n">grep</span><span class="p">(</span><span class="s">&#39;Job_Name&#39;</span><span class="p">)</span> <span class="p">]</span>
+  <span class="n">mpps</span>   <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">jobs</span><span class="o">.</span><span class="n">grep</span><span class="p">(</span><span class="s">&#39;Resource_List.ncpus&#39;</span><span class="p">)]</span>
+  <span class="n">states</span> <span class="o">=</span> <span class="p">[</span> <span class="n">u</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>                               \
+             <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">jobs</span><span class="o">.</span><span class="n">grep</span><span class="p">(</span><span class="s">&#39;job_state&#39;</span><span class="p">)</span> <span class="p">]</span>
+  <span class="n">ids</span>    <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">jobs</span><span class="o">.</span><span class="n">grep</span><span class="p">(</span><span class="s">&#39;Job Id&#39;</span><span class="p">)]</span>
+  <span class="k">return</span> <span class="n">SList</span><span class="p">([</span> <span class="s">&quot;{0:&gt;10} {1:&gt;4} {2:&gt;3} -- {3}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">mpp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>   \
+                 <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">mpp</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">mpps</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">names</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>It use IPython&#8217;s <a class="reference external" href="http://ipython.scipy.org/Wiki/Cookbook/StringListProcessing">SList</a> to easily grep through output.</p>
+<p>Other/better snippets for other ressource managers are welcome.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.queues">
+<tt class="descclassname">pylada.</tt><tt class="descname">queues</tt><a class="headerlink" href="#pylada.queues" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of strings defining the queues accessible to the users. They will be
+made available in <a class="reference internal" href="../userguide/ipython.html#ipython-launch-ug"><em>%lauch</em></a>. It can be an empty
+tuple if &#8220;queues&#8221; are not relevant to the ressource manager.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="pylada.accounts">
+<tt class="descclassname">pylada.</tt><tt class="descname">accounts</tt><a class="headerlink" href="#pylada.accounts" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of strings defining the accounts accessible to the users. They will
+be made available in <a class="reference internal" href="../userguide/ipython.html#ipython-launch-ug"><em>%lauch</em></a>. It can be an empty
+tuple if &#8220;accounts&#8221; are not relevant to the ressource manager.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Configuring Pylada</a><ul>
+<li><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
+<li><a class="reference internal" href="#configuration-variables">Configuration variables</a><ul>
+<li><a class="reference internal" href="#general">General</a></li>
+<li><a class="reference internal" href="#crystal">CRYSTAL</a></li>
+<li><a class="reference internal" href="#vasp">VASP</a></li>
+<li><a class="reference internal" href="#external-programs">External programs</a></li>
+<li><a class="reference internal" href="#job-folder">Job-folder</a></li>
+<li><a class="reference internal" href="#computational-ressources-and-job-submission">Computational ressources and job submission</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../pyapi.html"
+                        title="previous chapter">Python API</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="crystal.html"
+                        title="next chapter">crystal</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/pyapi/configuration.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="crystal.html" title="crystal"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../pyapi.html" title="Python API"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../pyapi.html" >Python API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

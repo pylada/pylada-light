@@ -52,11 +52,16 @@ def test(path=None, dodate=True):
   assert abs(a.nelect - 8.0) < 1e-8
   assert abs(a.extraelectron - 0e0) < 1e-8
   assert abs(a.nbands - 8) < 1e-8
-  assert all(abs(1.00778*array([[0, 0.5, 0.5],[0.5, 0, 0.5],[0.5, 0.5, 0]])-a.structure.cell) < 1e-4) 
-  assert all(abs(a.structure.scale-5.43*angstrom) < 1e-4) 
+  ## NOTE: some of these assert change 5/14 by Peter Graf pgraf to reflect changes in Vasp.extract, namely
+  # no longer explicitly using appended POSCAR, etc embedded in OUTCAR
+#  assert all(abs(1.00778*array([[0, 0.5, 0.5],[0.5, 0, 0.5],[0.5, 0.5, 0]])-a.structure.cell) < 1e-4) 
+  assert all(abs(array([[0, 2.73612395, 2.73612395],[2.73612395, 0, 2.73612395],[2.73612395, 2.73612395, 0]])-a.structure.cell) < 1e-4) 
+#  assert all(abs(a.structure.scale-5.43*angstrom) < 1e-4) 
+  assert all(abs(a.structure.scale-1.0*angstrom) < 1e-4) 
   assert all(abs(a.structure.scale*a.structure.cell - a._grep_structure.cell*angstrom) < 1e-4) 
   assert all(abs(a.structure[0].pos) < 1e-8)
-  assert all(abs(a.structure[1].pos - 0.251945) < 1e-6)
+#  assert all(abs(a.structure[1].pos - 0.251945) < 1e-6)
+  assert all(abs(a.structure[1].pos - 1.36806) < 1e-6)
   assert all([b.type == 'Si' for b in a.structure])
   assert abs(a.structure.energy + 10.665642 * eV) < 1e-6
   assert abs(a.sigma-0.2*eV) < 1e-6

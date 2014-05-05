@@ -25,7 +25,7 @@ def test():
   from pickle import loads, dumps
   from pylada.vasp import Vasp
 
-  Restart = namedtuple('Restart', ['success', 'lmaxmix'])
+  Restart = namedtuple('Restart', ['success', 'lmaxmix', 'lvhar'])
   a = Vasp()
   o = a._input['lsorbit']
   d = {'LSorbit': o.__class__}
@@ -44,16 +44,16 @@ def test():
   try: a._input['lsorbit'].output_map(vasp=a)
   except ValueError: pass
   else: raise Exception()
-  a.restart = Restart(False, 7)
+  a.restart = Restart(False, 7, False)
   try: a._input['lsorbit'].output_map(vasp=a)
   except ValueError: pass
   else: raise Exception()
-  a.restart = Restart(True, 7)
+  a.restart = Restart(True, 7, False)
   assert 'lsorbit' in o.output_map(vasp=a)
   assert o.output_map(vasp=a)['lsorbit'] == '.TRUE.'
   assert a.lmaxmix == 7
   a.lmaxmix = 5
-  a.restart = Restart(True, 6)
+  a.restart = Restart(True, 6, False)
   assert 'lsorbit' in o.output_map(vasp=a)
   assert o.output_map(vasp=a)['lsorbit'] == '.TRUE.'
   assert a.lmaxmix == 6
