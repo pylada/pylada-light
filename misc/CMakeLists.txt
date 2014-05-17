@@ -19,6 +19,4 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
-install(FILES __init__.py changedir.py relativepath.py lockfile.py
-        DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/misc)
+add_python_module("pylada.misc" PYFILES "*.py")

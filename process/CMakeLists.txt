@@ -19,9 +19,5 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
-set(PYPROCEED_PY call.py  __init__.py  iterator.py  jobfolder.py 
-                 process.py  program.py mpi.py pool.py dummy.py ) 
-install(FILES ${PYPROCEED_PY} DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/process)
-
+add_python_module("pylada.process" PYFILES "*.py")
 add_subdirectory(tests)

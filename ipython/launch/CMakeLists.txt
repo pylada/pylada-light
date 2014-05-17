@@ -19,8 +19,5 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
-set(PYIPY_PY __init__.py scattered.py interactive.py asone.py asone_script.py scattered_script.py 
-             array.py array_script.py single.py )
-install(FILES ${PYIPY_PY} DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/ipython/launch)
+add_python_module("pylada.ipython.launch" PYFILES "*.py")
 

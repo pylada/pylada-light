@@ -25,5 +25,16 @@ endfunction()
 # first looks for python package, second for linkage/include stuff
 find_or_fail(numpy)
 find_package(Numpy REQUIRED)
-
 find_or_fail(quantities)
+
+# Create local python environment
+# If it exists, most cookoff functions will use LOCAL_PYTHON_EXECUTABLE rather
+# than PYTHON_EXECUTABLE. In practice, this means that packages installed in
+# the build tree can be found.
+include(EnvironmentScript)
+set(LOCAL_PYTHON_EXECUTABLE "${PROJECT_BINARY_DIR}/localpython.sh")
+create_environment_script(
+    PYTHON
+    EXECUTABLE "${PYTHON_EXECUTABLE}"
+    PATH "${LOCAL_PYTHON_EXECUTABLE}"
+)

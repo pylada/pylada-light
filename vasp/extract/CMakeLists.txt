@@ -19,8 +19,5 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
-set(PYVASPEXTRACT_PY __init__.py mixin.py base.py)
-install(FILES ${PYVASPEXTRACT_PY} DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/vasp/extract)
-
+add_python_module("pylada.vasp.extract" PYFILES "*.py")
 add_subdirectory(tests)
