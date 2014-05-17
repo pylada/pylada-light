@@ -35,6 +35,10 @@ endif(tests)
 
 # Easily add python modules
 include(PythonModule)
+# Easily add node tests
+if(tests)
+    include(nose)
+endif()
 
 # Create general configuration file for C stuff
 configure_file (

@@ -19,8 +19,15 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
 """ Checks atom methods and attributes. """
+from nose_parameterized import parameterized
+from pylada.crystal.cppwrappers import Atom
+class Subclass(Atom):
+  def __init__(self, *args, **kwargs):
+    super(Subclass, self).__init__(*args, **kwargs)
+classes = [(Atom,), (Subclass,)]
+
+@parameterized(classes)
 def test_init(Class):
   """ Test atom initialization. """
   from numpy import all, abs, array
@@ -48,6 +55,7 @@ def test_init(Class):
   a.pos[2] = 0.4
   assert all(abs(a.pos-[0.2, 0.3, 0.4]) < 1e-8)
   
+@parameterized(classes)
 def test_fail_init(Class):
   """ Test failures during initialization. """
   # Try incorrect initialization
@@ -64,11 +72,13 @@ def test_fail_init(Class):
   except TypeError: pass
   else: raise RuntimeError("Should have failed.")
 
+@parameterized(classes)
 def test_repr(Class):
   """ Test representability. """
   assert repr(Class(type='Au', pos=[1, 1, 1], m=1)) == "{0.__name__}(1, 1, 1, 'Au', m=1)".format(Class)
   assert str(Class(type='Au', pos=[1, 1, 1], site=1)) == "{0.__name__}(1, 1, 1, 'Au', site=1)".format(Class)
 
+@parameterized(classes)
 def test_copy(Class):
   """ Test copy and deep copy. """
   from copy import copy, deepcopy
@@ -83,12 +93,14 @@ def test_copy(Class):
   assert a.type == "Pd" and all(abs(a.pos-0.0) < 1e-8) and len(a.__dict__) == 1 and getattr(a, 'm', 1) == 0
   assert a.__class__ is Class
 
+@parameterized(classes)
 def test_todict(Class):
   """ Test to_dict member. """
   a = Class(0,0,0, 'Au', m=0)
   a = a.to_dict()
   assert a['type'] == "Au" and all(a['pos']== 0) and a['m'] == 0
 
+@parameterized(classes)
 def test_pickle(Class):
   """ Test pickling. """
   from pickle import loads, dumps
@@ -100,6 +112,7 @@ def test_pickle(Class):
   b = loads(dumps((a, a)))
   assert b[0] is b[1]
 
+@parameterized(classes)
 def test_resize(Class):
   """ Tests that numpy does not allow resizing. """
   a = Class(pos=[0, 1, 4], type='Au')
@@ -109,36 +122,3 @@ def test_resize(Class):
   b = a.pos.reshape((1,3,1))
   b[0,1,0] = 0
   assert abs(a.pos[1]) < 1e-8
-
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-  from pylada.crystal.cppwrappers import Atom
-
-  # tries to run test with normal class.
-  test_init(Atom) 
-  test_fail_init(Atom) 
-  test_repr(Atom) 
-  test_copy(Atom) 
-  test_todict(Atom) 
-  test_pickle(Atom) 
-  test_resize(Atom)
- 
-  # tries to run test with other class. 
-  # check passage through init.
-  check_passage = False
-  class Subclass(Atom):
-    def __init__(self, *args, **kwargs):
-      global check_passage
-      check_passage = True
-      super(Subclass, self).__init__(*args, **kwargs)
-
-  test_init(Subclass) 
-  test_fail_init(Subclass) 
-  test_repr(Subclass) 
-  test_copy(Subclass) 
-  test_todict(Subclass) 
-  test_pickle(Subclass) 
-  assert check_passage
-

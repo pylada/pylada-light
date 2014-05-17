@@ -89,10 +89,3 @@ def test_manysupercell():
       tolat = [api(atom.pos, site.pos, invcell) for site in struc]
       assert tolat.count(True) == 1
       assert i == tolat.index(True)
-         
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-
-  test_supercell()
-  test_manysupercell()

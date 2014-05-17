@@ -22,7 +22,7 @@
 
 """ Check memory deallocation.
 
-    Creates cyclic references through an atom's dictionary.
+    Creates cyclic references through a structure's dictionary.
     A number of instances are created and gets difference in memory hogged by python.
     These instances are then deleted and gc.collect is called.
     We then go through a loop where the instantiation/creation steps are
@@ -34,62 +34,62 @@
 
     The same is checked for a subclass of atom.
 """ 
-def test(Class): 
+from nose_parameterized import parameterized
+from pylada.crystal.cppwrappers import Atom, Structure
+class StructureSubclass(Structure):
+  def __init__(self, *args, **kwargs):
+    super(StructureSubclass, self).__init__(*args, **kwargs)
+
+def mklist(Class, N):
+  from numpy import identity
+  structure = Class(identity(3)*0.25, scale=5.45, m=5)\
+               .add_atom(0,0,0, "Au")\
+               .add_atom(0.5,0.5,0.5, "Au")
+  result = [structure for u in range(10*N)]
+  for r in result: r[0].parent = [r]
+  b = [u.cell for u in result]
+  return result, b
+
+def get_mem(id):
+  from subprocess import Popen, PIPE
+  output = Popen(["ps","-p", "{0}".format(id), '-o', 'rss'], stdout=PIPE).communicate()[0].splitlines()[-1]
+  return int(output)
+
+def mem_per_structure(N):
+  import gc
+  from os import getpid
+  from pylada.crystal.cppwrappers import Structure
+  id = getpid()
+  gc.set_debug(gc.DEBUG_OBJECTS | gc.DEBUG_UNCOLLECTABLE)
+  startmem = get_mem(id)
+  a = []
+  for i in range(N):
+    a.append(mklist(Structure, N))
+  mem = float(get_mem(id) - startmem)
+  del a
+  gc.collect()
+  assert mem > 0 # otherwise, test would be invalid.
+  return mem
+
+mem = mem_per_structure(10)
+parameters = [(Structure, 10, mem), (StructureSubclass, 10, mem)]
+
+@parameterized(parameters)
+def test_memory(Class, N, mem_per_structure): 
   import gc
   from os import getpid
   gc.set_debug(gc.DEBUG_OBJECTS | gc.DEBUG_UNCOLLECTABLE)
 
   id = getpid()
-  def get_mem():
-    from subprocess import Popen, PIPE
-    output = Popen(["ps","-p", "{0}".format(id), '-o', 'rss'], stdout=PIPE).communicate()[0].splitlines()
-    output = output[-1]
-    return int(output)
 
-  def mklist():
-    result = [Class(0.1, 0.2, 0.5) for u in range(1000)]
-    for b in result: b.m, b.type = ['Au', 'Pd']
-    b = [(u.pos, u.type) for u in result]
-    return result, b
-
-  n = 10
-  a = []
-  startmem = get_mem()
-  for i in range(n):
-    a.append(mklist())
-  mem = float(get_mem() - startmem) / float(n)
-  assert mem > 0 # otherwise, test would be invalid.
-  del a
-  gc.collect()
-   
-  startmem = get_mem()
-  for i in range(n*5): 
-    a, b = mklist()
+  startmem = get_mem(id)
+  for i in range(N*5): 
+    a, b = mklist(Class, N)
     # do deletion here, otherwise python might allocate extra memory to store our
     # objects, and the test would fail for reasons other than garbage collection.
     del a
     del b
     gc.collect()
-  mem2 = float(get_mem() - startmem)
-  assert mem2 < mem / 5.0
+  mem2 = float(get_mem(id) - startmem)
+  assert mem2 < mem_per_structure / 10.0
   assert len(gc.garbage) == 0
-
-if __name__ == "__main__": 
-  from pylada.crystal.cppwrappers import Atom
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  # tries to run test with normal class.
-  test(Atom) 
- 
-  # tries to run test with other class. 
-  # check passage through init.
-  check_passage = False
-  class Subclass(Atom):
-    def __init__(self, *args, **kwargs):
-      global check_passage
-      check_passage = True
-      super(Subclass, self).__init__(*args, **kwargs)
-
-  test(Subclass)
-  assert check_passage

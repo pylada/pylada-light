@@ -62,21 +62,15 @@ def test_primitive():
   for cell in itercells(10): 
     structure = supercell(lattice, dot(lattice.cell, cell))
     assert not is_primitive(structure)
-#   structure = primitive(structure, 1e-8)
-#   assert is_primitive(structure)
-#   assert abs(structure.volume - lattice.volume) < 1e-8
-#   assert len(structure) == len(lattice)
-#   assert is_integer(dot(structure.cell, inv(lattice.cell)))
-#   assert is_integer(dot(lattice.cell, inv(structure.cell)))
-#   invcell = inv(lattice.cell)
-#   for atom in structure:
-#     assert api(lattice[atom.site].pos, atom.pos, invcell) and \
-#            atom.type == lattice[atom.site].type and \
-#            getattr(lattice[atom.site], 'm', False) == getattr(atom, 'm', False) and \
-#            (getattr(atom, 'm', False) or atom.site == 0)
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-
-  test_primitive()
+    structure = primitive(structure, 1e-8)
+    assert is_primitive(structure)
+    assert abs(structure.volume - lattice.volume) < 1e-8
+    assert len(structure) == len(lattice)
+    assert is_integer(dot(structure.cell, inv(lattice.cell)))
+    assert is_integer(dot(lattice.cell, inv(structure.cell)))
+    invcell = inv(lattice.cell)
+    for atom in structure:
+      assert api(lattice[atom.site].pos, atom.pos, invcell) and \
+             atom.type == lattice[atom.site].type and \
+             getattr(lattice[atom.site], 'm', False) == getattr(atom, 'm', False) and \
+             (getattr(atom, 'm', False) or atom.site == 0)

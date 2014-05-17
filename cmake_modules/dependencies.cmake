@@ -38,3 +38,10 @@ create_environment_script(
     EXECUTABLE "${PYTHON_EXECUTABLE}"
     PATH "${LOCAL_PYTHON_EXECUTABLE}"
 )
+
+if(tests)
+    include(PythonPackageLookup)
+    add_to_python_path("${EXTERNAL_ROOT}/python")
+    lookup_python_package(nose)
+    lookup_python_package(nose_parameterized)
+endif()

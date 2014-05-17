@@ -19,8 +19,8 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
 """ Test some utilities from crystal extension module. """
+
 def test_periodic():
   """ Test periodic images. """
   from pylada.crystal.cppwrappers import are_periodic_images
@@ -84,12 +84,3 @@ def test_into_voronoi():
         for l in range(-3, 4):
           o = vec2 + dot(cell, [j, k, l])
           assert dot(o, o) >= n
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-
-  test_periodic()
-  test_into_cell()
-  test_zero_centered()
-  test_into_voronoi()

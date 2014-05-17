@@ -19,10 +19,24 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
 """ Checks that point group of cell is determined correctly. """
-def test(cell, numops):
-  """ Test structure initialization. """
+
+from nose_parameterized import parameterized
+from pylada.crystal.cppwrappers import Structure
+from numpy import array
+
+parameters = [
+  ([[0,0.5,0.5],[0.5,0,0.5],[0.5,0.5,0]], 48),
+  ([[-0.5,0.5,0.5],[0.5,-0.5,0.5],[0.5,0.5,-0.5]], 48),
+  ([[-0.6,0.5,0.5],[0.6,-0.5,0.5],[0.6,0.5,-0.5]], 4),
+  ([[-0.7,0.7,0.7],[0.6,-0.5,0.5],[0.6,0.5,-0.5]], 8),
+  ([[-0.765,0.7,0.7],[0.665,-0.5,0.5],[0.6,0.5,-0.5]], 2)
+]
+parameters += [(Structure(cell).add_atom(0, 0, 0, 'Si'), n) for cell, n in parameters]
+
+@parameterized(parameters)
+def test_cellinvariants(cell, numops):
+  """ Test number of symmetry operations. """
   from numpy import all, abs, dot, array
   from numpy.linalg import inv, det
   from pylada.crystal.cppwrappers import cell_invariants, Structure
@@ -45,20 +59,3 @@ def test(cell, numops):
       if not (is_integer(transformation) and abs(abs(det(transformation))-1e0) < 1e-8):
         failed += 1
     assert failed == 48 - numops
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  def test_(cell, numops):
-    from pylada.crystal.cppwrappers import Structure
-    from numpy import array
-    test(array(cell), numops)
-    # also good test to make sure that structure storage is correct.
-    test(Structure(cell).add_atom(0,0,0, "Si"), numops)
-
-  test_([[0,0.5,0.5],[0.5,0,0.5],[0.5,0.5,0]], 48)
-  test_([[-0.5,0.5,0.5],[0.5,-0.5,0.5],[0.5,0.5,-0.5]], 48)
-  test_([[-0.6,0.5,0.5],[0.6,-0.5,0.5],[0.6,0.5,-0.5]], 4)
-  test_([[-0.7,0.7,0.7],[0.6,-0.5,0.5],[0.6,0.5,-0.5]], 8)
-  test_([[-0.765,0.7,0.7],[0.665,-0.5,0.5],[0.6,0.5,-0.5]], 2)

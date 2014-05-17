@@ -19,9 +19,11 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
 """ Regression tests for hf stuff. """
-def test1():
+
+from nose_parameterized import parameterized
+
+def test_indices():
   from random import randint
   from numpy import all, abs, dot, array
   from pylada.crystal.cppwrappers import HFTransform
@@ -39,7 +41,7 @@ def test1():
     except ValueError: pass
     else: raise RuntimeError("Should have failed.")
 
-def test2():
+def test_supercell_indices():
   from random import randint
   from numpy import all, abs, dot, array
   from pylada.crystal.cppwrappers import HFTransform, Structure, supercell
@@ -93,7 +95,10 @@ def b5(u=0.25):
                        .add_atom(    -y,    -x,    -y, "X") \
                        .add_atom(    -y,    -y,    -x, "X") 
   return structure
-def test3(u):
+
+
+@parameterized([(0.25,), (0.23,)])
+def test_deformed_b5(u):
   from random import randint
   from numpy import all, abs, dot, array, concatenate
   from pylada.crystal.cppwrappers import HFTransform, supercell
@@ -128,12 +133,3 @@ def test3(u):
       except ValueError: pass
       else: raise RuntimeError("Should have failed.")
   assert len(all_indices) == len(supercell)
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  test1()
-  test2()
-  test3(0.25)
-  test3(0.33)
