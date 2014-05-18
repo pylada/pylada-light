@@ -39,7 +39,7 @@ function(add_nose_test testname)
     endif()
     set(labels python nose)
     if(${testname}_LABELS)
-        list(APPEND labels ${testname}_LABELS)
+        list(APPEND labels ${${testname}_LABELS})
         list(REMOVE_DUPLICATES labels)
     endif()
     set(expression

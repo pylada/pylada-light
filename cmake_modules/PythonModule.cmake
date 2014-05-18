@@ -14,11 +14,17 @@ function(add_python_module module)
     string(REGEX REPLACE "/" "_" fullname "${location}")
     get_filename_component(module_name "${location}" NAME)
     cmake_parse_arguments(${fullname}
-        "" "MAIN;WRAPPERNAME;HEADER_DESTINATION;TARGETNAME;EXTENSION"
-        "SOURCES;HEADERS;PYFILES;EXCLUDE;LIBRARIES" ${ARGN}
+        "NOINSTALL;INSTALL"
+        "MAIN;WRAPPERNAME;HEADER_DESTINATION;TARGETNAME;EXTENSION"
+        "SOURCES;HEADERS;PYFILES;EXCLUDE;LIBRARIES" 
+        ${ARGN}
     )
     if(NOT ${fullname}_MAIN)
         set(${fullname}_MAIN "module.cc")
+    endif()
+    set(do_install TRUE)
+    if(${fullname}_NOINSTALL)
+        set(do_install FALSE)
     endif()
     set(has_extension FALSE) # No compiled python module
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${${fullname}_MAIN}")
@@ -87,7 +93,9 @@ function(add_python_module module)
         if(${fullname}_LIBRARIES)
             target_link_libraries(${targetname} ${${fullname}_LIBRARIES})
         endif()
-        install_python(TARGETS ${targetname} DESTINATION ${location})
+        if(do_install)
+            install_python(TARGETS ${targetname} DESTINATION ${location})
+        endif()
     endif()
     if(NOT "${pyfiles}" STREQUAL "")
         if(NOT TARGET ${targetname}_copy AND NOT TARGET ${targetname})
@@ -100,10 +108,12 @@ function(add_python_module module)
         if(TARGET ${targetname})
             add_dependencies(${targetname} ${targetname}_copy)
         endif()
-        install_python(FILES ${pyfiles} DESTINATION ${location})
+        if(do_install)
+            install_python(FILES ${pyfiles} DESTINATION ${location})
+        endif()
     endif()
 
-    if(NOT "${headers}" STREQUAL "")
+    if(NOT "${headers}" STREQUAL "" AND do_install)
         install_python(FILES ${headers} 
             DESTINATION ${header_destination}
             COMPONENT dev

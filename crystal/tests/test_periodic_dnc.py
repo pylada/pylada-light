@@ -19,6 +19,7 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from nose_parameterized import parameterized
 
 def b5(u=0.25):
   """ Test b5 space-group and equivalents """
@@ -50,7 +51,23 @@ def indices(invcell, pos, n):
   neg = int_fractional % n
   return array([u+ni if u < 0 else u for u, ni in zip(neg, n)]) 
 
-def check(structure):
+
+def newstructure(i=10):
+  from numpy import zeros
+  from numpy.linalg import det
+  from random import randint
+  from pylada.crystal.cppwrappers import supercell
+  
+  lattice = b5()
+  cell = zeros((3,3))
+  while det(cell) == 0:
+    cell[:] = [[randint(-i, i+1) for j in xrange(3)] for k in xrange(3)]
+  if det(cell) < 0: cell[:, 0], cell[:, 1] = cell[:, 1].copy(), cell[:, 0].copy()
+  return supercell(lattice, cell)
+
+
+@parameterized([(b5(), )] + [(newstructure(), ) for i in range(3)])
+def test_divide_and_conquer(structure):
   from numpy import multiply, cast, any
   from numpy.linalg import inv
   from pylada.crystal.cppwrappers import periodic_dnc
@@ -74,21 +91,6 @@ def check(structure):
         assert any(    abs(u-v) == 1 \
                     or (w>1 and abs(u-v) == w-1) \
                     or  w == 1 for u, v, w in zip(pi, index, mesh) )
-
-def newstructure(i=10):
-  from numpy import zeros
-  from numpy.linalg import det
-  from random import randint
-  from pylada.crystal.cppwrappers import supercell
-  
-  lattice = b5()
-  cell = zeros((3,3))
-  while det(cell) == 0:
-    cell[:] = [[randint(-i, i+1) for j in xrange(3)] for k in xrange(3)]
-  if det(cell) < 0: cell[:, 0], cell[:, 1] = cell[:, 1].copy(), cell[:, 0].copy()
-  return supercell(lattice, cell)
-
-
 
 def mayavi(structure, N=10):
   """ import this module and run mayavi to see the divide and conquer boxes. 
@@ -127,26 +129,3 @@ def mayavi(structure, N=10):
     s.extend([float(i+2) + (0. if inbox else 0.4) for atom, trans, inbox in box if not inbox])
     break
   points3d(x,y,z,s, scale_factor=0.01, opacity=0.3)
-
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-
-  from random import randint
-  from numpy import zeros
-  from numpy.linalg import det
-  from pylada.crystal.cppwrappers import supercell
-  
-  lattice = b5()
-  check(lattice)
-
-  for i in xrange(10): 
-    cell = zeros((3,3))
-    while det(cell) == 0:
-      cell[:] = [[randint(-10, 11) for j in xrange(3)] for k in xrange(3)]
-    if det(cell) < 0: cell[:, 0], cell[:, 1] = cell[:, 1].copy(), cell[:, 0].copy()
-    structure = supercell(lattice, cell)
-    check(structure)
-
-

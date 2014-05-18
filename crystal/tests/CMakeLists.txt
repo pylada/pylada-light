@@ -22,38 +22,24 @@
 
 if(tests)
 
-    add_nose_tests(
-        atom
-        atom_memory
-        structure
-        structure_memory
-        utilities
-        supercell
-        primitive
-        hart-forcade
-        cellinvariants
-        INSTALL "pylada.crystal.tests"
+    # Makes tests in this directory a submodule of pylada.crystal
+    # Adds an empty __init__.py and compiles a test extension
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/__init__.py")
+    add_python_module("pylada.crystal.tests"
+        INSTALL
+        PYFILES "${CMAKE_CURRENT_BINARY_DIR}/__init__.py"
+        EXTENSION atom_self
+        MAIN atom_self.cc
+        LABELS crystal
     )
 
-  add_library (atom_self SHARED "atom_self.cc")
-  set_target_properties(atom_self PROPERTIES PREFIX "_")
-  set_target_properties(atom_self PROPERTIES SUFFIX ".so")
-  target_link_libraries(atom_self ${PYTHON_LIBRARIES})
-  add_test(crystal_atom_self python ${CMAKE_CURRENT_SOURCE_DIR}/atom_self.py ${CMAKE_CURRENT_BINARY_DIR})
-
-
-  add_test(crystal_cellinvariants python ${CMAKE_CURRENT_SOURCE_DIR}/cellinvariants.py ${CMAKE_CURRENT_BINARY_DIR})
-  add_test(crystal_space_group python ${CMAKE_CURRENT_SOURCE_DIR}/space_group.py ${CMAKE_CURRENT_BINARY_DIR})
-  add_test(crystal_periodic_dnc python ${CMAKE_CURRENT_SOURCE_DIR}/periodic_dnc.py ${CMAKE_CURRENT_BINARY_DIR})
-  add_test(crystal_neighbors python ${CMAKE_CURRENT_SOURCE_DIR}/neighbors.py ${CMAKE_CURRENT_BINARY_DIR})
-  add_test(crystal_coordination_shells python ${CMAKE_CURRENT_SOURCE_DIR}/coordination_shells.py
-           ${CMAKE_CURRENT_BINARY_DIR})
-  add_test(crystal_splitconfigs python ${CMAKE_CURRENT_SOURCE_DIR}/splitconfigs.py
-           ${CMAKE_CURRENT_BINARY_DIR})
-  add_test(crystal_map_sites python ${CMAKE_CURRENT_SOURCE_DIR}/map_sites.py
-           ${CMAKE_CURRENT_BINARY_DIR})
-  add_test(crystal_which_site python ${CMAKE_CURRENT_SOURCE_DIR}/which_site.py)
-
-  add_test(crystal_gulp python ${CMAKE_CURRENT_SOURCE_DIR}/write_gulp.py)
-
+    add_nose_tests(
+        atom atom_memory structure structure_memory
+        utilities supercell primitive hart-forcade
+        cellinvariants atom_self space_group
+        periodic_dnc neighbors coordination_shells
+        splitconfigs map_sites which_site write_gulp
+        INSTALL "pylada.crystal.tests"
+        LABELS crystal
+    )
 endif(tests)

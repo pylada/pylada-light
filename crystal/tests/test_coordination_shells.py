@@ -72,12 +72,10 @@ def check_against_neighbors(structure, tolerance=1e-8):
     assert len(y) == x[0]
     assert abs(y[0][2] - x[1]) < tolerance
   
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-
+def test_coordination_shells():
   from random import random
   from numpy import array
+  from numpy.random import randint, random
   from pylada.crystal.cppwrappers import supercell, Structure
 
   lattice = Structure([[0, 0.5, 0.5],[0.5, 0, 0.5], [0.5, 0.5, 0]]) \
@@ -86,13 +84,16 @@ if __name__ == "__main__":
   for atom in lattice: check(lattice, atom)
 
   structure = supercell(lattice, [1, 1, 0, -5, 2, 0, 0, 0, 1])
-  for atom in structure: check(structure, atom)
+  for index in randint(len(structure), size=4):
+      check(structure, structure[index])
 
-  for atom in lattice: atom.pos += array([random(), random(), random()])*1e-4-5e-5 
-  for atom in lattice: check(lattice, atom, 1e-2)
+  for atom in lattice: atom.pos += random(3) * 1e-4 - 5e-5 
+  for atom in lattice:
+      check(lattice, atom, 1e-2)
 
-  for atom in structure: atom.pos += array([random(), random(), random()])*1e-4-5e-5 
-  for atom in structure: check(structure, atom, 1e-2)
+  for atom in structure: atom.pos += random(3) * 1e-4 - 5e-5 
+  for index in randint(len(structure), size=4):
+      check(structure, structure[index], 1e-2)
 
   check_against_neighbors(structure, 1e-2)
 

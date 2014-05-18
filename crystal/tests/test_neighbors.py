@@ -68,11 +68,9 @@ def check(structure, center, tolerance=1e-8):
   assert len(neighbors(structure, 4, center,tolerance)) == 4
   assert len(neighbors(structure, 6, center,tolerance)) == 16
 
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-
+def test_nearest_neighbors():
   from random import random
+  from numpy.random import randint
   from numpy import array
   from pylada.crystal.cppwrappers import supercell, Structure
 
@@ -82,10 +80,16 @@ if __name__ == "__main__":
   for atom in lattice: check(lattice, atom)
 
   structure = supercell(lattice, [1, 1, 0, -5, 2, 0, 0, 0, 1])
-  for atom in structure: check(structure, atom)
 
-  for atom in lattice: atom.pos += array([random(), random(), random()])*1e-4-5e-5 
-  for atom in lattice: check(lattice, atom, 1e-2)
+  for index in randint(len(structure), size=4):
+      check(structure, structure[index])
 
-  for atom in structure: atom.pos += array([random(), random(), random()])*1e-4-5e-5 
-  for atom in structure: check(structure, atom, 1e-2)
+  for atom in lattice:
+      atom.pos += array([random(), random(), random()])*1e-4-5e-5 
+  for atom in lattice: 
+      check(lattice, atom, 1e-2)
+
+  for atom in structure:
+      atom.pos += array([random(), random(), random()])*1e-4-5e-5 
+  for index in randint(len(structure), size=4):
+      check(structure, structure[index], 1e-2)

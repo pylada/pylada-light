@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def testzb():
+def test_write_gulp_zinc_blende():
   """ Tries and writes a gulp file. """
   from numpy import array, abs, all
   from pylada.crystal.binary import zinc_blende
@@ -76,6 +76,3 @@ def testzb():
   assert string2[:7] == string[:7]
   assert string[7] == '227'
   assert string2[8:-1] == string[8:]
-
-if __name__ == '__main__':
-  testzb()

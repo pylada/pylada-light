@@ -19,8 +19,10 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
 """ Checks that space group is correct. """
+
+from nose_parameterized import parameterized
+
 def test_fcc():
   """ Test fcc space-group and equivalents """
   from numpy import all, abs, dot
@@ -44,6 +46,7 @@ def test_fcc():
     assert equivalent(structure, other, cartesian=False)
     assert equivalent(other, structure, cartesian=False)
 
+@parameterized([(0.25,), (0.36,)])
 def test_b5(u):
   """ Test b5 space-group and equivalents """
   from random import random, randint
@@ -184,16 +187,9 @@ def test_zb():
 
     other = transform(structure, op)
     assert all(abs(dot(op[:3], structure.cell)-other.cell) < 1e-8)
- #  for a, atom in zip(structure, other):
- #    assert all(abs(dot(op[:3], a.pos) + op[3] - atom.pos) < 1e-8)
- #    assert a.type == atom.type
+    for a, atom in zip(structure, other):
+      assert all(abs(dot(op[:3], a.pos) + op[3] - atom.pos) < 1e-8)
+      assert a.type == atom.type
 
- #  assert equivalent(structure, other, cartesian=False)
- #  assert equivalent(other, structure, cartesian=False)
-
-
-if __name__ == "__main__":
-  test_fcc()
-  test_b5(0.25)
-  test_b5(0.36)
-  test_zb()
+    assert equivalent(structure, other, cartesian=False)
+    assert equivalent(other, structure, cartesian=False)
