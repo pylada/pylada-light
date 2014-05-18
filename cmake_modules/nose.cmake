@@ -2,6 +2,7 @@
 include(FindPackageHandleStandardArgs)
 include(PythonModule)
 # add_nose_test(<source>       # There should be a test_${source}.py file
+#                              # or a ${source} file.
 #     [NAME <name> ]           # Name for the ctest entry
 #     [INSTALL <fully qualified module name> # Location where to install
 #         # test in package. Does not install by default.
@@ -9,9 +10,18 @@ include(PythonModule)
 #     [LABELS <label list>]    # Test labels, on top of python and nose.
 # )
 function(add_nose_test testname)
-    get_filename_component(source test_${testname}.py ABSOLUTE)
-    if(NOT EXISTS "${source}")
-        message(FATAL_ERROR "Could not find test file ${source}")
+    get_filename_component(abs_testname ${testname} ABSOLUTE)
+    if(EXISTS "${abs_testname}")
+        set(source "${abs_testname}")
+        string(REGEX REPLACE
+            ".*/tests?_?(.*)\\.py" "\\1"
+            testname "${abs_testname}"
+        )
+    else()
+        get_filename_component(source test_${testname}.py ABSOLUTE)
+        if(NOT EXISTS "${source}")
+            message(FATAL_ERROR "Could not find test file ${source}")
+        endif()
     endif()
     cmake_parse_arguments(${testname}
         "" "NAME;INSTALL;WORKING_DIRECTORY"
@@ -61,14 +71,14 @@ endfunction()
 function(add_nose_tests)
     # Split list into test sources and test arguments
     set(options NAME INSTALL WORKING_DIRECTORY LABELS)
-    unset(nosetests)
+    unset(patterns)
     unset(otherargs)
     set(intests TRUE)
     foreach(argument ${ARGN})
         if(intests)
             list(FIND options "${argument}" is_option)
             if(is_option EQUAL -1)
-                list(APPEND nosetests "${argument}")
+                list(APPEND patterns "${argument}")
             else()
                 list(APPEND otherargs "${argument}")
                 set(intests FALSE)
@@ -78,6 +88,7 @@ function(add_nose_tests)
         endif()
     endforeach()
 
+    file(GLOB nosetests ${patterns})
     foreach(nosetest ${nosetests})
         add_nose_test(${nosetest} ${otherargs})
     endforeach()

@@ -33,12 +33,7 @@ if(tests)
         LABELS crystal
     )
 
-    add_nose_tests(
-        atom atom_memory structure structure_memory
-        utilities supercell primitive hart-forcade
-        cellinvariants atom_self space_group
-        periodic_dnc neighbors coordination_shells
-        splitconfigs map_sites which_site write_gulp
+    add_nose_tests(test_*.py
         INSTALL "pylada.crystal.tests"
         LABELS crystal
     )
