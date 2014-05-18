@@ -20,8 +20,8 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-if(do_tests)
+if(tests)
 
-  add_test(ewald_ewald python ${CMAKE_CURRENT_SOURCE_DIR}/ewald.py ${CMAKE_CURRENT_BINARY_DIR})
+    add_nose_test(test_ewald.py INSTALL LABELS ewald)
 
-endif(do_tests)
+endif(tests)
