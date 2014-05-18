@@ -342,13 +342,3 @@ def test_quantitykeyword():
   try: a.value = value * kbar
   except: pass
   else: raise Exception()
-  
- 
-if __name__ == "__main__":
-  test_boolkeyword()
-  test_choicekeyword()
-  test_valuekeyword()
-  test_typedkeyword()
-  test_variablelistkeyword()
-  test_quantitykeyword()
-

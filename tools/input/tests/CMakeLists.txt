@@ -20,10 +20,16 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-if(do_tests)
+if(tests)
 
-  add_test(functools_input_tree python ${CMAKE_CURRENT_SOURCE_DIR}/tree.py)
-  add_test(functools_input_listblock python ${CMAKE_CURRENT_SOURCE_DIR}/listblock.py)
-  add_test(functools_input_keywords python ${CMAKE_CURRENT_SOURCE_DIR}/keywords.py)
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/__init__.py")
+    add_python_module("pylada.tools.input.tests"
+        PYFILES *.py "${CMAKE_CURRENT_BINARY_DIR}/__init__.py"
+        EXCLUDE test_*.py
+    )
+    add_nose_tests(test_*.py
+        INSTALL "pylada.tools.input.tests"  
+        LABELS tools
+    )
 
-endif(do_tests)
+endif(tests)

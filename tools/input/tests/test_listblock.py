@@ -20,51 +20,32 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
-  from pylada.tools.input import Tree
-  from pylada.error import ValueError
+def test_listblock():
+  from pickle import loads, dumps
+  from pylada.tools.input import ListBlock, BaseKeyword
 
-  a = Tree()
+  a = ListBlock()
+  d = {'ListBlock': a.__class__}
   assert len(a) == 0
-  a = Tree(key=5)
+  assert isinstance(eval(repr(a), d), ListBlock)
+  assert len(eval(repr(a), d)) == 0
+  assert isinstance(loads(dumps(a)), ListBlock)
+  assert len(loads(dumps(a))) == 0
+  a.append('hello', True)
   assert len(a) == 1
-  assert a[0] == ('key', 5)
-  assert a['key'] == 5
-  for key in a.iterkeys(): assert key == 'key'
-  for value in a.itervalues(): assert value == 5
-  for key, value in a.iteritems(): assert key == 'key' and value == 5
-
-  a = Tree(('key', 5), ('other', 'a'))
-  assert len(a) == 2
-  assert a[0] == ('key', 5)
-  assert a['key'] == 5
-  assert a[1] == ('other', 'a')
-  assert a['other'] == 'a'
-  iterator = a.iterkeys()
-  assert iterator.next() == 'key'
-  assert iterator.next() == 'other'
-  try: iterator.next()
-  except StopIteration: pass
-  else: raise Exception()
-
-  v = a.descend('branch', 'leaf')
-  assert isinstance(v, Tree)
-  assert isinstance(a['branch'], Tree)
-  assert isinstance(a['branch'], Tree)
-  assert isinstance(a['branch']['leaf'], Tree)
-  assert a['branch']['leaf'] is v
-  assert a[2][0] == 'branch'
-  assert a[2][1] is a['branch']
-  a['key'] = 6
-  assert a['key'] == 6
-
-  try: a[0] = 5
-  except ValueError: pass
-  else: raise Exception()
-  try: a[0] = 5, 6
-  except ValueError: pass
-  else: raise Exception()
-
-
-if __name__ == '__main__':
-  test()
+  assert a[0].__class__ is BaseKeyword
+  assert a[0].keyword == 'hello'
+  assert a[0].raw == True
+  assert a.output_map() == [('hello', True)]
+  assert isinstance(eval(repr(a), d), ListBlock)
+  assert len(eval(repr(a), d)) == 1
+  assert eval(repr(a), d)[0].__class__ is BaseKeyword
+  assert eval(repr(a), d)[0].keyword == 'hello'
+  assert eval(repr(a), d)[0].raw == True
+  assert len(loads(dumps(a))) == 1
+  assert loads(dumps(a))[0].__class__ is BaseKeyword
+  assert loads(dumps(a))[0].keyword == 'hello'
+  assert loads(dumps(a))[0].raw == True
+  b = ListBlock()
+  b.read_input(a.output_map())
+  assert repr(b) == repr(a)
