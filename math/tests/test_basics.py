@@ -80,9 +80,3 @@ def test_translation():
   try: Translation([0, 0, 1, 0])
   except TypeError: pass
   else: raise Exception()
-
-if __name__ == '__main__': 
-  test_isinteger()
-  test_floorint()
-  test_rotation()
-  test_translation()
