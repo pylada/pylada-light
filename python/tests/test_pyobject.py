@@ -20,10 +20,8 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-""" Checks atom methods and attributes. """
-def test():
-  """ Test atom initialization. """
-  from _pyobject import represent, add_attribute, callme, equality
+def test_pyobject_from_python():
+  from pylada.tests._pyobject import represent, add_attribute, callme, equality
 
   assert represent("a") == repr("a");
   assert represent(1) == repr(1);
@@ -45,8 +43,3 @@ def test():
   assert not equality(1, 0)
   assert equality('1', '1')
   assert not equality('2', '1')
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 0: path.extend(argv[1:])
-  test()
