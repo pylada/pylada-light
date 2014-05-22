@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_algo_keyword():
   from pickle import loads, dumps
   from pylada.vasp import Vasp
   import pylada
@@ -91,9 +91,3 @@ def test():
   assert o.output_map() is None
   assert loads(dumps(o)).output_map() is None
   assert eval(repr(o), dictionary).output_map() is None
-
-
-if __name__ == '__main__': 
-  test()
-
- 

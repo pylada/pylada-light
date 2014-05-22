@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_parse_incar():
   from pylada.vasp import parse_incar
   from pylada.error import ValueError
 
@@ -66,9 +66,3 @@ def test():
   try: parse_incar( string + "   = .TRUE.") 
   except ValueError: pass
   else: raise Exception()
-
-if __name__ == '__main__': 
-  test()
-   
-    
-

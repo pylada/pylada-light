@@ -20,10 +20,10 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test(path):
+def test_incar():
   from shutil import rmtree
   from tempfile import mkdtemp
-  from os.path import join
+  from os.path import join, dirname
   from quantities import eV
   from pylada.vasp import Vasp, read_incar
   from pylada.crystal import Structure
@@ -39,7 +39,7 @@ def test(path):
   vasp.ismear     = "metal"
   vasp.sigma      = 0.06
   vasp.relaxation = "volume"
-  vasp.add_specie = "Si", "{0}/pseudos/Si".format(path)
+  vasp.add_specie = "Si", join(dirname(__file__), 'pseudos', 'Si')
 
   directory = mkdtemp()
   try: 
@@ -78,7 +78,3 @@ def test(path):
   finally: 
     rmtree(directory)
     pass
-
-if __name__ == '__main__':
-  from sys import argv
-  test(argv[1])

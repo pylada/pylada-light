@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-if(do_tests)
+if(tests)
   if(DEFINED MPI_CXX_COMPILER)
     add_executable (pifunc functional.cc)
     include_directories(${MPI_CXX_INCLUDE_PATH})
@@ -36,4 +36,4 @@ if(do_tests)
     endif(jobfolder_package)
   endif(DEFINED MPI_CXX_COMPILER)
 
-endif(do_tests)
+endif(tests)

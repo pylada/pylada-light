@@ -844,10 +844,9 @@ class LDAU(BoolKeyword):
     from ..crystal import specieset
     from ..error import ValueError, ConfigError, internal
     import pylada
-    ###from .. import vasp_has_nlep
     vasp = kwargs['vasp']
-    has_nlep = getattr( vasp, 'has_nlep', False)
-    has_nlep = pylada.vasp_has_nlep
+    has_nlep = getattr(pylada, 'vasp_has_nlep', False)
+    has_nlep = getattr(vasp, 'has_nlep', has_nlep)
     if bugLev >= 5:
       print 'vasp/keywords: ldau.output_map:'
       print '    has_nlep: %s' % (has_nlep,)

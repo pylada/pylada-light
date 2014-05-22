@@ -20,7 +20,8 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test(path):
+def test_encut():
+  from os.path import dirname
   from pickle import loads, dumps
   from quantities import eV, hartree
   import quantities 
@@ -32,7 +33,7 @@ def test(path):
                        .add_atom(0,0,0, "Si")\
                        .add_atom(0.25,0.25,0.25, "Si")
   a = Vasp()
-  a.add_specie = "Si", "{0}/pseudos/Si".format(path)
+  a.add_specie = "Si", "{0}/pseudos/Si".format(dirname(__file__))
 
 
   o = a._input['encut']

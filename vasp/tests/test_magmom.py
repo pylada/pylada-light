@@ -87,6 +87,3 @@ def test_magmom():
   vasp.magmom = True
   assert 'MAGMOM' in vasp._input['magmom'].output_map(vasp=vasp, structure=structure)
   assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM'] == '1.0 -1.0 2*1.0 2*0.0 8*0.0'
-
-if __name__ == "__main__":
-  test_magmom()

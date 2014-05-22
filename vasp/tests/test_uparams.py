@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_HubbardU_and_NLEP_parameters():
   from collections import namedtuple
   from pickle import loads, dumps
   from numpy import all, abs, array
@@ -115,8 +115,3 @@ def test():
   assert all(abs(array(map['LDUU2'].split(), dtype='float64')-[0, 0, -1.0]) < 1e-8)
   assert all(abs(array(map['LDUJ2'].split(), dtype='float64')-[0, 0, -3.0]) < 1e-8)
   assert all(abs(array(map['LDUO2'].split(), dtype='float64')-[1, 1, 3]) < 1e-8)
-
-
-if __name__ == "__main__":
-  test()
-

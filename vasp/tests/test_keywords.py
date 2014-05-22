@@ -190,10 +190,3 @@ def test_typed():
   try: a.smearings = [5.5, 'a']
   except ValueError: pass
   else: raise Exception()
-
-
-if __name__ == '__main__':
-  test_bool()
-  test_choice()
-  test_alias()
-  test_typed()

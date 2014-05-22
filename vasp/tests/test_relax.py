@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_relax_keyword():
   from pickle import loads, dumps
   from pylada.vasp import Vasp
   from pylada.error import ValueError
@@ -88,6 +88,3 @@ def test():
   try: a.relaxation = 'ions, volume'
   except ValueError: pass
   else: raise Exception
-
-if __name__ == "__main__": test()
-

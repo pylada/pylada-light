@@ -48,6 +48,3 @@ def test_system():
   assert a.system is None
   assert 'system' in a._input['system'].output_map(vasp=a, structure=b)
   assert a._input['system'].output_map(vasp=a, structure=b)['system'] == 'hello'
-
-if __name__ == "__main__": 
-  test_system()

@@ -293,9 +293,3 @@ def test_istruc():
     else: raise Exception()
 
   finally: rmtree(directory)
-
-
-if __name__ == '__main__':
-  test_istart()
-  test_icharg()
-  test_istruc()

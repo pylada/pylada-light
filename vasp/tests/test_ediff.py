@@ -174,7 +174,3 @@ def test_ediffg():
   a.ediffg = None
   assert abs(a.ediffg_per_atom-1e-4) < 1e-8
   assert a.ediffg is None
-
-if __name__ == '__main__':
-  test_ediff()
-  test_ediffg()

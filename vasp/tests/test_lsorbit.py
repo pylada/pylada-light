@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_lsorbit():
   from collections import namedtuple
   from pickle import loads, dumps
   from pylada.vasp import Vasp
@@ -59,7 +59,3 @@ def test():
   assert a.lmaxmix == 6
   assert loads(dumps(o)).value is True
   assert eval(repr(o), d).value is True
-  
-
-if __name__ == "__main__": test()
-  
