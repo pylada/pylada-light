@@ -59,7 +59,7 @@ def test_magmom():
   assert magmom.incar_string(vasp=vasp, structure=structure) is None
   # now for real print
   magmom.value = True
-  assert magmom.incar_string(vasp=vasp, structure=structure) == 'MAGMOM = 4*-1.00 2*0.00 8*0.00'
+  assert magmom.incar_string(vasp=vasp, structure=structure) == 'MAGMOM = 4*-1.0 2*0.0 8*0.0'
   # now print a string directly.
   magmom.value = 'hello'
   assert magmom.incar_string(vasp=vasp, structure=structure) == 'MAGMOM = hello'
@@ -77,14 +77,4 @@ def test_magmom():
     if atom.type == 'Al': atom.magmom = mag
 
   assert magmom.incar_string(vasp=vasp, structure=structure) \
-           == 'MAGMOM = 1.00 -1.00 2*1.00 2*0.00 8*0.00'
-
-
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  from numpy import array
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  test_magmom()
-
+           == 'MAGMOM = 1.0 -1.0 2*1.0 2*0.0 8*0.0'

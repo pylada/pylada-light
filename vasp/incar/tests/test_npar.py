@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_npar():
   from collections import namedtuple
   from pickle import loads, dumps
   from pylada.vasp.incar._params import Npar
@@ -38,11 +38,3 @@ def test():
   assert repr(Npar(1)) == "Npar(1)"
   assert repr(loads(dumps(Npar(2)))) == "Npar(2)"
   assert repr(loads(dumps(Npar("power of two")))) == "Npar('power of two')"
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  from numpy import array
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  test()
-

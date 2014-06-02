@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_nelect():
   from collections import namedtuple
   from pickle import loads, dumps
   from pylada.crystal.cppwrappers import Structure
@@ -62,12 +62,3 @@ def test():
   assert repr(loads(dumps(ExtraElectron()))) == 'ExtraElectron(0)'
   assert repr(ExtraElectron(-1)) == 'ExtraElectron(-1)'
   assert repr(loads(dumps(ExtraElectron(-1)))) == 'ExtraElectron(-1)'
-
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  from numpy import array
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  test()
-

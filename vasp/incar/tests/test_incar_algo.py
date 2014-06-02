@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_incar_algo():
   from pickle import loads, dumps
   from pylada.vasp.incar._params import Algo
   import pylada
@@ -80,12 +80,3 @@ def test():
           assert a.value == key
           assert loads(dumps(a)).incar_string() == "ALGO = {0}".format(key)
           assert repr(a) == "Algo({0!r})".format(key)
-
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  from numpy import array
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  test()
-

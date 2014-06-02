@@ -20,6 +20,4 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 add_python_module("pylada.vasp.incar" PYFILES "*.py")
-if(compile_tests OR compile_debug_tests)
-  add_subdirectory(tests)
-endif(compile_tests OR compile_debug_tests)
+add_subdirectory(tests)

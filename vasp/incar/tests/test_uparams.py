@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_uparams():
   from collections import namedtuple
   from pickle import loads, dumps
   from pylada.crystal.cppwrappers import Structure
@@ -93,11 +93,3 @@ LDUO2= 1 1 3
   assert repr(loads(dumps(UParams('on')))) == "UParams('on')"
   assert repr(loads(dumps(UParams(None)))) == "UParams('off')"
   assert repr(loads(dumps(UParams('all')))) == "UParams('all')"
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  from numpy import array
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  test()
-

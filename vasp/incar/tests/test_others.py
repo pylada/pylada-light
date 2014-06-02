@@ -19,6 +19,8 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from pylada.vasp.incar._params import Encut, EncutGW
+from nose_parameterized import parameterized
 
 def test_choices():
   from pickle import loads, dumps
@@ -88,7 +90,8 @@ def test_ediff():
   assert a[0] == 'EDIFFG' and a[1] == '=' and abs(float(a[2]) + 1e-4) < 1e-8
 
 
-def test_encut(Encut):
+@parameterized([(Encut,), (EncutGW,)])
+def test_encut(EncutClass):
   from pickle import loads, dumps
   from collections import namedtuple
   from pylada.crystal.cppwrappers import Structure, supercell
@@ -97,34 +100,22 @@ def test_encut(Encut):
   Vasp = namedtuple('Vasp', ['species'])
   Specie = namedtuple('Specie', ['enmax'])
   vasp = Vasp({'Si': Specie(1.*eV), 'Ge': Specie(10.), 'C': Specie(100.*eV)})
-  name = Encut.__name__.upper()
+  name = EncutClass.__name__.upper()
 
   structure = Structure([[0,0.5,0.5],[0.5,0,0.5],[0.5,0.5,0]])\
                        .add_atom(0, 0, 0, 'Si')\
                        .add_atom(0.25, 0.25, 0.25, 'Ge')
-  assert Encut(None).incar_string(vasp=vasp, structure=structure) is None
-  a = loads(dumps(Encut(50))).incar_string(vasp=vasp, structure=structure).split()
+  assert EncutClass(None).incar_string(vasp=vasp, structure=structure) is None
+  a = loads(dumps(EncutClass(50))).incar_string(vasp=vasp, structure=structure).split()
   assert a[0] == name and a[1] == '=' and abs(float(a[2]) - 50) < 1e-8
-  a = loads(dumps(Encut(1.0))).incar_string(vasp=vasp, structure=structure).split() 
+  a = loads(dumps(EncutClass(1.0))).incar_string(vasp=vasp, structure=structure).split() 
   assert a[0] == name and a[1] == '=' and abs(float(a[2]) - 10.) < 1e-8 
   structure[0].type = 'C'
-  a = loads(dumps(Encut(2.0))).incar_string(vasp=vasp, structure=structure).split() 
+  a = loads(dumps(EncutClass(2.0))).incar_string(vasp=vasp, structure=structure).split() 
   assert a[0] == name and a[1] == '=' and abs(float(a[2]) - 2.*100.) < 1e-8 
-  a = loads(dumps(Encut(50. * eV))).incar_string(vasp=vasp, structure=structure).split() 
+  a = loads(dumps(EncutClass(50. * eV))).incar_string(vasp=vasp, structure=structure).split() 
   assert a[0] == name and a[1] == '=' and abs(float(a[2]) - 50.) < 1e-8 
-  a = loads(dumps(Encut((50. * eV).rescale(hartree)))).incar_string(vasp=vasp, structure=structure).split() 
+  a = loads(dumps(EncutClass((50. * eV).rescale(hartree)))).incar_string(vasp=vasp, structure=structure).split() 
   assert a[0] == name and a[1] == '=' and abs(float(a[2]) - 50.) < 1e-8 
-  assert Encut(-50).incar_string(vasp=vasp, structure=structure) is None
-  assert Encut(-50*eV).incar_string(vasp=vasp, structure=structure) is None
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  from numpy import array
-  if len(argv) > 0: path.extend(argv[1:])
-  from pylada.vasp.incar._params import Encut, EncutGW
-  
-  test_choices()
-  test_ediff()
-  test_encut(Encut)
-  test_encut(EncutGW)
-
+  assert EncutClass(-50).incar_string(vasp=vasp, structure=structure) is None
+  assert EncutClass(-50*eV).incar_string(vasp=vasp, structure=structure) is None

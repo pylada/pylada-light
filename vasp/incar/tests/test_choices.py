@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_choices():
   from pickle import loads, dumps
   from pylada.vasp.incar._params import Choices
 
@@ -59,11 +59,3 @@ def test():
   try: a = Choices('algo', {'A': ['aa', 0], 'B': ['bb', 1]}, 2)
   except: pass
   else: raise RuntimeError()
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  from numpy import array
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  test()
-

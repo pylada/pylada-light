@@ -28,15 +28,16 @@ if(tests)
         )
     endforeach()
 
+    file(WRITE "${CMAKE_BINARY_DIR}/__init__.py")
+    add_python_module("pylada.vasp.tests"
+        PYFILES "${CMAKE_BINARY_DIR}/__init__.py"
+    )
     add_nose_tests(
         test_*.py
         INSTALL "pylada.vasp.tests"
         EXCLUDE test_run*.py
         LABELS vasp
     )
-# add_test(vasp_specie python ${CMAKE_CURRENT_SOURCE_DIR}/species.py ${CMAKE_CURRENT_SOURCE_DIR})
-# add_test(vasp_lsorbit python ${CMAKE_CURRENT_SOURCE_DIR}/lsorbit.py)
-# add_test(vasp_incar python ${CMAKE_CURRENT_SOURCE_DIR}/lsorbit.py ${CMAKE_CURRENT_SOURCE_DIR})
 
 # if(external_program_tests)
 #   add_test(vasp_run python ${CMAKE_CURRENT_SOURCE_DIR}/run.py ${CMAKE_CURRENT_SOURCE_DIR})

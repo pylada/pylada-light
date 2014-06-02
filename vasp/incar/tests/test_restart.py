@@ -19,7 +19,10 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from pylada.vasp.incar._params import Restart, PartialRestart
+from nose_parameterized import parameterized
 
+@parameterized([(PartialRestart, False), (Restart, True)])
 def test(Class, withposcar):
   from pickle import loads, dumps
   from os import chdir, getcwd, remove
@@ -206,13 +209,3 @@ def test(Class, withposcar):
         rmtree(playdir)
 
   finally: rmtree(directory)
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  from numpy import array
-  from pylada.vasp.incar._params import Restart, PartialRestart
-  if len(argv) > 0: path.extend(argv[1:])
-  
-  test(PartialRestart, False)
-  test(Restart, True)
-
