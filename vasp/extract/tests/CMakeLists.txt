@@ -22,8 +22,17 @@
 
 if(tests)
 
-  add_test(vasp_extraxt_common python ${CMAKE_CURRENT_SOURCE_DIR}/common.py ${CMAKE_CURRENT_SOURCE_DIR}/data)
-  add_test(vasp_extraxt_dft python ${CMAKE_CURRENT_SOURCE_DIR}/dft.py ${CMAKE_CURRENT_SOURCE_DIR}/data)
+    file(WRITE "${CMAKE_BINARY_DIR}/__init__.py")
+    add_python_module("pylada.vasp.extract.tests"
+        PYFILES "${CMAKE_BINARY_DIR}/__init__.py"
+    )
+    add_python_module("pylada.vasp.tests.data" PYFILES "data/COMMON")
+
+    add_nose_tests(
+        test_*.py
+        INSTALL "pylada.vasp.extract.tests"
+        LABELS vasp;extract
+    )
   
 endif(tests)
 
