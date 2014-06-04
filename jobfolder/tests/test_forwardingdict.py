@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_forwarding_dict():
   from pylada.jobfolder.forwarding_dict import ForwardingDict
   from collections import namedtuple
 
@@ -113,9 +113,3 @@ def test():
   del first.that.that
   d.that.that.other = True
   assert getattr(second.that.that, 'other', False) == True
-
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 1: path.extend(argv[1:])
-  test()

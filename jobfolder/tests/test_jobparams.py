@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_jobparams():
   from random import randint
   from tempfile import mkdtemp
   from shutil import rmtree
@@ -157,8 +157,3 @@ def test():
             '/that/2/': 2, '/this/0/another/': 2}[key] == value,\
            Exception((key, value))
   assert i == 4
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 1: path.extend(argv[1:])
-  test()

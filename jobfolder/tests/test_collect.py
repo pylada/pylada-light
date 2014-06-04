@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_collect():
   from tempfile import mkdtemp
   from shutil import rmtree
   from os import makedirs
@@ -41,7 +41,7 @@ def test():
   job.params['value'] = 5
   job.params['another'] = 6
 
-  directory =  mkdtemp() # '/tmp/test' # 
+  directory =  mkdtemp()
   if exists(directory) and directory == '/tmp/test': rmtree(directory)
   if not exists(directory): makedirs(directory)
   try: 
@@ -101,9 +101,3 @@ def test():
 
   finally:
     if directory != '/tmp/test': rmtree(directory)
-
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 1: path.extend(argv[1:])
-  test()

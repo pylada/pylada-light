@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-def test():
+def test_jobfolder():
   from tempfile import mkdtemp
   from shutil import rmtree
   from os import makedirs
@@ -109,8 +109,3 @@ def test():
   # makes sure that parent are correctly deepcopied.
   jobfolder = deepcopy(root)
   for value in jobfolder.itervalues(): value.name
-
-if __name__ == "__main__":
-  from sys import argv, path 
-  if len(argv) > 1: path.extend(argv[1:])
-  test()
