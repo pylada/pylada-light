@@ -26,10 +26,6 @@ if(tests)
         INSTALL "pylada.tools.tests"  
         LABELS tools
     )
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/__init__.py")
-    add_python_module("pylada.tools.tests"
-        PYFILES *.py "${CMAKE_CURRENT_BINARY_DIR}/__init__.py"
-        EXCLUDE test_*.py
-    )
+    add_python_module("pylada.tools.tests" FAKE_INIT)
 
 endif(tests)

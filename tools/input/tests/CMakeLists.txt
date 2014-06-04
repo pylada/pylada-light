@@ -22,14 +22,10 @@
 
 if(tests)
 
-    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/__init__.py")
-    add_python_module("pylada.tools.input.tests"
-        PYFILES *.py "${CMAKE_CURRENT_BINARY_DIR}/__init__.py"
-        EXCLUDE test_*.py
-    )
+    add_python_module("pylada.tools.input.tests" FAKE_INIT)
     add_nose_tests(test_*.py
         INSTALL "pylada.tools.input.tests"  
-        LABELS tools
+        LABELS tools;input
     )
 
 endif(tests)

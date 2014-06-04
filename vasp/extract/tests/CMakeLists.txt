@@ -22,11 +22,9 @@
 
 if(tests)
 
-    file(WRITE "${CMAKE_BINARY_DIR}/__init__.py")
-    add_python_module("pylada.vasp.extract.tests"
-        PYFILES "${CMAKE_BINARY_DIR}/__init__.py"
+    add_python_module("pylada.vasp.tests.data"
+        FAKE_INIT PYFILES "data/COMMON"
     )
-    add_python_module("pylada.vasp.tests.data" PYFILES "data/COMMON")
 
     add_nose_tests(
         test_*.py

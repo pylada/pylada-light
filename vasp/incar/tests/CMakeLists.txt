@@ -22,9 +22,9 @@
 
 if(tests)
   
-    file(WRITE "${CMAKE_BINARY_DIR}/__init__.py")
     add_python_module("pylada.vasp.incar.tests"
-        PYFILES "${CMAKE_BINARY_DIR}/__init__.py" restart_class.py
+        FAKE_INIT
+        PYFILES restart_class.py
     )
     add_nose_tests(
         test_*.py

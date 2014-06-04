@@ -28,10 +28,7 @@ if(tests)
         )
     endforeach()
 
-    file(WRITE "${CMAKE_BINARY_DIR}/__init__.py")
-    add_python_module("pylada.vasp.tests"
-        PYFILES "${CMAKE_BINARY_DIR}/__init__.py"
-    )
+    add_python_module("pylada.vasp.tests" FAKE_INIT)
     add_nose_tests(
         test_*.py
         INSTALL "pylada.vasp.tests"

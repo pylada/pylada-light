@@ -26,9 +26,9 @@
 
 if(tests)
 
+    add_python_module("pylada.jobfolder.tests" FAKE_INIT)
     add_nose_tests(test_*.py
         INSTALL "pylada.jobfolder.tests"
-        FAKE_INIT
         LABELS jobfolder
     )
 

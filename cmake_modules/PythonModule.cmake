@@ -14,7 +14,7 @@ function(add_python_module module)
     string(REGEX REPLACE "/" "_" fullname "${location}")
     get_filename_component(module_name "${location}" NAME)
     cmake_parse_arguments(${fullname}
-        "NOINSTALL;INSTALL"
+        "FAKE_INIT;NOINSTALL;INSTALL"
         "MAIN;WRAPPERNAME;HEADER_DESTINATION;TARGETNAME;EXTENSION"
         "SOURCES;HEADERS;PYFILES;EXCLUDE;LIBRARIES" 
         ${ARGN}
@@ -73,6 +73,15 @@ function(add_python_module module)
     set(targetname ${fullname})
     if(${fullname}_TARGETNAME)
         set(targetname ${${fullname}_TARGETNAME})
+    endif()
+    if(${fullname}_FAKE_INIT)
+        set(fake_init_file "${PYTHON_BINARY_DIR}/${location}/__init__.py")
+        if(NOT EXISTS "${fake_init_file}")
+           file(WRITE "${fake_init_file}" "# Empty file added by CMake")
+        endif()
+        if(do_install)
+            install_python(FILES "${fake_init_file}" DESTINATION ${location})
+        endif()
     endif()
 
 
