@@ -22,7 +22,18 @@
 
 if(tests)
 
-  add_test(ipython_explore ipython ${CMAKE_CURRENT_SOURCE_DIR}/explore.py ${CMAKE_CURRENT_SOURCE_DIR})
-  add_test(ipython_goto ipython ${CMAKE_CURRENT_SOURCE_DIR}/goto.py ${CMAKE_CURRENT_SOURCE_DIR})
+    add_python_module("ipython.tests"
+        INSTALL
+        FAKE_INIT
+        PYFILES *.py
+    )
+    foreach(testname explore goto)
+        add_test(NAME ${testname}
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+            COMMAND ${LOCAL_PYTHON_EXECUTABLE} -m IPython
+                ${PYTHON_BINARY_DIR}/ipython/tests/${testname}.py
+        )
+        set_tests_properties(${testname} PROPERTIES LABELS "python;ipython")
+    endforeach()
 
 endif(tests)

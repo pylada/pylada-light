@@ -41,9 +41,13 @@
     For which variables can be set (and, if relevant, which file) see pylada.config.
 """
 __docformat__ = "restructuredtext en"
-__all__ = ["error", @which_packages@]
+__all__ = [
+        "load_ipython_extension", "unload_ipython_extension",
+        "error", @which_packages@
+]
 import error
 import physics 
+from ipython import load_ipython_extension, unload_ipython_extension
 
 version_info = (@Pylada_VERSION_MAJOR@, @Pylada_VERSION_MINOR@)
 """ Tuple containing version info. """
