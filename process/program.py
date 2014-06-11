@@ -346,6 +346,8 @@ class ProgramProcess(Process):
 
   def wait(self):
     """ Waits for process to end, then cleanup. """
+    from . import NotStarted
+    if not hasattr(self, 'comm'): raise NotStarted()
     if self.comm != None:                # used for testValidProgram
       super(ProgramProcess, self).wait()
       self.process.wait()

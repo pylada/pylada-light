@@ -44,4 +44,7 @@ if(tests)
     add_to_python_path("${EXTERNAL_ROOT}/python")
     lookup_python_package(nose)
     lookup_python_package(nose_parameterized)
+    # Not required per se but usefull for testing process
+    find_python_package(mpi4py)
+    find_program(MPIEXEC NAMES mpiexec mpirun)
 endif()
