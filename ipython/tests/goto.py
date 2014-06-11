@@ -103,6 +103,6 @@ if __name__ == "__main__":
         saveri = __builtin__.raw_input
         __builtin__.raw_input = raw_input
         shell = InteractiveShell.instance()
-        shell.magic("load_ext pylada.ipython")
+        shell.magic("load_ext pylada")
         test(shell)
     finally: __builtin__.raw_input = saveri
