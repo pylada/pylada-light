@@ -33,14 +33,14 @@ extension to IPython_. The extension can be automatically loaded when starting I
 
 .. code-block:: python
   
-   c.InteractiveShellApp.extensions = [ "pylada.ipython" ]
+   c.InteractiveShellApp.extensions = [ "pylada" ]
 
 to the ipython_ configuration file (generally,
 "$HOME/.config/ipython/profile_default/ipython_config.py").
 
 Another option is to load the extension dynamically for each ipython_ session:
 
->>> load_ext pylada.ipython
+>>> load_ext pylada
 
 .. _configuration_single_mpi_ug:
 
