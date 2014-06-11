@@ -11,8 +11,9 @@ include(FortranCInterface)
 FortranCInterface_HEADER(${PROJECT_BINARY_DIR}/FCMangle.h
                          MACRO_NAMESPACE "FC_"
                          SYMBOL_NAMESPACE "FC_" )
-option(tests               "Compile tests."                             on)
-option(external_program_tests "Allow tests which run external programs (vasp, crystal...)" on)
+option(tests "Compile tests." on)
+option(external_program_tests
+    "Allow tests which run external programs (vasp, crystal...)" on)
 if(tests)
   enable_testing()
 endif(tests)
