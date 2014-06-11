@@ -22,7 +22,7 @@
 
 if(tests)
 
-    add_python_module("ipython.tests"
+    add_python_module("pylada.ipython.tests"
         INSTALL
         FAKE_INIT
         PYFILES *.py
