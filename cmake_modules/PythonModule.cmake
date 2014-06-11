@@ -12,6 +12,12 @@ add_to_python_path(${PYTHON_BINARY_DIR})
 function(add_python_module module)
     string(REGEX REPLACE "\\." "/" location "${module}")
     string(REGEX REPLACE "/" "_" fullname "${location}")
+    string(FIND "${module}" "." first_dot)
+    if(first_dot EQUAL -1)
+        set(base_module ${module})
+    else()
+        string(SUBSTRING "${module}" 0 ${first_dot} base_module)
+    endif()
     get_filename_component(module_name "${location}" NAME)
     cmake_parse_arguments(${fullname}
         "FAKE_INIT;NOINSTALL;INSTALL"
@@ -62,7 +68,7 @@ function(add_python_module module)
         file(GLOB pyfiles RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" ${${fullname}_PYFILES})
         list(REMOVE_ITEM pyfiles ${excluded})
     endif()
-    set(header_destination include/${location})
+    set(header_destination ${base_module}/include/${location})
     if(${fullname}_HEADER_DESTINATION)
         string(REGEX REPLACE
             "\\." "/"
