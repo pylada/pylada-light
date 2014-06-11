@@ -3,29 +3,33 @@
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
 # 
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
+#  PyLaDa is a high throughput computational platform for Physics. It aims to
+#  make it easier to submit large numbers of jobs on supercomputers. It
+#  provides a python interface to physical input, such as crystal structures,
+#  as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs.
+#  It is able to organise and launch computational jobs on PBS and SLURM.
 # 
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
+#  PyLaDa is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later
+#  version.
 # 
-#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-#  Public License for more details.
+#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+#  FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+#  details.
 # 
-#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
-#  <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License along with
+#  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
+from nose_parameterized import parameterized
 
 def processalloc(job):
   """ returns a random number between 1 and 4 included. """
   from random import randint
   return randint(1, 4)
 
-def test_failures(d):
+def test_failures():
   """ Tests whether scheduling jobs works on known failure cases. """
   from pylada.jobfolder.jobfolder import JobFolder
   from pylada.process.pool import PoolProcess
@@ -40,15 +44,18 @@ def test_failures(d):
   comm = default_comm.copy()
   comm['n'] = 4
 
+  d = {'a1': 1, 'a0': 3, 'a3': 3, 'a2': 3, 'a5': 3, 'a4': 2, 'a7': 2, 'a6': 1}
   def processalloc_test1(job):  return d[job.name[1:-1]]
 
-  program = PoolProcess(root, processalloc=processalloc_test1, outdir="whatever")
+  program = PoolProcess(root, processalloc=processalloc_test1,
+          outdir="whatever")
   program._comm = comm
   for i in xrange(10000):
     jobs = program._getjobs()
     assert sum(program._alloc[u] for u in jobs) <= program._comm['n'],\
            (jobs, [program._alloc[u] for u in jobs])
 
+@parameterized([(8, 20), (16, 20)])
 def test_getjobs(nprocs=8, njobs=20):
   """ Test scheduling. """
   from pylada.jobfolder.jobfolder import JobFolder
@@ -77,10 +84,10 @@ def test_getjobs(nprocs=8, njobs=20):
       assert sum(program._alloc[u] for u in jobs) <= program._comm['n'],\
              (jobs, [program._alloc[u] for u in jobs])
 
-def test(executable):
-  """ Tests JobFolderProcess. Includes failure modes.  """
+def test_fakeexec():
+  """ Tests Pool. Includes failure modes.  """
   from tempfile import mkdtemp
-  from os.path import join
+  from os.path import join, abspath, dirname
   from shutil import rmtree
   from numpy import all, arange, abs, array
   from pylada.jobfolder.jobfolder import JobFolder
@@ -90,6 +97,7 @@ def test(executable):
   from pylada.process import Fail, NotStarted
   from pylada import default_comm
   from functional import Functional
+  executable = abspath(join(dirname(__file__), "pifunctional.py"))
 
   root = JobFolder()
   for n in xrange(8):
@@ -112,7 +120,7 @@ def test(executable):
     try: program.wait()
     except NotStarted: pass
     else: raise Exception()
-
+    
     # now starting for real.
     program.start(comm)
     program.wait()
@@ -122,13 +130,13 @@ def test(executable):
     order = array(extract.order.values()).flatten()
     assert all(arange(8) - order == 0)
     pi = array(extract.pi.values()).flatten()
-    assert all(abs(pi - array([0.0, 3.2, 3.162353, 3.150849,
-                               3.146801, 3.144926, 3.143907, 3.143293]))\
-                < 1e-5 )
+    expected = [0.0, 3.2, 3.162353, 3.150849, 3.146801, 3.144926, 3.143907,
+            3.143293]
+    assert all(abs(pi - array(expected)) < 1e-5)
     error = array(extract.error.values()).flatten()
-    assert all(abs(error - array([3.141593, 0.05840735, 0.02076029, 0.009256556,
-                                  0.005207865, 0.00333321, 0.002314774, 0.001700664]))\
-                < 1e-5 )
+    expected = [3.141593, 0.05840735, 0.02076029, 0.009256556, 0.005207865,
+            0.00333321, 0.002314774, 0.001700664]
+    assert all(abs(error - array(expected)) < 1e-5)
     assert all(n['n'] == comm['n'] for n in extract.comm)
     # restart
     assert program.poll()
@@ -136,29 +144,24 @@ def test(executable):
     program.start(comm)
     assert len(program.process) == 0
     assert program.poll()
-  finally: 
-    try: rmtree(dir)
-    except: pass
-  return
+    
+    try: 
+      job = root / str(666)
+      job.functional = Functional(executable, [50], fail='end')
+      program = PoolProcess(root, nbpools=2,
+              outdir=dir, processalloc=processalloc)
+      assert program.nbjobsleft > 0
+      program.start(comm)
+      program.wait()
+      assert False # Should not reach this point
+    except Fail: 
+      assert len(program.errors.keys()) == 1
+      assert '666' in program.errors
+    else: raise Exception()
 
-  try: 
-    job = root / str(666)
-    job.functional = Functional(executable, [666])
-    program = PoolProcess(root, nbpools=2, outdir=dir, processalloc=processalloc)
-    assert program.nbjobsleft > 0
-    program.start(comm)
-    program.wait()
-    assert program.nbjobsleft == 0
-  except Fail: 
-    assert len(program.errors.keys()) == 1
-    assert '666' in program.errors
-  else: raise Exception
-  finally:
-    try: rmtree(dir)
-    except: pass
-  try: 
-    job.functional.order = [667]
-    program = PoolProcess(root, nbpools=2, outdir=dir, processalloc=processalloc)
+    job.functional.order = [50]
+    program = PoolProcess(root, nbpools=2,
+            outdir=dir, processalloc=processalloc)
     assert program.nbjobsleft > 0
     program.start(comm)
     program.wait()
@@ -203,10 +206,10 @@ def test_large():
     # print 256 - program._comm['n'], len(program.process)
     continue
 
-def test_update(executable):
+def test_update():
   """ Tests JobFolderProcess with update. """
   from tempfile import mkdtemp
-  from os.path import join
+  from os.path import join, abspath, dirname
   from shutil import rmtree
   from pylada.jobfolder.jobfolder import JobFolder
   from pylada.jobfolder import save
@@ -214,6 +217,7 @@ def test_update(executable):
   from pylada import default_comm
   from functional import Functional
 
+  executable = abspath(join(dirname(__file__), "pifunctional.py"))
   root = JobFolder()
   for n in xrange(3):
     job = root / str(n)
@@ -246,10 +250,10 @@ def test_update(executable):
     try: rmtree(dir)
     except: pass
 
-def test_update_with_fail(executable):
+def test_update_with_fail():
   """ Tests JobFolderProcess with update. """
   from tempfile import mkdtemp
-  from os.path import join
+  from os.path import join, abspath, dirname
   from shutil import rmtree
   from pylada.jobfolder.jobfolder import JobFolder
   from pylada.jobfolder import save
@@ -259,11 +263,13 @@ def test_update_with_fail(executable):
   from functional import Functional
 
   root = JobFolder()
+  executable = abspath(join(dirname(__file__), "pifunctional.py"))
   for n in xrange(3):
     job = root / str(n)
     job.functional = Functional(executable, [n])
     job.params['sleep'] = 1
-  root['1'].functional.order = 666
+  root['1'].functional.order = 50
+  root['1'].functional.fail = 'midway'
   root['1'].sleep = None
   supp = JobFolder()
   for n in xrange(3, 6):
@@ -271,7 +277,8 @@ def test_update_with_fail(executable):
     job.functional = Functional(executable, [n])
     job.params['sleep'] = 1
   supp['5'].sleep = 0
-  supp['5'].functional.order = 666
+  supp['5'].functional.order = 34
+  supp['5'].functional.fail = 'end'
 
   comm = default_comm.copy()
   comm['n'] = 4
@@ -301,19 +308,18 @@ def test_update_with_fail(executable):
     except: pass
     
     
-if __name__ == "__main__":
-  from sys import argv, path
-  from os.path import abspath
-  if len(argv) < 1: raise ValueError("test need to be passed location of pifunc.")
-  if len(argv) > 2: path.extend(argv[2:])
-
-  test_large()
-
-  d = {'a1': 1, 'a0': 3, 'a3': 3, 'a2': 3, 'a5': 3, 'a4': 2, 'a7': 2, 'a6': 1}
-  test_failures(d)
-  test_getjobs(8, 20)
-  test_getjobs(16, 60)
-  test(abspath(argv[1]))
-  test_update(abspath(argv[1]))
-  test_update_with_fail(abspath(argv[1]))
+# if __name__ == "__main__":
+#   from sys import argv, path
+#   from os.path import abspath
+#   if len(argv) < 1: raise ValueError("test need to be passed location of pifunc.")
+#   if len(argv) > 2: path.extend(argv[2:])
+# 
+#   test_large()
+# 
+#   test_failures(d)
+#   test_getjobs(8, 20)
+#   test_getjobs(16, 60)
+#   test(abspath(argv[1]))
+#   test_update(abspath(argv[1]))
+#   test_update_with_fail(abspath(argv[1]))
 

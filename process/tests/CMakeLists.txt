@@ -42,17 +42,14 @@ if(tests AND mpi4py_FOUND)
         INSTALL 
         FAKE_INIT
     )
-    add_nose_tests(
-        test_program.py
-        test_call.py
+    add_nose_tests(test_*.py
+        EXCLUDE test_pool.py test_jobfolder.py
         INSTALL "pylada.process.tests"
         LABELS process
     )
-    add_test(process_call python ${CMAKE_CURRENT_SOURCE_DIR}/call.py ${CMAKE_CURRENT_BINARY_DIR}/pifunc)
-    add_test(process_iterator python ${CMAKE_CURRENT_SOURCE_DIR}/iterator.py ${CMAKE_CURRENT_BINARY_DIR}/pifunc)
-    if(jobfolder_package)
-      add_test(process_pool python ${CMAKE_CURRENT_SOURCE_DIR}/pool.py ${CMAKE_CURRENT_BINARY_DIR}/pifunc)
-      add_test(process_jobfolder python ${CMAKE_CURRENT_SOURCE_DIR}/jobfolder.py ${CMAKE_CURRENT_BINARY_DIR}/pifunc)
-    endif(jobfolder_package)
+    add_nose_tests(test_pool.py test_jobfolder.py
+        INSTALL "pylada.process.tests"
+        LABELS process;jobfolder
+    )
 
 endif()
