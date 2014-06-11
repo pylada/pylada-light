@@ -44,6 +44,7 @@ if(tests AND mpi4py_FOUND)
     )
     add_nose_tests(
         test_program.py
+        test_call.py
         INSTALL "pylada.process.tests"
         LABELS process
     )

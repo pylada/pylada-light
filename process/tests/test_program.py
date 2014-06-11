@@ -38,9 +38,11 @@ def test_program():
   try: 
     with Changedir(dir) as pwd: pass
     stdout = join(dir, 'stdout')
-    program = ProgramProcess( executable, outdir=dir, 
-                              cmdline=['--sleep', 0, '--order', 4], 
-                              stdout=stdout, dompi=True )
+    program = ProgramProcess(
+        executable, outdir=dir, 
+        cmdline=['--sleep', 0, '--order', 4], 
+        stdout=stdout, dompi=True
+    )
     # program not started. should fail.
     try: program.poll()
     except NotStarted: pass
@@ -68,10 +70,11 @@ def test_program():
   try: 
     with Changedir(dir) as pwd: pass
     stdout = join(dir, 'stdout')
-    program = ProgramProcess( executable, outdir=dir, 
-                              stderr=join(dir, 'shit'),
-                              cmdline=['--sleep', 0, '--order', 666], 
-                              stdout=stdout, dompi=True )
+    program = ProgramProcess(
+        executable, outdir=dir, stderr=join(dir, 'shit'),
+        cmdline=['--sleep', 0, '--order', 50, '--fail-mid-call'], 
+        stdout=stdout, dompi=True 
+    )
     program.start(comm)
     while not program.poll():  continue
   except Fail: pass
@@ -83,12 +86,27 @@ def test_program():
   try: 
     with Changedir(dir) as pwd: pass
     stdout = join(dir, 'stdout')
-    program = ProgramProcess( executable, outdir=dir, 
-                              stderr=join(dir, 'shit'),
-                              cmdline=['--sleep', 0, '--order', 666], 
-                              stdout=stdout, dompi=True )
+    program = ProgramProcess(
+        executable, outdir=dir, stderr=join(dir, 'shit'),
+        cmdline=['--sleep', 0, '--order', 50, '--fail-mid-call'], 
+        stdout=stdout, dompi=True 
+    )
     program.start(comm)
     program.wait()
+  except Fail: pass
+  else: raise Exception()
+  finally: rmtree(dir)
+
+  try: 
+    with Changedir(dir) as pwd: pass
+    stdout = join(dir, 'stdout')
+    program = ProgramProcess(
+        executable, outdir=dir, stderr=join(dir, 'shit'),
+        cmdline=['--sleep', 0, '--order', 50, '--fail-at-end'], 
+        stdout=stdout, dompi=True
+    )
+    program.start(comm)
+    while not program.poll():  continue
   except Fail: pass
   else: raise Exception()
   finally: rmtree(dir)

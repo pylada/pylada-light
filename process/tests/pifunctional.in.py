@@ -5,6 +5,10 @@ def cmdl():
             description="Only usefull to debug the process module")
     parser.add_argument("--order", dest="order", type=int, default=1)
     parser.add_argument("--sleep", dest="sleep", type=float, default=0)
+    parser.add_argument("--fail-mid-call",
+            dest="fail_mid_call", action='store_true')
+    parser.add_argument("--fail-at-end",
+            dest="fail_at_end", action='store_true')
     return parser.parse_args()
 
 def main():
@@ -37,9 +41,10 @@ def main():
             args.sleep, size
         )
         print(message)
+        if args.fail_mid_call: exit(2)
         print("sysname: %s\nnodename: %s\nrelease: %s\n" \
             "compilation: %s\nversion: %s\nmachine: %s\n" % uname())
 
-    exit(2 if args.order == 666 else 0)
+    exit(2 if args.fail_at_end else 0)
 
 if __name__ == '__main__': main()
