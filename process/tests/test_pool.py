@@ -96,8 +96,9 @@ def test_fakeexec():
   from pylada.process.pool import PoolProcess
   from pylada.process import Fail, NotStarted
   from pylada import default_comm
-  from functional import Functional
-  executable = abspath(join(dirname(__file__), "pifunctional.py"))
+  from pylada.process.tests.functional import Functional
+  from pylada.process.tests.pifunctional import __file__ as executable
+  executable = join(dirname(executable), "pifunctional.py")
 
   root = JobFolder()
   for n in xrange(8):
@@ -215,9 +216,10 @@ def test_update():
   from pylada.jobfolder import save
   from pylada.process.pool import PoolProcess
   from pylada import default_comm
-  from functional import Functional
+  from pylada.process.tests.functional import Functional
+  from pylada.process.tests.pifunctional import __file__ as executable
+  executable = join(dirname(executable), "pifunctional.py")
 
-  executable = abspath(join(dirname(__file__), "pifunctional.py"))
   root = JobFolder()
   for n in xrange(3):
     job = root / str(n)
@@ -260,10 +262,11 @@ def test_update_with_fail():
   from pylada.process.pool import PoolProcess
   from pylada.process import Fail
   from pylada import default_comm
-  from functional import Functional
+  from pylada.process.tests.functional import Functional
+  from pylada.process.tests.pifunctional import __file__ as executable
+  executable = join(dirname(executable), "pifunctional.py")
 
   root = JobFolder()
-  executable = abspath(join(dirname(__file__), "pifunctional.py"))
   for n in xrange(3):
     job = root / str(n)
     job.functional = Functional(executable, [n])

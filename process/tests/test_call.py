@@ -32,8 +32,10 @@ def test_call():
   from pylada.process.call import CallProcess
   from pylada.process import Fail, NotStarted
   from pylada import default_comm
-  from functional import Functional
-  executable = abspath(join(dirname(__file__), "pifunctional.py"))
+  from pylada.process.tests.functional import Functional
+  from pylada.process.tests.pifunctional import __file__ as executable
+  executable = join(dirname(executable), "pifunctional.py")
+
   comm = default_comm.copy()
   dir = mkdtemp()
   try: 

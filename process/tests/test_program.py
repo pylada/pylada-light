@@ -32,8 +32,10 @@ def test_program():
   from pylada.process import Fail, NotStarted
   from pylada.misc import Changedir
   from pylada import default_comm as comm
-  from .functional import ExtractSingle as Extract
-  executable = abspath(join(dirname(__file__), "pifunctional.py"))
+  from pylada.process.tests.functional import ExtractSingle as Extract
+  from pylada.process.tests.pifunctional import __file__ as executable
+  executable = join(dirname(executable), "pifunctional.py")
+
   dir = mkdtemp()
   try: 
     with Changedir(dir) as pwd: pass
