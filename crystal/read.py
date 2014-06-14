@@ -78,10 +78,9 @@ def poscar(path="POSCAR", types=None):
         break
     if is_vasp_5:
       text_types = deepcopy(line)
-      if types is not None:
-        assert set(text_types) in set(types) or set(text_types) == set(types), \
-               RuntimeError( "Unknown species in poscar: {0} not in {1}."\
-                             .format(set(text_types), set(types)) )
+      if types is not None and not set(text_types).issubset(set(types)):
+        raise RuntimeError( "Unknown species in poscar: {0} not in {1}."\
+                            .format(text_types, types) )
       types = text_types
       line = poscar.readline().split()
     assert types is not None, RuntimeError("No atomic species given in POSCAR or input.")
