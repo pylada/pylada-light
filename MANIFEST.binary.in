@@ -6,4 +6,5 @@ include LICENSE.txt
 include setup.py
 
 recursive-include pkg_install/pylada **
-include pkg_install/pylada/vasp/tests/data/COMMON
+include pkg_install/pylada/vasp/extract/tests/data/COMMON
+recursive-include pkg_install/pylada/vasp/tests/pseudos POTCAR

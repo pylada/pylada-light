@@ -23,3 +23,5 @@ recursive-include python *.py *.h *.cc
 recursive-include tools *.py
 recursive-include vasp *.py
 recursive-include sphinx-doc/source *.rst *.py
+include vasp/extract/tests/data/COMMON
+recursive-include vasp/tests/pseudos POTCAR
