@@ -32,7 +32,7 @@ add_custom_target(documentation
         "${PROJECT_SOURCE_DIR}/sphinx-doc/source"
         "${DOC_OUTPUT_DIR}"
     DEPENDS
-        ipython_tests_copy pylada_ipython_launch_copy
+        pylada_ipython_launch_copy
         pylada_jobfolder_copy pylada_vasp_copy
         pylada_jobfolder_tests_copy pylada_vasp_extract_copy
         pylada_math pylada_vasp_extract_tests_copy 
