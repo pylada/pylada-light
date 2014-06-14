@@ -26,7 +26,7 @@
 
 if(tests)
 
-    add_python_module("pylada.vasp.tests.data" PYFILES "data/COMMON")
+    add_python_module("pylada.vasp.extract.tests.data" PYFILES "data/COMMON")
 
     add_nose_tests(
         test_*.py
