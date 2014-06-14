@@ -26,6 +26,6 @@ if(tests)
         INSTALL "pylada.tools.tests"  
         LABELS tools
     )
-    add_python_module("pylada.tools.tests" FAKE_INIT)
+    add_python_module("pylada.tools.tests" FAKE_INIT PYFILES dummy.py)
 
 endif(tests)
