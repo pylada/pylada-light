@@ -1,0 +1,25 @@
+# Declares files to include in python distribution
+
+include MANIFEST.*.in
+include README.rst
+include LICENSE.txt
+include setup.py
+include root_exceptions.h
+include PyladaConfig.h.in
+
+global-include CMakeLists.txt
+recursive-include cmake_modules *.cmake
+recursive-include config *.py
+recursive-include crystal *.py *.h *.cc
+recursive-include errors *.py *.h *.cc
+recursive-include ewald *.py *.h *.cc
+recursive-include ipython *.py 
+recursive-include jobfolder *.py 
+recursive-include math *.py *.h *.cc
+recursive-include misc *.py
+recursive-include physics *.py 
+recursive-include process *.py *.cc
+recursive-include python *.py *.h *.cc
+recursive-include tools *.py
+recursive-include vasp *.py
+recursive-include sphinx-doc/source *.rst *.py
