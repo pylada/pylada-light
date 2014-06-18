@@ -105,6 +105,8 @@ add_subdirectory(jobfolder)
 
 add_subdirectory(ipython)
 
+# after all that, turns out nrelmatdb uses this:
+add_subdirectory(periodic_table)
   
 message (STATUS ${PROJECT_SOURCE_DIR})
 configure_file (

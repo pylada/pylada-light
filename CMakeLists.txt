@@ -23,21 +23,18 @@ set (Pylada_VERSION_MINOR 1)
 ########################################################################
 ##### edit (below) between these comments, hopefully no where else!
 # install dir
-set(CMAKE_PYINSTALL_PREFIX "/home/pgraf/root/mylada")
-set(CMAKE_INSTALL_PREFIX "/home/pgraf/root/mylada")
+set(CMAKE_PYINSTALL_PREFIX "/Users/pgraf/root/mylada")
+set(CMAKE_INSTALL_PREFIX "/Users/pgraf/root/mylada")
 
 # Languages
-SET( CMAKE_CXX_COMPILER "g++" )
-SET( CMAKE_C_COMPILER "gcc" )
-SET( CMAKE_Fortran_COMPILER "gfortran" )
+SET( CMAKE_CXX_COMPILER "g++-mp-4.5" )
+SET( CMAKE_C_COMPILER "gcc-mp-4.5" )
+SET( CMAKE_Fortran_COMPILER "gfortran-mp-4.5" )
 
 ## I find that if I just set "PYTHON_LIBRARY", then find_package works, and sets the rest of the necessary vars
-#set(PYTHON_LIBRARY  "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib")
-set(PYTHON_LIBRARY  "/nopt/nrel/apps/python/2.7.6-gcc-4.8.2/lib/libpython2.7.so")
+set(PYTHON_LIBRARY  "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib")
 ## eigen header only library
-set( eigen_INCLUDE_DIR  "/home/pgraf/opt/eigen3/")
-
-set (BOOST_INCLUDEDIR "/home/pgraf/opt/boost_1_54_0")
+set( eigen_INCLUDE_DIR  "/Users/pgraf/opt/eigen3.1.2/")
 
 ##### edit (above) between these comments, hopefully no where else!
 ########################################################################
@@ -105,10 +102,14 @@ add_subdirectory(jobfolder)
 
 add_subdirectory(ipython)
 
+# after all that, turns out nrelmatdb uses this:
+add_subdirectory(periodic_table)
+
 add_custom_target(doc 
       COMMAND make html
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx-doc)
- 
+
+  
 message (STATUS ${PROJECT_SOURCE_DIR})
 configure_file (
  "${PROJECT_SOURCE_DIR}/PyladaConfig.h.in"
