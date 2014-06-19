@@ -14,7 +14,7 @@ before_install:
 install:
   - mkdir build
   - cd build
-  - cmake -Dexternal_program_tests=OFF ..
-script: make
+  - cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -Dexternal_program_tests=OFF ..
+script:
   - make
   - ctest ..
