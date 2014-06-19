@@ -7,7 +7,7 @@ python:
   - "2.7"
 before_install:
   - sudo apt-get install build-essential
-  - sudo apt-get gfortran
+  - sudo apt-get install gfortran
   - sudo apt-get install python-scipy python-numpy
   - pip install --user ipython
   - pip install --user quantities
