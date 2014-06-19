@@ -1,0 +1,22 @@
+language:
+  - cpp
+  - python
+compiler:
+  - gcc
+  - clang
+install:
+  - pip install numpy
+  - pip install scipy
+  - pip install quantities
+  - pip install ipython
+script: 
+  - mkdir build
+  - cd build 
+  - cmake -Dexternal_program_tests=OFF ..
+  - make
+branches:
+  - only:
+    cmake
+os:
+  - osx
+  - linux
