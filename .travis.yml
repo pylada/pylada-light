@@ -7,8 +7,8 @@ python:
   - "2.7"
 before_install:
   - sudo apt-get install build-essential
-  - sudo apt-get install ipython numpy scipy
-  - pip install -user quantities
+  - sudo apt-get install python-numpy python-scipy ipython-notebook
+  - pip install --user quantities
 install:
   - mkdir build
   - cd build
@@ -16,6 +16,3 @@ install:
 script: make
   - make
   - ctest ..
-os:
-  - osx
-  - linux
