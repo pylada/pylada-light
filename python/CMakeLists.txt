@@ -20,7 +20,6 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-set(which_packages "'math', 'python', 'crystal'") 
 configure_file (
     "${PROJECT_SOURCE_DIR}/python/__init__.in.py"
     "${PROJECT_BINARY_DIR}/python/__init__.py"
