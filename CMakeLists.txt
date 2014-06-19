@@ -23,7 +23,7 @@ include(dependencies)
 
 include_directories("${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
 foreach(name Boost EIGEN3)
-    if(NOT "${${name}_INCLUDE_DIR}" STREQUAL "")
+    if(NOT "${${name}_INCLUDE_DIR}" STREQUAL "" AND ${name}_INCLUDE_DIR)
         include_directories(${${name}_INCLUDE_DIR})
     endif()
 endforeach()
