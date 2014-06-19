@@ -5,19 +5,17 @@ compiler:
 python:
   - "2.6"
   - "2.7"
+before_install:
+  - sudo apt-get install build-essential
+  - sudo apt-get install ipython numpy scipy
+  - pip install -user quantities
 install:
-  - pip install numpy
-  - pip install scipy
-  - pip install quantities
-  - pip install ipython
-script: 
   - mkdir build
-  - cd build 
+  - cd build
   - cmake -Dexternal_program_tests=OFF ..
+script: make
   - make
-branches:
-  only:
-    - cmake
+  - ctest ..
 os:
   - osx
   - linux
