@@ -67,8 +67,3 @@ include(sphinx)
 add_subdirectory(ewald)
 add_subdirectory(jobfolder)
 add_subdirectory(ipython)
-
-add_custom_target(doc
-      COMMAND make html
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx-doc
-)
