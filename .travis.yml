@@ -16,6 +16,7 @@ install:
   - mkdir build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -Dexternal_program_tests=OFF ..
+  - make lookup_dependencies # eigen and/or boost
 script:
   - make
   - ctest .. -V
