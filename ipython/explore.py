@@ -129,6 +129,13 @@ def explore(self, cmdl):
       else:
         is_run = getattr(extract, 'is_running', False)
         if is_run: job.tag()
+
+        # Vladan changed Jun 23,2014: jobs which are in the queue are not errors either.
+        from pylada.ipython import qstat
+        qstuff=qstat(self,name)
+        is_inqueue = len(qstuff)>0
+        if is_inqueue: job.tag()
+
         # what's left is an error.
         else: job.untag()
         if bugLev >= 5: print 'ipython/explore errors: dir: %s  is_run: %s' \
