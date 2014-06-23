@@ -84,6 +84,7 @@ def launch(self, event, jobfolders):
     # loop over executable folders in current jobfolder
     for name, job in current.root.iteritems():
       if bugLev >= 1:
+#      if True:
         print 'launch/scattered: current: %s' % (current,)
         print 'launch/scattered: current.root: %s' % (current.root,)
         print 'launch/scattered: name: %s' % (name,)
@@ -92,6 +93,16 @@ def launch(self, event, jobfolders):
 
       # avoid jobfolder which are off
       if job.is_tagged: continue
+
+      ###### added by Peter Graf
+      # avoid jobfolder which is already in the queue:
+      from pylada.ipython import qstat
+      qstuff = qstat(self, name)
+      if (len(qstuff) > 0 and not event.force):
+        print "Job %s is in the queue, will not be re-queued" % name
+        continue
+      #######
+
       # avoid successful jobs.unless specifically requested
       if hasattr(job.functional, 'Extract') and not event.force: 
         p = join(directory, name)
