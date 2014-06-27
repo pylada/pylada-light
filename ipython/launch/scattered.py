@@ -121,8 +121,9 @@ def launch(self, event, jobfolders):
            = "{0} --bugLev {bugLev} --testValidProgram {testValidProgram} --nbprocs {n} --ppn {ppn} --jobid={1} {2}"                   \
              .format(pyscript, name, path, **pbsargs)
       ppath = pbspaths(directory, name, 'script')
-      print "launch/scattered: ppath: \"%s\"" % (ppath,)
-      print "launch/scattered: pbsargs: \"%s\"" % (pbsargs,)
+      if bugLev >=1:
+        print "launch/scattered: ppath: \"%s\"" % (ppath,)
+        print "launch/scattered: pbsargs: \"%s\"" % (pbsargs,)
       pbsscripts.append( ppath)
 
       # write pbs scripts

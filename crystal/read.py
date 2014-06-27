@@ -36,6 +36,7 @@ def poscar(path="POSCAR", types=None):
   from os.path import join, exists, isdir
   from copy import deepcopy
   from numpy import array, dot, transpose
+  from numpy.linalg import det
   from quantities import angstrom
   from . import Structure
 
@@ -60,7 +61,7 @@ def poscar(path="POSCAR", types=None):
     if len(result.name) > 0:
       if result.name[0] == "#": result.name = result.name[1:].strip()
     # reads scale
-    result.scale = float(poscar.readline().split()[0]) * angstrom
+    scale = float(poscar.readline().split()[0])
     # gets cell vectors.
     cell = []
     for i in range(3):
@@ -69,6 +70,9 @@ def poscar(path="POSCAR", types=None):
              RuntimeError("Could not read column vector from poscar: %s." % (line))
       cell.append( [float(f) for f in line.split()[:3]] )
     result.cell = transpose(array(cell))
+    vol = det(cell)
+    if scale < 1.E-8 : scale = abs(scale/vol) **(1.0/3)
+    result.scale = scale * angstrom
     # checks for vasp 5 input.
     is_vasp_5 = True
     line = poscar.readline().split()
