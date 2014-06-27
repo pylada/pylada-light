@@ -20,8 +20,18 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-if(do_tests)
+if(tests)
 
-  add_test(defect_test python ${CMAKE_CURRENT_SOURCE_DIR}/defect_test.py ${CMAKE_CURRENT_BINARY_DIR})
+    # Makes tests in this directory a submodule of pylada.crystal
+    # Adds an empty __init__.py and compiles a test extension
+    add_python_module("pylada.crystal.defects.tests"
+        INSTALL FAKE_INIT
+        LABELS defects
+    )
 
-endif(do_tests)
+    add_nose_tests(test_*.py
+        INSTALL "pylada.crystal.defects.tests"
+        LABELS defects
+    )
+endif(tests)
+

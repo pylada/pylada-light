@@ -20,10 +20,15 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-set(PD_PY  __init__.py )
+#set(PD_PY  __init__.py )
+
+add_python_module("pylada.crystal.defects"
+    EXTENSION cppwrappers
+    PYFILES "*.py"
+)
 
 #if(vasp_functional AND jobs_package)
-install(FILES ${PD_PY} DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/crystal/defects)
+#install(FILES ${PD_PY} DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/crystal/defects)
 #endif(vasp_functional AND jobs_package)
 
 add_subdirectory(extract)

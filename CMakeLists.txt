@@ -64,11 +64,6 @@ if(tests)
     include(nose)
 endif()
 
-# Create general configuration file for C stuff
-configure_file (
- "${PROJECT_SOURCE_DIR}/PyladaConfig.h.in"
- "${PROJECT_BINARY_DIR}/PyladaConfig.h"
-)
 
 # required for (at least) crystal
 add_subdirectory(crystal)
@@ -97,6 +92,12 @@ add_subdirectory(periodic_table)
 #add_custom_target(doc 
 #      COMMAND make html
 #      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx-doc)
+
+# Create general configuration file for C stuff
+configure_file (
+ "${PROJECT_SOURCE_DIR}/PyladaConfig.h.in"
+ "${PROJECT_BINARY_DIR}/PyladaConfig.h"
+)
 
   
 message (STATUS ${PROJECT_SOURCE_DIR})

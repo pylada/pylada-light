@@ -607,15 +607,15 @@ def third_order_charge_correction(structure, charge = None, n = 30, epsilon = 1.
   """
   from quantities import elementary_charge, eV, pi, angstrom
   from pylada.physics import a0, Ry
-##  from . import third_order   ## this is now python only
-  from pylada.crystal import third_order_cc ## Pgraf's port of the old c-version.  could be much faster
+  from . import third_order   ## this is now python only
+##  from pylada.crystal import third_order_cc ## Pgraf's port of the old c-version.  could be much faster
 
   if charge is None: charge = 1e0
   elif charge == 0: return 0e0 * eV
   if hasattr(charge, "units"):  charge  = float(charge.rescale(elementary_charge))
   if hasattr(epsilon, "units"): epsilon = float(epsilon.simplified)
   cell = (structure.cell*structure.scale).rescale(a0)
-  return third_order_cc(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
+  return third_order(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
          * (1e0 - 1e0/epsilon) / epsilon
          
 def third_order(cell,n=100):
@@ -695,29 +695,29 @@ def charge_corrections(structure, **kwargs):
          - third_order_charge_correction(structure, **kwargs) \
 
 def magnetic_neighborhood(structure, defect, species):
-   """ Finds magnetic neighberhood of a defect. 
-   
-       If the defect is a substitution with a magnetic atom, then the
-       neighberhood is the defect alone. Otherwise, the neighberhood extends to
-       magnetic first neighbors. An atomic specie is deemed magnetic if marked
-       as such in `species`.
-
-       :Parameters: 
-         structure : `pylada.crystal.Structure`
-           The structure with the point-defect already incorporated.
-         defect : `pylada.crystal.Atom`
-           The point defect, to which and *index* attribute is given denoting
-           the index of the atom in the original supercell structure (without
-           point-defect).
-         species : dict of `pylada.vasp.species.Specie`
-           A dictionary defining the atomic species.
-
-       :return: indices of the neighboring atoms in the point-defect `structure`.
+  """ Finds magnetic neighberhood of a defect. 
+  
+  If the defect is a substitution with a magnetic atom, then the
+  neighberhood is the defect alone. Otherwise, the neighberhood extends to
+  magnetic first neighbors. An atomic specie is deemed magnetic if marked
+  as such in `species`.
+  
+  :Parameters: 
+  structure : `pylada.crystal.Structure`
+  The structure with the point-defect already incorporated.
+  defect : `pylada.crystal.Atom`
+  The point defect, to which and *index* attribute is given denoting
+  the index of the atom in the original supercell structure (without
+  point-defect).
+  species : dict of `pylada.vasp.species.Specie`
+  A dictionary defining the atomic species.
+  
+  :return: indices of the neighboring atoms in the point-defect `structure`.
   """
   from numpy.linalg import norm
   from pylada.crystal import neighbors
   from . import reindex_sites, first_shell as ffirst_shell
-
+  
   # checks if substitution with a magnetic defect.
   if hasattr(defect, "index") and defect.index < len(structure.atoms):
     atom = structure[defect.index]
