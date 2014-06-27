@@ -23,12 +23,12 @@
 """ Contains basic data type and methods for crystal structures. """
 __docformat__ = "restructuredtext en"
 __all__ = [ 'Structure', 'Atom', 'HFTransform', 'zero_centered', 'into_voronoi',
-            'into_cell', 'third_order', 'supercell', 'primitive', 'is_primitive', 'space_group',
+            'into_cell', 'third_order_cc', 'supercell', 'primitive', 'is_primitive', 'space_group',
             'transform', 'periodic_dnc', 'neighbors', 'coordination_shells',
             'splitconfigs', 'vasp_ordered', 'specieset', 'map_sites',
             'which_site', 'iterator' ]
 from cppwrappers import Structure, Atom, HFTransform, zero_centered, into_voronoi,    \
-                        into_cell, third_order, supercell, primitive, is_primitive, space_group,   \
+                        into_cell, third_order_cc, supercell, primitive, is_primitive, space_group,   \
                         transform, periodic_dnc, neighbors, coordination_shells,      \
                         splitconfigs, map_sites
 import iterator

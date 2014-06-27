@@ -606,8 +606,9 @@ static PyMethodDef methods_table[] = {
      ":param invcell:\n"
      "    Optional. The *inverse* of the cell defining the periodicity. It\n"
      "    is computed if not given on input. \n" },
-    {"third_order",  third_order_wrapper, METH_VARARGS,
-     "I have no idea what this function does, but HaoWei needs it\n\n"
+    {"third_order_cc",  third_order_wrapper, METH_VARARGS,
+     "I (PG) have no idea what this function does, but HaoWei needs it\n\n"
+     "I renamed it third_order_cc b/c we now have a pure python version\n"
      ":param cell:\n"
      "    unit cell (?) matrix.\n"
      ":param n:\n"
