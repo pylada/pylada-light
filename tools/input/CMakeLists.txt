@@ -19,7 +19,5 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
-install( FILES __init__.py block.py keywords.py tree.py listblock.py
-         DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/tools/input )
+add_python_module("pylada.tools.input" PYFILES "*.py")
 add_subdirectory(tests)

@@ -1,0 +1,22 @@
+language: cpp
+compiler:
+  - gcc
+  - clang
+python:
+  - "2.6"
+  - "2.7"
+before_install:
+  - sudo apt-get install build-essential
+  - sudo apt-get install gfortran
+  - sudo apt-get install python-scipy python-numpy
+  - sudo apt-get install libboost-all-dev
+  - pip install --user ipython
+  - pip install --user quantities
+install:
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -Dexternal_program_tests=OFF ..
+  - make lookup_dependencies # eigen and/or boost
+script:
+  - make
+  - ctest .. -V

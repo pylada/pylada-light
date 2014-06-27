@@ -630,6 +630,15 @@ class ICharg(AliasKeyword):
         copyfile(last_chg, outdir, nothrow='same')
       if icharge in [4, 14] and last_pot is not None:
         copyfile(last_pot, outdir, nothrow='same')
+      # Haowei, bad behavior here, which will copy WAVEDER if it exist even it is not needed
+      # But if a calculation ends up with a WAVEDER, and there is a following calculation
+      # it is most likely a GW calculation
+      # anyway, better solution needed here
+      try: 
+        last_wavder = latest_file( *[ join(u, files.WAVEDER) for u in directories ] )
+        copyfile(last_wavder, outdir, nothrow='same')
+      except:
+        pass
     return {self.keyword: str(icharge)}
 
 class IStart(AliasKeyword):
@@ -844,10 +853,9 @@ class LDAU(BoolKeyword):
     from ..crystal import specieset
     from ..error import ValueError, ConfigError, internal
     import pylada
-    ###from .. import vasp_has_nlep
     vasp = kwargs['vasp']
-    has_nlep = getattr( vasp, 'has_nlep', False)
-    has_nlep = pylada.vasp_has_nlep
+    has_nlep = getattr(pylada, 'vasp_has_nlep', False)
+    has_nlep = getattr(vasp, 'has_nlep', has_nlep)
     if bugLev >= 5:
       print 'vasp/keywords: ldau.output_map:'
       print '    has_nlep: %s' % (has_nlep,)

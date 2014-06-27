@@ -19,10 +19,7 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+add_python_module("pylada.ipython" PYFILES "*.py" EXCLUDE "qstat.py")
 
-set(PYIPY_PY __init__.py explore.py savefolders.py goto.py listfolders.py
-             showme.py export.py jmol.py manipfolders.py testpg.py)# qstat.py)
-install(FILES ${PYIPY_PY} DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/ipython)
 add_subdirectory(launch)
-
 add_subdirectory(tests)

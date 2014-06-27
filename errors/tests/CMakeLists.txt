@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-include_directories(${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDES})
+include_directories(${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIRS})
 
 if(NOT compile_debug_tests)
 

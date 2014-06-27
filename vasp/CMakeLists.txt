@@ -19,12 +19,7 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
-set(PYVASP_PY files.py __init__.py specie.py functional.py relax.py emass.py
-              keywords.py )
-
-install(FILES ${PYVASP_PY} DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/vasp)
-
+add_python_module("pylada.vasp" PYFILES "*.py")
 add_subdirectory(incar)
 add_subdirectory(extract)
 add_subdirectory(nlep)

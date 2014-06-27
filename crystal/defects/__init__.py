@@ -607,15 +607,13 @@ def third_order_charge_correction(structure, charge = None, n = 30, epsilon = 1.
   """
   from quantities import elementary_charge, eV, pi, angstrom
   from pylada.physics import a0, Ry
-  # haowei: need a new third_order calculate
-  from . import third_order
-  from pylada.crystal import third_order_cc
+##  from . import third_order   ## this is now python only
+  from pylada.crystal import third_order_cc ## Pgraf's port of the old c-version.  could be much faster
 
   if charge is None: charge = 1e0
   elif charge == 0: return 0e0 * eV
   if hasattr(charge, "units"):  charge  = float(charge.rescale(elementary_charge))
   if hasattr(epsilon, "units"): epsilon = float(epsilon.simplified)
-  # haowei: to Bohr
   cell = (structure.cell*structure.scale).rescale(a0)
   return third_order_cc(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
          * (1e0 - 1e0/epsilon) / epsilon
@@ -639,7 +637,6 @@ def third_order(cell,n=100):
   return result/factor
 
     
-
 def first_order_charge_correction(structure, charge=None, epsilon=1e0, cutoff=20.0, **kwargs):
   """ First order charge correction of +1 charge in given supercell. 
   
@@ -716,23 +713,23 @@ def magnetic_neighborhood(structure, defect, species):
            A dictionary defining the atomic species.
 
        :return: indices of the neighboring atoms in the point-defect `structure`.
-   """
-   from numpy.linalg import norm
-   from pylada.crystal import neighbors
-   from . import reindex_sites, first_shell as ffirst_shell
+  """
+  from numpy.linalg import norm
+  from pylada.crystal import neighbors
+  from . import reindex_sites, first_shell as ffirst_shell
 
-   # checks if substitution with a magnetic defect.
-   if hasattr(defect, "index") and defect.index < len(structure.atoms):
-     atom = structure[defect.index]
-     if species[atom.type].magnetic and norm(defect.pos - atom.pos) < 1e-12:
-       return [defect.index]
- # neighbors = [n for n in neighbors(structure, 12, defect.pos)]
- # # only take the first shell and keep indices (to atom in structure) only.
- # neighbors = [n.index for n in neighbors if n.distance < neighbors[0].distance + 1e-1]
- # # only keep the magnetic neighborhood.
- # return [n for n in neighbors if species[structure.atoms[n].type].magnetic]
-   # haowei: here I give a tolerance = 0.1, previously Mayeul did it like d_nn * 0.1
-   return [ n[0].index for n in ffirst_shell(structure, defect.pos, tolerance=0.1) ]
+  # checks if substitution with a magnetic defect.
+  if hasattr(defect, "index") and defect.index < len(structure.atoms):
+    atom = structure[defect.index]
+    if species[atom.type].magnetic and norm(defect.pos - atom.pos) < 1e-12:
+      return [defect.index]
+# neighbors = [n for n in neighbors(structure, 12, defect.pos)]
+# # only take the first shell and keep indices (to atom in structure) only.
+# neighbors = [n.index for n in neighbors if n.distance < neighbors[0].distance + 1e-1]
+# # only keep the magnetic neighborhood.
+# return [n for n in neighbors if species[structure.atoms[n].type].magnetic]
+# haowei: here I give a tolerance = 0.1, previously Mayeul did it like d_nn * 0.1
+  return [ n[0].index for n in ffirst_shell(structure, defect.pos, tolerance=0.1) ]
 
 def equiv_bins(n, N):
   """ Generator over ways to fill N equivalent bins with n equivalent balls. """

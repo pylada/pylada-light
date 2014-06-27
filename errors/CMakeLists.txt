@@ -19,8 +19,9 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
-install(FILES error.py DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada)
-if(NOT noinstall_headers)
-  install(FILES exceptions.h DESTINATION include/Pylada/errors)
-endif(NOT noinstall_headers)
+add_python_module("pylada"
+    PYFILES "*.py"
+    HEADERS "*.h"
+    HEADER_DESTINATION "pylada.errors"
+    TARGETNAME "pylada_error"
+)

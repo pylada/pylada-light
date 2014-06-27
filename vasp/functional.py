@@ -1093,59 +1093,12 @@ class Vasp(AttrBlock):
     import os, sys, traceback
 
     if bugLev >= 5:
-      #print 'vasp/functional bringdown: ===== start stack trace'
-      #traceback.print_stack( file=sys.stdout)
-      #print 'vasp/functional bringdown: ===== end stack trace'
-
-      # Stack trace here is:
-      #   ipython/launch/scattered_script.py", line 114, in <module>
-      #     if __name__ == "__main__": main()
-      #   ipython/launch/scattered_script.py", line 109, in main
-      #     jobfolder[name].compute(comm=comm, outdir=name)
-      #   jobfolder/jobfolder.py", line 295, in compute
-      #     res = self.functional.__call__(**params)
-      #   File "<string>", line 25, in __call__
-      #   process/program.py", line 352, in wait
-      #     self.poll()
-      #   process/program.py", line 201, in poll
-      #     try: self.onfinish(process=self, error=(poll!=0))
-      #   vasp/functional.py", line 994, in onfinish
-      #     def onfinish(process, error):  self.bringdown(outdir, structure)
-      #   vasp/functional.py", line 1059, in bringdown
-      #     traceback.print_stack( file=sys.stdout)
-
       print 'vasp/functional bringdown: directory: ', directory
       print 'vasp/functional bringdown: initial structure:\n%s' \
         % (structure,)
 
-    # Appends INCAR and CONTCAR to OUTCAR:
-
-    # nomodoutcar
-    #with Changedir(directory) as pwd:
-    #  with open(files.OUTCAR, 'a') as outcar:
-    #    if exists(files.CONTCAR):
-    #      outcar.write('\n################ CONTCAR ################\n')
-    #      with open(files.CONTCAR, 'r') as contcar: outcar.write(contcar.read())
-    #      outcar.write('\n################ END CONTCAR ################\n')
-    #    if exists(files.INCAR):
-    #      outcar.write('\n################ INCAR ################\n')
-    #      with open(files.INCAR, 'r') as incar: outcar.write(incar.read())
-    #      outcar.write('\n################ END INCAR ################\n')
-    #    outcar.write('\n################ INITIAL STRUCTURE ################\n')
-    #    outcar.write("""from {0.__class__.__module__} import {0.__class__.__name__}\n"""\
-    #                 """structure = {1}\n"""\
-    #                 .format(structure, repr(structure).replace('\n', '\n            ')))
-    #    outcar.write('\n################ END INITIAL STRUCTURE ################\n')
-    #    if bugLev >= 5:
-    #      print 'vasp/functional bringdown: initial structure written'
-    #    outcar.write('\n################ FUNCTIONAL ################\n')
-    #    outcar.write(repr(self))
-    #    outcar.write('\n################ END FUNCTIONAL ################\n')
-
     with Changedir(directory) as pwd:
-      # nomodoutcar
-      with open('pylada.FUNCTIONAL', 'w') as fout:
-        fout.write( repr( self))
+      with open('pylada.FUNCTIONAL', 'w') as fout: fout.write(repr( self))
 
       if exists('.pylada_is_running'): remove('.pylada_is_running')
 

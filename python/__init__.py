@@ -41,14 +41,17 @@
     For which variables can be set (and, if relevant, which file) see pylada.config.
 """
 __docformat__ = "restructuredtext en"
-__all__ = ["error", 'math', 'python', 'crystal']
+__all__ = ['error', 'math', 'crystal', 'vasp', 'periodic_table', 'ipython',
+    'jobfolder', 'physics', 'tools', 'process', 'ewald', 'misc']
 import error
 import physics 
 
-version_info = (0, 1)
-""" Tuple containing version info. """
+version_info = (@Pylada_VERSION_MAJOR@, @Pylada_VERSION_MINOR@)
+""" Tuple containing version info """
 version = "{0[0]}.{0[1]}".format(version_info)
-""" String containing version info. """
+""" Pylada version """
+__version__ = version
+""" Pylada version """
 
 
 # reads stuff from global configuration files.

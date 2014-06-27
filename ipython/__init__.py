@@ -40,9 +40,6 @@ def load_ipython_extension(ip):
     from .export import export, completer as export_completer
     from .manipfolders import copy_folder, copy_completer, delete_folder,      \
                               delete_completer
-
-    from .testpg import testpg, completer as testpg_completer
-
     import pylada
     # loads interactive files
     pylada.__dict__.update( (k, v) for k, v in pylada._config_files().iteritems() 
@@ -56,7 +53,6 @@ def load_ipython_extension(ip):
     modules['pylada.interactive'] = pylada.interactive
     ip.define_magic('savefolders', savefolders)
     ip.define_magic('explore', explore)
-    ip.define_magic('testpg', testpg)
     ip.define_magic('goto', goto)
     ip.define_magic('listfolders', listfolders)
     ip.define_magic('fl', listfolders) # shorter alias to listfolders.
@@ -66,7 +62,6 @@ def load_ipython_extension(ip):
     ip.define_magic('copyfolder', copy_folder)
     ip.define_magic('deletefolder', delete_folder)
     ip.set_hook('complete_command', explore_completer, str_key = '%explore')
-    ip.set_hook('complete_command', testpg_completer, str_key = '%testpg')
     ip.set_hook('complete_command', goto_completer, str_key = '%goto')
     ip.set_hook('complete_command', showme_completer, str_key = '%showme')
     ip.set_hook('complete_command', launch_completer, str_key = '%launch')
