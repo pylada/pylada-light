@@ -609,7 +609,8 @@ def third_order_charge_correction(structure, charge = None, n = 30, epsilon = 1.
   from pylada.physics import a0, Ry
   # haowei: need a new third_order calculate
   from . import third_order
-  from pylada.crystal import third_order_cc
+  # peter: stole and wired from old C version
+#  from pylada.crystal import third_order_cc
 
   if charge is None: charge = 1e0
   elif charge == 0: return 0e0 * eV
@@ -617,7 +618,7 @@ def third_order_charge_correction(structure, charge = None, n = 30, epsilon = 1.
   if hasattr(epsilon, "units"): epsilon = float(epsilon.simplified)
   # haowei: to Bohr
   cell = (structure.cell*structure.scale).rescale(a0)
-  return third_order_cc(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
+  return third_order(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
          * (1e0 - 1e0/epsilon) / epsilon
          
 def third_order(cell,n=100):

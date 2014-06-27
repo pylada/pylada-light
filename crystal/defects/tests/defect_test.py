@@ -30,7 +30,7 @@ structure.name   = 'Ga2CdO4: b5'
 structure.scale  = 1.0
 structure.energy = -75.497933000000003
 structure.weight = 1.0
-structure.set_cell = (-0.0001445, 4.3538020, 4.3537935),\
+structure.cell = (-0.0001445, 4.3538020, 4.3537935),\
                      (4.3538700, -0.0001445, 4.3538615),\
                      (4.3538020, 4.3537935, -0.0001445)
 structure.add_atoms = [(7.61911540668, 7.61923876219, 7.61912846850), 'Cd'],\
