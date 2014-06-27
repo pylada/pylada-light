@@ -64,11 +64,6 @@ if(tests)
     include(nose)
 endif()
 
-# Create general configuration file for C stuff
-configure_file (
- "${PROJECT_SOURCE_DIR}/PyladaConfig.h.in"
- "${PROJECT_BINARY_DIR}/PyladaConfig.h"
-)
 
 # required for (at least) crystal
 add_subdirectory(crystal)
@@ -100,5 +95,11 @@ add_subdirectory(periodic_table)
 
   
 message (STATUS ${PROJECT_SOURCE_DIR})
+message (STATUS ${PROJECT_BINARY_DIR})
+# Create general configuration file for C stuff
+configure_file (
+ "${PROJECT_SOURCE_DIR}/PyladaConfig.h.in"
+ "${PROJECT_BINARY_DIR}/PyladaConfig.h"
+)
 
 
