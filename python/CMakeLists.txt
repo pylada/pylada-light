@@ -22,7 +22,7 @@
 
 set(PYLADA_PY onexit.py)
 
-set(which_packages "'math', 'python', 'crystal'") 
+set(which_packages "'math', 'python', 'crystal', 'jobs', 'vasp'") 
 configure_file (
  "${PROJECT_SOURCE_DIR}/python/__init__.in.py"
  "${PROJECT_BINARY_DIR}/python/__init__.py"

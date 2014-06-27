@@ -60,4 +60,5 @@ if(NOT noinstall_headers)
   install(FILES ${PYCRYSTAL_HEADERS} DESTINATION include/Pylada/crystal)
 endif(NOT noinstall_headers)
 
+add_subdirectory(defects)
 add_subdirectory(tests)
