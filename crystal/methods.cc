@@ -144,6 +144,32 @@
  }
       
 //! Wrapper around periodic image tester.
+PyObject* third_order_wrapper(PyObject *_module, PyObject *_args)
+{
+  Py_ssize_t const N = PyTuple_Size(_args);
+  if(N != 2)
+    {
+      PYLADA_PYERROR(TypeError, "third_order expects a matrix and an integer");
+      return NULL;
+    }
+  
+  PyObject *cellin;
+  types::t_int n;
+  if(not PyArg_ParseTuple( _args, "Oi", &cellin, &n) )
+    return NULL;
+
+  math::rMatrix3d cell;
+  if(not python::numpy::convert_to_matrix(cellin, cell)) return NULL;
+  try
+    { 
+      types::t_real val = third_order(cell, n);
+      return Py_BuildValue("d", val);
+    }
+  PYLADA_CATCH;
+  return NULL;
+}
+
+//! Wrapper around periodic image tester.
 PyObject* are_periodic_images_wrapper(PyObject *_module, PyObject *_args)
 {
   Py_ssize_t const N = PyTuple_Size(_args);
@@ -580,6 +606,12 @@ static PyMethodDef methods_table[] = {
      ":param invcell:\n"
      "    Optional. The *inverse* of the cell defining the periodicity. It\n"
      "    is computed if not given on input. \n" },
+    {"third_order",  third_order_wrapper, METH_VARARGS,
+     "I have no idea what this function does, but HaoWei needs it\n\n"
+     ":param cell:\n"
+     "    unit cell (?) matrix.\n"
+     ":param n:\n"
+     "    normalization, count of how many of something(?) you have\n"},
     {"are_periodic_images",  are_periodic_images_wrapper, METH_VARARGS,
      "Returns True if first two arguments are periodic images according to third.\n\n"
      ":param a:\n"

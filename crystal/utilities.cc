@@ -77,3 +77,36 @@ math::rVector3d into_voronoi( math::rVector3d const &_vec,
       }
   return _cell * result;
 }
+
+types::t_real third_order(math::rMatrix3d const & _matrix, types::t_int _n)
+{
+  typedef math::rVector3d rVector3d;
+  typedef types::t_real t_real;
+  t_real result = 0e0;
+  t_real const ninv = 1e0 / t_real(_n);
+  t_real const maxdist = (_matrix * 10e0 * rVector3d(1,1,1)).squaredNorm();
+
+  //  printf ("third order called, n = %d\n", _n);
+  
+  for(size_t i(0); i < _n; ++i)
+    {
+      for(size_t j(0); j < _n; ++j)
+	{
+	  for(size_t k(0); k < _n; ++k)
+	    {
+	      t_real min_dist = maxdist;
+	      for(int l(-1); l < 2; ++l)
+		for(int m(-1); m < 2; ++m)
+		  for(int n(-1); n < 2; ++n)
+		    {
+		      t_real const q = (_matrix * rVector3d( i*ninv+l-0.5,
+							     j*ninv+m-0.5,
+							     k*ninv+n-0.5  ) ).squaredNorm();
+		      if( q < min_dist ) min_dist = q;
+		    }
+	      result += min_dist;
+	    }
+	}
+    }
+  return result / (_matrix.determinant() * t_real(_n*_n*_n));
+}
