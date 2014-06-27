@@ -20,11 +20,8 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-set(PD_PY  __init__.py )
+if(do_tests)
 
-#if(vasp_functional AND jobs_package)
-install(FILES ${PD_PY} DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/crystal/defects)
-#endif(vasp_functional AND jobs_package)
+  add_test(defect_test python ${CMAKE_CURRENT_SOURCE_DIR}/defect_test.py ${CMAKE_CURRENT_BINARY_DIR})
 
-add_subdirectory(extract)
-add_subdirectory(tests)
+endif(do_tests)

@@ -609,35 +609,35 @@ def third_order_charge_correction(structure, charge = None, n = 30, epsilon = 1.
   from pylada.physics import a0, Ry
   # haowei: need a new third_order calculate
   from . import third_order
+  from pylada.crystal import third_order_cc
 
   if charge is None: charge = 1e0
   elif charge == 0: return 0e0 * eV
   if hasattr(charge, "units"):  charge  = float(charge.rescale(elementary_charge))
   if hasattr(epsilon, "units"): epsilon = float(epsilon.simplified)
   # haowei: to Bohr
-  cell = (structure.cell*structure.scale*angstrom).rescale(a0)
-  return third_order(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
+  cell = (structure.cell*structure.scale).rescale(a0)
+  return third_order_cc(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
          * (1e0 - 1e0/epsilon) / epsilon
          
-
 def third_order(cell,n=100):
-  from numpy import array, dot
+  from numpy import array, arange, dot
   from numpy.linalg import det
   from itertools import product
-
+  
   factor = abs(det(cell)) * n**3
   
+  pos = array([0.5,0.5,0.5], dtype=float) 
   result = 0.0
-  for p in product(np.arange(n)/float(n), repeat=3):
+  for p in product(arange(n)/float(n), repeat=3):
     dsqrd = []
     for img in product([-1,0,1], repeat=3):
-       d = dot( cell, (array(p) + array(img) ) ) 
-       dsqrd.append(dot(d,d))
-    # the test charge is q = -e
-    result -= min(dsqrd)
+      d = dot( cell, (array(p) + array(img) - pos)) 
+      dsqrd.append(dot(d,d))
+    result += min(dsqrd)
+      
+  return result/factor
 
-  return result/factor 
-   
     
 
 def first_order_charge_correction(structure, charge=None, epsilon=1e0, cutoff=20.0, **kwargs):
