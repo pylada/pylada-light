@@ -607,15 +607,15 @@ def third_order_charge_correction(structure, charge = None, n = 30, epsilon = 1.
   """
   from quantities import elementary_charge, eV, pi, angstrom
   from pylada.physics import a0, Ry
-  from . import third_order   ## this is now python only
-##  from pylada.crystal import third_order_cc ## Pgraf's port of the old c-version.  could be much faster
+##  from . import third_order   ## this is now python only
+  from pylada.crystal import third_order_cc ## Pgraf's port of the old c-version.  could be much faster
 
   if charge is None: charge = 1e0
   elif charge == 0: return 0e0 * eV
   if hasattr(charge, "units"):  charge  = float(charge.rescale(elementary_charge))
   if hasattr(epsilon, "units"): epsilon = float(epsilon.simplified)
   cell = (structure.cell*structure.scale).rescale(a0)
-  return third_order(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
+  return third_order_cc(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
          * (1e0 - 1e0/epsilon) / epsilon
          
 def third_order(cell,n=100):
