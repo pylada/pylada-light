@@ -630,7 +630,7 @@ def third_order(cell,n=100):
   for p in product(arange(n)/float(n), repeat=3):
     dsqrd = []
     for img in product([-1,0,1], repeat=3):
-      d = dot( cell, (array(p) + array(img) - pos)) 
+      d = dot(cell, (array(p) + array(img) - pos)) 
       dsqrd.append(dot(d,d))
     result += min(dsqrd)
       
