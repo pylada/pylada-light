@@ -1,4 +1,4 @@
-from os.path import basename, dirname, join
+from os.path import basename, dirname, join, abspath
 from os import getcwd
 from setuptools import setup, Extension
 from distutils.command.build import build as dBuild
@@ -9,7 +9,7 @@ from setuptools.command.sdist import sdist as dSDist
 from setuptools.command.egg_info import egg_info as dEggInfo
 from distutils.dir_util import mkpath
 
-source_dir = getcwd()
+source_dir = dirname(abspath(__file__))
 package_dir = join(source_dir, 'pkg_install')
 mkpath(package_dir)
 
@@ -18,8 +18,6 @@ def cmake_cache_line(variable, value, type='STRING'):
 
 def cmake_executable():
     """ Path to cmake executable """
-    from os.path import exists
-    from os import environ
     from distutils.spawn import find_executable
     cmake = find_executable('cmake')
     if cmake is None:
@@ -81,47 +79,25 @@ class Build(dBuild):
         finally: chdir(current_dir)
 
     def run(self):
-        from os.path import abspath
 
         build_dir = join(dirname(abspath(__file__)), self.build_base)
         self._configure(build_dir)
         self._build(build_dir)
         try:
             prior = getattr(self.distribution, 'running_binary', False)
-            self.distribution.running_binary = prior
+            self.distribution.running_binary = True
             self.distribution.have_run['egg_info'] = 0
             dBuild.run(self)
         finally: self.distribution.running_binary = prior
 
-    def _install(self, build_dir, install_dir):
-        from distutils import log
-        from os.path import abspath
-        from os import chdir
-
-        current_cwd = getcwd()
-        build_dir = abspath(build_dir)
-        cmake = cmake_executable()
-        pkg = abspath(install_dir)
-        log.info("CMake: Installing package to %s" % pkg)
-        try:
-            chdir(build_dir)
-            self.spawn([cmake,
-                '-DPYTHON_PKG_DIR=\'%s\'' % pkg,
-                source_dir
-            ])
-            self.spawn([cmake, '--build', '.', '--target', 'install'])
-        finally: chdir(current_cwd)
-
 class Install(dInstall):
     def run(self):
         from distutils import log
-        from os.path import abspath
         from os import chdir
         self.distribution.run_command('build')
         current_cwd = getcwd()
         build_dir = join(dirname(abspath(__file__)), self.build_base)
         cmake = cmake_executable()
-        prefix = abspath(self.root or self.install_base)
         pkg = abspath(self.install_lib)
         log.info("CMake: Installing package to %s" % pkg)
         try:
@@ -229,7 +205,7 @@ setup(
         'pylada.cppwrappers',
         'pylada.ewald.cppwrappers',
         'pylada.math',
-    ]], 
+    ]],
     ext_package = 'pylada',
     packages = [
         'pylada', 'pylada.tests',
