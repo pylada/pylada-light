@@ -22,7 +22,8 @@
 
 """ Extracts defect properties from many calculations. """
 __docformat__ = "restructuredtext en"
-from pylada import try_import_matplotlib
+try: from ... import try_import_matplotlib
+except ImportError: try_import_matplotlib = False
 if try_import_matplotlib:
   __all__ = ['Single', 'Material', 'plot_enthalpies']
 
