@@ -2,94 +2,103 @@
 #  This file is part of PyLaDa.
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
-# 
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
-# 
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
-# 
-#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-#  Public License for more details.
-# 
-#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
-#  <http://www.gnu.org/licenses/>.
+#
+#  PyLaDa is a high throughput computational platform for Physics. It aims to
+#  make it easier to submit large numbers of jobs on supercomputers. It
+#  provides a python interface to physical input, such as crystal structures,
+#  as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs.
+#  It is able to organise and launch computational jobs on PBS and SLURM.
+#
+#  PyLaDa is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later
+#  version.
+#
+#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+#  FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+#  details.
+#
+#  You should have received a copy of the GNU General Public License along with
+#  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-""" Check memory deallocation.
-
-    Creates cyclic references through a structure's dictionary.
-    A number of instances are created and gets difference in memory hogged by python.
-    These instances are then deleted and gc.collect is called.
-    We then go through a loop where the instantiation/creation steps are
-    perfomed again, with gc.collect to make sure garbage is deleted. 
-    Finally, we check that memory is 10 times less than after first creation above.
-
-    Note that python does not release memory it allocates. Hence, deletion and
-    gc.collect must be inside the loop, or test could give false negative.
-
-    The same is checked for a subclass of atom.
-""" 
 from nose_parameterized import parameterized
-from pylada.crystal.cppwrappers import Atom, Structure
+from pylada.crystal.cppwrappers import Structure
 class StructureSubclass(Structure):
   def __init__(self, *args, **kwargs):
     super(StructureSubclass, self).__init__(*args, **kwargs)
+structure_classes = [(Structure, ), (StructureSubclass, )]
 
-def mklist(Class, N):
-  from numpy import identity
-  structure = Class(identity(3)*0.25, scale=5.45, m=5)\
-               .add_atom(0,0,0, "Au")\
-               .add_atom(0.5,0.5,0.5, "Au")
-  result = [structure for u in range(10*N)]
-  for r in result: r[0].parent = [r]
-  b = [u.cell for u in result]
-  return result, b
+def get_a_structure(Class):
+    from numpy import identity
+    return Class(identity(3)*0.25, scale=5.45, m=5)\
+                 .add_atom(0,0,0, "Au")\
+                 .add_atom(0.5,0.5,0.5, "Au")\
+                 .add_atom(0.25,0.5,0.5, "Pd")
 
-def get_mem(id):
-  from subprocess import Popen, PIPE
-  output = Popen(["ps","-p", "{0}".format(id), '-o', 'rss'], stdout=PIPE).communicate()[0].splitlines()[-1]
-  return int(output)
+@parameterized(structure_classes)
+def test_structure_referents_include_atoms(Class):
+    from nose.tools import assert_equal
+    from gc import get_referents
 
-def mem_per_structure(N):
-  import gc
-  from os import getpid
-  from pylada.crystal.cppwrappers import Structure
-  id = getpid()
-  gc.set_debug(gc.DEBUG_OBJECTS | gc.DEBUG_UNCOLLECTABLE)
-  startmem = get_mem(id)
-  a = []
-  for i in range(N):
-    a.append(mklist(Structure, N))
-  mem = float(get_mem(id) - startmem)
-  del a
-  gc.collect()
-  assert mem > 0 # otherwise, test would be invalid.
-  return mem
+    structure = get_a_structure(Class)
+    actual = set([id(u) for u in get_referents(structure)])
+    expected = set(
+        [id(structure.__dict__), id(structure.scale)]
+        + [id(atom) for atom in structure]
+    )
+    if Class is not Structure: expected.add(id(Class))
+    assert_equal(actual, expected)
 
-mem = mem_per_structure(10)
-parameters = [(Structure, 10, mem), (StructureSubclass, 10, mem)]
 
-@parameterized(parameters)
-def test_memory(Class, N, mem_per_structure): 
-  import gc
-  from os import getpid
-  gc.set_debug(gc.DEBUG_OBJECTS | gc.DEBUG_UNCOLLECTABLE)
+@parameterized(structure_classes)
+def test_garbage_collect_nocycle(Class):
+    from nose.tools import assert_in, assert_not_in
+    import gc
 
-  id = getpid()
+    structure = get_a_structure(Class)
+    atom_ids = [id(u) for u in structure]
+    structure_id = id(structure)
+    scale_id = id(structure.scale)
 
-  startmem = get_mem(id)
-  for i in range(N*5): 
-    a, b = mklist(Class, N)
-    # do deletion here, otherwise python might allocate extra memory to store our
-    # objects, and the test would fail for reasons other than garbage collection.
-    del a
-    del b
+    for this_id in atom_ids + [structure_id, scale_id]:
+        assert_in(this_id, [id(u) for u in gc.get_objects()])
+
+    # Deletes atom and collect garbage
+    # atom should then be truly destroyed, e.g. neither tracked nor in
+    # unreachables.
+    del structure
     gc.collect()
-  mem2 = float(get_mem(id) - startmem)
-  assert mem2 < mem_per_structure / 10.0
-  assert len(gc.garbage) == 0
+    for this_id in atom_ids + [structure_id, scale_id]:
+        assert_not_in(this_id, [id(u) for u in gc.get_objects()])
+        assert_not_in(this_id, [id(u) for u in gc.garbage])
+
+
+@parameterized(structure_classes)
+def test_garbage_collect_cycle(Class):
+    from nose.tools import assert_not_in, assert_in
+    import gc
+
+    structure = get_a_structure(Class)
+    atom_ids = [id(u) for u in structure]
+    structure_id = id(structure)
+    scale_id = id(structure.scale)
+    # add a cycle
+    structure.parent_structure = structure
+
+    for this_id in atom_ids + [structure_id, scale_id]:
+        assert_in(this_id, [id(u) for u in gc.get_objects()])
+    assert_in(
+        structure_id,
+        [id(u) for u in gc.get_referents(structure.__dict__)]
+    )
+
+    # Deletes atom and collect garbage
+    # structure should then be truly destroyed, e.g. neither tracked nor in
+    # unreachables.
+    del structure
+    gc.collect()
+    for this_id in atom_ids + [structure_id, scale_id]:
+        assert_not_in(this_id, [id(u) for u in gc.get_objects()])
+        assert_not_in(this_id, [id(u) for u in gc.garbage])

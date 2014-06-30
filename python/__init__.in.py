@@ -2,31 +2,35 @@
 #  This file is part of PyLaDa.
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
-# 
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
-# 
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
-# 
-#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-#  Public License for more details.
-# 
-#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
-#  <http://www.gnu.org/licenses/>.
+#
+#  PyLaDa is a high throughput computational platform for Physics. It aims to
+#  make it easier to submit large numbers of jobs on supercomputers. It
+#  provides a python interface to physical input, such as crystal structures,
+#  as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs.
+#  It is able to organise and launch computational jobs on PBS and SLURM.
+#
+#  PyLaDa is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later
+#  version.
+#
+#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+#  FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+#  details.
+#
+#  You should have received a copy of the GNU General Public License along with
+#  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-""" Root of all pylada python packages and modules. 
+""" Root of all pylada python packages and modules.
 
     Configuration variables exist here. However, they are added within separate
     files. Which files will depend upon the user.
 
        - Files located in the config sub-directory where pylada is installed
-       - Files located in one of the directories specified by :envvar:`PYLADA_CONFIG_DIR`
+       - Files located in one of the directories specified by
+         :envvar:`PYLADA_CONFIG_DIR`
        - In the user configuration file ~/.pylada
 
     The files are read in that order. Within a given directory, files are read
@@ -36,9 +40,11 @@
 
     .. envvar:: PYLADA_CONFIG_DIR
 
-       Environment variable specifying the path(s) to the configuration directories.
-    
-    For which variables can be set (and, if relevant, which file) see pylada.config.
+       Environment variable specifying the path(s) to the configuration
+       directories.
+
+    For which variables can be set (and, if relevant, which file) see
+    pylada.config.
 """
 __docformat__ = "restructuredtext en"
 __all__ = [
@@ -46,7 +52,7 @@ __all__ = [
         "error", @which_packages@
 ]
 import error
-import physics 
+import physics
 from ipython import load_ipython_extension, unload_ipython_extension
 
 version_info = (@Pylada_VERSION_MAJOR@, @Pylada_VERSION_MINOR@)
@@ -74,7 +80,7 @@ def _config_files(dointeractive=False):
     execfile(filename, global_dict, local_dict)
 
   # then configuration files installed in a global config directory.
-  if "PYLADA_CONFIG_DIR" in environ: 
+  if "PYLADA_CONFIG_DIR" in environ:
     for directory in environ["PYLADA_CONFIG_DIR"].split(':'):
       for filename in iglob(join(directory, pattern)):
         if dointeractive == False and filename[:4] == 'ipy_': continue
@@ -87,3 +93,21 @@ def _config_files(dointeractive=False):
 
 # does actual config call.
 locals().update((k, v) for k, v in _config_files().iteritems() if k[0] != '_')
+
+# Add a function to easily run the tests
+try:
+    from nose.tools import nottest
+except ImportError: pass
+else:
+    # Make sure this function is not run by nosetest, to avoid infinit
+    # recursion
+    @nottest
+    def test(**kwargs):
+        """ Run all pylada nose tests
+
+            Does not include some C++ only tests, nor tests that require
+            external programs such as vasp. Those should be run via ctest.
+        """
+        from os.path import dirname
+        from nose import runmodule
+        return runmodule(dirname(__file__), **kwargs)
