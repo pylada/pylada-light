@@ -17,5 +17,5 @@ install:
 script:
   - make
   - ctest .. -V
-  - pip install git+https://github.com/pylada/pylada-light.git@${TRAVIS_COMMIT}
+  - pip install --user git+https://github.com/pylada/pylada-light.git@${TRAVIS_COMMIT}
   - python -c "import pylada; pylada.test()"
