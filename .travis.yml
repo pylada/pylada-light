@@ -5,11 +5,19 @@ compiler:
 python:
   - "2.6"
   - "2.7"
+os:
+  - linux
+  - osx
 before_install:
-  - sudo apt-get install build-essential
-  - sudo apt-get install gfortran
-  - sudo apt-get install python-scipy python-numpy
-  - sudo apt-get install libboost-all-dev
+  - [[ "${TRAVIS_OS_NAME}" == "linux" ]] && sudo apt-get install build-essential
+  - [[ "${TRAVIS_OS_NAME}" == "linux" ]] && sudo apt-get install gfortran
+  - [[ "${TRAVIS_OS_NAME}" == "linux" ]] && sudo apt-get install python-scipy python-numpy
+  - [[ "${TRAVIS_OS_NAME}" == "linux" ]] && sudo apt-get install libboost-all-dev
+  - [[ "${TRAVIS_OS_NAME}" == "osx" ]] && brew update
+  - [[ "${TRAVIS_OS_NAME}" == "osx" ]] && brew tap python
+  - [[ "${TRAVIS_OS_NAME}" == "osx" ]] && brew install gcc # adds gfortran
+  - [[ "${TRAVIS_OS_NAME}" == "osx" ]] && brew install scipy numpy
+  - [[ "${TRAVIS_OS_NAME}" == "osx" ]] && brew install boost
   - pip install --user ipython
   - pip install --user quantities
 install:
