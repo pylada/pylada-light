@@ -2,19 +2,11 @@ language: cpp
 compiler:
   - gcc
   - clang
-os:
-  - linux
-  - osx
 before_install:
-  - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then; sudo apt-get install build-essential; fi
-  - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then; sudo apt-get install gfortran; fi
-  - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then; sudo apt-get install python-scipy python-numpy; fi
-  - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then; sudo apt-get install libboost-all-dev; fi
-  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then; brew update; fi
-  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then; brew tap python; fi
-  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then; brew install gcc; fi# adds gfortran
-  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then; brew install scipy numpy; fi
-  - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then; brew install boost; fi
+  - sudo apt-get install build-essential
+  - sudo apt-get install gfortran
+  - sudo apt-get install python-scipy python-numpy
+  - sudo apt-get install libboost-all-dev
   - pip install --user ipython
   - pip install --user quantities
 install:
