@@ -2,9 +2,6 @@ language: cpp
 compiler:
   - gcc
   - clang
-python:
-  - "2.6"
-  - "2.7"
 before_install:
   - sudo apt-get install build-essential
   - sudo apt-get install gfortran
@@ -20,3 +17,5 @@ install:
 script:
   - make
   - ctest .. -V
+  - pip install --user git+https://github.com/pylada/pylada-light.git@${TRAVIS_COMMIT}
+  - python -c "import pylada; pylada.test()"
