@@ -18,7 +18,7 @@ Installation
 There are currently two pre-requisites:
 
 - `CMake <http://www.cmake.org/>`__, a cross-platform build system
-- `git <http://git-scm.com/`, a distributed version control system
+- `git <http://git-scm.com/>`__, a distributed version control system
 
 Both are generally available on Linux and OS/X (via `homebrew <http://brew.sh/>`__ for instance). 
 
