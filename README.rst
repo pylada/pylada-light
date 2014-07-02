@@ -43,7 +43,7 @@ The simplest approach is to install via
 
         mkvirtualenv --system-site-packages pylada
         source pylada/bin/activate
-        pip install --user git+https://github.com/pylada/pylada-light
+        pip install git+https://github.com/pylada/pylada-light
     
     This last approach is recommended since it keeps the pylada environment
     isolated from the rest of the system. Susbsequently, this environment can
