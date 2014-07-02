@@ -15,6 +15,13 @@ Constructed by Peter Graf from Mayeul d'Avezac's pylada
 Installation
 ------------
 
+There are currently two pre-requisites:
+
+- `CMake <http://www.cmake.org/>`__, a cross-platform build system
+- `git <http://git-scm.com/`, a distributed version control system
+
+Both are generally available on Linux and OS/X (via `homebrew <http://brew.sh/>`__ for instance). 
+
 The simplest approach is to install via
 `pip <https://pip.pypa.io/en/latest/>`__:
 
@@ -62,11 +69,11 @@ In either case, the source should first be obtained from the github repo.
         make
         make test
 
-     The usual cmake options apply. In order to facilitate debugging, a script
-     :bash:`localpython.sh` exists in the build directory to a run a python
-     session that will know where to find the pylada package that is being
-     developped.  For instance :bash:`./localpython.sh -m IPython` will launch
-     an ipython session where the current pylada can be imported.
+    The usual cmake options apply. In order to facilitate debugging, a script
+    :bash:`localpython.sh` exists in the build directory to a run a python
+    session that will know where to find the pylada package that is being
+    developped.  For instance :bash:`./localpython.sh -m IPython` will launch
+    an ipython session where the current pylada can be imported.
 
 
 - pip develop
