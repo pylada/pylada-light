@@ -22,7 +22,8 @@
 
 """ Point-defect helper functions. """
 __docformat__ = "restructuredtext en"
-__all__ = [ 'inequivalent_sites', 'vacancy', 'substitution', 'charged_states', \
+__all__ = [ 'symmetrically_inequivalent_sites', 'coordination_inequivalent_sites', \
+            'vacancy', 'substitution', 'charged_states', \
             'band_filling', 'potential_alignment', 'charge_corrections', \
             'magmom', 'low_spin_states', 'high_spin_states', 'magname'] #, \
 #           'ExtractSingle', 'ExtractMaterial' ]
@@ -50,6 +51,7 @@ def symmetrically_inequivalent_sites(lattice, type):
 
       :return: indices of inequivalent sites.
   """
+  from numpy import dot
   from numpy.linalg import inv, norm
   from pylada.crystal import into_cell, space_group, primitive
 
@@ -64,7 +66,7 @@ def symmetrically_inequivalent_sites(lattice, type):
   while i < len(sites):
     # iterates over symmetry operations.
     for op in space_group(primitive(lattice)):
-      pos = op(site.pos) # Haowei site = ? 
+      pos = dot(op[:3], site.pos) + op[3] 
       # finds index of transformed position, using translation quivalents.
       for t, other in enumerate(sites):
         if norm(into_cell(pos, lattice.cell, invcell)) < 1e-12:
@@ -481,7 +483,7 @@ def explore_defect(defect, host, **kwargs):
   from pylada.crystal.defects import reindex_sites
   from pylada.crystal import supercell
   
-  dstr = defect.structure.deepcopy()
+  dstr = deepcopy(defect.structure)
   hstr = host.structure
   reindex_sites(dstr, hstr, **kwargs)
 
@@ -541,7 +543,6 @@ def potential_alignment(defect, host, maxdiff=None, first_shell=False, tolerance
   from numpy import abs, array, mean, any
   from quantities import eV
   from . import reindex_sites, first_shell as ffirst_shell
-  from pylada.crystal import structure_to_lattice
 
   dstr = defect.structure
   hstr = host.structure
@@ -565,7 +566,7 @@ def potential_alignment(defect, host, maxdiff=None, first_shell=False, tolerance
   if maxdiff != None and maxdiff > 0.0:
     # directly compare the atomic site between the host and defect cell/supercell
     diff_dh = [ (0.0 * eV if not ok else abs(e - host.electropot[a.site]).rescale(eV)) \
-         for e, a, ok in zip(defect.electropot, dstr.atoms, acceptable) ]
+         for e, a, ok in zip(defect.electropot, dstr, acceptable) ]
   
     for ixx in range(len(acceptable)):
       if acceptable[ixx] == False: pass
@@ -577,7 +578,7 @@ def potential_alignment(defect, host, maxdiff=None, first_shell=False, tolerance
     # return to the default one, which accept all the atomic sites except the defect sites
     acceptable = list(raw_acceptable) 
 
-  iterable = zip(defect.electropot, dstr.atoms, acceptable)
+  iterable = zip(defect.electropot, dstr, acceptable)
 
   return mean([ (e - host.electropot[a.site]).rescale(eV).magnitude\
                 for e, a, ok in iterable if ok ]) * eV
@@ -665,16 +666,15 @@ def first_order_charge_correction(structure, charge=None, epsilon=1e0, cutoff=20
   elif charge == 0: return 0e0 * eV
   if hasattr(charge, "units"): charge = float(charge.rescale(elementary_charge))
 
-  charges["A"] = charge
   ewald_cutoff = cutoff * Ry
 
   struc = Structure()
   struc.cell = structure.cell
   struc.scale = structure.scale
-  struc.add_atom = ((0e0,0,0), "A")
+  struc.add_atom(0e0, 0, 0, "A", charge=charge)
 
-  result = ewald(struc, charges, ewald_cutoff) / epsilon
-  return -result * eV
+  result = ewald(struc, ewald_cutoff).energy / epsilon
+  return -result.rescale(eV)
 
 def charge_corrections(structure, **kwargs):
   """ Electrostatic charge correction (first and third order). 
@@ -977,14 +977,20 @@ def reindex_sites(structure, lattice, tolerance=0.5):
   # haowei: should not change lattice
   lat = deepcopy(lattice)
   # first give a natural index for the sites in lattice
-  for i, a in lat:  a.site = i  
+  for i, a in enumerate(lat):  a.site = i  
   # in the supercell, each atom carry the site from the lat above, and will goes into the neighs
   lat = supercell(lattice=lat, supercell=structure.cell)
   for atom in structure:
-    neighs = [n for n in neighbors(lattice, 2, atom.pos)]
+    neighs_in_str = [n for n in neighbors(structure, 1, atom.pos)]
+    d = neighs_in_str[0][2]
+    # if two atoms from structure and lattice have exactly the same coordination
+    # and hence dist = 0, it will be neglected by neighbors
+    # add 1E-6 to atom.pos to avoid this, but aparrently this is not a perfect solution, Haowei
+    neighs = [n for n in neighbors(lat, 2, atom.pos+1E-6)]
     assert abs(neighs[1][2]) > 1e-12,\
            RuntimeError('Found two sites occupying the same position.')
-    if neighs[0][2]*lat.scale > tolerance: atom.site = -1
+    if neighs[0][2]*lat.scale > tolerance*d: 
+      atom.site = -1
     else: 
       atom.site = neighs[0][0].site
 
