@@ -319,7 +319,7 @@ class Algo(ValueKeyword):
     lower = lower.replace('-', '')
     if is_vasp_4                                                               \
        and ( lower[0] in ['c', 's', 'e']                                       \
-             or lower in [ "nothing", "subrot", "exact", "diag"                \
+             or lower in [ "nothing", "subrot", "exact", "diag",               \
                            "gw", "gw0", "chi", "scgw",                         \
                            "scgw0"] ): 
       raise ValueError("algo value ({0}) is not valid with VASP 4.6.".format(value))
