@@ -47,6 +47,7 @@ def test_algo_keyword():
       'Damped': ['damped', 'd'],
       'Diag': ['diag'],
       'All': ['all', 'a'],
+      'None': ['none'],
       'Nothing': ['nothing'],
       'chi': ['chi'],
       'GW': ['gw'],
