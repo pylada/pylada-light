@@ -167,16 +167,16 @@ Creating the documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This documentation is generated using sphinx_. Assuming that python can
-find the Pylada installation, the documentation can be generated with:
+find the Pylada installation, the documentation can be generated (from the above `build` directory) with:
  
 .. code-block:: bash
 
-   > cd path/to/pylada/source
-   > cd sphinx-doc
-   > make html
+   > make documentation
 
-This will create a directory "build/html" with an "index.html" file. View
+This will create a directory "build/sphinx" with an "index.html" file. View
 it with your favorite browser and voilà!
+In order for links to the pylada source code to be included in the documentation, the ``PYTHONPATH``
+must point to the installed pylada source. 
 
 
 .. note::
