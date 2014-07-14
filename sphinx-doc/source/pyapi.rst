@@ -19,4 +19,3 @@ Contents:
 
     pylada.vasp <pyapi/vasp>
 
-    pylada.dftcrystal <pyapi/dftcrystal>

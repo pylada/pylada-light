@@ -9,7 +9,9 @@ Contents:
 
    Superlattices <examples/superlattice>
 
-   Enthalpies of Formation  <examples/deltah>
+   Surfaces <examples/surfaces>
+
+   Total energy calculations  <examples/deltah>
 
    GW calculations <examples/gw>
 

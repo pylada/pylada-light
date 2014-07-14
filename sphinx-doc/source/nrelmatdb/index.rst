@@ -3,6 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. currentmodule:: pylada
+
+NRELMatDB database builder pipeline
+***********************************
+
 .. graphviz::
 
 
@@ -109,12 +114,5 @@
    wrapUpload.py: Locate, extract, and upload results to the server running wrapReceive. <wrapUpload>
 
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 
 
