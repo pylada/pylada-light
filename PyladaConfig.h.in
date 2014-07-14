@@ -5,10 +5,10 @@
 //! \macro Redefines offsetof to avoid warnings on mac about non-podness.
 #define LADA_OFFSETOF(s, m) offsetof(s, m)
 // #define LADA_OFFSETOF(s, m) ((size_t)((((char *)&(((s *)1)->m)) - 1)))
-#cmakedefine NUMPY_HAS_LONG_DOUBLE 
-#cmakedefine NUMPY_HAS_BOOL
+#cmakedefine NUMPY_NPY_LONG_DOUBLE 
+#cmakedefine NUMPY_NPY_BOOL
 #cmakedefine PYLADA_WITH_EIGEN3 
-#cmakedefine LADA_NPY_NEWDEFS
-#cmakedefine LADA_NPY_HAS_ENABLEFLAGS
+#cmakedefine NUMPY_NPY_ARRAY
+#cmakedefine NUMPY_NPY_ENABLEFLAGS
 #cmakedefine NUMPY_VERSION_MAJOR @NUMPY_VERSION_MAJOR@
 #cmakedefine NUMPY_VERSION_MINOR @NUMPY_VERSION_MINOR@

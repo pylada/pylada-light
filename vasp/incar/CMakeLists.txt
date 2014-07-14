@@ -19,10 +19,5 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
-set(PYVASPINCAR_PY __init__.py   _params.py)
-install(FILES ${PYVASPINCAR_PY} DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/vasp/incar)
-
-if(compile_tests OR compile_debug_tests)
-  add_subdirectory(tests)
-endif(compile_tests OR compile_debug_tests)
+add_python_module("pylada.vasp.incar" PYFILES "*.py")
+add_subdirectory(tests)

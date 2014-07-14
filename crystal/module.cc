@@ -24,9 +24,7 @@
 
 #include <Python.h>
 
-//PG
 #include <python/include_numpy.h>
-//#include <numpy/arrayobject.h>
 
 #include <cmath>
 #include <iterator> 

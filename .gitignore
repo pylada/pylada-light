@@ -1,0 +1,9 @@
+bin/
+lib/
+data/test/
+*.pyc
+.*.sw[p, o]
+*.egg*
+*build*/
+pkg_install/
+dist/

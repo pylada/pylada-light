@@ -19,9 +19,6 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
-install( FILES __init__.py json.py extract.py makeclass.py uirepr.py 
-         DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/tools )
-
+add_python_module("pylada.tools" PYFILES "*.py")
 add_subdirectory(input)
 add_subdirectory(tests)

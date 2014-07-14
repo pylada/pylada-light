@@ -34,7 +34,7 @@
     PyObject *weakreflist;
     //! Holds python attribute dictionary.
     PyObject *pydict;
-    //! Holds python attribute dictionary.
+    //! Holds scale as python object
     PyObject *scale;
     //! The unit-cell of the structure in cartesian coordinate.
     math::rMatrix3d cell;

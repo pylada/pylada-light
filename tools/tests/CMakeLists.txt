@@ -20,8 +20,12 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-if(do_tests)
+if(tests)
 
-  add_test(functools_makeclass python ${CMAKE_CURRENT_SOURCE_DIR}/makeclass.py ${CMAKE_CURRENT_SOURCE_DIR})
+    add_nose_tests(test_*.py
+        INSTALL "pylada.tools.tests"  
+        LABELS tools
+    )
+    add_python_module("pylada.tools.tests" FAKE_INIT PYFILES dummy.py)
 
-endif(do_tests)
+endif(tests)

@@ -3,43 +3,24 @@
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
 # 
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
+#  PyLaDa is a high throughput computational platform for Physics. It aims to
+#  make it easier to submit large numbers of jobs on supercomputers. It
+#  provides a python interface to physical input, such as crystal structures,
+#  as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs.
+#  It is able to organise and launch computational jobs on PBS and SLURM.
 # 
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
+#  PyLaDa is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later
+#  version.
 # 
-#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-#  Public License for more details.
+#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+#  FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+#  details.
 # 
-#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
-#  <http://www.gnu.org/licenses/>.
-###############################
-
-###############################
-#  This file is part of PyLaDa.
-#
-#  Copyright (C) 2013 National Renewable Energy Lab
-# 
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
-# 
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
-# 
-#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-#  Public License for more details.
-# 
-#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
-#  <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License along with
+#  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
 class ExtractSingle(object): 
@@ -61,21 +42,26 @@ class ExtractSingle(object):
         line = file.next()
         regex = search( "pi to order (\d+) is approximately (\S+), "
                         "Error is (\S+) "\
-                        "\s*-- slept (\d+) seconds at each iteration -- "
+                        "\s*-- slept (\S+) seconds at each iteration -- "
                         "\s*mpi world size is (\d+)", line )
         if regex is None: return 
         self.order = int(regex.group(1))
         self.pi    = float(regex.group(2))
         self.error = float(regex.group(3))
-        self.sleep = int(regex.group(4))
+        self.sleep = float(regex.group(4))
         self.comm  = {'n': int(regex.group(5))}
   
         line = file.next()
+        if line[:line.find(':')].rstrip().lstrip() != 'sysname':
+            self.success = False
+            return
         self.system = line[line.find(':')+1:].rstrip().lstrip()
         line = file.next()
         self.nodename = line[line.find(':')+1:].rstrip().lstrip()
         line = file.next()
         self.release = line[line.find(':')+1:].rstrip().lstrip()
+        line = file.next()
+        self.compilation = line[line.find(':')+1:].rstrip().lstrip()
         line = file.next()
         self.version = line[line.find(':')+1:].rstrip().lstrip()
         line = file.next()
@@ -134,79 +120,46 @@ class ExtractMany(object):
 
 
 class Functional(object):
-  def __init__(self, program, order=4, sleep=0):
-    super(Functional, self).__init__()
-    self.program = program
-    self.order = order
-    self.sleep = sleep
+    def __init__(self, program, order=4, sleep=0, fail=None):
+        super(Functional, self).__init__()
+        self.program = program
+        self.order = order
+        self.sleep = sleep
+        assert fail in [None, "midway", "end"]
+        self.fail = fail
 
-  def iter(self, outdir=None, sleep=None, overwrite=False, comm=None):
-    from copy import deepcopy
-    from os.path import join
-    from pylada.process.program import ProgramProcess
-    from pylada.misc import RelativePath
-    self = deepcopy(self)
-    outdir = RelativePath(outdir).path
-    if sleep is not None: self.sleep = sleep
-    order = self.order if hasattr(self.order, '__iter__') else [self.order]
-    for o in order:
-      stdout = join(outdir, 'stdout{0}'.format(o))
-      stderr = join(outdir, 'stderr{0}'.format(o))
-      if overwrite == False: 
-        extract = ExtractSingle(stdout)
-        if extract.success:
-          yield extract
-          continue
-      yield ProgramProcess( self.program, cmdline=['--order', str(o), '--sleep', str(self.sleep)],
-                            outdir=outdir, stdout=stdout, stderr=stderr, dompi=True, comm=comm)
-  
-  def __call__(self, outdir=None, sleep=None, overwrite=False, comm=None):
-    from pylada.misc import RelativePath
-    outdir = RelativePath(outdir).path
-    for program in self.iter(outdir, sleep, overwrite):
-      if getattr(program, 'success', False) == False:
-        program.start(comm)
-        program.wait()
-    return self.Extract(outdir)
-
-  def Extract(self, outdir):
-    order = self.order if hasattr(self.order, '__iter__') else [self.order]
-    return ExtractMany(outdir, order=order) 
-
-class SerialFunctional(object):
-  def __init__(self, program, order=4, sleep=0):
-    super(SerialFunctional, self).__init__()
-    self.program = program
-    self.order = order
-    self.sleep = sleep
-
-  def iter(self, outdir=None, sleep=None, overwrite=False, comm=None):
-    from copy import deepcopy
-    from os.path import join
-    from pylada.process.program import ProgramProcess
-    from pylada.misc import RelativePath
-    self = deepcopy(self)
-    outdir = RelativePath(outdir).path
-    if sleep is not None: self.sleep = sleep
-    stdout = join(outdir, 'stdout')
-    stderr = join(outdir, 'stderr')
-    if overwrite == False: 
-      extract = ExtractSingle(stdout)
-      if extract.success:
-        yield extract
-        return
-    yield ProgramProcess( self.program, cmdline=['--order', str(self.order), '--sleep', str(self.sleep)],
-                            outdir=outdir, stdout=stdout, stderr=stderr, dompi=False, comm=comm)
-  
-  def __call__(self, outdir=None, sleep=None, overwrite=False, comm=None):
-    from pylada.misc import RelativePath
-    outdir = RelativePath(outdir).path
-    for program in self.iter(outdir, sleep, overwrite):
-      if getattr(program, 'success', False) == False:
-        program.start(comm)
-        program.wait()
-    return self.Extract(outdir)
-
-  def Extract(self, outdir):
-    from os.path import join
-    return ExtractSingle(join(outdir, 'stdout'))
+    def iter(self, outdir=None, sleep=None, overwrite=False, comm=None):
+        from copy import deepcopy
+        from os.path import join
+        from pylada.process.program import ProgramProcess
+        from pylada.misc import RelativePath
+        self = deepcopy(self)
+        outdir = RelativePath(outdir).path
+        if sleep is not None: self.sleep = sleep
+        order = self.order if hasattr(self.order, '__iter__') else [self.order]
+        for o in order:
+          stdout = join(outdir, 'stdout{0}'.format(o))
+          stderr = join(outdir, 'stderr{0}'.format(o))
+          if overwrite == False: 
+            extract = ExtractSingle(stdout)
+            if extract.success:
+              yield extract
+              continue
+          cmdline = ['--order', str(o), '--sleep', str(self.sleep)]
+          if self.fail == 'midway': cmdline.append('--fail-mid-call')
+          elif self.fail == 'end': cmdline.append('--fail-at-end')
+          yield ProgramProcess(self.program, cmdline=cmdline, outdir=outdir,
+                  stdout=stdout, stderr=stderr, dompi=True, comm=comm)
+      
+    def __call__(self, outdir=None, sleep=None, overwrite=False, comm=None):
+      from pylada.misc import RelativePath
+      outdir = RelativePath(outdir).path
+      for program in self.iter(outdir, sleep, overwrite):
+        if getattr(program, 'success', False) == False:
+          program.start(comm)
+          program.wait()
+      return self.Extract(outdir)
+ 
+    def Extract(self, outdir):
+      order = self.order if hasattr(self.order, '__iter__') else [self.order]
+      return ExtractMany(outdir, order=order) 

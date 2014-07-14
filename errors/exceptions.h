@@ -58,9 +58,9 @@ namespace Pylada
     //! \def PYLADA_PYERROR(EXCEPTION, MESSAGE)
     //!      Raises a python exception with the interpreter, but no c++ exception.
     //!      EXCEPTION should be an unqualified declared in python/exceptions.h.
-#   define PYLADA_PYERROR(EXCEPTION, MESSAGE)                                       \
+#   define PYLADA_PYERROR(EXCEPTION, MESSAGE)                                     \
       {                                                                           \
-        PyObject* err_module = PyImport_ImportModule("pylada.error");               \
+        PyObject* err_module = PyImport_ImportModule("pylada.error");             \
         if(err_module)                                                            \
         {                                                                         \
           PyObject *err_result = PyObject_GetAttrString(err_module, #EXCEPTION);  \
@@ -73,19 +73,18 @@ namespace Pylada
           }                                                                       \
         }                                                                         \
       }
-#   define PYLADA_PYTHROW(EXCEPTION, MESSAGE)                                       \
-      {                                                                           \
-        PYLADA_PYERROR(EXCEPTION, MESSAGE);                                         \
-        BOOST_THROW_EXCEPTION(error::EXCEPTION());      \
+#   define PYLADA_PYTHROW(EXCEPTION, MESSAGE) {     \
+        PYLADA_PYERROR(EXCEPTION, MESSAGE);         \
+        BOOST_THROW_EXCEPTION(error::EXCEPTION());  \
       }
 
     //! \def PYLADA_PYERROR(EXCEPTION, MESSAGE)
     //!      Raises a python exception with a formatted message, but no c++ exception.
     //!      For formatting, see PyErr_Format from the python C API.
     //!      EXCEPTION should be an unqualified declared in python/exceptions.h.
-#   define PYLADA_PYERROR_FORMAT(EXCEPTION, MESSAGE, OTHER) \
+#   define PYLADA_PYERROR_FORMAT(EXCEPTION, MESSAGE, OTHER)                       \
       {                                                                           \
-        PyObject* err_module = PyImport_ImportModule("pylada.error");               \
+        PyObject* err_module = PyImport_ImportModule("pylada.error");             \
         if(err_module)                                                            \
         {                                                                         \
           PyObject *err_result = PyObject_GetAttrString(err_module, #EXCEPTION);  \

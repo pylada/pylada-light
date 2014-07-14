@@ -3,21 +3,24 @@
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
 # 
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
+#  PyLaDa is a high throughput computational platform for Physics. It aims to
+#  make it easier to submit large numbers of jobs on supercomputers. It
+#  provides a python interface to physical input, such as crystal structures,
+#  as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs.
+#  It is able to organise and launch computational jobs on PBS and SLURM.
 # 
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
+#  PyLaDa is free software: you can redistribute it and/or modify it under the
+#  terms of the GNU General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later
+#  version.
 # 
-#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-#  Public License for more details.
+#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY
+#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+#  FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+#  details.
 # 
-#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
-#  <http://www.gnu.org/licenses/>.
+#  You should have received a copy of the GNU General Public License along with
+#  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
 from abc import ABCMeta, abstractmethod
@@ -28,14 +31,15 @@ class Process(object):
       This class defines the interface for processes. Derived classes should
       overload :py:meth:`start`, :py:meth:`poll`, and :py:meth:`wait`. The
       first is called to actually launch the sub-process (for instance, an
-      actual call to vasp in :py:class:`~pylada.process.program.ProgramProcess`).
-      It receives a dictionary or :py:class:`Communicator` instance with a
-      description of how the process should be launched, eg the number of
-      processors, nodes, and so forth. At this point, an external child program
-      will generally be running. The second function, :py:meth:`poll`, is
-      called to check whether the sub-process, say VASP, is still running. It
-      returns True if the process is finished. The last function is equivalent
-      to calling :py:meth:`poll` until it returns True.
+      actual call to vasp in
+      :py:class:`~pylada.process.program.ProgramProcess`).  It receives a
+      dictionary or :py:class:`Communicator` instance with a description of how
+      the process should be launched, eg the number of processors, nodes, and
+      so forth. At this point, an external child program will generally be
+      running. The second function, :py:meth:`poll`, is called to check whether
+      the sub-process, say VASP, is still running. It returns True if the
+      process is finished. The last function is equivalent to calling
+      :py:meth:`poll` until it returns True.
 
       Futhermore, a process can be :py:meth:`terminated <terminate>`,
       :py:meth:`killed <kill>` and :py:meth:`cleaned up <_cleanup>`.

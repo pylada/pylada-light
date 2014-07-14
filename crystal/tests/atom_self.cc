@@ -29,19 +29,20 @@
 using namespace Pylada::crystal;
 PyObject* get_static_object(PyObject* _module, PyObject*)
 { 
-  Pylada::python::Object module = PyImport_ImportModule("_atom_self");
+  Pylada::python::Object module
+      = PyImport_ImportModule("pylada.crystal.tests.atom_self");
   if(not module) return NULL;
   PyObject *result = PyObject_GetAttrString(module.borrowed(), "_atom");
   return result;
 }
 PyObject* set_static_object(PyObject* _module, PyObject *_object)
 {
-  if(not check_atom(_object))
-  {
+  if(not check_atom(_object)) {
     PYLADA_PYERROR(TypeError, "Wrong type.");
     return NULL;
   }
-  Pylada::python::Object module = PyImport_ImportModule("_atom_self");
+  Pylada::python::Object module
+      = PyImport_ImportModule("pylada.crystal.tests.atom_self");
   if(not module) return NULL;
   if( PyObject_SetAttrString(module.borrowed(), "_atom", _object) < 0) return NULL;
   Py_RETURN_NONE;
@@ -64,9 +65,9 @@ static PyMethodDef methods[] = {
 
 #undef PYLADA_DECLARE
 
-PyMODINIT_FUNC init_atom_self(void) 
+PyMODINIT_FUNC initatom_self(void) 
 {
-  PyObject* module = Py_InitModule("_atom_self", methods);
+  PyObject* module = Py_InitModule("atom_self", methods);
   if(not module) return; 
   if(not Pylada::python::import()) return;
   if(not Pylada::crystal::import()) return;
