@@ -31,6 +31,7 @@ __all__ = [ 'symmetrically_inequivalent_sites', 'coordination_inequivalent_sites
 #from extract import Single as ExtractSingle, Material as ExtractMaterial
 
 def symmetrically_inequivalent_sites(lattice, type):
+# Haowei, not tested, but seldomly used in practice
   """ Yields sites occupied by type which are inequivalent according to symmetry operations. 
   
       When creating a vacancy on, say, "O", or a substitution of "Al" by "Mg",
@@ -191,8 +192,12 @@ def non_interstitials(structure, indices, mods):
 def inequiv_non_interstitials(structure, lattice, type, mods, do_coords = True, tolerance=0.25):
   """ Loop over inequivalent non-interstitials. """
   if do_coords: type = type.split()[0]
-  inequivs = coordination_inequivalent_sites(lattice, type, tolerance) if do_coords \
-             else symmetrically_inequivalent_sites(lattice, type)
+  # which should I use? 
+  # this affect defect.index, and I prefer to that the defect.index is the index of the defect site in the supercell/structure
+  #inequivs = coordination_inequivalent_sites(lattice, type, tolerance) if do_coords \
+  #           else symmetrically_inequivalent_sites(lattice, type)
+  inequivs = coordination_inequivalent_sites(structure, type, tolerance) if do_coords \
+             else symmetrically_inequivalent_sites(structure, type)
   indices = []
   for i in inequivs:
     # finds first qualifying atom.
@@ -304,6 +309,7 @@ def any_defect(structure, lattice, type, subs, tolerance=0.25):
   if type is None or type.lower() in ['interstitial', 'interstitials', 'none']: 
     for result in interstitials(structure, lattice, subs): yield result
   # Old: looking for specific atoms.
+  # not used in practice. Haowei
   elif id_regex.match(type) is not None:
     # looks for atom to modify
     found = id_regex.match(type)

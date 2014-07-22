@@ -90,7 +90,7 @@ def poscar(structure, file='POSCAR', vasp5=None, substitute=None):
   for s in species: 
     for atom in structure:
       if atom.type != s: continue
-      string += "  {0[0]} {0[1]} {0[2]}"\
+      string += "  {0[0]:20.16f} {0[1]:20.16f} {0[2]:20.16f}"\
                 .format(dot(inv_cell, atom.pos).tolist()[0])
       freeze = getattr(atom, 'freeze', '')
       if selective_dynamics:

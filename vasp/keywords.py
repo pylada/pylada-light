@@ -431,7 +431,7 @@ class Ediffg(TypedKeyword):
     return super(Ediffg, self).__set__(instance, value)
 
 class EdiffgPerAtom(TypedKeyword):
-  """ Sets the relativeq energy convergence criteria for ionic relaxation.
+  """ Sets the relative energy convergence criteria for ionic relaxation.
 
       - if positive: EDIFFG_ is set to this value *times* the number of atoms
         in the structure. This means that the criteria is for the total energy per atom.
