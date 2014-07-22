@@ -17,12 +17,12 @@ Contents:
 
    Interface to VASP  <userguide/vasp>
 
-   Interface to CRYSTAL <userguide/dftcrystal>
-
    Organized high-thoughput calculations: job-folders <userguide/jobfolders>
 
    IPython high-throughput interface <userguide/ipython>
 
    NREL Mat DB database interface <nrelmatdb/index>
 
-   NREL Scheduler interface <nrelscheduler/schedMain>
+   NREL Scheduler interface <nrelscheduler/index>
+
+

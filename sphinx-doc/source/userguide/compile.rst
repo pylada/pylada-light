@@ -12,9 +12,8 @@ Requirements
 
 - Boost_: A set of high-performance C++ libraries. Most of these
   libraries contain only header files. Hence, they can be installed
-  rather easily. However, Pylada does require as many as two compiled
-  package: python, and the math package when compiling Pylada's Ewald
-  functional. PyLada uses the following header-only libraries: mpl,
+  rather easily. Pylada does not require any compiled boost.
+  PyLada uses the following header-only libraries: mpl,
   enable if, type traits, preprocessor, bind, ref, static assert,
   exceptions. Most Linux distributions will contain Boost in some rpm of
   deb package. It is often not available on supercomputers and will need
@@ -51,13 +50,6 @@ Requirements
   dependencies. This package will not likely to be found installed by
   default. It can be installed easily with easy_install_ or pip_.
 
-- Scipy_: It is only required to relax structures with the
-  :py:mod:`Valence Force Field <lada.vff>` functional. In that case,
-  version 0.11 or higher is required. A Python_ package for scientific
-  computing.  It is available on all Linux distributions. It is often
-  time available by default on supercomputers. If not, it can be
-  installed *via* easy_install_ or pip_. 
-
 - sphinx_: Only required to create the documentation. Can be installed
   *via* easy_install_ or pip_. 
 
@@ -79,40 +71,44 @@ On a unix machine
 ~~~~~~~~~~~~~~~~~
 
 The following assumes the required packages listed above are installed.
-It also assumes that the source code for Pylada has extracted to some
+It also assumes that the source code for Pylada has been extracted to some
 directory.
+
+The CMakeLists.txt file in the pylada root directory guides the build.  It contains mechanisms to search for several
+required tools and packages (e.g. location of your c++ compiler).
+Due to frequent failure of automatic library detection mechanisms, and/or your desire to customize the process 
+(e.g. install location), it is quite likely that some or all of the 
+following variables will need to be manually specified in a separate file, e.g. `myCmake-env.txt`: 
+
+     - CMAKE_INSTALL_PREFIX 
+     - CMAKE_CXX_COMPILER 
+     - CMAKE_C_COMPILER 
+     - CMAKE_Fortran_COMPILER 
+     - PYTHON_LIBRARY 
+     - EIGEN3_INCLUDE_DIR
+
+The syntax for such specifications is illustrated by the following example:
+
+.. code-block:: bash
+
+    SET(CMAKE_INSTALL_PREFIX "/Users/pgraf/root/mylada" CACHE STRING "prefix")
+    SET(CMAKE_CXX_COMPILER "g++-mp-4.5"  CACHE STRING "c++")
+    SET(CMAKE_C_COMPILER "gcc-mp-4.5"  CACHE STRING "c")
+    SET(CMAKE_Fortran_COMPILER "gfortran-mp-4.5"  CACHE STRING "fortran")
+    SET(PYTHON_LIBRARY  "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib"   CACHE STRING "pylib")
+    SET(EIGEN3_INCLUDE_DIR  "/Users/pgraf/opt/eigen3.1.2/"   CACHE STRING "eigen3")
+
+With such an auxilliary CMake file prepared (assuming it is `myCmake-env.txt` in the pylada root directory), 
+the following steps configure pylada for building:
 
 .. code-block:: bash
 
    > cd directory/with/pylada/source
    > mkdir build
    > cd build
-   > cmake ..
+   > cmake -C ../myCmake-env.txt ../
 
-The code above will create a directory where all compilation objects will
-be stored. It moves to that directory and runs cmake_ once. At this point
-we have a configured system. 
-
-To enable different Pylada sub-packages and to fine tune the configuration, do: 
-
-.. code-block:: bash
-
-   > ccmake ..
-
-This will load up a somewhat graphical interface to cmake. You can
-navigate using the down and up arrows, edit a line using [ENTER] (and the
-left/right arrows, [TAB], ...), search for specific term using [/]...
-
-It is recommended to set:
-
-  - CMAKE_BUILD_TYPE: Release
-  - CMAKE_INSTALL_PREFIX: /some/path/where/to/install/lada
-
-Pylada's subpackages (VASP_ wrapper, ipython_ interface,...) can be
-enabled using ``ccmake``.  Once you have modified the two variables
-above and chosen which sub-package to enable, hit [c] to configure, and
-then [g] to generate the resulting makefiles. You may need to hit [c] and
-[g] multiple times. Eventually, it will drop you to the bash prompt. 
+After this configuration is done, it is time to build and install pylada:
 
 .. code-block:: bash
 
@@ -121,8 +117,7 @@ then [g] to generate the resulting makefiles. You may need to hit [c] and
 
 The last two lines should see you through the installation.
 
-
-.. warning:
+.. warning::
 
   cmake_ and Python_ don't always interact well. You may want to do the
   following:
@@ -140,7 +135,8 @@ The last two lines should see you through the installation.
 Checking your installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In a python shell, try importing `pylada`:
+Be sure to adjust your ``PYTHONPATH`` environment variable to include the location you installed pylada.
+Then, in a python shell, try importing pylada:
 
 >>> import pylada
 
@@ -155,30 +151,32 @@ Once the above works:
 
 .. code-block:: bash
 
-   > cd path/to/pylad/source
+   > cd path/to/pylada/source
    > cd build
    > make test
 
 This will run Pylada's unit-tests.  It may take some time. Hopefully,
-most tests will run. Note that some tests for VASP_, CRYSTAL_, and such,
-will require that Pylada be configure first, e.g., told how to find the
+most tests will run. Note that some tests for VASP_ and such
+will require that Pylada be configured first, e.g., told how to find the
 relevant programs.
 
+Beyond this base installation, there are additional steps required to get pylada working with VASP_,
+with your batch queueing system, and with IPython.  Please see :ref:`Setting up Pylada <configuration_ug>`
 
 Creating the documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This documentation is generated using sphinx_. Assuming that python can
-find the Pylada installation, the documentation can be generated with:
+find the Pylada installation, the documentation can be generated (from the above `build` directory) with:
  
 .. code-block:: bash
 
-   > cd path/to/pylada/source
-   > cd sphinx-doc
-   > make html
+   > make documentation
 
-This will create a directory "build/html" with an "index.html" file. View
+This will create a directory "build/sphinx" with an "index.html" file. View
 it with your favorite browser and voilà!
+In order for links to the pylada source code to be included in the documentation, the ``PYTHONPATH``
+must point to the installed pylada source. 
 
 
 .. note::

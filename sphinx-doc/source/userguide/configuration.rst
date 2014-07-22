@@ -3,14 +3,16 @@
 Setting up Pylada
 *****************
 
-Pylada accepts a range of configuration files:
+Pylada accepts a range of python configuration files:
 
  1. Files located in the ''config'' sub-directory where Pylada is installed
  2. Files located in one of the directories specified by :envvar:`PYLADA_CONFIG_DIR`
  3. In the user configuration file ''~/.pylada''
 
-Each file is executed and whatever is declared within is placed directly at
-the root of the pylada package. The files are read in the order given
+*Every* python file in these locations, regardless of its name,  is executed and *whatever* is declared within is placed directly at
+the root of the pylada package.  For example if you define ``my_var = 7`` in ''~/.pylada'', then when you import
+pylada, ``pylada.my_var`` will be defined and equal 7.
+The files are read in the order given
 above. Within a given directory, files are read alphabetically. Later files
 will override previous files, e.g. ''~/.pylada'' will override any
 configuration done previously.
@@ -19,11 +21,30 @@ Within an  IPython session, or during an actual calculation, the
 configuration variables all reside at the root of the :py:mod:`pylada`
 package.
 
-..  The following files, located in the ''config'' subdirectory of the source
-..  tree, are examples of different configurations: 
-.. 
-..    - cx1.py: PBSpro + intel mpi
-..    - redmesa.py: SLURM + openmpi
+For example, the following files, located in the ''config'' subdirectory of the source
+tree, are examples of different configurations: 
+ 
+    - cx1.py: PBSpro + intel mpi
+    - redmesa.py: SLURM + openmpi
+
+These files define variables, for example, such as 'pbs_string', (a template string to be used in constructing 
+submissions to the PBS batch queueing system (see below, :ref:`configuration_pbs_ug`)) that are then available in the
+pylada global namespace (e.g., just :py:meth:`pylada.pbs_string`, not :py:meth:`pylada.config.pbs_string` or anything else).
+
+.. note::
+
+   The variables defined in these configurations files are critical for the proper functioning of pylada, especially its 
+   ability to interact with your batch queueing system.  There are defaults for all these variables, but if your jobs are
+   not running, it is likely that one of these variables/functions needs to be specifically customized for your system.  See below 
+   (:ref:`Setting up Pylada with PBS/Slurm <configuration_pbs_ug>`) for
+   details of the relevant variables.
+
+   **A strategy for debugging your pylada setup** 
+   Let pylada generate the input files for you via, e.g. :py:meth:`launch scattered`.  When your run 
+   fails, you will be left with a script that was submitted to your queueing system.  This script contains commands to run your job.  From
+   an interactive node, run and edit the commands in this script directly until they work.  Now submit the script.  Submit and edit the
+   script until it works. *Finally*, edit the pylada variables described here until they generate the script that works.  Pylada's default
+   parameters provie a *template* that you probably will need to adjust to suit your particular system.
 
 Setting up IPython
 ------------------
@@ -42,6 +63,8 @@ Another option is to load the extension dynamically for each ipython_ session:
 
 >>> load_ext pylada
 
+Please see :ref:`IPython high-throughput interface <ipython_ug>` for usage of the IPython_ interface.
+
 .. _configuration_single_mpi_ug:
 
 Running external programs
@@ -49,7 +72,8 @@ Running external programs
 
 It is unlikely that users will need to do anything here. However, it is
 possible to customize how external programs are launched by Pylada by
-redifining :py:meth:`pylada.launch_program`.
+redifining :py:meth:`pylada.launch_program`.  The default function launches external
+programs using python's ``Popen`` function
 
 .. _configuration_mpi_ug:
 
@@ -72,7 +96,7 @@ It can be set as:
 of arguments. However, two are required: "n", which is the number of
 processes, and "program", which is the commandline for the program to
 launch. The latter will be manufactured by Pylada internally. It is a
-placeholder at this point. The other reseverved keyword is "ppn", the
+placeholder at this point. The other reserved keyword is "ppn", the
 number of processes per node. It should only be used for that purpose.
 "placement" is useful when running MPI codes side-by-side. Please see below
 for extra setup steps required in that case.
@@ -80,196 +104,22 @@ for extra setup steps required in that case.
 The keywords in :py:data:`pylada.mpirun_exe` should be defined in
 :py:data:`pylada.default_comm`. This is a dictionary which holds default
 values for the different keywords. The dictionary may hold more keywords
-than are present in :py:data:`pylada.mpirun_exe`. The converse is not true. It could be for instance:
+than are present in :py:data:`pylada.mpirun_exe`. The converse is not true (all keys in :py:data:`pylada.mpirun_exe`
+*must* be defined). It could be, for instance:
 
 .. code-block:: python
 
   default_comm = {'n': 2, 'ppn': 4, 'placement': ''}
 
-Running different MPI calculations side-by-side
------------------------------------------------
-
-.. currentmodule:: pylada
-
-It is often possible to run calculations side-by-side. One can request 64
-processors from a supercomputer and run two VASP_ calculations
-simultaneously in the same PBS job. There are a fair number of steps to get this part of Pylada running: 
-
-  1. Set up Pylada to run a single MPI programming as described above
-  2. Set the environment variable :py:data:`do_multiple_mpi_programs` to
-     True.
-  3. Set up :py:data:`figure_out_machines`. This is a string which contains
-     a small python script. Pylada runs this python script at the start of
-     a PBS/Slurm job to figure out the hostnames of each machine allocated
-     to the job. For each *core*, the script should print out a line
-     starting with "PYLADA MACHINE HOSTNAME". It will be launched as an MPI
-     program on all available cores. By default, it is the following simple
-     program:
-
-     .. code-block:: python
-
-         from socket import gethostname
-         from mpi import gather, world
-         hostname = gethostname()
-         results = gather(world, hostname, 0)
-         if world.rank == 0:
-           for hostname in results:
-             print "PYLADA MACHINE HOSTNAME:", hostname
-         world.barrier()
-
-     .. note::
-       
-        This is one of two places where boost.mpi is used. By replacing
-        this function with, say, call mpi4py methods, one could remove the
-        boost.mpi in Pylada for most use cases. 
-
-     It is important that this function prints out to the standard output
-     one line per core (not one line per machine).
-
-     The script is launched by
-     :py:meth:`pylada.process.mpi.create_global_comm`.
-  4. The names of the machines determined in the previous step are stored
-     in :py:data:`default_comm`'s
-     :py:attr:`pylada.process.mpi.Communicator.machines` attribute. This is
-     simply a dictionary mapping the hostnames determined previously to the
-     number of cores. It is possible, however, to modify
-     :py:data:`default_comm` after the :py:data:`figure_out_machines`
-     script is launched and the results parsed. This is done via the method
-     :py:meth:`modify_global_comm`. This method takes a
-     :py:class:`pylada.process.mpi.Communicator` instance on input and
-     modifes it in-place. By default, this method does nothing.
-
-     On a cray, one could set it up as follows:
-
-     .. code-block:: python
-
-        def modify_global_comm(comm):
-          """ Modifies global communicator to work on cray.
-      
-              Replaces hostnames with the host number. 
-          """ 
-          for key, value in comm.machines.items():
-            del comm.machines[key]
-            comm.machines[str(int(key[3:]))] = value
-
-     This would replace the hostnames with something aprun can use for MPI
-     placement. :py:meth:`modify_global_comm` is runned once at the
-     beginning of a Pylada PBS/Slurm script.
-
-  5. To test that the hostnames where determined correctly, one should copy
-     the file "process/tests/globalcomm.py" somewhere, edit it, and launch
-     it. The names of the machines should be printed out correctly, with
-     the right number of cores:
-
-     .. code-block:: bash
-
-       > cd testhere
-       > cp /path/to/pylada/source/process/tests/globalcomm.py
-       > vi globalcomm.py
-       # This is a PBS script.
-       # Modify it so it can be launched.
-       > qsub globalcomm.py
-       # Then, when it finishes:
-       > cat global_comm_out
-       EXPECTED N=64 PPN=32
-       FOUND
-       n 64
-       ppn 32
-       placement ""
-       MACHINES
-       PYLADA MACHINE HOSTNAME hector.006 32
-       PYLADA MACHINE HOSTNAME hector.006 32
-       ...
-
-
-     The above is an example output. One should try and launch this routine
-     on more than one node, with varying number of processes per node, and
-     so forth.
- 
-
-   6. At this point, Pylada knows the name of each machine participating in
-      a PBS/Slurm job. It still needs to be told how to run an MPI job on a
-      *subset* of these machines. This will depend on the actual MPI
-      implementation installed on the machine. Please first read the manual
-      for your machine's MPI implementation.
-
-      Pylada takes care of MPI placements by formatting the
-      :py:data:`mpirun_exe` string adequately. For this reason, it is
-      expected that :py:data:`mpirun_exe` contains a "{placement}" tag
-      which will be replaced with the correct value at runtime. 
-
-      At runtime, before placing the call to an external MPI program, the
-      method :py:meth:`pylada.machine_dependent_call_modifier` is called.
-      It takes three arguments: a dictionary with which to format the
-      :py:data:`mpirun_exe` string, a dictionary or
-      :py:data:`pylada.process.mpi.Communicator` instance containing
-      information relating to MPI, a dictionary containing the environment
-      variables in which to run the MPI program. The first and second
-      dictionary will be merged and used to format the
-      :py:data:`mpirun_exe` string. By default, this method creates a
-      nodefile with only those machines involved in the current job. It
-      then sets "placement" to "-machinefile filename" where filename is
-      the nodefile. 
-
-      On Crays, one could use the following:
-
-      .. code-block:: python 
-
-         def machine_dependent_call_modifier( formatter=None, 
-                                              comm=None, 
-                                              env=None ):
-           """ Placement modifications for aprun MPI processes. 
-              
-               aprun expects the machines (not cores) to be given on the
-               commandline as a list of "-Ln" with n the machine number.
-               """
-           from pylada import default_comm
-           if formatter is None: return
-           if len(getattr(comm, 'machines', [])) == 0: placement = ""
-           elif sum(comm.machines.itervalues()) == sum(default_comm.machines.itervalues()):
-             placement = ""
-           else:
-             l = [m for m, v in comm.machines.iteritems() if v > 0]
-             placement = "-L{0}".format(','.join(l))
-           formatter['placement'] = placement
-
-     Note that the above requires the :py:meth:`pylada.modify_global_comm`
-     from point 4.
-     
-     .. warning::
-
-        All external program calls are routed through this function,
-        whether or not it is an MPI program. Hence it is necessary to check
-        that the program is to be launched an MPI or not. In the case of
-        serial programs, "comm" may be None.
-
-  6. The whole deal can be tested using "process/tests/placement.py"
-     This is a PBS job which performs MPI placement on a fake job.
-     It should be copied somewhere, edited, and launched. 
-
-     At least two arguments should be set prior to running this script.
-     Check the bottom of the script. "ppn" specifies the number of
-     processors per nodes. The job should be launched with 2*"ppn" cores.
-     "path" should point to the source directory of Pylada. This is so that
-     a small program can be found (pifunc) and used for testing. The
-     program can be compiled by Pylada by setting "compile_test True" in
-     cmake_.
-
-     "placement.py" will launch several *simultaneous* instances of the
-     "pifunc" program: one long on three quarters of allocated cores, and
-     two smaller calculations on one eigth of the cores each. 
-
-     One should check the ouput to make sure that the programs are running
-     side-by-side (not all piled up on the same node), that they are
-     runnning simultaneously, and that they run successfully (e.g. mpirun
-     does launch them).
+For instructions on the advanced feature of running multiple mpi jobs side by side, please see
+:ref:`Running different MPI calculations side-by-side <side_by_side_mpi_ug>`
 
 .. _configuration_pbs_ug:
 
 Setting up Pylada with PBS/Slurm 
 --------------------------------
 
-A ressource manager, such as pbs or slurm, takes care of allocating
+A resource manager, such as pbs or slurm, takes care of allocating
 supercomputing ressources for submitted jobs. Pylada interfaces with these `via`
 a few global data variables:
 
@@ -320,9 +170,19 @@ string.
    - directory: Directory where the job is launched. Generated by Pylada. 
    - scriptcommand: Script to launch. Generated by Pylada.
 
-Most of the keywords are automatically generated by Pylada. Is is for the
+.. note::
+
+  It has been observed on some systems (openmpi on CentOS) that the ppn flag is critical, for example,
+  :py:data:`pylada.pbs_string` needs to include the line
+
+  #PBS -l nodes={nnodes}:ppn={ppn}
+
+  Discovering this problem involved understanding the role of :py:data:`figure_out_machines`, described briefly
+  in :ref:`Running different MPI calculations side-by-side <side_by_side_mpi_ug>`.   
+
+Most of the keywords are automatically generated by Pylada. It is for the
 user to provide a script where the requisite number of keywords make sense
-for any particular ressource manager.  
+for any particular resource manager.  
 
 Default keyword values should be stored in the dictionary
 :py:data:`pylada.default_pbs`.
