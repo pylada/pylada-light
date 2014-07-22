@@ -50,8 +50,8 @@ def vasp_ordered(structure):
 
   from copy import deepcopy
   result = deepcopy(structure)
-  def sortme(self): return a.type.lower()
-  result[:] = sorted(structure, sortme)
+  def sortme(self): return self.type.lower()
+  result[:] = sorted(structure, key=sortme)
   return result
 
 def which_site(atom, lattice, invcell=None, tolerance=1e-8):

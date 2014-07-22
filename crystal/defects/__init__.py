@@ -192,16 +192,11 @@ def non_interstitials(structure, indices, mods):
 def inequiv_non_interstitials(structure, lattice, type, mods, do_coords = True, tolerance=0.25):
   """ Loop over inequivalent non-interstitials. """
   if do_coords: type = type.split()[0]
-  # which should I use? 
-  # this affect defect.index, and I prefer to that the defect.index is the index of the defect site in the supercell/structure
-  #inequivs = coordination_inequivalent_sites(lattice, type, tolerance) if do_coords \
-  #           else symmetrically_inequivalent_sites(lattice, type)
-  inequivs = coordination_inequivalent_sites(structure, type, tolerance) if do_coords \
-             else symmetrically_inequivalent_sites(structure, type)
+  inequivs = coordination_inequivalent_sites(lattice, type, tolerance) if do_coords \
+             else symmetrically_inequivalent_sites(lattice, type)
   indices = []
   for i in inequivs:
     # finds first qualifying atom.
-    # Haowei: here the structure must be already reindexed
     for which, atom in enumerate(structure):
       if atom.site == i: break
     indices.append(which)
