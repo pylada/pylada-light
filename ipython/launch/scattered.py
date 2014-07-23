@@ -102,8 +102,13 @@ def launch(self, event, jobfolders):
       from pylada.ipython import qstat
       qstuff = qstat(self, name)
       if (len(qstuff) > 0 and not event.force):
-        print "Job %s is in the queue, will not be re-queued" % name
-        continue
+        status = [x.split()[2] for x in qstuff]
+        # status is a list like ['Q'], ['R'], ['H'], ['C'], ['R', 'C'], etc
+        # 'RHQ' is the status that the job is indeed in the queue, 'C' job completed and being removed from the queue
+        # if needed, a prefix can be used to distinguish two jobs with the same name
+        if len(set(status)&set('RHQ')) > 0:
+          print "Job %s is in the queue, will not be re-queued" % name
+          continue
       #######
 
       # avoid successful jobs.unless specifically requested
