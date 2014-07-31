@@ -26,6 +26,7 @@
 
 if(tests)
 
+    add_python_module("pylada.ewald.tests" FAKE_INIT)
     add_nose_test(test_ewald.py INSTALL "pylada.ewald.tests" LABELS ewald)
 
 endif(tests)
