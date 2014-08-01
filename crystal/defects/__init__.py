@@ -498,7 +498,7 @@ def explore_defect(defect, host, **kwargs):
 
   # looks for vacancies.
   # haowei: supercell,  scale
-  filled = supercell(lattice=hstr, supercell=dstr.cell*dstr.scale)
+  filled = supercell(lattice=hstr, supercell=dstr.cell*dstr.scale/hstr.scale)
   reindex_sites(filled, dstr, **kwargs)
   for atom in filled:
     if atom.site != -1: continue
@@ -980,7 +980,7 @@ def reindex_sites(structure, lattice, tolerance=0.5):
   # first give a natural index for the sites in lattice
   for i, a in enumerate(lat):  a.site = i  
   # in the supercell, each atom carry the site from the lat above, and will goes into the neighs
-  lat = supercell(lattice=lat, supercell=structure.cell)
+  lat = supercell(lattice=lat, supercell=structure.cell*structure.scale/lat.scale)
   for atom in structure:
     neighs_in_str = [n for n in neighbors(structure, 1, atom.pos)]
     d = neighs_in_str[0][2]

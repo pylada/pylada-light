@@ -21,7 +21,7 @@
 ###############################
 
 """ Methods to write structures from file. """
-def poscar(structure, file='POSCAR', vasp5=None, substitute=None):
+def poscar(structure, file='POSCAR', vasp5=None, substitute=None, direct=True):
   """ Writes a poscar to file. 
 
       :param structure:
@@ -60,11 +60,11 @@ def poscar(structure, file='POSCAR', vasp5=None, substitute=None):
   """
   from quantities import angstrom
   if file is None:
-    with open('POSCAR', 'w') as fileobj: return poscar(structure, fileobj, vasp5, substitute)
+    with open('POSCAR', 'w') as fileobj: return poscar(structure, fileobj, vasp5, substitute, direct)
   elif not hasattr(file, 'write'):
-    with open(file, 'w') as fileobj: return poscar(structure, fileobj, vasp5, substitute)
+    with open(file, 'w') as fileobj: return poscar(structure, fileobj, vasp5, substitute, direct)
 
-  from numpy import matrix, dot
+  from numpy import matrix, dot, identity
   from . import specieset
 
   if vasp5 is None:
@@ -82,11 +82,16 @@ def poscar(structure, file='POSCAR', vasp5=None, substitute=None):
     string += "\n"
   for s in species: 
     string += "{0} ".format(len([0 for atom in structure if atom.type == s]))
-  inv_cell = matrix(structure.cell).I
+  if direct:
+    inv_cell = matrix(structure.cell).I
+    d_or_c = '\ndirect\n'
+  else:
+    inv_cell = matrix(identity(3))
+    d_or_c = '\ncartesian\n'
   selective_dynamics =\
       any([len(getattr(atom, 'freeze', '')) != 0 for atom in structure])
-  if selective_dynamics: string += "\nselective dynamics\ndirect\n"
-  else: string += '\ndirect\n'
+  if selective_dynamics: string += "\nselective dynamics" + d_or_c
+  else: string += d_or_c
   for s in species: 
     for atom in structure:
       if atom.type != s: continue
