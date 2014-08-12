@@ -220,7 +220,7 @@ def launch(self, event, jobfolders):
 def completer(self, info, data):
   """ Completer for scattered launcher. """
   from .. import jobfolder_file_completer
-  from ... import queues, accounts, debug_queue
+  from ... import queues, accounts, debug_queue, featuers
   if len(data) > 0: 
     if data[-1] == "--walltime":
       return [ u for u in self.user_ns                                         \
@@ -235,9 +235,11 @@ def completer(self, info, data):
     elif data[-1] == "--prefix": return ['']
     elif data[-1] == "--queue": return queues
     elif data[-1] == "--account": return accounts
+    elif data[-1] == "--feature": return features
   result = ['--force', '--walltime', '--nbprocs', '--help']
   if len(queues) > 0: result.append("--queue") 
   if len(accounts) > 0: result.append("--account") 
+  if len(features) > 0: result.append("--feature") 
   if debug_queue is not None: result.append("--debug")
   result.extend(jobfolder_file_completer([info.symbol]))
   result = list(set(result) - set(data))
