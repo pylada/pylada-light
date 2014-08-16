@@ -31,6 +31,7 @@ __all__ = [ 'symmetrically_inequivalent_sites', 'coordination_inequivalent_sites
 #from extract import Single as ExtractSingle, Material as ExtractMaterial
 
 def symmetrically_inequivalent_sites(lattice, type):
+# Haowei, not tested, but seldomly used in practice
   """ Yields sites occupied by type which are inequivalent according to symmetry operations. 
   
       When creating a vacancy on, say, "O", or a substitution of "Al" by "Mg",
@@ -196,7 +197,6 @@ def inequiv_non_interstitials(structure, lattice, type, mods, do_coords = True, 
   indices = []
   for i in inequivs:
     # finds first qualifying atom.
-    # Haowei: here the structure must be already reindexed
     for which, atom in enumerate(structure):
       if atom.site == i: break
     indices.append(which)
@@ -304,6 +304,7 @@ def any_defect(structure, lattice, type, subs, tolerance=0.25):
   if type is None or type.lower() in ['interstitial', 'interstitials', 'none']: 
     for result in interstitials(structure, lattice, subs): yield result
   # Old: looking for specific atoms.
+  # not used in practice. Haowei
   elif id_regex.match(type) is not None:
     # looks for atom to modify
     found = id_regex.match(type)
@@ -497,7 +498,7 @@ def explore_defect(defect, host, **kwargs):
 
   # looks for vacancies.
   # haowei: supercell,  scale
-  filled = supercell(lattice=hstr, supercell=dstr.cell*dstr.scale)
+  filled = supercell(lattice=hstr, supercell=dstr.cell*dstr.scale/hstr.scale)
   reindex_sites(filled, dstr, **kwargs)
   for atom in filled:
     if atom.site != -1: continue
@@ -979,7 +980,7 @@ def reindex_sites(structure, lattice, tolerance=0.5):
   # first give a natural index for the sites in lattice
   for i, a in enumerate(lat):  a.site = i  
   # in the supercell, each atom carry the site from the lat above, and will goes into the neighs
-  lat = supercell(lattice=lat, supercell=structure.cell)
+  lat = supercell(lattice=lat, supercell=structure.cell*structure.scale/lat.scale)
   for atom in structure:
     neighs_in_str = [n for n in neighbors(structure, 1, atom.pos)]
     d = neighs_in_str[0][2]

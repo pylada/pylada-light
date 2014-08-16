@@ -214,6 +214,15 @@ queues = ()
     It is not required for slurm systems. 
     If empty, then %launch will not have a queue option.
 """
+
+features = ['']
+""" List of slurm or pbs features allowed for use. 
+
+    This is used by ipython's %launch magic function. 
+    It is not required for slurm systems. 
+    If empty, then %launch will not have a feature option.
+"""
+
 ###accounts = ['CSC000', 'BES000']
 accounts = ['']
 """ List of slurm or pbs accounts allowed for use. 

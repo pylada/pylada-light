@@ -188,13 +188,15 @@ def get_walltime(shell, event, pbsargs):
   return True
 
 def get_queues(shell, event, pbsargs):
-  """ Decodes queue/account options. """
+  """ Decodes queue/account/feature options. """
   from ... import debug_queue
   if event.__dict__.get("queue", None) is not None:
     pbsargs["queue"] = event.queue
   else: pbsargs["queue"] = 'batch'   # default queue
   if event.__dict__.get("account", None) is not None:
     pbsargs["account"] = event.account
+  if event.__dict__.get("feature", None) is not None:
+    pbsargs["feature"] = event.feature
   if getattr(event, 'debug', False):
     if debug_queue is None:
       print "No known debug queue for this machine"
@@ -215,13 +217,18 @@ def set_default_parser_options(parser):
               dest="nolaunch",
               help='Does everything except calling {0}.'.format(qsub_exe) )
   return
+
 def set_queue_parser(parser):
-  """ Adds default queue/account options. """
-  from ... import queues, accounts, debug_queue
+  """ Adds default queue/account/feature options. """
+  from ... import queues, accounts, debug_queue, features
 
   parser.add_argument(
     '--account', dest='account', type=str,
     help='Launches jobs on specific account if present.')
+
+  parser.add_argument(
+    '--feature', dest='feature', type=str,
+    help='Launches jobs on specific feature if present.')
 
   if len(queues) != 0: 
     parser.add_argument( '--queue', dest="queue", choices=queues,

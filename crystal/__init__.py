@@ -41,7 +41,7 @@ def specieset(structure):
   """
   return set([a.type for a in structure])
 
-def vasp_ordered(structure):
+def vasp_ordered(structure, site=False):
   """ Returns a structure with correct VASP order of ions.
   
       :param structure:
@@ -50,8 +50,12 @@ def vasp_ordered(structure):
 
   from copy import deepcopy
   result = deepcopy(structure)
-  def sortme(self): return a.type.lower()
-  result[:] = sorted(structure, sortme)
+  has_site = sum([0 if hasattr(x, 'site') else 1 for x in structure])
+  if site and has_site==0:
+    def sortme(self): return self.site
+  else:
+    def sortme(self): return self.type.lower()
+  result[:] = sorted(structure, key=sortme)
   return result
 
 def which_site(atom, lattice, invcell=None, tolerance=1e-8):
