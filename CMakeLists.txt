@@ -79,6 +79,9 @@ add_subdirectory(config)
 add_subdirectory(tools)
 add_subdirectory(process)
 
+# enum is for defects
+add_subdirectory(enum)
+
 # Add documentation target: make documentation
 include(sphinx)
 # with the above, ewald and jobfolder and ipython don't need anything else:
