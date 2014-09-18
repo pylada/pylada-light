@@ -1,0 +1,614 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>schedMain.taskClass &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for schedMain.taskClass</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">traceback</span>
+
+<span class="kn">import</span> <span class="nn">schedMisc</span>
+<span class="kn">import</span> <span class="nn">schedMain</span>
+
+<span class="c">#=====================================================================</span>
+
+<span class="c"># Represents one Task, which means one script to be executed in one dir.</span>
+
+<div class="viewcode-block" id="Task"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task">[docs]</a><span class="k">class</span> <span class="nc">Task</span><span class="p">:</span>
+
+  <span class="c"># Creates Task and appends to allTasks.</span>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">bugLev</span><span class="p">,</span>          <span class="c"># Debug level</span>
+    <span class="n">globalDir</span><span class="p">,</span>       <span class="c"># Dir containing global info, including cmd</span>
+    <span class="n">ancDir</span><span class="p">,</span>          <span class="c"># Ancestor of all dirs to be processed</span>
+    <span class="n">execName</span><span class="p">,</span>        <span class="c"># Script name, like &#39;alpha.py&#39;</span>
+    <span class="n">taskDir</span><span class="p">,</span>         <span class="c"># Dir in which to run the script</span>
+    <span class="n">pbsMap</span><span class="p">,</span>          <span class="c"># Results from showq.  jobId -&gt; state, like ST_WAIT</span>
+    <span class="n">useReadOnly</span><span class="p">,</span>     <span class="c"># bool: only print status; don&#39;t start tasks</span>
+    <span class="n">redoAll</span><span class="p">,</span>         <span class="c"># If True, rm all status.* files and set status = ST_INIT</span>
+    <span class="n">allTasks</span><span class="p">):</span>       <span class="c"># List of all known tasks</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">=</span> <span class="n">bugLev</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">execName</span> <span class="o">=</span> <span class="n">execName</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span> <span class="o">=</span> <span class="n">taskDir</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">isNew</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_INIT</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">gotPosts</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lastPbsDate</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">cmdDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">globalDir</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">cmdDirName</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span> <span class="n">cmdDir</span><span class="p">):</span>
+      <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;const: cmdDir not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmdDir</span><span class="p">,))</span>
+
+    <span class="c"># Split execName, like &#39;alpha.sh&#39;, into sname=&#39;alpha&#39;, stype=&#39;sh&#39;.</span>
+    <span class="n">toks</span> <span class="o">=</span> <span class="n">execName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+      <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;const: invalid execName: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">execName</span><span class="p">,))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">sname</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">stype</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">schedMisc</span><span class="o">.</span><span class="n">checkNiceName</span><span class="p">(</span> <span class="n">taskDir</span> <span class="o">+</span> <span class="s">&#39;:&#39;</span> <span class="o">+</span> <span class="n">execName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;sh&#39;</span><span class="p">,</span> <span class="s">&#39;py&#39;</span><span class="p">,</span> <span class="s">&#39;pbs&#39;</span><span class="p">]:</span>
+      <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;const: invalid execName: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">execName</span><span class="p">,))</span>
+
+    <span class="c"># Insure taskDir is absolute</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isabs</span><span class="p">(</span> <span class="n">taskDir</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;const: taskDir not absolute: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">taskDir</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">taskDir</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;const: taskDir ends with /: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">taskDir</span><span class="p">,))</span>
+
+    <span class="c"># Set execPath = search for execName in taskDir, then in cmdDir.</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">taskDir</span><span class="p">,</span> <span class="n">execName</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">cmdDir</span><span class="p">,</span> <span class="n">execName</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;const: execPath not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="p">,))</span>
+
+    <span class="c"># Read status.* files and check pbsMap to get jobId, if any.</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">updateStatus</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">pbsMap</span><span class="p">)</span>
+
+    <span class="c"># If an old run of this Task is OK, we&#39;re done.</span>
+    <span class="k">if</span> <span class="n">useReadOnly</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">isNew</span> <span class="o">=</span> <span class="bp">False</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Task.const: readOnly: </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">),)</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="n">redoAll</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_OK</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">isNew</span> <span class="o">=</span> <span class="bp">False</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Task.const: old ok: </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">),)</span>
+
+    <span class="c"># Else we must run the task.</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">&gt;=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_SUBMIT</span><span class="p">:</span>
+        <span class="c"># xxx if self.status == schedMisc.ST_SUBMIT</span>
+        <span class="c"># xxx and schedMisc.deltaTimeSec(</span>
+        <span class="c">#     self.lastStatusDate, schedMisc.getCurDate()) &lt; 2*60:</span>
+        <span class="c"># xxx assume it&#39;s coming?</span>
+        <span class="k">if</span> <span class="n">pbsMap</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="p">):</span>
+          <span class="k">print</span> <span class="s">&#39;taskClass: HPC job is still running for task:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">resetStatus</span><span class="p">()</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">setStatusInit</span><span class="p">()</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">isNew</span> <span class="o">=</span> <span class="bp">True</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Task.const: NEW: </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">),)</span>
+
+    <span class="c"># Add Task to allTasks</span>
+    <span class="k">if</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">findTask</span><span class="p">(</span> <span class="n">execName</span><span class="p">,</span> <span class="n">taskDir</span><span class="p">,</span> <span class="n">allTasks</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;const: duplicate task&#39;</span><span class="p">)</span>
+    <span class="n">allTasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="c"># Recursive: Task() calls readWorkList for the</span>
+    <span class="c"># prereqs in dirPath / NM_PREWORK,</span>
+    <span class="c"># and readWorkList creates Tasks</span>
+
+    <span class="c"># Read the pre-requisites for this Task.</span>
+    <span class="n">wkPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sname</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">NM_PREWORK</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">wkPath</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">preWorks</span> <span class="o">=</span> <span class="n">schedMain</span><span class="o">.</span><span class="n">readWorkList</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span><span class="p">,</span>    <span class="c"># Debug level.  Typically 0, 1 or 5</span>
+        <span class="n">globalDir</span><span class="p">,</span>      <span class="c"># Dir containing global info, including subdir cmd</span>
+        <span class="n">ancDir</span><span class="p">,</span>         <span class="c"># An ancestor dir of all dirs to be processed</span>
+        <span class="n">wkPath</span><span class="p">,</span>         <span class="c"># Path of the work list to read</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span>   <span class="c"># curDir: Current working dir</span>
+        <span class="n">pbsMap</span><span class="p">,</span>         <span class="c"># Results from showq.  jobId -&gt; state, like ST_WAIT</span>
+        <span class="n">useReadOnly</span><span class="p">,</span>    <span class="c"># bool: only print status; don&#39;t start tasks</span>
+        <span class="bp">False</span><span class="p">,</span>          <span class="c"># redoAll: If true, force all items to run as new.</span>
+        <span class="n">allTasks</span><span class="p">)</span>       <span class="c"># Updated: list of all known Tasks</span>
+
+    <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">preWorks</span> <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Formats this Task</span>
+
+  <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">res</span> <span class="o">+=</span> <span class="s">&#39;    sname: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sname</span><span class="p">,)</span>
+    <span class="n">res</span> <span class="o">+=</span> <span class="s">&#39;    execName: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,)</span>
+    <span class="n">res</span> <span class="o">+=</span> <span class="s">&#39;    execPath: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="p">,)</span>
+    <span class="n">res</span> <span class="o">+=</span> <span class="s">&#39;    taskDir: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,)</span>
+    <span class="n">res</span> <span class="o">+=</span> <span class="s">&#39;    status: </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStatusName</span><span class="p">(),)</span>
+    <span class="n">res</span> <span class="o">+=</span> <span class="s">&#39;    jobId: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="p">,)</span>
+    <span class="n">res</span> <span class="o">+=</span> <span class="s">&#39;    gotPosts: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gotPosts</span><span class="p">,)</span>
+    <span class="n">res</span> <span class="o">+=</span> <span class="s">&#39;    lastPbsDate: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastPbsDate</span><span class="p">,)</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Returns the name corresponding to self.status</span>
+
+<div class="viewcode-block" id="Task.getStatusName"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.getStatusName">[docs]</a>  <span class="k">def</span> <span class="nf">getStatusName</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="n">stg</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">statusNames</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">stg</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Returns the path of a status file.</span>
+  <span class="c"># For example, for sname==alpha and stIx==ST_OK,</span>
+  <span class="c"># the path would &#39;alpha.status.ok&#39;.</span>
+</div>
+<div class="viewcode-block" id="Task.getStatusPath"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.getStatusPath">[docs]</a>  <span class="k">def</span> <span class="nf">getStatusPath</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">stIx</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sname</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">NM_STATUS</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">statusNames</span><span class="p">[</span><span class="n">stIx</span><span class="p">],)</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Removes all status files and sets status = ST_INIT, isNew = True.</span>
+</div>
+<div class="viewcode-block" id="Task.resetStatus"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.resetStatus">[docs]</a>  <span class="k">def</span> <span class="nf">resetStatus</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    
+    <span class="c"># Remove all status files</span>
+    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">statusNames</span><span class="p">)):</span>
+      <span class="n">spath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStatusPath</span><span class="p">(</span><span class="n">ix</span><span class="p">))</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">spath</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="n">spath</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">isNew</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">setStatusInit</span><span class="p">()</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Formats this task in one line.</span>
+</div>
+<div class="viewcode-block" id="Task.formatShort"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.formatShort">[docs]</a>  <span class="k">def</span> <span class="nf">formatShort</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">ancDir</span><span class="p">):</span>         <span class="c"># Ancestor of all dirs to be processed</span>
+
+    <span class="n">rtStg</span> <span class="o">=</span> <span class="s">&#39;old&#39;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isNew</span><span class="p">:</span> <span class="n">rtStg</span> <span class="o">=</span> <span class="s">&#39;new&#39;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">  </span><span class="si">%s</span><span class="s">  st: </span><span class="si">%s</span><span class="s">  </span><span class="si">%s</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,</span>
+        <span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">),</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatusName</span><span class="p">(),</span>
+        <span class="n">rtStg</span><span class="p">,)</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Returns one line of table format.  Used by schedMain.py:printTasks.</span>
+</div>
+<div class="viewcode-block" id="Task.formatTable"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.formatTable">[docs]</a>  <span class="k">def</span> <span class="nf">formatTable</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">ancDir</span><span class="p">):</span>         <span class="c"># Ancestor of all dirs to be processed</span>
+
+    <span class="c"># Coord with schedMain.py: printTasks</span>
+    <span class="n">newStg</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isNew</span><span class="p">:</span> <span class="n">newStg</span> <span class="o">=</span> <span class="s">&#39;new&#39;</span>
+
+    <span class="n">numPre</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">getNumNotOk</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">preWorks</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_INIT</span> <span class="ow">and</span> <span class="n">numPre</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">preStg</span> <span class="o">=</span> <span class="s">&#39;*&#39;</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">preStg</span> <span class="o">=</span> <span class="s">&#39; &#39;</span>
+    <span class="n">preStg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="si">%3d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numPre</span><span class="p">,)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="s">&#39;  </span><span class="si">%-20s</span><span class="s">  </span><span class="si">%-8s</span><span class="s">  </span><span class="si">%-3s</span><span class="s">  </span><span class="si">%-6s</span><span class="s">  </span><span class="si">%4s</span><span class="s">  </span><span class="si">%s</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="p">,</span>
+        <span class="n">newStg</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getStatusName</span><span class="p">(),</span>
+        <span class="n">preStg</span><span class="p">,</span>
+        <span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">),)</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># If execPath ends with .sh or .py, run it immediately.</span>
+  <span class="c"># If execPath ends with .pbs, use qsub to submit it.</span>
+  <span class="c">#</span>
+  <span class="c"># However, if the file globalDir/SCHED_BASH exists,</span>
+  <span class="c"># instead of using qsub we run the pbs file with bash.</span>
+</div>
+<div class="viewcode-block" id="Task.runTask"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.runTask">[docs]</a>  <span class="k">def</span> <span class="nf">runTask</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">hostType</span><span class="p">,</span>        <span class="c"># System type: peregrine or stampede or ...</span>
+    <span class="n">globalDir</span><span class="p">,</span>       <span class="c"># Dir containing global info, including cmd</span>
+    <span class="n">ancDir</span><span class="p">,</span>          <span class="c"># Ancestor of all dirs to be processed</span>
+    <span class="n">pbsMap</span><span class="p">):</span>         <span class="c"># Results from showq.  jobId -&gt; state, like ST_WAIT</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_INIT</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;runTask: wrong status: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">):</span>
+      <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">)</span>
+
+    <span class="c"># Remove any old status files</span>
+    <span class="k">for</span> <span class="n">stIx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">statusNames</span><span class="p">)):</span>
+      <span class="n">spath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStatusPath</span><span class="p">(</span><span class="n">stIx</span><span class="p">))</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">spath</span><span class="p">):</span> <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span> <span class="n">spath</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.sh&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">setStatusRun</span><span class="p">()</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.sh&#39;</span><span class="p">):</span> <span class="n">interpretor</span> <span class="o">=</span> <span class="s">&#39;/bin/bash&#39;</span>
+      <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.py&#39;</span><span class="p">):</span> <span class="n">interpretor</span> <span class="o">=</span> <span class="s">&#39;python&#39;</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;runTask: invalid self.execPath: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="p">,))</span>
+
+      <span class="n">cmdLine</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> -bugLev </span><span class="si">%d</span><span class="s"> -globalDir </span><span class="si">%s</span><span class="s"> -hostType </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">interpretor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span><span class="p">,</span>
+        <span class="n">globalDir</span><span class="p">,</span> <span class="n">hostType</span><span class="p">,)</span>
+
+      <span class="c"># Write the cmdLine to curDir, in case we want to review it.</span>
+      <span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sname</span> <span class="o">+</span> <span class="s">&#39;.cmdLine&#39;</span><span class="p">)</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="n">cmdLine</span>
+
+      <span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">deltaSec</span><span class="p">)</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">runSubprocess</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span>                      <span class="c"># wkDir</span>
+        <span class="n">cmdLine</span><span class="p">,</span>                           <span class="c"># cmdLine</span>
+        <span class="bp">None</span><span class="p">,</span>                              <span class="c"># stdInput</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">sname</span><span class="p">,</span>   <span class="c"># outPrefix</span>
+        <span class="bp">False</span><span class="p">)</span>                             <span class="c"># showInfo</span>
+      <span class="c">#print &#39;taskClass.runTask: cmdLine: %s  rc: %d  deltaSec: %g&#39; \</span>
+      <span class="c">#  % (cmdLine, rc, deltaSec,)</span>
+        
+      <span class="bp">self</span><span class="o">.</span><span class="n">updateStatus</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">pbsMap</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">rc</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_ERROR</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStatusError</span><span class="p">(</span>
+          <span class="s">&#39;run non-zero rc: </span><span class="si">%d</span><span class="se">\n</span><span class="s">  stderr: </span><span class="si">%s</span><span class="se">\n</span><span class="s">  stdout: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,))</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_OK</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_ERROR</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStatusError</span><span class="p">(</span><span class="s">&#39;process never wrote status file&#39;</span><span class="p">)</span>
+
+    <span class="c">#xxx change suffix to mpi or qsub or ?</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.pbs&#39;</span><span class="p">):</span>
+      <span class="k">if</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;hostLocal&#39;</span><span class="p">:</span> <span class="n">submitCmd</span> <span class="o">=</span> <span class="s">&#39;bash&#39;</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;peregrine&#39;</span><span class="p">:</span>
+          <span class="n">submitCmd</span> <span class="o">=</span> <span class="s">&#39;qsub&#39;</span>
+        <span class="k">elif</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;stampede&#39;</span><span class="p">:</span>
+          <span class="n">submitCmd</span> <span class="o">=</span> <span class="s">&#39;sbatch&#39;</span>
+        <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown hostType: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hostType</span><span class="p">,))</span>
+
+      <span class="n">cmdLine</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">submitCmd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="p">,)</span>
+
+      <span class="c"># Write the cmdLine to curDir, in case we want to review it.</span>
+      <span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sname</span> <span class="o">+</span> <span class="s">&#39;.cmdLine&#39;</span><span class="p">)</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+        <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="n">cmdLine</span>
+
+      <span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">deltaSec</span><span class="p">)</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">runSubprocess</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span>                      <span class="c"># wkDir</span>
+        <span class="n">cmdLine</span><span class="p">,</span>                           <span class="c"># cmdLine</span>
+        <span class="bp">None</span><span class="p">,</span>                              <span class="c"># stdInput</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">sname</span><span class="p">,</span>   <span class="c"># outPrefix</span>
+        <span class="bp">True</span><span class="p">)</span>                              <span class="c"># showInfo</span>
+      <span class="c">#print &#39;taskClass.runTask: cmdLine: %s  rc: %d  deltaSec: %g&#39; \</span>
+      <span class="c">#  % (cmdLine, rc, deltaSec,)</span>
+      <span class="k">if</span> <span class="n">rc</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setStatusError</span><span class="p">(</span>
+          <span class="s">&#39;submit non-zero rc: </span><span class="si">%d</span><span class="se">\n</span><span class="s">  stderr: </span><span class="si">%s</span><span class="se">\n</span><span class="s">  stdout: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">stderr</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,))</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hostType</span> <span class="o">!=</span> <span class="s">&#39;hostLocal&#39;</span><span class="p">:</span>
+          <span class="k">if</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;peregrine&#39;</span><span class="p">:</span>
+            <span class="c"># stdout is like:</span>
+            <span class="c"># 439613.admin2</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;^(\d+)\.admin\d$&#39;</span><span class="p">,</span> <span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">mat</span><span class="p">:</span> 
+              <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown stdout from submit:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stdout</span><span class="p">,))</span>
+            <span class="n">jobId</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>     <span class="c"># keep as a string</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setStatusSubmit</span><span class="p">(</span> <span class="n">jobId</span><span class="p">)</span>
+          <span class="k">elif</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;stampede&#39;</span><span class="p">:</span>
+            <span class="c"># stdout is like:</span>
+            <span class="c"># -----------------------------------------------------------------</span>
+            <span class="c">#               Welcome to the Stampede Supercomputer              </span>
+            <span class="c"># -----------------------------------------------------------------</span>
+            <span class="c">#</span>
+            <span class="c"># --&gt; Verifying valid submit host (login3)...OK</span>
+            <span class="c"># --&gt; Verifying valid jobname...OK</span>
+            <span class="c"># --&gt; Enforcing max jobs per user...OK</span>
+            <span class="c"># --&gt; Verifying availability of your home dir (...)...OK</span>
+            <span class="c"># --&gt; Verifying availability of your work dir (...)...OK</span>
+            <span class="c"># --&gt; Verifying availability of your scratch dir (...)...OK</span>
+            <span class="c"># --&gt; Verifying valid ssh keys...OK</span>
+            <span class="c"># --&gt; Verifying access to desired queue (development)...OK</span>
+            <span class="c"># --&gt; Verifying job request is within current queue limits...OK</span>
+            <span class="c"># --&gt; Checking available allocation (TG-DMR140018)...OK</span>
+            <span class="c"># Submitted batch job 2869448</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;^Submitted batch job (\d+)$&#39;</span><span class="p">,</span> <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">mat</span><span class="p">:</span> 
+              <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown stdout from submit:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stdout</span><span class="p">,))</span>
+            <span class="n">jobId</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>     <span class="c"># keep as a string</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setStatusSubmit</span><span class="p">(</span> <span class="n">jobId</span><span class="p">)</span>
+          <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown hostType: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hostType</span><span class="p">,))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">setStatusError</span><span class="p">(</span><span class="s">&#39;invalid execPath: </span><span class="si">%s</span><span class="s">  task:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execPath</span><span class="p">,</span> <span class="bp">self</span><span class="p">,))</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Checks for status files of the form (sname).status.(status),</span>
+  <span class="c"># and updates our self.status.</span>
+  <span class="c">#</span>
+  <span class="c"># Also check the pbsMap (info from Moab).</span>
+  <span class="c"># If it has new info # write the appropriate file,</span>
+  <span class="c"># (sname).status.(status), and update our self.status.</span>
+</div>
+<div class="viewcode-block" id="Task.updateStatus"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.updateStatus">[docs]</a>  <span class="k">def</span> <span class="nf">updateStatus</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">ancDir</span><span class="p">,</span>          <span class="c"># Ancestor of all dirs to be processed</span>
+    <span class="n">pbsMap</span><span class="p">):</span>         <span class="c"># Results from showq.  jobId -&gt; state, like ST_WAIT</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;updateStatus entry: execName: </span><span class="si">%s</span><span class="s">  taskDir: </span><span class="si">%s</span><span class="s">  status: </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,</span>
+          <span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">),</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">getStatusName</span><span class="p">(),)</span>
+
+    <span class="c"># Try to read the files sname.init, sname.submit, sname.wait, ...</span>
+    <span class="c"># to get fileStatus.</span>
+    <span class="n">fileStatus</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_INIT</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">stIx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">statusNames</span><span class="p">)):</span>
+        <span class="n">spath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStatusPath</span><span class="p">(</span> <span class="n">stIx</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+          <span class="k">print</span> <span class="s">&#39;    test stIx: </span><span class="si">%d</span><span class="s">  spath: </span><span class="si">%s</span><span class="s">  result: </span><span class="si">%s</span><span class="s">&#39;</span> \
+            <span class="o">%</span> <span class="p">(</span><span class="n">stIx</span><span class="p">,</span> <span class="n">spath</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">spath</span><span class="p">),)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">spath</span><span class="p">):</span>
+          <span class="n">fileStatus</span> <span class="o">=</span> <span class="n">stIx</span>
+          <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">spath</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;    updateStatus: found spath: </span><span class="si">%s</span><span class="s">&#39;</span> \
+              <span class="o">%</span> <span class="p">(</span><span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="n">spath</span><span class="p">),)</span>
+          <span class="k">if</span> <span class="n">stIx</span> <span class="o">==</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_SUBMIT</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+          <span class="c"># If anyone called setStatusError, ignore all else</span>
+          <span class="k">if</span> <span class="n">stIx</span> <span class="o">==</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_ERROR</span><span class="p">:</span> <span class="k">break</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;    updateStatus: exec: </span><span class="si">%s</span><span class="s">  fileStatus: </span><span class="si">%s</span><span class="s">  jobId: </span><span class="si">%s</span><span class="s">  pbs: </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,</span>
+          <span class="n">schedMisc</span><span class="o">.</span><span class="n">statusNames</span><span class="p">[</span> <span class="n">fileStatus</span><span class="p">],</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="p">,</span>
+          <span class="n">pbsMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="p">),)</span>
+
+    <span class="c"># Check pbsMap to get pbsStatus.</span>
+    <span class="n">pbsStatus</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_INIT</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">pbsMap</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="p">):</span>
+        <span class="n">pbsStatus</span> <span class="o">=</span> <span class="n">pbsMap</span><span class="p">[</span> <span class="bp">self</span><span class="o">.</span><span class="n">jobId</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastPbsDate</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">getCurDate</span><span class="p">()</span>
+
+      <span class="k">else</span><span class="p">:</span>      <span class="c"># else not in pbsMap</span>
+        <span class="c"># Not found in in the qsub system.</span>
+        <span class="c"># If the last note from the qsub system occured long ago,</span>
+        <span class="c"># assume the job died.</span>
+        <span class="c"># Caution: when using the Lustre file system,</span>
+        <span class="c"># sometimes when node A writes a file it may be</span>
+        <span class="c"># several seconds befor the file is visible to node B.</span>
+        <span class="c"># Hence the delay below.</span>
+        <span class="k">if</span> <span class="n">fileStatus</span> <span class="ow">in</span> <span class="p">[</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_WAIT</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_RUN</span><span class="p">]</span> \
+          <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastPbsDate</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+
+          <span class="n">dsec</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">deltaTimeSec</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastPbsDate</span><span class="p">,</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">getCurDate</span><span class="p">())</span>
+          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">print</span> <span class="p">(</span><span class="s">&#39;updateStatus: testLate: execName: </span><span class="si">%s</span><span class="s">&#39;</span>
+              <span class="o">+</span> <span class="s">&#39;  taskDir: </span><span class="si">%s</span><span class="s">  status: </span><span class="si">%s</span><span class="s">  dsec: </span><span class="si">%g</span><span class="s">&#39;</span><span class="p">)</span> \
+              <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,</span>
+                <span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">),</span>
+                <span class="n">schedMisc</span><span class="o">.</span><span class="n">statusNames</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">],</span>
+                <span class="n">dsec</span><span class="p">,)</span>
+
+          <span class="k">if</span> <span class="n">dsec</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="o">*</span><span class="mi">60</span><span class="p">:</span>                           <span class="c"># xxx hardcoded</span>
+            <span class="n">spath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStatusPath</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_ERROR</span><span class="p">),)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">spath</span><span class="p">):</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">setStatusError</span><span class="p">(</span><span class="s">&#39;job quit without writing status file&#39;</span><span class="p">)</span>
+              <span class="n">pbsStatus</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_ERROR</span>
+
+    <span class="k">if</span> <span class="n">pbsStatus</span> <span class="o">==</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_OK</span> <span class="ow">and</span> <span class="n">fileStatus</span> <span class="o">&lt;</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_OK</span><span class="p">:</span>
+      <span class="c"># The pbsMap says the task is done, but the task never wrote</span>
+      <span class="c"># the ending status.ok file.  So the task must have died.</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">setStatusError</span><span class="p">(</span><span class="s">&#39;task ended without writing status.ok file&#39;</span><span class="p">)</span>
+      <span class="n">newStatus</span> <span class="o">=</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_ERROR</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">newStatus</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span> <span class="n">fileStatus</span><span class="p">,</span> <span class="n">pbsStatus</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">newStatus</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;updateStatus: new status &lt; old.  newStatus: </span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">newStatus</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">newStatus</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">:</span>
+      <span class="n">spath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStatusPath</span><span class="p">(</span> <span class="n">newStatus</span><span class="p">))</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span> <span class="n">spath</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">newStatus</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">newStatus</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">gotPosts</span> <span class="o">=</span> <span class="bp">False</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;updateStatus exit: execName: </span><span class="si">%s</span><span class="s">  taskDir: </span><span class="si">%s</span><span class="s">  status: </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execName</span><span class="p">,</span>
+          <span class="n">schedMisc</span><span class="o">.</span><span class="n">shortName</span><span class="p">(</span> <span class="n">ancDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">),</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">getStatusName</span><span class="p">(),)</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Writes the file (sname).status.init,</span>
+  <span class="c"># with the current date, and sets our self.status = ST_INIT.</span>
+</div>
+<div class="viewcode-block" id="Task.setStatusInit"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.setStatusInit">[docs]</a>  <span class="k">def</span> <span class="nf">setStatusInit</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_INIT</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Writes the file (sname).status.ok,</span>
+  <span class="c"># with the current date, and sets our self.status = ST_OK.</span>
+</div>
+<div class="viewcode-block" id="Task.setStatusSubmit"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.setStatusSubmit">[docs]</a>  <span class="k">def</span> <span class="nf">setStatusSubmit</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">jobId</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_SUBMIT</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">jobId</span><span class="p">)</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Writes the file (sname).status.wait,</span>
+  <span class="c"># with the current date, and sets our self.status = ST_WAIT.</span>
+</div>
+<div class="viewcode-block" id="Task.setStatusWait"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.setStatusWait">[docs]</a>  <span class="k">def</span> <span class="nf">setStatusWait</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_WAIT</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Writes the file (sname).status.run,</span>
+  <span class="c"># with the current date, and sets our self.status = ST_RUN.</span>
+</div>
+<div class="viewcode-block" id="Task.setStatusRun"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.setStatusRun">[docs]</a>  <span class="k">def</span> <span class="nf">setStatusRun</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_RUN</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Writes the file (sname).status.ok,</span>
+  <span class="c"># with the current date, and sets our self.status = ST_OK.</span>
+</div>
+<div class="viewcode-block" id="Task.setStatusOk"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.setStatusOk">[docs]</a>  <span class="k">def</span> <span class="nf">setStatusOk</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_OK</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">gotPosts</span> <span class="o">=</span> <span class="bp">False</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Writes the file (sname).status.error,</span>
+  <span class="c"># with the current date, and sets our self.status = ST_ERROR.</span>
+</div>
+<div class="viewcode-block" id="Task.setStatusError"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.setStatusError">[docs]</a>  <span class="k">def</span> <span class="nf">setStatusError</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">errMsg</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">writeStatusFile</span><span class="p">(</span> <span class="n">schedMisc</span><span class="o">.</span><span class="n">ST_ERROR</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">errMsg</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">gotPosts</span> <span class="o">=</span> <span class="bp">False</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Writes the file (sname).status.(statusName),</span>
+  <span class="c"># with the current date, and sets our self.status = stIx.</span>
+</div>
+<div class="viewcode-block" id="Task.writeStatusFile"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.writeStatusFile">[docs]</a>  <span class="k">def</span> <span class="nf">writeStatusFile</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">stIx</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">stIx</span>
+    <span class="n">schedMisc</span><span class="o">.</span><span class="n">writeStatusFile</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">sname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">taskDir</span><span class="p">,</span> <span class="n">stIx</span><span class="p">,</span> <span class="n">extra</span><span class="p">)</span>
+
+  <span class="c">#====================</span>
+
+  <span class="c"># Raises an Exception.</span>
+</div>
+<div class="viewcode-block" id="Task.throwerr"><a class="viewcode-back" href="../../nrelscheduler/schedMain.html#schedMain.taskClass.Task.throwerr">[docs]</a>  <span class="k">def</span> <span class="nf">throwerr</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="n">fullMsg</span> <span class="o">=</span> <span class="s">&#39;taskClass.py: </span><span class="si">%s</span><span class="se">\n</span><span class="s">task:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span> <span class="n">fullMsg</span><span class="p">)</span>
+
+<span class="c">#=====================================================================</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

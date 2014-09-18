@@ -1,0 +1,540 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ScanXml.py &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="NRELMatDB database builder pipeline" href="index.html" />
+    <link rel="next" title="wrapReceive.py" href="wrapReceive.html" />
+    <link rel="prev" title="ScanOutcar.py" href="ScanOutcar.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="wrapReceive.html" title="wrapReceive.py"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ScanOutcar.html" title="ScanOutcar.py"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-nrelmat.ScanXml">
+<span id="scanxml-py"></span><h1>ScanXml.py<a class="headerlink" href="#module-nrelmat.ScanXml" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="nrelmat.ScanXml.main">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test driver: Extracts info from a VASP vasprun.xml file.</p>
+<p>Command line parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="13%" />
+<col width="65%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>-bugLev</strong></td>
+<td>integer</td>
+<td>Debug level.  Normally 0.</td>
+</tr>
+<tr class="row-odd"><td><strong>-inFile</strong></td>
+<td>string</td>
+<td>Input file</td>
+</tr>
+<tr class="row-even"><td><strong>-maxLev</strong></td>
+<td>int</td>
+<td>max xml print level</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="nrelmat.ScanXml.ResClass">
+<em class="property">class </em><tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">ResClass</tt><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#ResClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.ResClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>An empty class used as a data container for results.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.parseXml">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">parseXml</tt><big>(</big><em>bugLev</em>, <em>inFile</em>, <em>maxLev</em>, <em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#parseXml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.parseXml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts info from the vasprun.xml file from a VASP run,
+using the Python xml.etree.cElementTree API.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>bugLev (int): Debug level.  Normally 0.</li>
+<li>inFile (str): Path of the input vasprun.xml file.</li>
+<li>resObj (class ResClass): data object: we set attributes here.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>None</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.printNode">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">printNode</tt><big>(</big><em>node</em>, <em>curLev</em>, <em>maxLev</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#printNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.printNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively prints an XML tree, given an xml.etree.cElementTree node.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>node (xml.etree.ElementTree.Element): The root of the XML tree.</li>
+<li>curLev (int): The current recursion level.  Starts at 0 and
+is incremented for each recursive call.</li>
+<li>maxLev (int): The max number of levels to print</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>None</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.parseText">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">parseText</tt><big>(</big><em>path</em>, <em>nmin</em>, <em>nmax</em>, <em>dtype</em>, <em>text</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#parseText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.parseText" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits <tt class="docutils literal"><span class="pre">text</span></tt> into tokens, and converts each token to <tt class="docutils literal"><span class="pre">dtype</span></tt>.</p>
+<p>Called by getVec, getRawArray.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>path (str): the XML tree path to the current node, for error msgs.</li>
+<li>nmin (int): the minimum num tokens.  If fewer are found, throwerr.</li>
+<li>nmax (int): the maximum num tokens.  If more are found, throwerr.</li>
+<li>dtype (python type): Either int, float, or str: the tokens
+are converted to dtype.</li>
+<li>text (str): the text string to be split.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>list of tokens each having type = dtype.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.getVec">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">getVec</tt><big>(</big><em>root</em>, <em>path</em>, <em>nmin</em>, <em>nmax</em>, <em>dtype</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#getVec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.getVec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets text at the specified XML path, splits, and converts tokens <tt class="docutils literal"><span class="pre">dtype</span></tt>.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>root (xml.etree.ElementTree.Element): The current XML node.</li>
+<li>path (str): the XML path from the current node.</li>
+<li>nmin (int): the minimum num tokens.  If fewer are found, throwerr.</li>
+<li>nmax (int): the maximum num tokens.  If more are found, throwerr.</li>
+<li>dtype (python type): Either int, float, or str: the tokens
+are converted to dtype.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>list of tokens each having type = dtype.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.getString">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">getString</tt><big>(</big><em>root</em>, <em>path</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#getString"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.getString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets text at the specified XML path, insures there&#8217;s just 1, and returns it.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>root (xml.etree.ElementTree.Element): The current XML node.</li>
+<li>path (str): the XML path from the current node.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>stripped string.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.getScalar">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">getScalar</tt><big>(</big><em>root</em>, <em>path</em>, <em>dtype</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#getScalar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.getScalar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets text at the specified XML path, and converts it to <tt class="docutils literal"><span class="pre">dtype</span></tt>.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>root (xml.etree.ElementTree.Element): The current XML node.</li>
+<li>path (str): the XML path from the current node.</li>
+<li>dtype (python type): Either int, float, or str: the token
+is converted to dtype.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>item having type = dtype.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.getRawArray">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">getRawArray</tt><big>(</big><em>root</em>, <em>path</em>, <em>nrow</em>, <em>ncol</em>, <em>dtype</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#getRawArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.getRawArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets text at the specified XML path, and converts to a
+2D numpy array of <tt class="docutils literal"><span class="pre">dtype</span></tt>.</p>
+<p>The text must be organized as one text element per row.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>root (xml.etree.ElementTree.Element): The current XML node.</li>
+<li>path (str): the XML path from the current node.</li>
+<li>nrow (int): the number of rows.  If 0, allow any number.</li>
+<li>ncol (int): the number of columns.  If 0, allow any number.</li>
+<li>dtype (python type): Either int, float, or str: the tokens
+are converted to dtype.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>A regular 2-dimensional numpy array of dtype.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.getArrayByPath">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">getArrayByPath</tt><big>(</big><em>bugLev</em>, <em>baseNode</em>, <em>path</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#getArrayByPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.getArrayByPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts an XML <tt class="docutils literal"><span class="pre">&lt;array&gt;</span></tt> element in vasprun.xml
+to a map with an array.</p>
+<p>See <a class="reference internal" href="#nrelmat.ScanXml.getArrayByNode" title="nrelmat.ScanXml.getArrayByNode"><tt class="xref py py-func docutils literal"><span class="pre">getArrayByNode()</span></tt></a> for details.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>bugLev (int): Debug level.  Normally 0.</li>
+<li>baseNode (xml.etree.ElementTree.Element): current XML node</li>
+<li>path (str): XML path from baseNode for the <tt class="docutils literal"><span class="pre">&lt;array&gt;</span></tt> element.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>A Python array</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.getArrayByNode">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">getArrayByNode</tt><big>(</big><em>bugLev</em>, <em>arrNode</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#getArrayByNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.getArrayByNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts an XML <tt class="docutils literal"><span class="pre">&lt;array&gt;</span></tt> element in vasprun.xml
+to a map with an array.</p>
+<p>Calls getArraySub to extract each field.
+The output Python map has the following structure:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="81%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">key</th>
+<th class="head">value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>_dimLens</td>
+<td>numpy vec of dimension lengths.
+len( dimLens) == n == numDimensions.</td>
+</tr>
+<tr class="row-odd"><td>_dimNames</td>
+<td>numpy vec of dimension names.
+len( dimLens) == n == numDimensions.</td>
+</tr>
+<tr class="row-even"><td>_fieldNames</td>
+<td>numpy vec of field names in the parallel arrays.
+len( fieldNames) == numVariables.</td>
+</tr>
+<tr class="row-odd"><td>_fieldTypes</td>
+<td>numpy vec of field types in the parallel arrays.
+len( fieldTypes) == numVariables.
+The types are: &#8216;i&#8217;: int, &#8216;f&#8217;: float, &#8216;s&#8217;: str</td>
+</tr>
+<tr class="row-even"><td>&lt;fieldName&gt;</td>
+<td>numpy n-dimensional array of the field &lt;fieldName&gt;</td>
+</tr>
+<tr class="row-odd"><td>&lt;fieldName&gt;</td>
+<td>numpy n-dimensional array of the field &lt;fieldName&gt;</td>
+</tr>
+<tr class="row-even"><td>&lt;fieldName&gt;</td>
+<td>numpy n-dimensional array of the field &lt;fieldName&gt;</td>
+</tr>
+<tr class="row-odd"><td>...</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>Example XML for a 1-dimensional array with 2 fields:</p>
+<div class="highlight-python"><pre>&lt;array name="atoms" &gt;
+ &lt;dimension dim="1"&gt;ion&lt;/dimension&gt;
+ &lt;field type="string"&gt;element&lt;/field&gt;
+ &lt;field type="int"&gt;atomtype&lt;/field&gt;
+ &lt;set&gt;
+  &lt;rc&gt;&lt;c&gt;C &lt;/c&gt;&lt;c&gt;   1&lt;/c&gt;&lt;/rc&gt;
+  &lt;rc&gt;&lt;c&gt;Fe&lt;/c&gt;&lt;c&gt;   2&lt;/c&gt;&lt;/rc&gt;
+  &lt;rc&gt;&lt;c&gt;Fe&lt;/c&gt;&lt;c&gt;   2&lt;/c&gt;&lt;/rc&gt;
+  &lt;rc&gt;&lt;c&gt;Fe&lt;/c&gt;&lt;c&gt;   2&lt;/c&gt;&lt;/rc&gt;
+  &lt;rc&gt;&lt;c&gt;Fe&lt;/c&gt;&lt;c&gt;   2&lt;/c&gt;&lt;/rc&gt;
+ &lt;/set&gt;
+&lt;/array&gt;</pre>
+</div>
+<p>Example resulting map:</p>
+<div class="highlight-python"><pre>_dimLens: [5]
+_dimNames: ['ion']
+_fieldNames: ['element' 'atomtype']
+_fieldTypes: ['s' 'i']
+element: ['C' 'Fe' 'Fe' 'Fe' 'Fe']
+atomtype: [1 2 2 2 2]</pre>
+</div>
+<p>Multiple dimension arrays also are supported.</p>
+<p>The vasprun.xml handling of dimensions is unusual.
+What they claim is <tt class="docutils literal"><span class="pre">dim=&quot;1&quot;</span></tt> actually is the least
+significant dimension and varies fastest, both
+in the XML data and in our resulting Python array.</p>
+<p>So the XML <tt class="docutils literal"><span class="pre">&lt;dimension</span> <span class="pre">dim=&quot;1&quot;&gt;band&lt;/dimension&gt;</span></tt>
+becomes the last dimension in the resulting Python array.</p>
+<p>Example XML for a 3 dimensional array with 2 fields:</p>
+<div class="highlight-python"><pre>&lt;array&gt;
+ &lt;dimension dim="1"&gt;band&lt;/dimension&gt;
+ &lt;dimension dim="2"&gt;kpoint&lt;/dimension&gt;
+ &lt;dimension dim="3"&gt;spin&lt;/dimension&gt;
+ &lt;field&gt;eigene&lt;/field&gt;
+ &lt;field&gt;occ&lt;/field&gt;
+ &lt;set&gt;
+  &lt;set comment="spin 1"&gt;
+   &lt;set comment="kpoint 1"&gt;
+    &lt;r&gt;   -6.5058    1.0000 &lt;/r&gt;
+    &lt;r&gt;    0.2537    1.0000 &lt;/r&gt;
+    &lt;r&gt;    0.7101    1.0000 &lt;/r&gt;
+    ...
+    &lt;r&gt;    8.1390    0.0000 &lt;/r&gt;
+   &lt;/set&gt;
+   &lt;set comment="kpoint 2"&gt;
+    &lt;r&gt;   -6.3718    1.0000 &lt;/r&gt;
+    &lt;r&gt;   -0.0841    1.0000 &lt;/r&gt;
+    &lt;r&gt;    0.7508    1.0000 &lt;/r&gt;
+   ...
+   &lt;/set&gt;
+   &lt;set comment="kpoint 101"&gt;
+    &lt;r&gt;   -5.8567    1.0000 &lt;/r&gt;
+    &lt;r&gt;   -0.0854    1.0000 &lt;/r&gt;
+    &lt;r&gt;    0.9602    1.0000 &lt;/r&gt;
+    &lt;r&gt;    7.7174    0.0000 &lt;/r&gt;
+    &lt;r&gt;    7.8556    0.0000 &lt;/r&gt;
+   &lt;/set&gt;
+  &lt;/set&gt;
+ &lt;/set&gt;
+&lt;/array&gt;</pre>
+</div>
+<p>Example resulting map:</p>
+<div class="highlight-python"><pre>_dimLens: [  1 101  22]
+_dimNames: ['spin' 'kpoint' 'band']
+_fieldNames: ['eigene' 'occ']
+_fieldTypes: ['f' 'f']
+eigene: [[[-6.5058  0.2537  0.7101 ...,  7.6096  7.8817  8.139 ]
+    [-6.3718 -0.0841  0.7508 ...,  7.481   7.8491  7.9595]
+    [-6.1332 -0.611   1.0672 ...,  7.0857  7.8655  7.9314]
+    ...,
+    [-5.8462  0.3687  0.9498 ...,  7.1721  7.4739  7.6631]
+    [-5.8016  0.5503  0.5886 ...,  7.4113  7.5794  7.7332]
+    [-5.8567 -0.0854  0.9602 ...,  7.2729  7.7174  7.8556]]]
+occ: [[[ 1.      1.      1.     ...,  0.      0.      0.    ]
+    [ 1.      1.      1.     ...,  0.      0.      0.    ]
+    [ 1.      1.      1.     ...,  1.      0.      0.    ]
+    ...,
+    [ 1.      1.      1.     ...,  1.      0.      0.    ]
+    [ 1.      1.      1.     ...,  0.      0.      0.    ]
+    [ 1.      1.      1.     ...,  0.9751  0.      0.    ]]]</pre>
+</div>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>bugLev (int): Debug level.  Normally 0.</li>
+<li>node (xml.etree.ElementTree.Element):
+The XML node for the <tt class="docutils literal"><span class="pre">&lt;array&gt;</span></tt> element.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>A Python array</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.getArraySub">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">getArraySub</tt><big>(</big><em>bugLev</em>, <em>setNode</em>, <em>ifield</em>, <em>fieldTypes</em>, <em>idim</em>, <em>dimLens</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#getArraySub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.getArraySub" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes the XML for one field (one variable) for an
+<tt class="docutils literal"><span class="pre">&lt;array&gt;</span></tt>.</p>
+<p>Called by getArrayByNode.  See <a class="reference internal" href="#nrelmat.ScanXml.getArrayByNode" title="nrelmat.ScanXml.getArrayByNode"><tt class="xref py py-func docutils literal"><span class="pre">getArrayByNode()</span></tt></a> for details.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>bugLev (int): Debug level.  Normally 0.</li>
+<li>setNode (xml.etree.ElementTree.Element): the element for <tt class="docutils literal"><span class="pre">&lt;set&gt;</span></tt>.</li>
+<li>ifield (int): the index number of the field.</li>
+<li>fieldTypes (int[]): the numeric field types so far.
+The numeric types are: 0: int, 1: float, 2: str.
+We take the max of the field types.</li>
+<li>tp (Python type): The desired type.</li>
+<li>idim (int): dimension number == recursion level == array nest level.
+0 on the first call, 1 for the next level array, etc.</li>
+<li>dimLens (int[]): list of dimension lengths.  Updated.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>A Python array with elements of type str.
+The caller converts them to the correct type.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.maxAbsDiff">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">maxAbsDiff</tt><big>(</big><em>mata</em>, <em>matb</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#maxAbsDiff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.maxAbsDiff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the max abs diff between two 2D numpy matrices.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>mata (numpy 2D array): Array to be compared.</li>
+<li>matb (numpy 2D array): Array to be compared.</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>float scalar: max_i( max_j( abs( mata[i][j] - matb[i][j]))</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.calcMatDeltas">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">calcMatDeltas</tt><big>(</big><em>mats</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#calcMatDeltas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.calcMatDeltas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the max abs diffs between adjacent pairs of a
+list of 2D numpy matrices.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>mats (list of 2D numpy matrices)</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>deltas (float[]): deltas[k] = maxAbsDiff( mats[k-1], mats[k])</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.printMrr">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">printMrr</tt><big>(</big><em>vmap</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#printMrr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.printMrr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the Mrr map returned by getArrayByPath or getArrayByNode.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>vmap (map): the MRR map</li>
+</ul>
+<p><strong>Returns</strong>:</p>
+<ul class="simple">
+<li>None</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.ScanXml.throwerr">
+<tt class="descclassname">nrelmat.ScanXml.</tt><tt class="descname">throwerr</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanXml.html#throwerr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanXml.throwerr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints an error message and raises Exception.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>msg (str): Error message.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>(Never returns)</li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li>Exception</li>
+</ul>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ScanOutcar.html"
+                        title="previous chapter">ScanOutcar.py</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="wrapReceive.html"
+                        title="next chapter">wrapReceive.py</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelmatdb/ScanXml.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="wrapReceive.html" title="wrapReceive.py"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ScanOutcar.html" title="ScanOutcar.py"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" >NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

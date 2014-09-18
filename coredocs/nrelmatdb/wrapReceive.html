@@ -1,0 +1,386 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>wrapReceive.py &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="NRELMatDB database builder pipeline" href="index.html" />
+    <link rel="next" title="wrapUpload.py" href="wrapUpload.html" />
+    <link rel="prev" title="ScanXml.py" href="ScanXml.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="wrapUpload.html" title="wrapUpload.py"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ScanXml.html" title="ScanXml.py"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="wrapreceive-py">
+<h1>wrapReceive.py<a class="headerlink" href="#wrapreceive-py" title="Permalink to this headline">¶</a></h1>
+<p>The server runs a single Python program: wrapReceive.py.
+Every few seconds wrapReceive checks for files sent into the
+directory /data/incoming by the client process
+<a class="reference external" href="wrapUpload.html">wrapUpload</a>.</p>
+<p>In particular, <tt class="docutils literal"><span class="pre">wrapReceive</span></tt> checks for files having the
+format <tt class="docutils literal"><span class="pre">wrapId.zzflag</span></tt>.
+See the <a class="reference external" href="sqlDatabase.html">SQL database overview</a>
+for more information on the <tt class="docutils literal"><span class="pre">wrapId</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">wrapReceive</span></tt> finds a file there having
+the format <tt class="docutils literal"><span class="pre">wrapId.zzflag</span></tt>, ...</p>
+<blockquote>
+<div><ul class="simple">
+<li>It checks that the three files are present:<ul>
+<li>wrapId.json: General statistics and information</li>
+<li>wrapId.tgz: Compendium of all files to be archived.</li>
+<li>wrapId.zzflag: Zero-length flag.</li>
+</ul>
+</li>
+<li>It creates a directory /data/arch/wrapId, and moves
+moves the three files from /data/incoming to /data/arch/wrapId.</li>
+<li>Within directory /data/arch/wrapId ...</li>
+<li>It untars wrapId.tgz to subdirectory vdir</li>
+<li>It calls fillDbVasp.py, passing the directory /data/arch/wrapId.</li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<span class="target" id="module-nrelmat.wrapReceive"></span><dl class="function">
+<dt id="nrelmat.wrapReceive.main">
+<tt class="descclassname">nrelmat.wrapReceive.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/nrelmat/wrapReceive.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.wrapReceive.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the receiver for data uploaded by wrapUpload.py.</p>
+<p>It updates the model and contrib tables.
+The function is determined by the <strong>-func</strong> parameter; see below.</p>
+<p>This function calls fillDbVasp.py and augmentDb.py.</p>
+<p>Command line parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="13%" />
+<col width="67%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>-bugLev</strong></td>
+<td>integer</td>
+<td>Debug level.  Normally 0.</td>
+</tr>
+<tr class="row-odd"><td><strong>-func</strong></td>
+<td>string</td>
+<td>Function.  See below.</td>
+</tr>
+<tr class="row-even"><td><strong>-useCommit</strong></td>
+<td>boolean</td>
+<td>false/true: do we commit changes to the DB.</td>
+</tr>
+<tr class="row-odd"><td><strong>-allowExc</strong></td>
+<td>boolean</td>
+<td>false/true: continue after error.</td>
+</tr>
+<tr class="row-even"><td><strong>-inDir</strong></td>
+<td>string</td>
+<td>Input dir for uploaded files.</td>
+</tr>
+<tr class="row-odd"><td><strong>-archDir</strong></td>
+<td>string</td>
+<td>Dir used for work and archiving.</td>
+</tr>
+<tr class="row-even"><td><strong>-logFile</strong></td>
+<td>string</td>
+<td>Log file name.</td>
+</tr>
+<tr class="row-odd"><td><strong>-inSpec</strong></td>
+<td>string</td>
+<td>JSON file containing parameters.  See below.</td>
+</tr>
+<tr class="row-even"><td><strong>-pollSec</strong></td>
+<td>int</td>
+<td>poll interval in seconds</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Values for the -func Parameter:</strong></p>
+<dl class="docutils">
+<dt><strong>readIncoming</strong></dt>
+<dd>Every few seconds list the files in inDir.
+For each file name matching <tt class="docutils literal"><span class="pre">wrapId.zzflag</span></tt>, call function
+<a class="reference internal" href="#nrelmat.wrapReceive.gatherArchive" title="nrelmat.wrapReceive.gatherArchive"><tt class="xref py py-func docutils literal"><span class="pre">gatherArchive()</span></tt></a> to process the three files:
+<tt class="docutils literal"><span class="pre">wrapId.json</span></tt>, <tt class="docutils literal"><span class="pre">wrapId.tgz</span></tt>, and <tt class="docutils literal"><span class="pre">wrapId.zzflag</span></tt>.
+Since program <tt class="xref py py-mod docutils literal"><span class="pre">wrapUpload</span></tt> always writes
+the flag file last, the other two should already be present.</dd>
+<dt><strong>redoArch</strong></dt>
+<dd><p class="first">Re-process all the subDirs found in archDir by calling
+function <a class="reference internal" href="#nrelmat.wrapReceive.processTree" title="nrelmat.wrapReceive.processTree"><tt class="xref py py-func docutils literal"><span class="pre">processTree()</span></tt></a> for each subDir.
+This is useful when someone changes the database tables,
+for example by adding an new column.
+Then one can use the following to recreate the tables
+with the new column.</p>
+<div class="last highlight-python"><pre>fillDbVasp.py -func createTableModel -deleteTable true
+fillDbVasp.py -func createTableContrib -deleteTable true
+wrapReceive.py -func redoArch</pre>
+</div>
+</dd>
+</dl>
+<p><strong>inSpec File Parameters:</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>dbhost</strong></td>
+<td>Database hostname.</td>
+</tr>
+<tr class="row-odd"><td><strong>dbport</strong></td>
+<td>Database port number.</td>
+</tr>
+<tr class="row-even"><td><strong>dbuser</strong></td>
+<td>Database user name.</td>
+</tr>
+<tr class="row-odd"><td><strong>dbpswd</strong></td>
+<td>Database password.</td>
+</tr>
+<tr class="row-even"><td><strong>dbname</strong></td>
+<td>Database database name.</td>
+</tr>
+<tr class="row-odd"><td><strong>dbschema</strong></td>
+<td>Database schema name.</td>
+</tr>
+<tr class="row-even"><td><strong>dbtablemodel</strong></td>
+<td>Database name of the &#8220;model&#8221; table.</td>
+</tr>
+<tr class="row-odd"><td><strong>dbtablecontrib</strong></td>
+<td>Database name of the &#8220;contrib&#8221; table.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>inSpec file example:</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;dbhost&quot;</span>         <span class="p">:</span> <span class="s">&quot;scctest&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbport&quot;</span>         <span class="p">:</span> <span class="s">&quot;6432&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbuser&quot;</span>         <span class="p">:</span> <span class="s">&quot;x&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbpswd&quot;</span>         <span class="p">:</span> <span class="s">&quot;x&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbname&quot;</span>         <span class="p">:</span> <span class="s">&quot;cidlada&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbschema&quot;</span>       <span class="p">:</span> <span class="s">&quot;satom&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbtablemodel&quot;</span>   <span class="p">:</span> <span class="s">&quot;model&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbtablecontrib&quot;</span> <span class="p">:</span> <span class="s">&quot;contrib&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.wrapReceive.gatherArchive">
+<tt class="descclassname">nrelmat.wrapReceive.</tt><tt class="descname">gatherArchive</tt><big>(</big><em>bugLev</em>, <em>useCommit</em>, <em>allowExc</em>, <em>inDirPath</em>, <em>archDirPath</em>, <em>wrapId</em>, <em>inSpec</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/wrapReceive.html#gatherArchive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.wrapReceive.gatherArchive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves inDirPath/wrapId.* to archDir and adds the info to the database.</p>
+<p>Moves inDirPath/wrapId{.json,.tgz,.zzflag} to the new dir archDir/wrapId.
+Untars the .tgz file.
+Then calls function <a class="reference internal" href="#nrelmat.wrapReceive.processTree" title="nrelmat.wrapReceive.processTree"><tt class="xref py py-func docutils literal"><span class="pre">processTree()</span></tt></a> to add the info to the database.</p>
+<p><strong>Parameters</strong>:</p>
+<ul>
+<li><p class="first">bugLev (int): Debug level.  Normally 0.</p>
+</li>
+<li><p class="first">useCommit (bool): do we commit changes to the DB.</p>
+</li>
+<li><p class="first">allowExc (bool): do we continue after error.</p>
+</li>
+<li><p class="first">inDirPath (str): Absolute path of the command line parm <tt class="docutils literal"><span class="pre">inDir</span></tt>.</p>
+</li>
+<li><p class="first">archDirPath (str): Absolute path of the command line parm <tt class="docutils literal"><span class="pre">archDir</span></tt>.</p>
+</li>
+<li><p class="first">wrapId (str): The wrapId extracted from the current filename.</p>
+</li>
+<li><dl class="first docutils">
+<dt>inSpec (str): Name of JSON file containing DB parameters.</dt>
+<dd><p class="first last">See description at <a class="reference internal" href="#nrelmat.wrapReceive.main" title="nrelmat.wrapReceive.main"><tt class="xref py py-func docutils literal"><span class="pre">main()</span></tt></a>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>None</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.wrapReceive.processTree">
+<tt class="descclassname">nrelmat.wrapReceive.</tt><tt class="descname">processTree</tt><big>(</big><em>bugLev</em>, <em>useCommit</em>, <em>allowExc</em>, <em>subDir</em>, <em>wrapId</em>, <em>inSpec</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/wrapReceive.html#processTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.wrapReceive.processTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <tt class="xref py py-mod docutils literal"><span class="pre">fillDbVasp</span></tt> to add info to the database,
+and <tt class="xref py py-mod docutils literal"><span class="pre">augmentDb</span></tt> to fill additional DB columns.</p>
+<p><strong>Parameters</strong>:</p>
+<ul>
+<li><p class="first">bugLev (int): Debug level.  Normally 0.</p>
+</li>
+<li><p class="first">useCommit (bool): do we commit changes to the DB.</p>
+</li>
+<li><p class="first">allowExc (bool): do we continue after error.</p>
+</li>
+<li><p class="first">wrapId (str): The wrapId extracted from the current filename.</p>
+</li>
+<li><p class="first">subDir (str): archDirPath/wrapId</p>
+</li>
+<li><dl class="first docutils">
+<dt>inSpec (str): Name of JSON file containing DB parameters.</dt>
+<dd><p class="first last">See description at <a class="reference internal" href="#nrelmat.wrapReceive.main" title="nrelmat.wrapReceive.main"><tt class="xref py py-func docutils literal"><span class="pre">main()</span></tt></a>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>None</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.wrapReceive.checkDupProcs">
+<tt class="descclassname">nrelmat.wrapReceive.</tt><tt class="descname">checkDupProcs</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/nrelmat/wrapReceive.html#checkDupProcs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.wrapReceive.checkDupProcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests if a process with the same program name as ours
+is already running, and if so, quits.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>None</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>None</li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li>Exception (via throwerr) if another process has the same name.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.wrapReceive.throwerr">
+<tt class="descclassname">nrelmat.wrapReceive.</tt><tt class="descname">throwerr</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/wrapReceive.html#throwerr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.wrapReceive.throwerr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints an error message and raises Exception.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>msg (str): Error message.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>(Never returns)</li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li>Exception</li>
+</ul>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ScanXml.html"
+                        title="previous chapter">ScanXml.py</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="wrapUpload.html"
+                        title="next chapter">wrapUpload.py</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelmatdb/wrapReceive.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="wrapUpload.html" title="wrapUpload.py"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ScanXml.html" title="ScanXml.py"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" >NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

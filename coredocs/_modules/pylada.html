@@ -1,0 +1,209 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pylada &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pylada</h1><div class="highlight"><pre>
+<span class="c">###############################</span>
+<span class="c">#  This file is part of PyLaDa.</span>
+<span class="c">#</span>
+<span class="c">#  Copyright (C) 2013 National Renewable Energy Lab</span>
+<span class="c">#</span>
+<span class="c">#  PyLaDa is a high throughput computational platform for Physics. It aims to</span>
+<span class="c">#  make it easier to submit large numbers of jobs on supercomputers. It</span>
+<span class="c">#  provides a python interface to physical input, such as crystal structures,</span>
+<span class="c">#  as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs.</span>
+<span class="c">#  It is able to organise and launch computational jobs on PBS and SLURM.</span>
+<span class="c">#</span>
+<span class="c">#  PyLaDa is free software: you can redistribute it and/or modify it under the</span>
+<span class="c">#  terms of the GNU General Public License as published by the Free Software</span>
+<span class="c">#  Foundation, either version 3 of the License, or (at your option) any later</span>
+<span class="c">#  version.</span>
+<span class="c">#</span>
+<span class="c">#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY</span>
+<span class="c">#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</span>
+<span class="c">#  FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</span>
+<span class="c">#  details.</span>
+<span class="c">#</span>
+<span class="c">#  You should have received a copy of the GNU General Public License along with</span>
+<span class="c">#  PyLaDa.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">###############################</span>
+
+<span class="sd">&quot;&quot;&quot; Root of all pylada python packages and modules.</span>
+
+<span class="sd">    Configuration variables exist here. However, they are added within separate</span>
+<span class="sd">    files. Which files will depend upon the user.</span>
+
+<span class="sd">       - Files located in the config sub-directory where pylada is installed</span>
+<span class="sd">       - Files located in one of the directories specified by</span>
+<span class="sd">         :envvar:`PYLADA_CONFIG_DIR`</span>
+<span class="sd">       - In the user configuration file ~/.pylada</span>
+
+<span class="sd">    The files are read in that order. Within a given directory, files are read</span>
+<span class="sd">    alphabetically. Later files can override previous files. Finally, all and</span>
+<span class="sd">    any variable which are declared within these files will end up at the root</span>
+<span class="sd">    of :py:mod:`pylada`. Be nice, don&#39;t pollute yourself.</span>
+
+<span class="sd">    .. envvar:: PYLADA_CONFIG_DIR</span>
+
+<span class="sd">       Environment variable specifying the path(s) to the configuration</span>
+<span class="sd">       directories.</span>
+
+<span class="sd">    For which variables can be set (and, if relevant, which file) see</span>
+<span class="sd">    pylada.config.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">__docformat__</span> <span class="o">=</span> <span class="s">&quot;restructuredtext en&quot;</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&quot;load_ipython_extension&quot;</span><span class="p">,</span> <span class="s">&quot;unload_ipython_extension&quot;</span><span class="p">,</span>
+        <span class="s">&quot;error&quot;</span><span class="p">,</span> 
+<span class="p">]</span>
+<span class="kn">import</span> <span class="nn">error</span>
+<span class="kn">import</span> <span class="nn">physics</span>
+<span class="kn">from</span> <span class="nn">ipython</span> <span class="kn">import</span> <span class="n">load_ipython_extension</span><span class="p">,</span> <span class="n">unload_ipython_extension</span>
+
+<span class="n">version_info</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot; Tuple containing version info. &quot;&quot;&quot;</span>
+<span class="n">version</span> <span class="o">=</span> <span class="s">&quot;{0[0]}.{0[1]}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version_info</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot; String containing version info. &quot;&quot;&quot;</span>
+
+
+<span class="c"># reads stuff from global configuration files.</span>
+<span class="c"># doing it in a function makes it easier to keep the pylada namespace clean.</span>
+<span class="k">def</span> <span class="nf">_config_files</span><span class="p">(</span><span class="n">dointeractive</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+  <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">expandvars</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+  <span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">iglob</span>
+  <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span>
+
+  <span class="c"># pattern to distinguish files to run only in interactive mode.</span>
+  <span class="c"># these files are loaded by the pylada-ipython extension itself.</span>
+  <span class="n">pattern</span> <span class="o">=</span> <span class="s">&quot;*.py&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">dointeractive</span> <span class="k">else</span> <span class="s">&quot;ipy_*.py&quot;</span>
+  <span class="c"># dictionary with stuff we want defined when reading config files.</span>
+  <span class="n">global_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;pyladamodules&quot;</span><span class="p">:</span> <span class="n">__all__</span><span class="p">}</span>
+  <span class="n">local_dict</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="c"># first configuration files installed with pylada.</span>
+  <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">iglob</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&quot;config&quot;</span><span class="p">),</span> <span class="n">pattern</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="n">dointeractive</span> <span class="o">==</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">filename</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;ipy_&#39;</span><span class="p">:</span> <span class="k">continue</span>
+    <span class="nb">execfile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">global_dict</span><span class="p">,</span> <span class="n">local_dict</span><span class="p">)</span>
+
+  <span class="c"># then configuration files installed in a global config directory.</span>
+  <span class="k">if</span> <span class="s">&quot;PYLADA_CONFIG_DIR&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">[</span><span class="s">&quot;PYLADA_CONFIG_DIR&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">iglob</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">dointeractive</span> <span class="o">==</span> <span class="bp">False</span> <span class="ow">and</span> <span class="n">filename</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;ipy_&#39;</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="nb">execfile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">global_dict</span><span class="p">,</span> <span class="n">local_dict</span><span class="p">)</span>
+
+  <span class="c"># then user configuration file.</span>
+  <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">expandvars</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~/.pylada&#39;</span><span class="p">))):</span>
+    <span class="nb">execfile</span><span class="p">(</span><span class="n">expandvars</span><span class="p">(</span><span class="n">expanduser</span><span class="p">(</span><span class="s">&#39;~/.pylada&#39;</span><span class="p">)),</span> <span class="n">global_dict</span><span class="p">,</span> <span class="n">local_dict</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">local_dict</span>
+
+<span class="c"># does actual config call.</span>
+<span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_config_files</span><span class="p">()</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;_&#39;</span><span class="p">)</span>
+
+<span class="c"># Add a function to easily run the tests</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">nose.tools</span> <span class="kn">import</span> <span class="n">nottest</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="k">pass</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c"># Make sure this function is not run by nosetest, to avoid infinit</span>
+    <span class="c"># recursion</span>
+    <span class="nd">@nottest</span>
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Run all pylada nose tests</span>
+
+<span class="sd">            Does not include some C++ only tests, nor tests that require</span>
+<span class="sd">            external programs such as vasp. Those should be run via ctest.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span>
+        <span class="kn">from</span> <span class="nn">nose</span> <span class="kn">import</span> <span class="n">runmodule</span>
+        <span class="k">return</span> <span class="n">runmodule</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+<map id="nrelmat" name="nrelmat">
+<area shape="rect" id="node2" href="wrapUpload.html" title="Click for wrapUpload details" alt="" coords="136,128,435,219"/>
+<area shape="rect" id="node3" href="fillDbVasp.html" title="Click for fillDbVasp details" alt="" coords="83,267,488,392"/>
+<area shape="rect" id="node5" href="flatDatabase.html" title="Click for flat file database details" alt="" coords="45,441,233,495"/>
+<area shape="rect" id="node6" href="sqlDatabase.html" title="Click for PostgreSQL database details" alt="" coords="257,440,607,496"/>
+<area shape="rect" id="node4" href="augmentDb.html" title="Click for augmentDb details" alt="" coords="305,565,559,613"/>
+<area shape="rect" id="node7" href="webServer.html" title="Click for web server details" alt="" coords="5,544,277,635"/>
+</map>

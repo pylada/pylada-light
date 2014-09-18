@@ -1,0 +1,251 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>queryMatDb.py &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="NRELMatDB database builder pipeline" href="index.html" />
+    <link rel="next" title="readVasp.py" href="readVasp.html" />
+    <link rel="prev" title="fillDbVasp.py" href="fillDbVasp.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="readVasp.html" title="readVasp.py"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fillDbVasp.html" title="fillDbVasp.py"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-nrelmat.queryMatDb">
+<span id="querymatdb-py"></span><h1>queryMatDb.py<a class="headerlink" href="#module-nrelmat.queryMatDb" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="nrelmat.queryMatDb.main">
+<tt class="descclassname">nrelmat.queryMatDb.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/nrelmat/queryMatDb.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.queryMatDb.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demo query of the NRELMatDB SQL database.
+Simply issues the specified query and prints the resulting rows.</p>
+<p>See badparms for more documentation.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.queryMatDb.badparms">
+<tt class="descclassname">nrelmat.queryMatDb.</tt><tt class="descname">badparms</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/queryMatDb.html#badparms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.queryMatDb.badparms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters:</p>
+<blockquote>
+<div><blockquote>
+<div><table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-p</span></kbd></td>
+<td>&lt;string&gt;   password</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-q</span></kbd></td>
+<td>&lt;string&gt;   SQL query string</td></tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>The columns are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>mident</strong>             MatDB ID</li>
+<li><strong>wrapid</strong>             Identifier for this upload</li>
+<li><strong>abspath</strong>            absolute file path</li>
+<li><strong>relpath</strong>            relative file path</li>
+<li><strong>icsdnum</strong>            ICSD id</li>
+<li><strong>magtype</strong>            mag moment type: hsf=hs-ferro, hsaf=hs-antiferro, nm=non-mag</li>
+<li><strong>magnum</strong>             mag moment num for hs, ls antiferro</li>
+<li><strong>relaxtype</strong>          Type of run: std=standard, rc=relax_cellshape, ri=relax_ions</li>
+<li><strong>relaxnum</strong>           Folder num for rc or ri</li>
+<li><strong>excmsg</strong>             exception msg from digestVasp.py</li>
+<li><strong>exctrace</strong>           exception trace from digestVasp.py</li>
+<li><strong>rundate</strong>            run date</li>
+<li><strong>itertotaltime</strong>      run time in seconds</li>
+<li><strong>systemname</strong>         system name</li>
+<li><strong>encut_ev</strong>           INCAR encut parameter, eV</li>
+<li><strong>ibrion</strong>             INCAR ibrion parameter</li>
+<li><strong>isif</strong>               INCAR isif parameter</li>
+<li><strong>numatom</strong>            num atoms in unit cell</li>
+<li><strong>typenames</strong>          atom types</li>
+<li><strong>typenums</strong>           num of each type of atom</li>
+<li><strong>typemasses</strong>         atom mass for each type</li>
+<li><strong>typepseudos</strong>        atom pseudopotential name for each type</li>
+<li><strong>typevalences</strong>       atom valences for each type</li>
+<li><strong>atomnames</strong>          atom names</li>
+<li><strong>atommasses_amu</strong>     atom masses</li>
+<li><strong>atompseudos</strong>        atom pseudopotential names</li>
+<li><strong>atomvalences</strong>       atom valences in cell</li>
+<li><strong>initialbasismat</strong>    initial basis matrix, rows are basis vecs</li>
+<li><strong>initialrecipbasismat</strong> initial reciprocal basis matrix, rows are basis vecs</li>
+<li><strong>initialcartposmat</strong>  initial cartesian position matrix</li>
+<li><strong>initialfracposmat</strong>  initial fractional (direct) position matrix</li>
+<li><strong>finalbasismat</strong>      final basis matrix, rows are basis vecs</li>
+<li><strong>finalrecipbasismat</strong> final reciprocal basis matrix, rows are basis vecs</li>
+<li><strong>finalcartposmat</strong>    final cartesian position matrix (row per atom, = direct * basis)</li>
+<li><strong>finalfracposmat</strong>    final fractional (direct) position matrix</li>
+<li><strong>finalvolume_ang3</strong>   final cell volume, Angstrom3</li>
+<li><strong>finaldensity_g_cm3</strong> final cell density, g/cm3</li>
+<li><strong>finalforcemat_ev_ang</strong> final force matrix, eV/Ang, row per atom</li>
+<li><strong>finalstressmat_kbar</strong>  final stress matrix, kbar, (3x3)</li>
+<li><strong>finalpressure_kbar</strong>   final pressure, Kbar</li>
+<li><strong>eigenmat</strong>           final eigenvalue matrix ([spin][kpoint][band])</li>
+<li><strong>dielectricImag</strong>     dielectric fcn, imag part:  E(ev),x,y,z,xy,yz,zx</li>
+<li><strong>dielectricReal</strong>     dielectric fcn, real part:  E(ev),x,y,z,xy,yz,zx</li>
+<li><strong>dosMat</strong>             density of states: E(ev),DOS,integDOS</li>
+<li><strong>energynoentrp</strong>      final total energy without entropy</li>
+<li><strong>energyperatom</strong>      final total energy without entropy, per atom in cell</li>
+<li><strong>efermi0</strong>            fermi energy at 0K</li>
+<li><strong>cbmin</strong>              conduction band minimum energy</li>
+<li><strong>vbmax</strong>              valence band maximum energy</li>
+<li><strong>bandgapindirect</strong>    indirect bandgap</li>
+<li><strong>bandgapdirect</strong>      direct bandgap</li>
+<li><strong>netcharge</strong>          net charge</li>
+<li><strong>formula</strong>            chemical formula</li>
+<li><strong>chemtext</strong>           chemical formula with spaces</li>
+<li><strong>minenergyid</strong>        id having min energy for this formula</li>
+<li><strong>enthalpy</strong>           final enthalpy, eV/atom</li>
+<li><strong>initialspacegroupname</strong>  initial space group name</li>
+<li><strong>initialspacegroupnum</strong>   initial space group number</li>
+<li><strong>finalspacegroupname</strong>    final space group name</li>
+<li><strong>finalspacegroupnum</strong>     final space group number</li>
+<li><strong>hashstring</strong>         sha512 sum of vasprun.xml file</li>
+<li><strong>meta_parents</strong>       parent entries</li>
+<li><strong>meta_firstname</strong>     First name of the researcher.</li>
+<li><strong>meta_lastname</strong>      Last name of the researcher.</li>
+<li><strong>meta_publications</strong>  DOIs of publications</li>
+<li><strong>meta_standards*</strong>    standards</li>
+<li><strong>meta_keywords</strong>      keywords</li>
+<li><strong>meta_notes</strong>         notes</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p>Example queries:</p>
+<div class="highlight-python"><pre># Find structures with Ge and Na.
+# Note that the elements in the formulas are always in alphabetic order,
+# so searching for 'Na.*Ge' won't work.
+# Below the "~" operator is a regular expression match.
+
+queryMatDb.py -p someSecret -q "select mident, icsdnum, relaxtype,       formula, energyperatom, bandgapindirect from model where formula ~ 'Ge.*Na'"
+
+# Search for Ge structures having  0.5 &lt;= bandgapindirect &lt;= 0.7
+queryMatDb.py -p someSecret -q "select mident, icsdnum, relaxtype,       formula, energyperatom, bandgapindirect from model where formula ~ 'Ge'       and bandgapindirect &gt;= 0.5 and bandgapindirect &lt;= 0.7"</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.queryMatDb.testQuery">
+<tt class="descclassname">nrelmat.queryMatDb.</tt><tt class="descname">testQuery</tt><big>(</big><em>dbschema</em>, <em>cursor</em>, <em>query</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/queryMatDb.html#testQuery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.queryMatDb.testQuery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simply issues the specified query and prints the resulting rows.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.queryMatDb.throwerr">
+<tt class="descclassname">nrelmat.queryMatDb.</tt><tt class="descname">throwerr</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/queryMatDb.html#throwerr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.queryMatDb.throwerr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints an error message and raises Exception.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="fillDbVasp.html"
+                        title="previous chapter">fillDbVasp.py</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="readVasp.html"
+                        title="next chapter">readVasp.py</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelmatdb/queryMatDb.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="readVasp.html" title="readVasp.py"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fillDbVasp.html" title="fillDbVasp.py"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" >NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

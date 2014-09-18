@@ -1,0 +1,453 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>fillDbVasp.py &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="NRELMatDB database builder pipeline" href="index.html" />
+    <link rel="next" title="queryMatDb.py" href="queryMatDb.html" />
+    <link rel="prev" title="execMimic.py" href="execMimic.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="queryMatDb.html" title="queryMatDb.py"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="execMimic.html" title="execMimic.py"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="filldbvasp-py">
+<h1>fillDbVasp.py<a class="headerlink" href="#filldbvasp-py" title="Permalink to this headline">¶</a></h1>
+<p>The fillDbVasp program has three possible main functions:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Delete and recreate the <tt class="docutils literal"><span class="pre">model</span></tt> database table.
+This function is rarely used.</li>
+<li>Delete and recreate the <tt class="docutils literal"><span class="pre">contrib</span></tt> database table.
+This function is rarely used.</li>
+<li>Analyze the contents of a directory corresponding to
+a single wrapId, and ingest the data into the database.
+This is the function invoked by wrapReceive.py.</li>
+</ul>
+</div></blockquote>
+<p>Continuing with the third choice ...</p>
+<p>For each relative subdir specified in the wrapId.json file,
+fillDbVasp finds the reconstructed directory and calls
+fillRow to handle the directory.
+The fillRow method calls readVasp.py to read the vasprun.xml file.
+The readVasp.py program returns a map (Python dictionary)
+and adds a single row to the model table.</p>
+<p>Finally, fillDbVasp adds a single row to the contrib
+table with information about the wrapId covering the entire
+set of directories.</p>
+<hr class="docutils" />
+<span class="target" id="module-nrelmat.fillDbVasp"></span><dl class="function">
+<dt id="nrelmat.fillDbVasp.main">
+<tt class="descclassname">nrelmat.fillDbVasp.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/nrelmat/fillDbVasp.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.fillDbVasp.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a dir tree and adds rows to the database table &#8220;model&#8221;.
+The function is determined by the <strong>-func</strong> parameter; see below.</p>
+<p>This function is called by wrapReceive.py.</p>
+<p>Command line parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="13%" />
+<col width="65%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>-bugLev</strong></td>
+<td>integer</td>
+<td>Debug level.  Normally 0.</td>
+</tr>
+<tr class="row-odd"><td><strong>-func</strong></td>
+<td>string</td>
+<td>Function.  See below.</td>
+</tr>
+<tr class="row-even"><td><strong>-useCommit</strong></td>
+<td>boolean</td>
+<td>false/true: do we commit changes to the DB.</td>
+</tr>
+<tr class="row-odd"><td><strong>-requireIcsd</strong></td>
+<td>boolean</td>
+<td>no/yes: do we require that the file
+path names contain ICSD info.
+See notes below.</td>
+</tr>
+<tr class="row-even"><td><strong>-allowExc</strong></td>
+<td>boolean</td>
+<td>false/true: continue after error.</td>
+</tr>
+<tr class="row-odd"><td><strong>-modType</strong></td>
+<td>string</td>
+<td>SQL mod type: insert or update.</td>
+</tr>
+<tr class="row-even"><td><strong>-readType</strong></td>
+<td>string</td>
+<td>if outcar: OUTCAR; if xml: for vasprun.xml.
+2014-06-10: now we only support outcar,
+since some info is not in vasprun.xml.</td>
+</tr>
+<tr class="row-odd"><td><strong>-deleteTable</strong></td>
+<td>boolean</td>
+<td>false/true: If func is create*, do we
+delete the old table first.</td>
+</tr>
+<tr class="row-even"><td><strong>-wrapPrefix</strong></td>
+<td>string</td>
+<td>Prefix of dir names before wrapId.</td>
+</tr>
+<tr class="row-odd"><td><strong>-topDir</strong></td>
+<td>string</td>
+<td>Top of dir tree.</td>
+</tr>
+<tr class="row-even"><td><strong>-dirList</strong></td>
+<td>string</td>
+<td>File containing dirs to be ingested.
+If a dir name ends with &#8220;metadata&#8221;, the
+&#8220;metadata&#8221; part is stripped.</td>
+</tr>
+<tr class="row-odd"><td><strong>-zzflag</strong></td>
+<td>string</td>
+<td>Input file from wrapUpload.py.</td>
+</tr>
+<tr class="row-even"><td><strong>-inSpec</strong></td>
+<td>string</td>
+<td>JSON file containing DBMS parameters.
+See below.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Values for the -func Parameter:</strong></p>
+<dl class="docutils">
+<dt><strong>createTableModel</strong></dt>
+<dd>Drop and create the model table.  In this case the -topDir
+and -dirList parameters should be &#8220;none&#8221;.</dd>
+<dt><strong>fillTable</strong></dt>
+<dd>Read dirList and add rows to the database table &#8220;model&#8221;.</dd>
+</dl>
+<p><strong>inSpec File Parameters:</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>dbhost</strong></td>
+<td>Database hostname.</td>
+</tr>
+<tr class="row-odd"><td><strong>dbport</strong></td>
+<td>Database port number.</td>
+</tr>
+<tr class="row-even"><td><strong>dbuser</strong></td>
+<td>Database user name.</td>
+</tr>
+<tr class="row-odd"><td><strong>dbpswd</strong></td>
+<td>Database password.</td>
+</tr>
+<tr class="row-even"><td><strong>dbname</strong></td>
+<td>Database database name.</td>
+</tr>
+<tr class="row-odd"><td><strong>dbschema</strong></td>
+<td>Database schema name.</td>
+</tr>
+<tr class="row-even"><td><strong>dbtablemodel</strong></td>
+<td>Database name of the &#8220;model&#8221; table.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>inSpec file example:</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;dbhost&quot;</span>         <span class="p">:</span> <span class="s">&quot;scctest&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbport&quot;</span>         <span class="p">:</span> <span class="s">&quot;6432&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbuser&quot;</span>         <span class="p">:</span> <span class="s">&quot;x&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbpswd&quot;</span>         <span class="p">:</span> <span class="s">&quot;x&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbname&quot;</span>         <span class="p">:</span> <span class="s">&quot;cidlada&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbschema&quot;</span>       <span class="p">:</span> <span class="s">&quot;satom&quot;</span><span class="p">,</span>
+  <span class="s">&quot;dbtablemodel&quot;</span>   <span class="p">:</span> <span class="s">&quot;model&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>requireIcsd:</strong></p>
+<p>If requireIcsd is true, <tt class="xref py py-func docutils literal"><span class="pre">getIcsdMap()</span></tt> must be able
+to extract ICSD info from the file names.  File names must be like:</p>
+<div class="highlight-python"><pre>.../icsd_083665/icsd_083665.cif/ls-anti-ferro-7/relax_cellshape/1
+         ^^^^^^                 ^^^^^^^^      ^ ^^^^^^^^^^^^^^^ ^
+        icsdNum                 magType  magNum relaxType       relaxNum</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.fillDbVasp.fillDbVasp">
+<tt class="descclassname">nrelmat.fillDbVasp.</tt><tt class="descname">fillDbVasp</tt><big>(</big><em>bugLev</em>, <em>func</em>, <em>useCommit</em>, <em>requireIcsd</em>, <em>allowExc</em>, <em>modType</em>, <em>readType</em>, <em>deleteTable</em>, <em>wrapPrefix</em>, <em>topDir</em>, <em>dirList</em>, <em>zzflag</em>, <em>inSpec</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/fillDbVasp.html#fillDbVasp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.fillDbVasp.fillDbVasp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a dir tree and adds rows to the database table &#8220;model&#8221;.</p>
+<p><strong>Parameters</strong>:</p>
+<ul>
+<li><p class="first">bugLev (int): Debug level.  Normally 0.</p>
+</li>
+<li><p class="first">func (str): Overall function.  One of the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li><tt class="docutils literal"><span class="pre">'createTableModel'</span></tt>
+Drop and create the model table.</li>
+<li><tt class="docutils literal"><span class="pre">'fillTable'</span></tt>
+Read a dir tree and add rows to the database table &#8220;model&#8221;.</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">useCommit (boolean): If True, we commit changes to the DB.</p>
+</li>
+<li><p class="first">requireIcsd (boolean): if True, the absTopDir string must
+contain ICSD info that <tt class="xref py py-func docutils literal"><span class="pre">getIcsdMap()</span></tt> can extract.</p>
+</li>
+<li><p class="first">allowExc (boolean): If True, continue after error</p>
+</li>
+<li><p class="first">modType (string): SQL mod type: insert or update.</p>
+</li>
+<li><p class="first">readType (string): If outcar use OUTCAR; if xml use vasprun.xml.</p>
+</li>
+<li><p class="first">deleteTable (boolean): If True and func is create*,
+delete the specified table before creating it.</p>
+</li>
+<li><p class="first">wrapPrefix (str): Prefix of dir names before wrapId.</p>
+</li>
+<li><p class="first">topDir (str): Top of the directory tree.</p>
+</li>
+<li><p class="first">dirList (str): File containing dirs to be ingested.
+If a dir name ends with &#8220;metadata&#8221;, the
+&#8220;metadata&#8221; part is stripped.</p>
+</li>
+<li><p class="first">zzflag (str): Input file from wrapUpload.py.</p>
+</li>
+<li><dl class="first docutils">
+<dt>inSpec (str): Name of JSON file containing DBMS parameters.</dt>
+<dd><p class="first last">See description at <a class="reference internal" href="#nrelmat.fillDbVasp.main" title="nrelmat.fillDbVasp.main"><tt class="xref py py-func docutils literal"><span class="pre">main()</span></tt></a>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>None</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.fillDbVasp.createTableModel">
+<tt class="descclassname">nrelmat.fillDbVasp.</tt><tt class="descname">createTableModel</tt><big>(</big><em>bugLev</em>, <em>useCommit</em>, <em>deleteTable</em>, <em>conn</em>, <em>cursor</em>, <em>dbschema</em>, <em>dbtablemodel</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/fillDbVasp.html#createTableModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.fillDbVasp.createTableModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the database table &#8220;model&#8221;.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>bugLev (int): Debug level.  Normally 0.</li>
+<li>useCommit (boolean): If True, we commit changes to the DB.</li>
+<li>deleteTable (boolean): If True, delete the table before creating it.</li>
+<li>conn (psycopg2.connection): Open DB connection</li>
+<li>cursor (psycopg2.cursor): Open DB cursor</li>
+<li>dbschema (str): Database schema name</li>
+<li>dbtablemodel (str): Database name of the &#8220;model&#8221; table.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>None</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.fillDbVasp.fillRow">
+<tt class="descclassname">nrelmat.fillDbVasp.</tt><tt class="descname">fillRow</tt><big>(</big><em>bugLev</em>, <em>useCommit</em>, <em>requireIcsd</em>, <em>allowExc</em>, <em>modType</em>, <em>readType</em>, <em>wrapId</em>, <em>topDir</em>, <em>curDir</em>, <em>conn</em>, <em>cursor</em>, <em>dbschema</em>, <em>dbtablemodel</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/fillDbVasp.html#fillRow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.fillDbVasp.fillRow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds one row to the model table, corresponding to relDir.</p>
+<p><strong>Parameters</strong>:</p>
+<ul>
+<li><p class="first">bugLev (int): Debug level.  Normally 0.</p>
+</li>
+<li><p class="first">useCommit (boolean): If True, we commit changes to the DB.</p>
+</li>
+<li><p class="first">requireIcsd (boolean): if True, the absTopDir string must
+contain ICSD info that <tt class="xref py py-func docutils literal"><span class="pre">getIcsdMap()</span></tt> can extract.</p>
+</li>
+<li><p class="first">allowExc (boolean): If True, we continue after an error.</p>
+</li>
+<li><p class="first">modType (string): SQL mod type: insert or update.</p>
+</li>
+<li><p class="first">readType (string): If outcar use OUTCAR; if xml use vasprun.xml.</p>
+</li>
+<li><p class="first">wrapId (str): Arbitrary name for this set of data.</p>
+</li>
+<li><dl class="first docutils">
+<dt>topDir (str): Original top dir.  We ingest all dirs in</dt>
+<dd><p class="first last">this tree containing a metadata file.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>curDir (str): Input directory tree.  We ingest all dirs in</dt>
+<dd><p class="first last">this tree containing a metadata file.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">conn (psycopg2.connection): Open DB connection</p>
+</li>
+<li><p class="first">cursor (psycopg2.cursor): Open DB cursor</p>
+</li>
+<li><p class="first">dbschema (str): Database schema name</p>
+</li>
+<li><p class="first">dbtablemodel (str): Database name of the &#8220;model&#8221; table.</p>
+</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>None</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.fillDbVasp.formatArray">
+<tt class="descclassname">nrelmat.fillDbVasp.</tt><tt class="descname">formatArray</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/fillDbVasp.html#formatArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.fillDbVasp.formatArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formats a Python array into SQL format.</p>
+<p>Recursively formats a Python array, so
+the Python array `` [[11.1, 22.2], [33.3, 44.4]]``
+is formatted into the string:
+<tt class="docutils literal"><span class="pre">'array[array[11.1,22.2],array[33.3,44.4]]'</span></tt></p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>vec (float[] or float[][] or ...): Python array.  May be multidimensional.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>Formatted array as a str.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.fillDbVasp.throwerr">
+<tt class="descclassname">nrelmat.fillDbVasp.</tt><tt class="descname">throwerr</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/fillDbVasp.html#throwerr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.fillDbVasp.throwerr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints an error message and raises Exception.</p>
+<p><strong>Parameters</strong>:</p>
+<ul class="simple">
+<li>msg (str): Error message.</li>
+</ul>
+<p><strong>Returns</strong></p>
+<ul class="simple">
+<li>(Never returns)</li>
+</ul>
+<p><strong>Raises</strong></p>
+<ul class="simple">
+<li>Exception</li>
+</ul>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="execMimic.html"
+                        title="previous chapter">execMimic.py</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="queryMatDb.html"
+                        title="next chapter">queryMatDb.py</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelmatdb/fillDbVasp.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="queryMatDb.html" title="queryMatDb.py"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="execMimic.html" title="execMimic.py"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" >NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

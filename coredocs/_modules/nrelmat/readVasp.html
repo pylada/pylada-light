@@ -1,0 +1,1029 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>nrelmat.readVasp &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for nrelmat.readVasp</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># Copyright 2013 National Renewable Energy Laboratory, Golden CO, USA</span>
+<span class="c"># This file is part of NREL MatDB.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License</span>
+<span class="c"># along with NREL MatDB.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">import</span> <span class="nn">datetime</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">traceback</span><span class="o">,</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">xml.etree.cElementTree</span> <span class="kn">as</span> <span class="nn">etree</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span> <span class="nb">all</span><span class="o">=</span><span class="s">&#39;raise&#39;</span><span class="p">,</span> <span class="n">under</span><span class="o">=</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">pylada.vasp</span>        <span class="c"># used by parsePylada tor parse OUTCAR files</span>
+<span class="kn">import</span> <span class="nn">ScanXml</span>            <span class="c"># used to parse vasprun.xml files</span>
+<span class="kn">import</span> <span class="nn">ScanOutcar</span>         <span class="c"># used to parse OUTCAR files</span>
+<span class="kn">import</span> <span class="nn">wrapUpload</span>         <span class="c"># used for parseBoolean</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+<div class="viewcode-block" id="ResClass"><a class="viewcode-back" href="../../nrelmatdb/readVasp.html#nrelmat.readVasp.ResClass">[docs]</a><span class="k">class</span> <span class="nc">ResClass</span><span class="p">:</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  An empty class used as a container for parseDir results.</span>
+
+<span class="sd">  The parseDir function will call either parsePylada or parseXml,</span>
+<span class="sd">  and they will save the VASP results as attributes of</span>
+<span class="sd">  an instance of ResClass.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">keys</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+      <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+      <span class="n">stg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">stg</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">sep</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+      <span class="k">else</span><span class="p">:</span> <span class="n">sep</span> <span class="o">=</span> <span class="s">&#39; &#39;</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  </span><span class="si">%s</span><span class="s">:  type: </span><span class="si">%s</span><span class="s">  val:</span><span class="si">%s%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="n">sep</span><span class="p">,</span> <span class="n">val</span><span class="p">,)</span>
+    <span class="k">return</span> <span class="n">msg</span>
+
+<span class="c">#====================================================================</span>
+
+</div>
+<span class="k">def</span> <span class="nf">badparms</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Prints an error msg and usage info, and exits with rc 1.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Error: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;Parms:&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -bugLev    &lt;int&gt;      debug level&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -readType  &lt;string&gt;   outcar / xml / compare&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -allowExc  &lt;boolean&gt;  false/true: continue after error.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -inDir     &lt;string&gt;   dir containing input OUTCAR or vasprun.xml&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -maxLev    &lt;int&gt;      max levels to print for xml&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;Examples:&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;./readVasp.py -bugLev 5   -readType xml  -allowExc false  -inDir tda/testlada.2013.04.15.fe.len.3.20/icsd_044729/icsd_044729.cif/hs-anti-ferro-0/relax_cellshape/0   -maxLev 0&#39;</span>
+  <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c">#====================================================================</span>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../nrelmatdb/readVasp.html#nrelmat.readVasp.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Test driver: Extracts info from the output of a VASP run.</span>
+
+<span class="sd">  Command line parameters:</span>
+
+<span class="sd">  ================  =========    ==============================================</span>
+<span class="sd">  Parameter         Type         Description</span>
+<span class="sd">  ================  =========    ==============================================</span>
+<span class="sd">  **-bugLev**       integer      Debug level.  Normally 0.</span>
+<span class="sd">  **-readType**     string       If &#39;outcar&#39;, read the OUTCAR file.</span>
+<span class="sd">                                 If &#39;xml&#39;, read the vasprun.xml file.</span>
+<span class="sd">                                 If &#39;compare&#39;, read both files and compare.</span>
+<span class="sd">  **-allowExc**     boolean      false/true: continue after error.</span>
+<span class="sd">  **-inDir**        string       Input directory containing OUTCAR</span>
+<span class="sd">                                 and/or vasprun.xml.</span>
+<span class="sd">  **-maxLev**       int          Max number of levels to print for xml</span>
+<span class="sd">  ================  =========    ==============================================</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">bugLev</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="n">readType</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">allowExc</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">inDir</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">maxLev</span> <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;Parms must be key/value pairs&#39;</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">iarg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="p">]</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-bugLev&#39;</span><span class="p">:</span> <span class="n">bugLev</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-readType&#39;</span><span class="p">:</span> <span class="n">readType</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-allowExc&#39;</span><span class="p">:</span> <span class="n">allowExc</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseBoolean</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-inDir&#39;</span><span class="p">:</span> <span class="n">inDir</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-maxLev&#39;</span><span class="p">:</span> <span class="n">maxLev</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;unknown key: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -bugLev&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">readType</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -readType&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">allowExc</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -allowExc&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">inDir</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -inDir&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">maxLev</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -maxLev&#39;</span><span class="p">)</span>
+
+  <span class="c">##np.set_printoptions( threshold=10000)</span>
+
+  <span class="n">resObj</span> <span class="o">=</span> <span class="n">parseDir</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">readType</span><span class="p">,</span> <span class="n">allowExc</span><span class="p">,</span> <span class="n">inDir</span><span class="p">,</span> <span class="n">maxLev</span><span class="p">)</span>
+
+  <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">main: resObj:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="p">,)</span>
+
+  <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="s">&#39;nan&#39;</span><span class="p">)</span>
+  <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+
+  <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">===== main: final resObj =====</span><span class="se">\n</span><span class="s">&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;import datetime&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;import numpy as np&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;&#39;</span>
+  <span class="n">keys</span> <span class="o">=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+  <span class="n">keys</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+  <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+  <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">stg</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;ndarray&#39;</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;&#39;</span>
+      <span class="k">print</span> <span class="s">&#39;# </span><span class="si">%s</span><span class="s"> shape: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="o">.</span><span class="n">shape</span><span class="p">,)</span>
+      <span class="n">stg</span> <span class="o">=</span> <span class="s">&#39;np.&#39;</span> <span class="o">+</span> <span class="n">stg</span>
+    <span class="k">print</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">stg</span><span class="p">,)</span>
+
+<span class="c">#====================================================================</span>
+
+
+<span class="c"># Returns ResClass instance.</span>
+<span class="c"># If all is ok, we return a ResClass instance with</span>
+<span class="c">#   resObj.excMsg = None</span>
+<span class="c">#   resObj.excTrace = None</span>
+<span class="c"># Else we return a ResClass instance with</span>
+<span class="c">#   resObj.excMsg = exception message</span>
+<span class="c">#   resObj.excTrace = exception traceback</span>
+</div>
+<div class="viewcode-block" id="parseDir"><a class="viewcode-back" href="../../nrelmatdb/readVasp.html#nrelmat.readVasp.parseDir">[docs]</a><span class="k">def</span> <span class="nf">parseDir</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span>
+  <span class="n">readType</span><span class="p">,</span>
+  <span class="n">allowExc</span><span class="p">,</span>
+  <span class="n">inDir</span><span class="p">,</span>
+  <span class="n">maxLev</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Extracts info from the output of a VASP run.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * readType (str):</span>
+<span class="sd">    If &#39;outcar&#39;, calls :class:`nrelmat.ScanOutcar` to</span>
+<span class="sd">    read the OUTCAR file.</span>
+<span class="sd">    If &#39;xml&#39;, calls :class:`nrelmat.ScanXml` to read the vasprun.xml file.</span>
+<span class="sd">    If &#39;compare&#39;, read both files and compare.</span>
+<span class="sd">  * allowExc (bool): continue after error.</span>
+<span class="sd">  * inDir (str): Input directory containing OUTCAR</span>
+<span class="sd">    and/or vasprun.xml.</span>
+<span class="sd">  * maxLev (int) Max number of levels to print for xml (normally 0)</span>
+
+<span class="sd">  **Returns**:</span>
+
+<span class="sd">  * resObj (class ResClass): data object with attributes set.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">resObj</span> <span class="o">=</span> <span class="n">ResClass</span><span class="p">()</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">excMsg</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">excTrace</span> <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">inDir</span><span class="p">):</span>
+      <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;inDir is not a dir: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inDir</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="n">readType</span> <span class="o">==</span> <span class="s">&#39;outcar&#39;</span><span class="p">:</span>
+      <span class="n">scanner</span> <span class="o">=</span> <span class="n">ScanOutcar</span><span class="o">.</span><span class="n">ScanOutcar</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">inDir</span><span class="p">,</span> <span class="n">resObj</span><span class="p">)</span>  <span class="c"># fills resObj</span>
+      <span class="c">#xxx del calcMisc( bugLev, inDir, resObj)</span>
+      <span class="c">#xxx del calcBandgaps( bugLev, inDir, resObj)</span>
+
+    <span class="k">elif</span> <span class="n">readType</span> <span class="o">==</span> <span class="s">&#39;xml&#39;</span><span class="p">:</span>
+      <span class="n">inFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">inDir</span><span class="p">,</span> <span class="s">&#39;vasprun.xml&#39;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">inFile</span><span class="p">):</span>
+        <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;inFile is not a file: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inFile</span><span class="p">,))</span>
+      <span class="n">ScanXml</span><span class="o">.</span><span class="n">parseXml</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">inFile</span><span class="p">,</span> <span class="n">maxLev</span><span class="p">,</span> <span class="n">resObj</span><span class="p">)</span>   <span class="c"># fills resObj</span>
+      <span class="c">#xxx del calcMisc( bugLev, inDir, resObj)</span>
+      <span class="c">#xxx del calcBandgaps( bugLev, inDir, resObj)</span>
+
+    <span class="k">elif</span> <span class="n">readType</span> <span class="o">==</span> <span class="s">&#39;compare&#39;</span><span class="p">:</span>
+      <span class="n">resOut</span> <span class="o">=</span> <span class="n">ResClass</span><span class="p">()</span>
+      <span class="n">scanner</span> <span class="o">=</span> <span class="n">ScanOutcar</span><span class="o">.</span><span class="n">ScanOutcar</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">inDir</span><span class="p">,</span> <span class="n">resOut</span><span class="p">)</span>  <span class="c"># fills resOut</span>
+      <span class="c">#xxx del calcMisc( bugLev, inDir, resOut)</span>
+      <span class="c">#xxx del calcBandgaps( bugLev, inDir, resOut)</span>
+
+      <span class="n">resXml</span> <span class="o">=</span> <span class="n">ResClass</span><span class="p">()</span>
+      <span class="n">inFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">inDir</span><span class="p">,</span> <span class="s">&#39;vasprun.xml&#39;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">inFile</span><span class="p">):</span>
+        <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;inFile is not a file: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inFile</span><span class="p">,))</span>
+      <span class="n">ScanXml</span><span class="o">.</span><span class="n">parseXml</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">inFile</span><span class="p">,</span> <span class="n">maxLev</span><span class="p">,</span> <span class="n">resXml</span><span class="p">)</span>   <span class="c"># fills resXml</span>
+      <span class="c">#xxx del calcMisc( bugLev, inDir, resXml)</span>
+      <span class="c">#xxx del calcBandgaps( bugLev, inDir, resXml)</span>
+
+      <span class="n">cmsg</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">deepCompare</span><span class="p">(</span>
+        <span class="n">bugLev</span><span class="p">,</span> <span class="mf">1.e-15</span><span class="p">,</span> <span class="s">&#39;outcar&#39;</span><span class="p">,</span> <span class="n">resOut</span><span class="p">,</span> <span class="s">&#39;xml&#39;</span><span class="p">,</span> <span class="n">resXml</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">cmsg</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;readVasp: deepCompare says identical&#39;</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">===== readVasp: begin deepCompare diff msg =====</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="k">print</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmsg</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">===== readVasp: end deepCompare diff msg =====</span><span class="se">\n</span><span class="s">&#39;</span>
+
+    <span class="c"># The pylada scanner is obsolete: it doesn&#39;t handle</span>
+    <span class="c"># some files, and has bugs.</span>
+    <span class="c">#elif readType == &#39;pylada&#39;:</span>
+    <span class="c">#  parsePyladaUnused( bugLev, inFile, resObj)   # fills resObj</span>
+
+    <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown readType: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">readType</span><span class="p">,))</span>
+
+
+  <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="n">resObj</span><span class="o">.</span><span class="n">excMsg</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+    <span class="n">resObj</span><span class="o">.</span><span class="n">excTrace</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;readVasp.py.  caught exc: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">excMsg</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;  readType:   &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">readType</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;  inDir:    &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inDir</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;===== traceback start =====&#39;</span>
+      <span class="k">print</span> <span class="n">resObj</span><span class="o">.</span><span class="n">excTrace</span>
+      <span class="k">print</span> <span class="s">&#39;===== traceback end =====&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">allowExc</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;caught: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">exc</span><span class="p">,))</span>
+
+  <span class="k">return</span> <span class="n">resObj</span>
+
+<span class="c">#====================================================================</span>
+
+
+<span class="c"># Too unreliable; too many types of VASP runs</span>
+
+<span class="c">#def setRunType( bugLev, resObj):</span>
+<span class="c">#  &#39;&#39;&#39;</span>
+<span class="c">#  Sets resObj.runType = &#39;typeGw&#39; or &#39;typeChi&#39; or &#39;typeRelax&#39;,</span>
+<span class="c">#  depending on resObj.algo.</span>
+<span class="c">#  Called by ScanOutcar and ScanXml (a callback).</span>
+<span class="c">#  &#39;&#39;&#39;</span>
+<span class="c">#</span>
+<span class="c">#  # xxx if not resObj.__dict__.has_key(&#39;algo&#39;):</span>
+<span class="c">#  # xxx   resObj.__dict__[&#39;algo&#39;] = &#39;Normal&#39;</span>
+<span class="c">#</span>
+<span class="c">#  algo = getattr( resObj, &#39;algo&#39;, &#39;normal&#39;)   # if not found, assume &#39;normal&#39;</span>
+<span class="c">#  algo = algo.lower()</span>
+<span class="c">#  if algo == &#39;a&#39;: algo = &#39;all&#39;</span>
+<span class="c">#</span>
+<span class="c">#  # See http://cms.mpi.univie.ac.at/wiki/index.php/ALGO</span>
+<span class="c">#  if algo in [&#39;gw&#39;, &#39;gw0&#39;, &#39;scgw&#39;, &#39;scgw0&#39;]:</span>
+<span class="c">#    resObj.runType = &#39;typeGw&#39;</span>
+<span class="c">#  elif algo in [&#39;chi&#39;]:</span>
+<span class="c">#    resObj.runType = &#39;typeChi&#39;</span>
+<span class="c">#  elif algo in [ &#39;all&#39;, &#39;conjugate&#39;,</span>
+<span class="c">#    &#39;damp&#39;, &#39;damped&#39;, &#39;diag&#39;,</span>
+<span class="c">#    &#39;eigenval&#39;, &#39;fast&#39;, &#39;none&#39;, &#39;norm&#39;, &#39;normal&#39;,</span>
+<span class="c">#    &#39;nothing&#39;, &#39;subrot&#39;, &#39;veryfast&#39;, &#39;n/a&#39;]:</span>
+<span class="c">#    resObj.runType = &#39;typeRelax&#39;</span>
+<span class="c">#  else: throwerr(&#39;unknown algo: %s&#39; % (algo,))</span>
+<span class="c">#  if bugLev &gt;= 5: print &#39;algo: %s  runType: %s&#39; % (algo, resObj.runType,)</span>
+
+<span class="c">#====================================================================</span>
+
+
+<span class="c"># xxx del def calcMisc(</span>
+<span class="c"># xxx del   bugLev,</span>
+<span class="c"># xxx del   inDir,</span>
+<span class="c"># xxx del   resObj):</span>
+<span class="c"># xxx del   &#39;&#39;&#39;</span>
+<span class="c"># xxx del   Sets resObj.atomTypes, atomNames, etc, based on</span>
+<span class="c"># xxx del   resObj.typeNames, etc.  The atom* attributes are one per atom;</span>
+<span class="c"># xxx del   the type* attributes are one per unique element.  So</span>
+<span class="c"># xxx del   H2O has 3 atomNames [&#39;H&#39;, &#39;H&#39;, &#39;O&#39;], and 2 typeNames [&#39;H&#39;, &#39;O&#39;]</span>
+<span class="c"># xxx del   with typeNums [2, 1].</span>
+<span class="c"># xxx del   &#39;&#39;&#39;</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   if resObj.iterRealTimes == None: resObj.iterTotalTime = None</span>
+<span class="c"># xxx del   else: resObj.iterTotalTime = sum( resObj.iterRealTimes)</span>
+<span class="c"># xxx del   if bugLev &gt;= 5:</span>
+<span class="c"># xxx del     print &#39;calcMisc: iterTotalTime: %s&#39; % (resObj.iterTotalTime,)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   numType = len( resObj.typeNames)</span>
+<span class="c"># xxx del   if len( resObj.typeNums) != numType: throwerr(&#39;numType mismatch&#39;)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   atomTypes = []        # indices into typeNames, typeNums</span>
+<span class="c"># xxx del   atomNames = []</span>
+<span class="c"># xxx del   atomMasses_amu = []</span>
+<span class="c"># xxx del   atomPseudos = []</span>
+<span class="c"># xxx del   atomValences = []</span>
+<span class="c"># xxx del   for ii in range( numType):</span>
+<span class="c"># xxx del     numEle = resObj.typeNums[ii]</span>
+<span class="c"># xxx del     atomTypes      += numEle * [ ii ]</span>
+<span class="c"># xxx del     atomNames      += numEle * [ resObj.typeNames[ii] ]</span>
+<span class="c"># xxx del     atomMasses_amu += numEle * [ resObj.typeMasses_amu[ii] ]</span>
+<span class="c"># xxx del     atomPseudos    += numEle * [ resObj.typePseudos[ii] ]</span>
+<span class="c"># xxx del     atomValences   += numEle * [ resObj.typeValences[ii] ]</span>
+<span class="c"># xxx del   if bugLev &gt;= 5:</span>
+<span class="c"># xxx del     print &#39;calcMisc: atomTypes: %s&#39; % (atomTypes,)</span>
+<span class="c"># xxx del     print &#39;calcMisc: atomNames: %s&#39; % (atomNames,)</span>
+<span class="c"># xxx del     print &#39;calcMisc: atomMasses_amu: %s&#39; % (atomMasses_amu,)</span>
+<span class="c"># xxx del     print &#39;calcMisc: atomPseudos: %s&#39; % (atomPseudos,)</span>
+<span class="c"># xxx del     print &#39;calcMisc: atomValences: %s&#39; % (atomValences,)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   if getattr( resObj, &#39;atomTypes&#39;, None) == None:</span>
+<span class="c"># xxx del     resObj.atomTypes = atomTypes</span>
+<span class="c"># xxx del   else:</span>
+<span class="c"># xxx del     if resObj.atomTypes != atomTypes:</span>
+<span class="c"># xxx del       throwerr(&#39;atomTypes mismatch:\n  old: %s\n  new: %s\n&#39;</span>
+<span class="c"># xxx del         % (resObj.atomTypes, atomTypes,))</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   if getattr( resObj, &#39;atomNames&#39;, None) == None:</span>
+<span class="c"># xxx del     resObj.atomNames = atomNames</span>
+<span class="c"># xxx del   else:</span>
+<span class="c"># xxx del     if resObj.atomNames != atomNames:</span>
+<span class="c"># xxx del       throwerr(&#39;atomNames mismatch:\n  old: %s\n  new: %s\n&#39;</span>
+<span class="c"># xxx del         % (resObj.atomNames, atomNames,))</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   if getattr( resObj, &#39;atomMasses_amu&#39;, None) == None:</span>
+<span class="c"># xxx del     resObj.atomMasses_amu = atomMasses_amu</span>
+<span class="c"># xxx del   else:</span>
+<span class="c"># xxx del     if resObj.atomMasses_amu != atomMasses_amu:</span>
+<span class="c"># xxx del       throwerr(&#39;atomMasses_amu mismatch:\n  old: %s\n  new: %s\n&#39;</span>
+<span class="c"># xxx del         % (resObj.atomMasses_amu, atomMasses_amu,))</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   if getattr( resObj, &#39;atomPseudos&#39;, None) == None:</span>
+<span class="c"># xxx del     resObj.atomPseudos = atomPseudos</span>
+<span class="c"># xxx del   else:</span>
+<span class="c"># xxx del     if resObj.atomPseudos != atomPseudos:</span>
+<span class="c"># xxx del       throwerr(&#39;atomPseudos mismatch:\n  old: %s\n  new: %s\n&#39;</span>
+<span class="c"># xxx del         % (resObj.atomPseudos, atomPseudos,))</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   if getattr( resObj, &#39;atomValences&#39;, None) == None:</span>
+<span class="c"># xxx del     resObj.atomValences = atomValences</span>
+<span class="c"># xxx del   else:</span>
+<span class="c"># xxx del     if resObj.atomValences != atomValences:</span>
+<span class="c"># xxx del       throwerr(&#39;atomValences mismatch:\n  old: %s\n  new: %s\n&#39;</span>
+<span class="c"># xxx del         % (resObj.atomValences, atomValences,))</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   # totalValence = sum( count[i] * valence[i])</span>
+<span class="c"># xxx del   # PyLada calls this valence.</span>
+<span class="c"># xxx del   resObj.totalValence = np.dot( resObj.typeNums, resObj.typeValences)</span>
+<span class="c"># xxx del   if bugLev &gt;= 5:</span>
+<span class="c"># xxx del     print &#39;calcMisc: totalValence: %s&#39; % (resObj.totalValence,)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   # In defect calcs of Lany, we can have numElectron==288</span>
+<span class="c"># xxx del   # and totalValence==289, leaving the supercell with</span>
+<span class="c"># xxx del   # positive charge, for a donor.</span>
+<span class="c"># xxx del   resObj.netCharge = resObj.totalValence - resObj.numElectron</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   # volume, Angstrom^3</span>
+<span class="c"># xxx del   # The scale is hard coded as 1.0 in PyLada crystal/read.py,</span>
+<span class="c"># xxx del   # in both icsd_cif_a and icsd_cif_b.</span>
+<span class="c"># xxx del   if getattr( resObj, &#39;finalBasisMat&#39;, None) == None:</span>
+<span class="c"># xxx del     resObj.finalVolumeCalc_ang3 = None</span>
+<span class="c"># xxx del     resObj.finalDensity_g_cm3 = None</span>
+<span class="c"># xxx del   else:</span>
+<span class="c"># xxx del     volScale = 1.0</span>
+<span class="c"># xxx del     resObj.finalVolumeCalc_ang3 = abs( np.linalg.det(</span>
+<span class="c"># xxx del       volScale * resObj.finalBasisMat))</span>
+<span class="c"># xxx del     # Density</span>
+<span class="c"># xxx del     # xxx better: get atomic weights from periodic table</span>
+<span class="c"># xxx del     volCm3 = resObj.finalVolumeCalc_ang3 / (1.e8)**3    # 10**8 Angstrom per cm</span>
+<span class="c"># xxx del     totMass = np.dot( resObj.typeNums, resObj.typeMasses_amu)</span>
+<span class="c"># xxx del     totMassGm = totMass *  1.660538921e-24        #  1.660538921e-24 g / amu</span>
+<span class="c"># xxx del     resObj.finalDensity_g_cm3 = totMassGm / volCm3</span>
+<span class="c"># xxx del     if bugLev &gt;= 5:</span>
+<span class="c"># xxx del       print &#39;finalVolumeCalc_ang3: %s&#39; % (resObj.finalVolumeCalc_ang3,)</span>
+<span class="c"># xxx del       print &#39;volCm3: %g&#39; % (volCm3,)</span>
+<span class="c"># xxx del       print &#39;totMass: %g&#39; % (totMass,)</span>
+<span class="c"># xxx del       print &#39;totMassGm: %g&#39; % (totMassGm,)</span>
+<span class="c"># xxx del       print &#39;finalDensity_g_cm3: %g&#39; % (resObj.finalDensity_g_cm3,)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   # reciprocal space volume, * (2*pi)**3</span>
+<span class="c"># xxx del   # As in PyLada.</span>
+<span class="c"># xxx del   if getattr( resObj, &#39;finalBasisMat&#39;, None) == None:</span>
+<span class="c"># xxx del     resObj.recipVolume = None</span>
+<span class="c"># xxx del   else:</span>
+<span class="c"># xxx del     invMat = np.linalg.inv( volScale * resObj.finalBasisMat)</span>
+<span class="c"># xxx del     resObj.recipVolume = abs( np.linalg.det( invMat)) * (2 * np.pi)**3</span>
+<span class="c"># xxx del     if bugLev &gt;= 5:</span>
+<span class="c"># xxx del       print &#39;recipVolume: origMat:\n%s&#39; \</span>
+<span class="c"># xxx del         % (repr(volScale * resObj.finalBasisMat),)</span>
+<span class="c"># xxx del       print &#39;recipVolume: invMat:\n%s&#39; % (repr(invMat),)</span>
+<span class="c"># xxx del       print &#39;recipVolume: det:\n%s&#39; % (repr(np.linalg.det( invMat)),)</span>
+<span class="c"># xxx del       print &#39;recipVolume: %g&#39; % (resObj.recipVolume,)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   # Calc pressure</span>
+<span class="c"># xxx del   # xxx Caution: we do not include the non-diag terms in:</span>
+<span class="c"># xxx del   #   VASP: force.F: FORCE_AND_STRESS: line 1410:</span>
+<span class="c"># xxx del   #     PRESS=(TSIF(1,1)+TSIF(2,2)+TSIF(3,3))/3._q &amp;</span>
+<span class="c"># xxx del   #        &amp;      -DYN%PSTRESS/(EVTOJ*1E22_q)*LATT_CUR%OMEGA</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   if getattr( resObj, &#39;finalStressMat_kbar&#39;, None) == None:</span>
+<span class="c"># xxx del     resObj.finalPressure_kbar = None</span>
+<span class="c"># xxx del   else:</span>
+<span class="c"># xxx del     resObj.finalPressure_kbar \</span>
+<span class="c"># xxx del       = resObj.finalStressMat_kbar.diagonal().sum() / 3.0</span>
+<span class="c"># xxx del   if bugLev &gt;= 5:</span>
+<span class="c"># xxx del     print &#39;getStressMat: finalPressure_kbar: %s&#39; \</span>
+<span class="c"># xxx del       % (resObj.finalPressure_kbar,)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del #====================================================================</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del def calcBandgaps(</span>
+<span class="c"># xxx del   bugLev,</span>
+<span class="c"># xxx del   inDir,</span>
+<span class="c"># xxx del   resObj):</span>
+<span class="c"># xxx del   &#39;&#39;&#39;</span>
+<span class="c"># xxx del   Using resObj.eigenMat sets resObj.cbMinVals, cbMinIxs, cbMin,</span>
+<span class="c"># xxx del   and similarly for Max,</span>
+<span class="c"># xxx del   and bandgapDirects, bandgapIndirects, and bandgap.</span>
+<span class="c"># xxx del   &#39;&#39;&#39;</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   if resObj.eigenMat == None:</span>
+<span class="c"># xxx del     resObj.cbMinVals = None</span>
+<span class="c"># xxx del     resObj.cbMinIxs  = None</span>
+<span class="c"># xxx del     resObj.vbMaxVals = None</span>
+<span class="c"># xxx del     resObj.vbMaxIxs  = None</span>
+<span class="c"># xxx del     resObj.bandgapDirects = None</span>
+<span class="c"># xxx del     resObj.bandgapIndirects = None</span>
+<span class="c"># xxx del     resObj.bandgapDirect = None</span>
+<span class="c"># xxx del     resObj.bandgapIndirect = None</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   else:</span>
+<span class="c"># xxx del     # Conduction band min</span>
+<span class="c"># xxx del     # cbMinMat[isp][ikp] = min of eigvals &gt; efermi0</span>
+<span class="c"># xxx del     #</span>
+<span class="c"># xxx del     # Valence band max</span>
+<span class="c"># xxx del     # vbMaxMat[isp][ikp] = max of eigvals &lt;= efermi0</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     print &#39;calcBandGaps: eig shape: &#39;, resObj.eigenMat.shape</span>
+<span class="c"># xxx del     print &#39;calcBandGaps: numSpin: %d  numKpoint: %d  numBand: %d&#39; \</span>
+<span class="c"># xxx del       % (resObj.numSpin, resObj.numKpoint, resObj.numBand,)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     numSpin = resObj.numSpin</span>
+<span class="c"># xxx del     numKpoint = resObj.numKpoint</span>
+<span class="c"># xxx del     # Sometimes numBand == 128 but eigenMat.shape == [x,x,64]</span>
+<span class="c"># xxx del     #xxx numBand = resObj.numBand</span>
+<span class="c"># xxx del     numBand = resObj.eigenMat.shape[2]</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     # For each isp and kpoint, what is min eigvalue &gt; efermi0</span>
+<span class="c"># xxx del     cbMinMat = np.empty( [numSpin, numKpoint], dtype=float)</span>
+<span class="c"># xxx del     vbMaxMat = np.empty( [numSpin, numKpoint], dtype=float)</span>
+<span class="c"># xxx del     cbMinMat.fill( np.inf)</span>
+<span class="c"># xxx del     vbMaxMat.fill( -np.inf)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     # For each isp, what is min or max across all kpoints</span>
+<span class="c"># xxx del     cbMinVals = np.empty( [numSpin], dtype=float)</span>
+<span class="c"># xxx del     vbMaxVals = np.empty( [numSpin], dtype=float)</span>
+<span class="c"># xxx del     cbMinVals.fill( np.inf)</span>
+<span class="c"># xxx del     vbMaxVals.fill( -np.inf)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     # For each isp, which kpoint has the min or max</span>
+<span class="c"># xxx del     cbMinIxs = np.empty( [numSpin], dtype=int)</span>
+<span class="c"># xxx del     vbMaxIxs = np.empty( [numSpin], dtype=int)</span>
+<span class="c"># xxx del     cbMinIxs.fill( -1)</span>
+<span class="c"># xxx del     vbMaxIxs.fill( -1)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     for isp in range( numSpin):</span>
+<span class="c"># xxx del       for ikp in range( numKpoint):</span>
+<span class="c"># xxx del         for iband in range( numBand):</span>
+<span class="c"># xxx del           val = resObj.eigenMat[isp][ikp][iband]</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del           algorithm = &#39;occupMat&#39;</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del           if algorithm == &#39;fermi0&#39;:</span>
+<span class="c"># xxx del             if val &lt;= resObj.efermi0:</span>
+<span class="c"># xxx del               if val &gt; vbMaxMat[isp][ikp]: vbMaxMat[isp][ikp] = val</span>
+<span class="c"># xxx del               if val &gt; vbMaxVals[isp]:</span>
+<span class="c"># xxx del                 vbMaxVals[isp] = val</span>
+<span class="c"># xxx del                 vbMaxIxs[isp] = ikp</span>
+<span class="c"># xxx del             else:    # val &gt; resObj.efermi0</span>
+<span class="c"># xxx del               if val &lt; cbMinMat[isp][ikp]: cbMinMat[isp][ikp] = val</span>
+<span class="c"># xxx del               if val &lt; cbMinVals[isp]:</span>
+<span class="c"># xxx del                 cbMinVals[isp] = val</span>
+<span class="c"># xxx del                 cbMinIxs[isp] = ikp</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del           elif algorithm == &#39;occupMat&#39;:</span>
+<span class="c"># xxx del             if numSpin == 1:</span>
+<span class="c"># xxx del               occLo = 0.02</span>
+<span class="c"># xxx del               occHi = 1.98</span>
+<span class="c"># xxx del             elif numSpin == 2:</span>
+<span class="c"># xxx del               occLo = 0.01</span>
+<span class="c"># xxx del               occHi = 0.99</span>
+<span class="c"># xxx del             else: throwerr(&#39;unknown numSpin&#39;)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del             occ = resObj.occupMat[isp][ikp][iband]</span>
+<span class="c"># xxx del             if occ &gt;= occHi:</span>
+<span class="c"># xxx del               if val &gt; vbMaxMat[isp][ikp]: vbMaxMat[isp][ikp] = val</span>
+<span class="c"># xxx del               if val &gt; vbMaxVals[isp]:</span>
+<span class="c"># xxx del                 vbMaxVals[isp] = val</span>
+<span class="c"># xxx del                 vbMaxIxs[isp] = ikp</span>
+<span class="c"># xxx del             if occ &lt;= occLo:</span>
+<span class="c"># xxx del               if val &lt; cbMinMat[isp][ikp]: cbMinMat[isp][ikp] = val</span>
+<span class="c"># xxx del               if val &lt; cbMinVals[isp]:</span>
+<span class="c"># xxx del                 cbMinVals[isp] = val</span>
+<span class="c"># xxx del                 cbMinIxs[isp] = ikp</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del           else: throwerr(&#39;unknown algorithm&#39;)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     # Find bandgapDirects[isp] = min gap for the same kpoint</span>
+<span class="c"># xxx del     # Find bandgapIndirects[isp] = min gap across kpoints</span>
+<span class="c"># xxx del     bandgapDirects = numSpin * [np.inf]</span>
+<span class="c"># xxx del     bandgapIndirects = numSpin * [np.inf]</span>
+<span class="c"># xxx del     for isp in range( numSpin):</span>
+<span class="c"># xxx del       for ikp in range( numKpoint):</span>
+<span class="c"># xxx del         gap = max( 0, cbMinMat[isp][ikp] - vbMaxMat[isp][ikp])</span>
+<span class="c"># xxx del         if gap &lt; bandgapDirects[isp]: bandgapDirects[isp] = gap</span>
+<span class="c"># xxx del       bandgapIndirects[isp] = max( 0, cbMinVals[isp] - vbMaxVals[isp])</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     resObj.cbMinVals = cbMinVals</span>
+<span class="c"># xxx del     resObj.cbMinIxs  = cbMinIxs</span>
+<span class="c"># xxx del     resObj.vbMaxVals = vbMaxVals</span>
+<span class="c"># xxx del     resObj.vbMaxIxs  = vbMaxIxs</span>
+<span class="c"># xxx del     resObj.bandgapDirects = bandgapDirects</span>
+<span class="c"># xxx del     resObj.bandgapIndirects = bandgapIndirects</span>
+<span class="c"># xxx del     resObj.bandgapDirect = min( bandgapDirects)</span>
+<span class="c"># xxx del     resObj.bandgapIndirect = min( bandgapIndirects)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     # This is the PyLada version</span>
+<span class="c"># xxx del     #resObj.cbMin = min( cbMinVals)</span>
+<span class="c"># xxx del     #resObj.vbMax = max( vbMaxVals)</span>
+<span class="c"># xxx del     #resObj.bandgap = resObj.cbMin - resObj.vbMax</span>
+<span class="c"># xxx del     #if resObj.bandgap &lt; 0: resObj.bandgap = 0</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del     if bugLev &gt;= 5:</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del       print &#39;\ncalcBandgaps: efermi0: %s&#39; % (resObj.efermi0,)</span>
+<span class="c"># xxx del       for isp in range( numSpin):</span>
+<span class="c"># xxx del         print &#39;\ncalcBandgaps: start isp: %d&#39; % (isp,)</span>
+<span class="c"># xxx del         for ikp in range( numKpoint):</span>
+<span class="c"># xxx del           vval = vbMaxMat[isp][ikp]</span>
+<span class="c"># xxx del           cval = cbMinMat[isp][ikp]</span>
+<span class="c"># xxx del           vmsg = &#39;%8.4f&#39; % (vval,)</span>
+<span class="c"># xxx del           cmsg = &#39;%8.4f&#39; % (cval,)</span>
+<span class="c"># xxx del           if ikp == vbMaxIxs[isp]: vmsg += &#39; ***&#39;</span>
+<span class="c"># xxx del           if ikp == cbMinIxs[isp]: cmsg += &#39; ***&#39;</span>
+<span class="c"># xxx del           print &#39;  isp: %d  ikp: %3d  vbMaxMat: %-14s  cbMinMat: %-14s&#39; \</span>
+<span class="c"># xxx del             % ( isp, ikp, vmsg, cmsg,)</span>
+<span class="c"># xxx del         print &#39;&#39;</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del       print &#39;calcBandgaps: vbMaxIxs: %s&#39; % (resObj.vbMaxIxs,)</span>
+<span class="c"># xxx del       print &#39;calcBandgaps: vbMaxVals: %s&#39; % (resObj.vbMaxVals,)</span>
+<span class="c"># xxx del       print &#39;calcBandgaps: cbMinIxs: %s&#39; % (resObj.cbMinIxs,)</span>
+<span class="c"># xxx del       print &#39;calcBandgaps: cbMinVals: %s&#39; % (resObj.cbMinVals,)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del       print &#39;calcBandgaps: bandgapDirects:   %s&#39; % (resObj.bandgapDirects,)</span>
+<span class="c"># xxx del       print &#39;calcBandgaps: bandgapIndirects: %s&#39; % (resObj.bandgapIndirects,)</span>
+<span class="c"># xxx del       print &#39;calcBandgaps: bandgapDirect:    %s&#39; % (resObj.bandgapDirect,)</span>
+<span class="c"># xxx del       print &#39;calcBandgaps: bandgapIndirect:  %s&#39; % (resObj.bandgapIndirect,)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del       # Write plot data to tempplota%ispin</span>
+<span class="c"># xxx del       for isp in range( numSpin):</span>
+<span class="c"># xxx del         with open(&#39;tempplota%d&#39; % (isp,), &#39;w&#39;) as fout:</span>
+<span class="c"># xxx del           for ikp in range( numKpoint):</span>
+<span class="c"># xxx del             print &gt;&gt; fout, &#39;%g  %g&#39; % (vbMaxMat[isp,ikp], cbMinMat[isp,ikp],)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del       # Write plot data to tempplotb%ispin</span>
+<span class="c"># xxx del       for isp in range( numSpin):</span>
+<span class="c"># xxx del         with open(&#39;tempplotb%d&#39; % (isp,), &#39;w&#39;) as fout:</span>
+<span class="c"># xxx del           for ikp in range( numKpoint):</span>
+<span class="c"># xxx del             for iband in range( numBand):</span>
+<span class="c"># xxx del               print &gt;&gt; fout, &#39;%d  %g&#39; \</span>
+<span class="c"># xxx del                 % (ikp, resObj.eigenMat[isp][ikp][iband],)</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   # Obsolete way to calc bandgaps</span>
+<span class="c"># xxx del   ###if bugLev &gt;= 5: print &#39;\n===== cbMin, vbMax, bandgap =====\n&#39;</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   #### Find cbm = min of eigs &gt;  efermi0</span>
+<span class="c"># xxx del   #### Find vbm = max of eigs &lt;= efermi0</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   ###cbms = resObj.numSpin * [np.inf]</span>
+<span class="c"># xxx del   ###vbms = resObj.numSpin * [-np.inf]</span>
+<span class="c"># xxx del   ###cbmKpis = resObj.numSpin * [None]</span>
+<span class="c"># xxx del   ###vbmKpis = resObj.numSpin * [None]</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   ###for isp in range( resObj.numSpin):</span>
+<span class="c"># xxx del   ###  eigs = resObj.eigenMat[isp]</span>
+<span class="c"># xxx del   ###  for ikp in range( resObj.numKpoint):</span>
+<span class="c"># xxx del   ###    for iband in range( resObj.numBand):</span>
+<span class="c"># xxx del   ###      val = eigs[ikp][iband]</span>
+<span class="c"># xxx del   ###      if val &gt; resObj.efermi0:</span>
+<span class="c"># xxx del   ###        cbms[isp] = min( cbms[isp], val)</span>
+<span class="c"># xxx del   ###        cbmKpis[isp] = ikp</span>
+<span class="c"># xxx del   ###      if val &lt;= resObj.efermi0:</span>
+<span class="c"># xxx del   ###        vbms[isp] = max( vbms[isp], val)</span>
+<span class="c"># xxx del   ###        vbmKpis[isp] = ikp</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   ###cbms = map( float, cbms)     # change type from numpy.float64 to float</span>
+<span class="c"># xxx del   ###vbms = map( float, vbms)     # change type from numpy.float64 to float</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   ###resObj.cbms = cbms</span>
+<span class="c"># xxx del   ###resObj.vbms = vbms</span>
+<span class="c"># xxx del   ###resObj.cbmKpis = cbmKpis</span>
+<span class="c"># xxx del   ###resObj.vbmKpis = vbmKpis</span>
+<span class="c"># xxx del   ###resObj.cbMin = min( cbms)       # This is PyLada&#39;s cbm</span>
+<span class="c"># xxx del   ###resObj.vbMax = max( vbms)       # This is PyLada&#39;s vbm</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   ###resObj.bandgaps = [ (cbms[ii] - vbms[ii]) for ii in range( resObj.numSpin)]</span>
+<span class="c"># xxx del   ###resObj.bandgapa = min( resObj.bandgaps)</span>
+<span class="c"># xxx del   ###resObj.bandgap  = resObj.cbMin - resObj.vbMax   # This is PyLada version</span>
+<span class="c"># xxx del </span>
+<span class="c"># xxx del   ###if bugLev &gt;= 5:</span>
+<span class="c"># xxx del   ###  print &#39;cbmKpis: %s  cbms: %s&#39; % (cbmKpis, cbms,)</span>
+<span class="c"># xxx del   ###  print &#39;vbmKpis: %s  vbms: %s&#39; % (vbmKpis, vbms,)</span>
+<span class="c"># xxx del   ###  print &#39;cbMin: %g&#39; % (resObj.cbMin,)</span>
+<span class="c"># xxx del   ###  print &#39;vbMax: %g&#39; % (resObj.vbMax,)</span>
+<span class="c"># xxx del   ###  print &#39;bandgaps: %s&#39; % (resObj.bandgaps,)</span>
+<span class="c"># xxx del   ###  print &#39;bandgapa: %g&#39; % (resObj.bandgapa,)</span>
+<span class="c"># xxx del   ###  print &#39;bandgap:  %g&#39; % (resObj.bandgap,)</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+<span class="c"># No longer used:</span>
+<span class="c"># Calc the efermi0 by adding up occupancies,</span>
+<span class="c"># as in PyLada.</span>
+</div>
+<span class="k">def</span> <span class="nf">calcEfermi0Unused</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">resObj</span><span class="p">):</span>
+
+  <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span> <span class="n">resObj</span><span class="p">,</span> <span class="s">&#39;eigenMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">resObj</span><span class="o">.</span><span class="n">efermi0Calc</span> <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">else</span><span class="p">:</span>
+
+    <span class="c"># efermi0Calc</span>
+    <span class="c"># Make an array allEigs of all the eigenvalues for all the</span>
+    <span class="c"># kpoints, with each eigenvalue replicated by the associated</span>
+    <span class="c"># kpoint weight.</span>
+    <span class="c"># Further, if ispin == 1 (non spin polarized),</span>
+    <span class="c"># replicate each eigenvalue again.</span>
+    <span class="c">#</span>
+    <span class="c"># Sort allEigs by increasing value.</span>
+    <span class="c"># Let factor =</span>
+    <span class="c">#   if numSpin == 1: 2/sum(weights)    # non spin polarized</span>
+    <span class="c">#   if numSpin == 2: 1/sum(weights)    # spin polarized</span>
+    <span class="c"># Start summing: occ = factor * (index into allEigs).</span>
+    <span class="c"># When occ = totalValence, the corresponding eigVal is fermi0K.</span>
+
+    <span class="n">numSpin</span> <span class="o">=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">numSpin</span>
+    <span class="n">numKpoint</span> <span class="o">=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">numKpoint</span>
+    <span class="n">numBand</span> <span class="o">=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">numBand</span>
+
+    <span class="c"># xxx check all this</span>
+    <span class="n">numEig</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">ikp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numKpoint</span><span class="p">):</span>
+      <span class="n">numEig</span> <span class="o">+=</span> <span class="n">numBand</span> <span class="o">*</span> <span class="n">resObj</span><span class="o">.</span><span class="n">kpointMults</span><span class="p">[</span><span class="n">ikp</span><span class="p">]</span>
+    <span class="n">numEig</span> <span class="o">*=</span> <span class="mi">2</span>    <span class="c"># for two spin levels, whether numSpin is 1 or 2</span>
+    <span class="n">numEig</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="nb">round</span><span class="p">(</span> <span class="n">numEig</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: numSpin: </span><span class="si">%d</span><span class="s">  numKpoint: </span><span class="si">%d</span><span class="s">  numBand: </span><span class="si">%d</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">numSpin</span><span class="p">,</span> <span class="n">numKpoint</span><span class="p">,</span> <span class="n">numBand</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: numEig: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numEig</span><span class="p">,)</span>
+
+    <span class="n">avgWt</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span> <span class="n">resObj</span><span class="o">.</span><span class="n">kpointMults</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span> <span class="n">numKpoint</span><span class="p">)</span>
+    <span class="n">allEigs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">[</span><span class="n">numEig</span><span class="p">])</span>
+    <span class="n">kk</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">isp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numSpin</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">ikp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numKpoint</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">iband</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numBand</span><span class="p">):</span>
+          <span class="c"># Replicate by kpoint weight</span>
+          <span class="k">for</span> <span class="n">irepl</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="nb">int</span><span class="p">(</span> <span class="nb">round</span><span class="p">(</span> <span class="n">resObj</span><span class="o">.</span><span class="n">kpointMults</span><span class="p">[</span> <span class="n">ikp</span><span class="p">]))):</span>
+            <span class="n">allEigs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">eigenMat</span><span class="p">[</span> <span class="n">isp</span><span class="p">,</span> <span class="n">ikp</span><span class="p">,</span> <span class="n">iband</span><span class="p">]</span>
+            <span class="n">kk</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">numSpin</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+              <span class="c"># Replicate for both spins</span>
+              <span class="n">allEigs</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="o">=</span> <span class="n">allEigs</span><span class="p">[</span><span class="n">kk</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+              <span class="n">kk</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">kk</span> <span class="o">!=</span> <span class="n">numEig</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;numEig mismatch&#39;</span><span class="p">)</span>
+
+    <span class="n">allEigs</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: numEig: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numEig</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: allEigs.shape: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">allEigs</span><span class="o">.</span><span class="n">shape</span><span class="p">,)</span>
+
+    <span class="c"># Find indx such that</span>
+    <span class="c"># occupancy = indx / sum(kpWts) == valence</span>
+    <span class="c"># Set dindx = num eigenvalues used.</span>
+    <span class="c"># The array index of the last used eigenvalue is dindx-1.</span>
+    <span class="n">dindx</span> <span class="o">=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">totalValence</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span> <span class="n">resObj</span><span class="o">.</span><span class="n">kpointMults</span><span class="p">)</span>
+    <span class="n">indx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="nb">round</span><span class="p">(</span> <span class="n">dindx</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">indx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">indx</span> <span class="o">&gt;=</span> <span class="n">allEigs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+      <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;bad fermi.  dindx: </span><span class="si">%g</span><span class="s">  indx: </span><span class="si">%d</span><span class="s">  shape: </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">dindx</span><span class="p">,</span> <span class="n">indx</span><span class="p">,</span> <span class="n">allEigs</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">resObj</span><span class="o">.</span><span class="n">efermi0Calc</span> <span class="o">=</span> <span class="n">allEigs</span><span class="p">[</span><span class="n">indx</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: totalValence: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">totalValence</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: sum( resObj.kpointMults): </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span> <span class="n">resObj</span><span class="o">.</span><span class="n">kpointMults</span><span class="p">),)</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: len(allEigs): </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">allEigs</span><span class="p">),)</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: dindx: </span><span class="si">%g</span><span class="s">  indx: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dindx</span><span class="p">,</span> <span class="n">indx</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: efermi0:      </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">efermi0</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;calcEfermi0: efermi0Calc:  </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">efermi0Calc</span><span class="p">,)</span>
+      <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="nb">max</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="n">indx</span><span class="o">-</span><span class="mi">10</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span> <span class="n">numEig</span><span class="p">,</span> <span class="n">indx</span><span class="o">+</span><span class="mi">10</span><span class="p">)):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;calcEfermi0: allEigs[</span><span class="si">%d</span><span class="s">]: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="n">allEigs</span><span class="p">[</span><span class="n">ii</span><span class="p">],)</span>
+        <span class="k">if</span> <span class="n">ii</span> <span class="o">==</span> <span class="n">indx</span><span class="p">:</span> <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39; ***&#39;</span>
+        <span class="k">print</span> <span class="n">msg</span>
+
+<span class="c">#====================================================================</span>
+
+<span class="c">#====================================================================</span>
+
+<span class="c"># The pylada scanner is obsolete: it doesn&#39;t handle</span>
+<span class="c"># some files, and has bugs.</span>
+
+<span class="k">def</span> <span class="nf">parsePyladaUnused</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">inFile</span><span class="p">,</span> <span class="n">resObj</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Extracts info from the OUTCAR file from a VASP run,</span>
+<span class="sd">  using the PyLada vasp.Extract API.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * inFile (str): Path of the input OUTCAR file.</span>
+<span class="sd">  * resObj (class ResClass): data object: we set attributes here.</span>
+
+<span class="sd">  **Returns**:</span>
+
+<span class="sd">  * None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">ex</span> <span class="o">=</span> <span class="n">pylada</span><span class="o">.</span><span class="n">vasp</span><span class="o">.</span><span class="n">Extract</span><span class="p">(</span> <span class="n">inFile</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">ex</span><span class="o">.</span><span class="n">success</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;file </span><span class="si">%s</span><span class="s"> is not complete&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inFile</span><span class="p">,))</span>
+
+  <span class="c">#===== program, version, date etc =====</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">runDate</span>      <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">datetime</span>
+
+  <span class="c"># iterTimes are pairs: [cpuTime, realTime]</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">iterCpuTimes</span>   <span class="o">=</span> <span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">ex</span><span class="o">.</span><span class="n">iterTimes</span><span class="p">]</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">iterRealTimes</span>  <span class="o">=</span> <span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">ex</span><span class="o">.</span><span class="n">iterTimes</span><span class="p">]</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">iterTotalTime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span> <span class="n">resObj</span><span class="o">.</span><span class="n">iterRealTimes</span><span class="p">)</span>
+
+  <span class="c">#===== incar parameters =====</span>
+  <span class="c"># Use float() to get rid of Quantities units</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">algo</span>         <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">algo</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">ediff</span>        <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">ediff</span><span class="p">)</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">encut_ev</span>     <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">encut</span><span class="p">)</span>          <span class="c"># eV</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">ibrion</span>       <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">ibrion</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">isif</span>         <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">isif</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">systemName</span>   <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">system</span>
+  <span class="c">#===== general parameters =====</span>
+  <span class="c">#===== electronic parameters =====</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">ialgo</span>        <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">ialgo</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">numBand</span>      <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">nbands</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">numElectron</span>  <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">nelect</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">icharg</span>       <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">icharg</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">numSpin</span>      <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">ispin</span>
+
+
+  <span class="c">#===== atom info =====</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">typeNames</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">typeNums</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">stoichiometry</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">typeValences</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">ionic_charges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+  <span class="c"># totalValence = sum( count[i] * valence[i])</span>
+  <span class="c"># PyLada calls this valence.</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">totalValence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span> <span class="n">resObj</span><span class="o">.</span><span class="n">typeNums</span><span class="p">,</span> <span class="n">resObj</span><span class="o">.</span><span class="n">typeValences</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;totalValence: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">totalValence</span><span class="p">,)</span>
+  <span class="k">if</span> <span class="n">resObj</span><span class="o">.</span><span class="n">numElectron</span> <span class="o">!=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">totalValence</span><span class="p">:</span>
+    <span class="c"># xxx should this be an error?</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%g</span><span class="s"> == numElectron != totalValence == </span><span class="si">%g</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">numElectron</span><span class="p">,</span> <span class="n">resObj</span><span class="o">.</span><span class="n">totalValence</span><span class="p">,))</span>
+
+  <span class="n">struct</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">structure</span>
+  <span class="n">natom</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">struct</span><span class="p">)</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">atomNames</span> <span class="o">=</span> <span class="p">[</span> <span class="n">struct</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">type</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">natom</span><span class="p">)]</span>
+
+  <span class="n">resObj</span><span class="o">.</span><span class="n">atomMasses_amu</span> <span class="o">=</span> <span class="bp">None</span>      <span class="c"># not available</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">atomPseudos</span> <span class="o">=</span> <span class="bp">None</span>         <span class="c"># not available</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">atomValences</span> <span class="o">=</span> <span class="bp">None</span>        <span class="c"># not available</span>
+
+  <span class="c"># atomPseudos: only the first title is available</span>
+  <span class="c"># atomMass, Valence: not available</span>
+
+  <span class="c"># partial_charges and magnetization are not available in xml</span>
+  <span class="c"># resObj.partialChargeMat = ex.partial_charges</span>
+  <span class="c"># resObj.magnetizationMat = ex.magnetization</span>
+
+  <span class="c">#===== initial structure =====</span>
+  <span class="c"># In structure.cell, the basis vectors are columns.</span>
+  <span class="c"># Change to rows.</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">initialBasisMat</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">initial_structure</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">T</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">initialRecipBasisMat</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># not available</span>
+
+  <span class="n">struct</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">initial_structure</span>
+  <span class="n">natom</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">struct</span><span class="p">)</span>
+  <span class="n">cartPos</span> <span class="o">=</span> <span class="n">natom</span> <span class="o">*</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span>
+  <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">natom</span><span class="p">):</span>
+    <span class="n">cartPos</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span>      <span class="c"># no units</span>
+
+  <span class="n">resObj</span><span class="o">.</span><span class="n">initialCartPosMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">cartPos</span><span class="p">)</span>
+
+  <span class="n">resObj</span><span class="o">.</span><span class="n">initialFracPosMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span>
+    <span class="n">resObj</span><span class="o">.</span><span class="n">initialCartPosMat</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span> <span class="n">resObj</span><span class="o">.</span><span class="n">initialBasisMat</span><span class="p">))</span>
+
+  <span class="c">#===== final structure =====</span>
+  <span class="c"># In structure.cell, the basis vectors are columns.</span>
+  <span class="c"># Change to rows.</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">finalBasisMat</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">cell</span><span class="o">.</span><span class="n">T</span>
+
+  <span class="n">struct</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">structure</span>
+  <span class="n">natom</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">struct</span><span class="p">)</span>
+  <span class="n">cartPos</span> <span class="o">=</span> <span class="n">natom</span> <span class="o">*</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span>
+  <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">natom</span><span class="p">):</span>
+    <span class="n">cartPos</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">struct</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span>
+
+  <span class="n">resObj</span><span class="o">.</span><span class="n">finalCartPosMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">cartPos</span><span class="p">)</span>
+
+  <span class="n">resObj</span><span class="o">.</span><span class="n">finalFracPosMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span>
+    <span class="n">resObj</span><span class="o">.</span><span class="n">finalCartPosMat</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span> <span class="n">resObj</span><span class="o">.</span><span class="n">finalBasisMat</span><span class="p">))</span>
+
+  <span class="c">#===== kpoints =====</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">kpointCartMat</span> <span class="o">=</span> <span class="n">ex</span><span class="o">.</span><span class="n">kpoints</span>    <span class="c"># transform</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">numKpoint</span> <span class="o">=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">kpointCartMat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">kpointWeights</span> <span class="o">=</span> <span class="bp">None</span>          <span class="c"># xxx not available</span>
+
+  <span class="c">#resObj.kpointFracMat = np.dot(</span>
+  <span class="c">#  resObj.kpointCartMat, np.linalg.inv( resObj.initialRecipBasisMat))</span>
+  <span class="c"># initialRecipBasisMat is not available, so</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">kpointFracMat</span> <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;numKpoint: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">numKpoint</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;kpointFracMat:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">kpointFracMat</span><span class="p">),)</span>
+    <span class="k">print</span> <span class="s">&#39;kpointCartMat:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">kpointCartMat</span><span class="p">),)</span>
+  <span class="c">#===== final volume and density =====</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">finalVolume_ang3</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span>         <span class="c"># Angstrom^3</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">recipVolume</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">reciprocal_volume</span><span class="p">)</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">finalDensity_g_cm3</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">density</span><span class="p">)</span>      <span class="c"># g/cm3</span>
+  <span class="c">#===== last calc forces =====</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">finalForceMat_ev_ang</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">forces</span><span class="p">)</span>  <span class="c"># eV/angstrom</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">finalStressMat_kbar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">stress</span><span class="p">)</span>   <span class="c"># kbar</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">finalPressure_kbar</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">pressure</span><span class="p">)</span>     <span class="c"># kbar</span>
+  <span class="c">#===== eigenvalues and occupancies =====</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">eigenMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">eigenvalues</span><span class="p">)</span>
+  <span class="c"># Caution: for non-magnetic (numSpin==1),</span>
+  <span class="c">#   OUTCAR has occupMat values = 2, while vasprun.xml has values = 1.</span>
+  <span class="c"># For magnetic (numSpin==2), both OUTCAR and vasprun.xml have 1.</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">occupMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">occupations</span><span class="p">)</span>
+  <span class="c">#===== misc junk =====</span>
+  <span class="c">#===== energy, efermi0 =====</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">energyNoEntrps</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">total_energy</span><span class="p">)]</span>      <span class="c"># eV</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">efermi0</span>      <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">fermi0K</span><span class="p">)</span>               <span class="c"># eV</span>
+  <span class="c">#===== cbMin, vbMax, bandgap =====</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">cbMin</span>        <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">cbm</span><span class="p">)</span>                   <span class="c"># eV</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">vbMax</span>        <span class="o">=</span> <span class="nb">float</span><span class="p">(</span> <span class="n">ex</span><span class="o">.</span><span class="n">vbm</span><span class="p">)</span>                   <span class="c"># eV</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">bandgap</span>      <span class="o">=</span> <span class="n">resObj</span><span class="o">.</span><span class="n">cbMin</span> <span class="o">-</span> <span class="n">resObj</span><span class="o">.</span><span class="n">vbMax</span>      <span class="c"># eV</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;cbMin: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">cbMin</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;vbMax: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">vbMax</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;bandgap:  </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">bandgap</span><span class="p">,)</span>
+
+  <span class="n">resObj</span><span class="o">.</span><span class="n">cbms</span>         <span class="o">=</span> <span class="bp">None</span>                  <span class="c"># not available</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">vbms</span>         <span class="o">=</span> <span class="bp">None</span>                  <span class="c"># not available</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">cbmKpis</span>      <span class="o">=</span> <span class="bp">None</span>                  <span class="c"># not available</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">vbmKpis</span>      <span class="o">=</span> <span class="bp">None</span>                  <span class="c"># not available</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">bandgapa</span>     <span class="o">=</span> <span class="bp">None</span>                  <span class="c"># not available</span>
+  <span class="n">resObj</span><span class="o">.</span><span class="n">bandgaps</span>     <span class="o">=</span> <span class="bp">None</span>                  <span class="c"># not available</span>
+
+  <span class="k">return</span>
+
+<span class="c"># xxx to do:</span>
+<span class="c">#   energy               == totalEnergy</span>
+<span class="c">#   energy_sigma0        totalEnergySigma0</span>
+<span class="c">#   fermi0K              fermi0</span>
+<span class="c">#   fermi_energy         fermiEnergy</span>
+<span class="c">#   total_energy         totalEnergy</span>
+<span class="c"># array(-13.916343) * eV</span>
+
+<span class="c">#====================================================================</span>
+
+<span class="k">def</span> <span class="nf">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Prints an error message and raises Exception.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * msg (str): Error message.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * (Never returns)</span>
+<span class="sd">  </span>
+<span class="sd">  **Raises**</span>
+
+<span class="sd">  * Exception</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="c"># print msg</span>
+  <span class="c"># print &gt;&gt; sys.stderr, msg</span>
+
+  <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+
+<span class="c">#====================================================================</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+
+<span class="c">#====================================================================</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

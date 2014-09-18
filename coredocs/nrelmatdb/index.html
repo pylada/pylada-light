@@ -1,0 +1,233 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>NRELMatDB database builder pipeline &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="User Guide" href="../userguide.html" />
+    <link rel="next" title="NREL MatDB SQL Database Overview" href="sqlDatabase.html" />
+    <link rel="prev" title="IPython high-throughput interface" href="../userguide/ipython.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sqlDatabase.html" title="NREL MatDB SQL Database Overview"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../userguide/ipython.html" title="IPython high-throughput interface"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" accesskey="U">User Guide</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="nrelmatdb-database-builder-pipeline">
+<h1>NRELMatDB database builder pipeline<a class="headerlink" href="#nrelmatdb-database-builder-pipeline" title="Permalink to this headline">¶</a></h1>
+<p class="graphviz">
+<img src="../_images/graphviz-ee66ba5335e55d3cf10aa2d8eea9634579c7226c.png" alt="digraph nrelmat {
+  //graph [label=&quot;NREL MatDB Data Flow&quot;, labelloc=t, fontsize=30];
+  rank=source;
+  legendx [shape=none, margin=0, label=&lt;
+    &lt;table border=&quot;0&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;font point-size=&quot;30&quot;&gt; NREL MatDB Data Flow &lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;font point-size=&quot;20&quot;&gt; Click any box for details &lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+  rankdir = TB;
+  node [color=blue, shape=box, fontsize=11];
+  edge [fontsize=11];
+  //URL=&quot;index.html&quot;;       // default for entire graph
+
+  wrapUpload [URL=&quot;wrapUpload.html&quot;, shape=none, margin=0,
+    tooltip=&quot;Click for wrapUpload details&quot;, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;b&gt;&lt;u&gt; wrapUpload &lt;/u&gt;&lt;/b&gt; &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Find candidate directories &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Gather metadata &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Use &lt;font face=&quot;courier-bold&quot;&gt;tar&lt;/font&gt; to create an archive file &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Use &lt;font face=&quot;courier-bold&quot;&gt;scp&lt;/font&gt; to copy the file to the archive server &lt;/td&gt; &lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+  fillDbVasp [URL=&quot;fillDbVasp.html&quot;, shape=none, margin=0,
+    tooltip=&quot;Click for fillDbVasp details&quot;, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;b&gt;&lt;u&gt; fillDbVasp &lt;/u&gt;&lt;/b&gt; &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Traverse directory tree &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; For each dir: &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;       Call readVasp to extract statistics &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;       Add a row to the model table &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Call augmentDb to calc additional statistics for the model table &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Add a row to the contrib table &lt;/td&gt; &lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+  augmentDb [URL=&quot;augmentDb.html&quot;, shape=none, margin=0,
+    tooltip=&quot;Click for augmentDb details&quot;, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;b&gt;&lt;u&gt; augmentDb &lt;/u&gt;&lt;/b&gt; &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Create derived fields for SQL database &lt;/td&gt; &lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+  flatDatabase [URL=&quot;flatDatabase.html&quot;, shape=none, margin=0,
+    tooltip=&quot;Click for flat file database details&quot;, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;b&gt;&lt;u&gt; Flat file database &lt;/u&gt;&lt;/b&gt; &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td&gt; Contains compressed copies&lt;br/&gt;of all uploaded files &lt;/td&gt; &lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+
+  sqlDatabase [URL=&quot;sqlDatabase.html&quot;, shape=none, margin=0,
+    tooltip=&quot;Click for PostgreSQL database details&quot;, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;b&gt;&lt;u&gt; PostgreSQL database &lt;/u&gt;&lt;/b&gt; &lt;/td&gt; &lt;/tr&gt;
+
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; model table: Summary statistics, one row per vasp run &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; contrib table: Author statistics, one row per upload &lt;/td&gt; &lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+  webServer [URL=&quot;webServer.html&quot;, shape=none, margin=0,
+    tooltip=&quot;Click for web server details&quot;, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td colspan=&quot;2&quot; align=&quot;center&quot;&gt; &lt;b&gt;&lt;u&gt; Web server &lt;/u&gt;&lt;/b&gt; &lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Language: &lt;/td&gt; &lt;td align=&quot;left&quot;&gt; Python&lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Platform: &lt;/td&gt; &lt;td align=&quot;left&quot;&gt; Pyramid&lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; Template system: &lt;/td&gt; &lt;td align=&quot;left&quot;&gt; Mako&lt;/td&gt; &lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; 3-D Visualization: &lt;/td&gt; &lt;td align=&quot;left&quot;&gt; WebGL using three.js&lt;/td&gt; &lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+  legendx -&gt; wrapUpload [style=invis];
+  wrapUpload -&gt; fillDbVasp
+  fillDbVasp -&gt; flatDatabase
+  fillDbVasp -&gt; sqlDatabase
+  sqlDatabase -&gt; augmentDb -&gt; sqlDatabase
+  sqlDatabase -&gt; webServer
+  flatDatabase -&gt; webServer
+}" usemap="#nrelmat" />
+<map id="nrelmat" name="nrelmat">
+<area shape="rect" id="node2" href="wrapUpload.html" title="Click for wrapUpload details" alt="" coords="136,128,435,219"/>
+<area shape="rect" id="node3" href="fillDbVasp.html" title="Click for fillDbVasp details" alt="" coords="83,267,488,392"/>
+<area shape="rect" id="node5" href="flatDatabase.html" title="Click for flat file database details" alt="" coords="45,441,233,495"/>
+<area shape="rect" id="node6" href="sqlDatabase.html" title="Click for PostgreSQL database details" alt="" coords="257,440,607,496"/>
+<area shape="rect" id="node4" href="augmentDb.html" title="Click for augmentDb details" alt="" coords="305,565,559,613"/>
+<area shape="rect" id="node7" href="webServer.html" title="Click for web server details" alt="" coords="5,544,277,635"/>
+</map>
+</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sqlDatabase.html">SQL database overview: Overview of the database system.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flatDatabase.html">Flat file database overview: Overview of the database system.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="webServer.html">Web overview: Overview of the web server system.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="augmentDb.html">augmentDb.py: Add additional info to the model table.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="execMimic.html">execMimic.py: Mimic execution for validity testing.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fillDbVasp.html">fillDbVasp.py: Read files created by wrapUpload and add rows to the model table.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="queryMatDb.html">queryMatDb.py: Demo query of the NRELMatDB SQL database.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readVasp.html">readVasp.py: Read and parse an OUTCAR or vasprun.xml file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ScanOutcar.html">ScanOutcar.py: Extract info from OUTCAR and INCAR files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ScanXml.html">ScanXml.py: Read and parse a vasprun.xml file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrapReceive.html">wrapReceive.py: Receive results sent by wrapUpload.sh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="wrapUpload.html">wrapUpload.py: Locate, extract, and upload results to the server running wrapReceive.</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../userguide/ipython.html"
+                        title="previous chapter">IPython high-throughput interface</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sqlDatabase.html"
+                        title="next chapter">NREL MatDB SQL Database Overview</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelmatdb/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sqlDatabase.html" title="NREL MatDB SQL Database Overview"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../userguide/ipython.html" title="IPython high-throughput interface"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

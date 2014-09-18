@@ -1,0 +1,148 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>A fast primer &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Interface to VASP" href="../vasp.html" />
+    <link rel="next" title="Configuring Pylada for VASP" href="config.html" />
+    <link rel="prev" title="Interface to VASP" href="../vasp.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="Configuring Pylada for VASP"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../vasp.html" title="Interface to VASP"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="../vasp.html" accesskey="U">Interface to VASP</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="a-fast-primer">
+<span id="vasp-primer-ug"></span><h1>A fast primer<a class="headerlink" href="#a-fast-primer" title="Permalink to this headline">¶</a></h1>
+<p><tt class="xref py py-class docutils literal"><span class="pre">Vasp</span></tt> is a python wrapper which hides from the user all
+the dreary file manipulation and grepping that working with scientific codes
+generally imply. It is initialized as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pylada.vasp</span> <span class="kn">import</span> <span class="n">Vasp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vasp</span> <span class="o">=</span> <span class="n">Vasp</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vasp</span><span class="o">.</span><span class="n">add_specie</span> <span class="o">=</span> <span class="s">&#39;Si&#39;</span><span class="p">,</span> <span class="s">&#39;/path/to/directory/Si&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vasp</span><span class="o">.</span><span class="n">add_specie</span> <span class="o">=</span> <span class="s">&#39;Ge&#39;</span><span class="p">,</span> <span class="s">&#39;/path/to/directory/Ge&#39;</span>
+</pre></div>
+</div>
+<p>We will get to the details below, but suppose that we already have some
+silicon-germanium structure. Then launching the calculation and retrieving the
+gap is as complicated as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">vasp</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">ispin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&quot;Success?&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">success</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">result</span><span class="o">.</span><span class="n">eigenvalues</span>
+<span class="go">array([-5, -6., -7]) * eV</span>
+</pre></div>
+</div>
+<p>This will launch vasp in the current directory and wait until the calculation
+is finished. We then check whether the calculations completed and print the
+eigenvalues. The latter are a numpy <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.array.html">array</a>, signed with the appropriate <a class="reference external" href="qantities">units</a>.  Since they are a python object, it is easy to create more
+complex post-processing.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../vasp.html"
+                        title="previous chapter">Interface to VASP</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="config.html"
+                        title="next chapter">Configuring Pylada for VASP</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/userguide/vasp/primer.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="config.html" title="Configuring Pylada for VASP"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../vasp.html" title="Interface to VASP"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="../vasp.html" >Interface to VASP</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

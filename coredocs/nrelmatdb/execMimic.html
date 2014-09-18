@@ -1,0 +1,234 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>execMimic.py &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="NRELMatDB database builder pipeline" href="index.html" />
+    <link rel="next" title="fillDbVasp.py" href="fillDbVasp.html" />
+    <link rel="prev" title="augmentDb.py" href="augmentDb.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fillDbVasp.html" title="fillDbVasp.py"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="augmentDb.html" title="augmentDb.py"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-nrelmat.execMimic">
+<span id="execmimic-py"></span><h1>execMimic.py<a class="headerlink" href="#module-nrelmat.execMimic" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="nrelmat.execMimic.main">
+<tt class="descclassname">nrelmat.execMimic.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/nrelmat/execMimic.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.execMimic.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mimics the execution of a program by checking that
+the input files are as we expect, and then copying
+previously calculated output files.</p>
+<p>This program is used to mimic the execution of VASP
+for validity testing.  See pylada/testValid.</p>
+<p>Command line parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="15%" />
+<col width="65%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>-bugLev</strong></td>
+<td>integer</td>
+<td>Debug level.  Normally 0.</td>
+</tr>
+<tr class="row-odd"><td><strong>-specFile</strong></td>
+<td>string</td>
+<td>JSON file containing specs.  See below.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>specFile Contents:</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="72%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>refRoot</strong></td>
+<td>Root dir of the reference tree</td>
+</tr>
+<tr class="row-odd"><td><strong>workRoot</strong></td>
+<td>Root dir of the tree to be checked</td>
+</tr>
+<tr class="row-even"><td><strong>inFiles</strong></td>
+<td>List of files to be checked in each work dir</td>
+</tr>
+<tr class="row-odd"><td><strong>outFiles</strong></td>
+<td>List of files to copy from ref dir to work
+dir.  If &#8216;&#8217;, copy all except inFiles and omits.</td>
+</tr>
+<tr class="row-even"><td><strong>omitFiles</strong></td>
+<td>List of regexs of outFiles to omit.</td>
+</tr>
+<tr class="row-odd"><td><strong>absEpsilon</strong></td>
+<td><dl class="first last docutils">
+<dt>Absolute epsilon for comparing floats of</dt>
+<dd>work inFile vs ref inFile.</dd>
+</dl>
+</td>
+</tr>
+<tr class="row-even"><td><strong>relEpsilon</strong></td>
+<td><dl class="first last docutils">
+<dt>Relative epsilon for comparing floats of</dt>
+<dd>work inFile vs ref inFile.</dd>
+</dl>
+</td>
+</tr>
+<tr class="row-odd"><td><strong>logFile</strong></td>
+<td>Log file for execMimic output.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>inSpec file example:</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+  <span class="s">&quot;absEpsilon&quot;</span><span class="p">:</span>   <span class="s">&quot;1.e-6&quot;</span><span class="p">,</span>
+  <span class="s">&quot;relEpsilon&quot;</span><span class="p">:</span>   <span class="s">&quot;1.e-6&quot;</span><span class="p">,</span>
+  <span class="s">&quot;refRoot&quot;</span><span class="p">:</span>      <span class="s">&quot;/home/me/reference&quot;</span><span class="p">,</span>
+  <span class="s">&quot;workRoot&quot;</span><span class="p">:</span>     <span class="s">&quot;/home/me/test&quot;</span><span class="p">,</span>
+  <span class="s">&quot;inFiles&quot;</span><span class="p">:</span>      <span class="s">&quot;INCAR,KPOINTS,POSCAR,POTCAR&quot;</span><span class="p">,</span>
+  <span class="s">&quot;outFiles&quot;</span><span class="p">:</span>     <span class="s">&quot;&quot;</span><span class="p">,</span>
+  <span class="s">&quot;omitFiles&quot;</span><span class="p">:</span>    <span class="s">&quot;^pbs.*$,^std.*$&quot;</span><span class="p">,</span>
+  <span class="s">&quot;logFile&quot;</span><span class="p">:</span>      <span class="s">&quot;/home/me/execMimic.log&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.execMimic.testRegexs">
+<tt class="descclassname">nrelmat.execMimic.</tt><tt class="descname">testRegexs</tt><big>(</big><em>regexs</em>, <em>fname</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/execMimic.html#testRegexs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.execMimic.testRegexs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if fname matches any of the regex.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="nrelmat.execMimic.checkFiles">
+<tt class="descclassname">nrelmat.execMimic.</tt><tt class="descname">checkFiles</tt><big>(</big><em>logName</em>, <em>absEpsilon</em>, <em>relEpsilon</em>, <em>patha</em>, <em>pathb</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/execMimic.html#checkFiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.execMimic.checkFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compares two files.  If they are identical except
+for possible floating points within
+absolute absEpsilon and relative relEpsilon,
+return True.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="augmentDb.html"
+                        title="previous chapter">augmentDb.py</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="fillDbVasp.html"
+                        title="next chapter">fillDbVasp.py</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelmatdb/execMimic.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="fillDbVasp.html" title="fillDbVasp.py"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="augmentDb.html" title="augmentDb.py"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" >NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

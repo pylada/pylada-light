@@ -1,0 +1,579 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>schedMain.py: General task scheduler &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="Welcome to schedMain’s documentation!" href="index.html" />
+    <link rel="next" title="schedMain Example A: static files" href="example.static.html" />
+    <link rel="prev" title="Welcome to schedMain’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="example.static.html" title="schedMain Example A: static files"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to schedMain’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Welcome to schedMain&#8217;s documentation!</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="schedmain-py-general-task-scheduler">
+<h1>schedMain.py: General task scheduler<a class="headerlink" href="#schedmain-py-general-task-scheduler" title="Permalink to this headline">¶</a></h1>
+<p>The schedMain package is a general scheduler designed for
+tasks running on a Linux or similar operating system.</p>
+<p>SchedMain maintains a <strong>work list</strong> of tasks to be executed.
+Each item in the work list represents a specific task to be
+run in a specific directory.  When schedMain starts it reads
+an initial work list from the file initWork.  Each line of
+initWork contains the name of a task and the directory to run in.
+For example initWork might contain:</p>
+<div class="highlight-python"><pre>alpha.py  aaDir</pre>
+</div>
+<p>This represents the task alpha.py to be run in directory aaDir.</p>
+<p>Using the above example of a work list containing alpha.py with
+directory aaDir ...</p>
+<p>Before task alpha.py can run in aaDir,
+schedMain checks for a file <tt class="docutils literal"><span class="pre">aaDir/alpha.preWork</span></tt>.
+If the preWork file exists it contains a list
+of tasks that must complete successfully before alpha.py can start
+in aaDir.  The preWork file has the same format as the initWork file.</p>
+<p>After the prerequisites complete schedMain starts alpha.py.
+Eventually alpha.py signals its completion by writing a tiny file
+<tt class="docutils literal"><span class="pre">aaDir/alpha.status.ok</span></tt>, indicating OK completion.
+Every task must write either a <tt class="docutils literal"><span class="pre">x.status.ok</span></tt> or <tt class="docutils literal"><span class="pre">x.status.error</span></tt>
+file on completion, to let schedMain know it&#8217;s done.
+If a task completes without writing either file, schedMain
+assumes it ended badly and will write an <tt class="docutils literal"><span class="pre">x.status.error</span></tt>
+for it.</p>
+<p>After task alpha.py completes schedMain removes it from the work list.
+If the task was successful (wrote aaDir/alpha.status.ok),
+schedMain checks for a file <tt class="docutils literal"><span class="pre">aaDir/alpha.postOkWork</span></tt>.
+If the postOkWork file exists, it contains a list
+new tasks to be added to schedMain&#8217;s work list.
+The postOkWork file has the same format as initWork.</p>
+<p>Now would be a good time to check out
+the static example, <a class="reference internal" href="example.static.html#example-static"><em>schedMain Example A: static files</em></a>,</p>
+<div class="section" id="module-schedMain.__init__">
+<span id="schedmain-package"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">schedMain</span></tt> Package<a class="headerlink" href="#module-schedMain.__init__" title="Permalink to this headline">¶</a></h2>
+<p>See <tt class="xref py py-func docutils literal"><span class="pre">schedMain.aaOverview()</span></tt>.</p>
+</div>
+<div class="section" id="module-schedMain.schedMain">
+<span id="schedmain-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">schedMain</span></tt> Module<a class="headerlink" href="#module-schedMain.schedMain" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="schedMain.schedMain.aaOverview">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">aaOverview</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#aaOverview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.aaOverview" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the main scheduling system.
+It reads the file <tt class="docutils literal"><span class="pre">initWork</span></tt> to create an initial work list.
+Then it repeatedly executes tasks that have satisfied their
+prerequisites, as those tasks add future tasks to the work list.</p>
+<p>For example, suppose the <tt class="docutils literal"><span class="pre">initWork</span></tt> file contains the line:</p>
+<div class="highlight-python"><pre>alpha.sh    some/directory</pre>
+</div>
+<p>Then schedMain will look in <tt class="docutils literal"><span class="pre">some/directory</span></tt> for the
+file <tt class="docutils literal"><span class="pre">alpha.preWork</span></tt>.  If present it contains prerequisites
+for alpha.sh.</p>
+<p>After all the prerequisites have completed with status OK,
+schedMain will look for the script <tt class="docutils literal"><span class="pre">alpha.sh</span></tt>,
+first in <tt class="docutils literal"><span class="pre">some/directory</span></tt>, then in the global
+script area, <tt class="docutils literal"><span class="pre">globalDir/cmd</span></tt>.</p>
+<p>Then schedMain will run the script <tt class="docutils literal"><span class="pre">alpha.sh</span></tt> in <tt class="docutils literal"><span class="pre">some/directory</span></tt>.
+If the work list specifies a script ending in &#8221;.pbs&#8221;,
+like <tt class="docutils literal"><span class="pre">alpha.pbs</span></tt>, instead of running the scritp schedMain will
+issue <tt class="docutils literal"><span class="pre">qsub</span> <span class="pre">alpha.pbs</span></tt>.</p>
+<p>When a task <tt class="docutils literal"><span class="pre">alpha.sh</span></tt> completes typically it writes two files:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">alpha</span><span class="o">.</span><span class="n">postOkWork</span>    <span class="c"># list of tasks to start next</span>
+<span class="n">alpha</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">ok</span>     <span class="c"># indicates OK completion</span>
+</pre></div>
+</div>
+<p>After detecting that the script wrote file <tt class="docutils literal"><span class="pre">alpha.status.ok</span></tt>,
+schedMain
+adds any tasks listed in <tt class="docutils literal"><span class="pre">alpha.postOkWork</span></tt> to the work list.</p>
+<p>The lines in file <tt class="docutils literal"><span class="pre">initWork</span></tt>, like all work lists
+(alpha.preWork, alpha.postOkWork, alpha.postErrorWork),
+have the format:</p>
+<div class="highlight-python"><pre>scriptName  dirPath    # scriptName may be *.sh, *.py, or *.pbs</pre>
+</div>
+<p>For example:</p>
+<div class="highlight-python"><pre>alpha.sh    some/directory</pre>
+</div>
+<p>The <strong>sname</strong> is the base name of the scrip - for example,
+if we strip the suffix (&#8221;.sh&#8221; or &#8221;.py&#8221; or &#8221;.pbs&#8221;) off <tt class="docutils literal"><span class="pre">alpha.sh</span></tt>
+we get the base sname, in this case <tt class="docutils literal"><span class="pre">alpha</span></tt>.</p>
+<p>The sname is the root of a handful of files related to that script
+in that dirPath.  Using the alpha example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">alpha</span><span class="o">.</span><span class="n">preWork</span>        <span class="c"># Work list: prerequisites for this task</span>
+<span class="n">alpha</span><span class="o">.</span><span class="n">postOkWork</span>     <span class="c"># Work list: tasks to start after this task</span>
+                     <span class="c">#   writes file status.ok</span>
+<span class="n">alpha</span><span class="o">.</span><span class="n">postErrorWork</span>  <span class="c"># (rarely used) Work list: tasks to start after</span>
+                     <span class="c">#   this task writes file status.error</span>
+<span class="n">alpha</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">init</span>    <span class="c"># time this task was initialized</span>
+<span class="n">alpha</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">submit</span>  <span class="c"># time this task was submitted (like qsub)</span>
+<span class="n">alpha</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">run</span>     <span class="c"># time this task was started running</span>
+<span class="n">alpha</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">ok</span>      <span class="c"># time this task finished successfully</span>
+<span class="n">alpha</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">error</span>   <span class="c"># time and error message if finished unssuccessfully</span>
+</pre></div>
+</div>
+<p>Sometimes some of the status files are omitted,
+but either status.ok or status.error MUST be written.</p>
+<p>To write a status file from a shell script alpha.sh use:</p>
+<div class="highlight-python"><pre>date '+%Y-%m-%d_%H:%M:%S' &gt; alpha.status.ok
+# Or:
+date '+%Y-%m-%d_%H:%M:%S'  &gt; alpha.status.error
+echo 'Some error message' &gt;&gt; alpha.status.error
+echo 'More error message' &gt;&gt; alpha.status.error</pre>
+</div>
+<p>To write a status file from a python script alpha.py use:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">schedMisc</span>
+<span class="n">schedMisc</span><span class="o">.</span><span class="n">setStatusOk</span><span class="p">(</span> <span class="s">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+
+<span class="c"># Or:</span>
+<span class="kn">import</span> <span class="nn">schedMisc</span>
+<span class="n">schedMisc</span><span class="o">.</span><span class="n">setStatusError</span><span class="p">(</span> <span class="s">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span>
+  <span class="s">&#39;Some error message.</span><span class="se">\n</span><span class="s">More error message.&#39;</span><span class="p">)</span>
+
+<span class="c"># Or:</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="n">dateFmt</span> <span class="o">=</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">_%H:%M:%S&#39;</span>
+<span class="n">dateStg</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span> <span class="n">dateFmt</span><span class="p">)</span>
+<span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s">&#39;alpha.status.ok&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="n">dateStg</span>
+
+<span class="c"># Or:</span>
+<span class="n">fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s">&#39;alpha.status.error&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">fpath</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="n">dateStg</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="s">&#39;Some error message&#39;</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="s">&#39;More error message&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.badparms">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">badparms</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#badparms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.badparms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints an error message and usage info, and exits with rc 1.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.checkLockFile">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">checkLockFile</tt><big>(</big><em>lockMap</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#checkLockFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.checkLockFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.getLockPath">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">getLockPath</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#getLockPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.getLockPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.main">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>For an overview, see <a class="reference internal" href="#schedMain.schedMain.aaOverview" title="schedMain.schedMain.aaOverview"><tt class="xref py py-func docutils literal"><span class="pre">aaOverview()</span></tt></a>.</p>
+<p>Command line parameters are:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="11%" />
+<col width="71%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>-bugLev</td>
+<td>&lt;string&gt;</td>
+<td>Debug level.  Typically 0, 1, or 5.</td>
+</tr>
+<tr class="row-even"><td>-hostType</td>
+<td>&lt;string&gt;</td>
+<td>System type: hostLocal or peregrine or ...</td>
+</tr>
+<tr class="row-odd"><td>-globalDir</td>
+<td>&lt;string&gt;</td>
+<td>Dir containing global info, including subdir cmd</td>
+</tr>
+<tr class="row-even"><td>-ancDir</td>
+<td>&lt;string&gt;</td>
+<td>An ancestor dir of all dirs to be processed</td>
+</tr>
+<tr class="row-odd"><td>-initWork</td>
+<td>&lt;string&gt;</td>
+<td>File containing the initial work list</td>
+</tr>
+<tr class="row-even"><td>-delaySec</td>
+<td>&lt;string&gt;</td>
+<td>Schedule loop delay, seconds</td>
+</tr>
+<tr class="row-odd"><td>-redoAll</td>
+<td>&lt;bool&gt;</td>
+<td>n/y: on restart, redo all even if prior run was ok</td>
+</tr>
+<tr class="row-even"><td>-useReadOnly</td>
+<td>&lt;bool&gt;</td>
+<td>n/y: only print status; do not start tasks</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.printTasks">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">printTasks</tt><big>(</big><em>ancDir</em>, <em>tasks</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#printTasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.printTasks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.readLockFile">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">readLockFile</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#readLockFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.readLockFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.readWorkList">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">readWorkList</tt><big>(</big><em>bugLev</em>, <em>globalDir</em>, <em>ancDir</em>, <em>wkPath</em>, <em>curDir</em>, <em>pbsMap</em>, <em>useReadOnly</em>, <em>redoAll</em>, <em>allTasks</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#readWorkList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.readWorkList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.removeLockEntry">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">removeLockEntry</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#removeLockEntry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.removeLockEntry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.scheduleAll">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">scheduleAll</tt><big>(</big><em>bugLev</em>, <em>hostType</em>, <em>globalDir</em>, <em>ancDir</em>, <em>initWork</em>, <em>delaySec</em>, <em>redoAll</em>, <em>useReadOnly</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#scheduleAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.scheduleAll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.scheduleTasks">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">scheduleTasks</tt><big>(</big><em>bugLev</em>, <em>hostType</em>, <em>useReadOnly</em>, <em>globalDir</em>, <em>ancDir</em>, <em>initWork</em>, <em>allTasks</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#scheduleTasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.scheduleTasks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.throwerr">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">throwerr</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#throwerr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.throwerr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.updateWorkList">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">updateWorkList</tt><big>(</big><em>bugLev</em>, <em>task</em>, <em>globalDir</em>, <em>ancDir</em>, <em>useReadOnly</em>, <em>pbsMap</em>, <em>allTasks</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#updateWorkList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.updateWorkList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMain.writeLockFile">
+<tt class="descclassname">schedMain.schedMain.</tt><tt class="descname">writeLockFile</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMain.html#writeLockFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMain.writeLockFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-schedMain.schedMisc">
+<span id="schedmisc-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">schedMisc</span></tt> Module<a class="headerlink" href="#module-schedMain.schedMisc" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="schedMain.schedMisc.checkNiceName">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">checkNiceName</tt><big>(</big><em>msg</em>, <em>name</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#checkNiceName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.checkNiceName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.deltaTimeSec">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">deltaTimeSec</tt><big>(</big><em>timea</em>, <em>timeb</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#deltaTimeSec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.deltaTimeSec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.findTask">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">findTask</tt><big>(</big><em>execName</em>, <em>taskDir</em>, <em>allTasks</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#findTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.findTask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.formatDate">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">formatDate</tt><big>(</big><em>dt</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#formatDate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.formatDate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.getCurDate">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">getCurDate</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#getCurDate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.getCurDate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.getNumNotOk">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">getNumNotOk</tt><big>(</big><em>tasks</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#getNumNotOk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.getNumNotOk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.getParmMap">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">getParmMap</tt><big>(</big><em>scriptName</em>, <em>curDir</em>, <em>specMap</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#getParmMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.getParmMap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.getParmValue">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">getParmValue</tt><big>(</big><em>specMap</em>, <em>key</em>, <em>value</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#getParmValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.getParmValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.getParmsOld">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">getParmsOld</tt><big>(</big><em>scriptName</em>, <em>curDir</em>, <em>*specs</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#getParmsOld"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.getParmsOld" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.getPbsIdMap">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">getPbsIdMap</tt><big>(</big><em>bugLev</em>, <em>hostType</em>, <em>userId</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#getPbsIdMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.getPbsIdMap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.getPbsIdMapSub">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">getPbsIdMapSub</tt><big>(</big><em>bugLev</em>, <em>hostType</em>, <em>userId</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#getPbsIdMapSub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.getPbsIdMapSub" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.getPbsNameMapUnused">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">getPbsNameMapUnused</tt><big>(</big><em>bugLev</em>, <em>userId</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#getPbsNameMapUnused"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.getPbsNameMapUnused" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.mkIndent">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">mkIndent</tt><big>(</big><em>ix</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#mkIndent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.mkIndent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.parseBool">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">parseBool</tt><big>(</big><em>stgParm</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#parseBool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.parseBool" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.parseDate">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">parseDate</tt><big>(</big><em>stg</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#parseDate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.parseDate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.rmTree">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">rmTree</tt><big>(</big><em>ancDir=None</em>, <em>rmDir=None</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#rmTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.rmTree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.runSubprocess">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">runSubprocess</tt><big>(</big><em>wkDir</em>, <em>cmd</em>, <em>stdInput</em>, <em>outPrefix</em>, <em>showInfo</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#runSubprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.runSubprocess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.setStatusError">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">setStatusError</tt><big>(</big><em>sname</em>, <em>dirPath</em>, <em>errMsg</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#setStatusError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.setStatusError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.setStatusOk">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">setStatusOk</tt><big>(</big><em>sname</em>, <em>dirPath</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#setStatusOk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.setStatusOk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.setStatusRun">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">setStatusRun</tt><big>(</big><em>sname</em>, <em>dirPath</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#setStatusRun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.setStatusRun" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.shortName">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">shortName</tt><big>(</big><em>ancDir</em>, <em>fpath</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#shortName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.shortName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.throwerr">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">throwerr</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#throwerr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.throwerr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="schedMain.schedMisc.writeStatusFile">
+<tt class="descclassname">schedMain.schedMisc.</tt><tt class="descname">writeStatusFile</tt><big>(</big><em>sname</em>, <em>dirPath</em>, <em>stIx</em>, <em>extra=None</em><big>)</big><a class="reference internal" href="../_modules/schedMain/schedMisc.html#writeStatusFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.schedMisc.writeStatusFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-schedMain.taskClass">
+<span id="taskclass-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">taskClass</span></tt> Module<a class="headerlink" href="#module-schedMain.taskClass" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="schedMain.taskClass.Task">
+<em class="property">class </em><tt class="descclassname">schedMain.taskClass.</tt><tt class="descname">Task</tt><big>(</big><em>bugLev</em>, <em>globalDir</em>, <em>ancDir</em>, <em>execName</em>, <em>taskDir</em>, <em>pbsMap</em>, <em>useReadOnly</em>, <em>redoAll</em>, <em>allTasks</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="schedMain.taskClass.Task.formatShort">
+<tt class="descname">formatShort</tt><big>(</big><em>ancDir</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.formatShort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.formatShort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.formatTable">
+<tt class="descname">formatTable</tt><big>(</big><em>ancDir</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.formatTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.formatTable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.getStatusName">
+<tt class="descname">getStatusName</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.getStatusName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.getStatusName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.getStatusPath">
+<tt class="descname">getStatusPath</tt><big>(</big><em>stIx</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.getStatusPath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.getStatusPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.resetStatus">
+<tt class="descname">resetStatus</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.resetStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.resetStatus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.runTask">
+<tt class="descname">runTask</tt><big>(</big><em>hostType</em>, <em>globalDir</em>, <em>ancDir</em>, <em>pbsMap</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.runTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.runTask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.setStatusError">
+<tt class="descname">setStatusError</tt><big>(</big><em>errMsg</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.setStatusError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.setStatusError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.setStatusInit">
+<tt class="descname">setStatusInit</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.setStatusInit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.setStatusInit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.setStatusOk">
+<tt class="descname">setStatusOk</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.setStatusOk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.setStatusOk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.setStatusRun">
+<tt class="descname">setStatusRun</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.setStatusRun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.setStatusRun" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.setStatusSubmit">
+<tt class="descname">setStatusSubmit</tt><big>(</big><em>jobId</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.setStatusSubmit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.setStatusSubmit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.setStatusWait">
+<tt class="descname">setStatusWait</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.setStatusWait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.setStatusWait" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.throwerr">
+<tt class="descname">throwerr</tt><big>(</big><em>msg</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.throwerr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.throwerr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.updateStatus">
+<tt class="descname">updateStatus</tt><big>(</big><em>ancDir</em>, <em>pbsMap</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.updateStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.updateStatus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="schedMain.taskClass.Task.writeStatusFile">
+<tt class="descname">writeStatusFile</tt><big>(</big><em>stIx</em>, <em>extra=None</em><big>)</big><a class="reference internal" href="../_modules/schedMain/taskClass.html#Task.writeStatusFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schedMain.taskClass.Task.writeStatusFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">schedMain.py: General task scheduler</a><ul>
+<li><a class="reference internal" href="#module-schedMain.__init__"><tt class="docutils literal"><span class="pre">schedMain</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-schedMain.schedMain"><tt class="docutils literal"><span class="pre">schedMain</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-schedMain.schedMisc"><tt class="docutils literal"><span class="pre">schedMisc</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-schedMain.taskClass"><tt class="docutils literal"><span class="pre">taskClass</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to schedMain&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="example.static.html"
+                        title="next chapter">schedMain Example A: static files</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelscheduler/schedMain.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="example.static.html" title="schedMain Example A: static files"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to schedMain’s documentation!"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" >Welcome to schedMain&#8217;s documentation!</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

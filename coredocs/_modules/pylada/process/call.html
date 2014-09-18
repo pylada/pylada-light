@@ -1,0 +1,271 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pylada.process.call &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="pylada.process" href="../process.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../process.html" accesskey="U">pylada.process</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pylada.process.call</h1><div class="highlight"><pre>
+<span class="c">###############################</span>
+<span class="c">#  This file is part of PyLaDa.</span>
+<span class="c">#</span>
+<span class="c">#  Copyright (C) 2013 National Renewable Energy Lab</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is a high throughput computational platform for Physics. It aims to</span>
+<span class="c">#  make it easier to submit large numbers of jobs on supercomputers. It</span>
+<span class="c">#  provides a python interface to physical input, such as crystal structures,</span>
+<span class="c">#  as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs.</span>
+<span class="c">#  It is able to organise and launch computational jobs on PBS and SLURM.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is free software: you can redistribute it and/or modify it under the</span>
+<span class="c">#  terms of the GNU General Public License as published by the Free Software</span>
+<span class="c">#  Foundation, either version 3 of the License, or (at your option) any later</span>
+<span class="c">#  version.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY</span>
+<span class="c">#  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</span>
+<span class="c">#  FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more</span>
+<span class="c">#  details.</span>
+<span class="c"># </span>
+<span class="c">#  You should have received a copy of the GNU General Public License along with</span>
+<span class="c">#  PyLaDa.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">###############################</span>
+
+<span class="kn">from</span> <span class="nn">.process</span> <span class="kn">import</span> <span class="n">Process</span>
+<div class="viewcode-block" id="CallProcess"><a class="viewcode-back" href="../../../pyapi/process/call.html#pylada.process.call.CallProcess">[docs]</a><span class="k">class</span> <span class="nc">CallProcess</span><span class="p">(</span><span class="n">Process</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Calls functional in child python process.</span>
+<span class="sd">  </span>
+<span class="sd">      This process pickles_ a callable and its arguments and executes it in a</span>
+<span class="sd">      child python process.</span>
+
+<span class="sd">      .. _pickles: http://docs.python.org/library/pickle.html</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CallProcess.__init__"><a class="viewcode-back" href="../../../pyapi/process/call.html#pylada.process.call.CallProcess.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">functional</span><span class="p">,</span> <span class="n">outdir</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>\
+                <span class="n">maxtrials</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dompi</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Initializes a process.</span>
+<span class="sd">    </span>
+<span class="sd">        :param functional:</span>
+<span class="sd">          A python callable. It should also be pickle-able.</span>
+<span class="sd">        :param str outdir: </span>
+<span class="sd">          Path where the python child process should be executed.</span>
+<span class="sd">        :param str stdout:</span>
+<span class="sd">          Optional path to an output file where the callable&#39;s output shall be</span>
+<span class="sd">          streamed.</span>
+<span class="sd">        :param str stderr:</span>
+<span class="sd">          Optional path to an error file where the callable&#39;s errors shall be</span>
+<span class="sd">          streamed.</span>
+<span class="sd">        :param bool dompi:</span>
+<span class="sd">          Whether the python child process shouold be launched as an MPI</span>
+<span class="sd">          process.</span>
+<span class="sd">        :param int maxtrials:</span>
+<span class="sd">          Maximum number of times to try re-launching each process upon</span>
+<span class="sd">          failure. </span>
+<span class="sd">        :param kwargs:</span>
+<span class="sd">          Keyword arguments to the callables should be given here, as keyword</span>
+<span class="sd">          arguments to :py:class:`CallProcess`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..misc</span> <span class="kn">import</span> <span class="n">RelativePath</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">CallProcess</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">maxtrials</span><span class="o">=</span><span class="n">maxtrials</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="n">functional</span>
+    <span class="sd">&quot;&quot;&quot; Functional to execute. &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">functional</span>
+    <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">=</span> <span class="n">RelativePath</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Execution directory of the folder. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">=</span> <span class="n">RelativePath</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+    <span class="sd">&quot;&quot;&quot; Directory where to run job. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">stdout</span>
+    <span class="sd">&quot;&quot;&quot; Name of standard output file, if any. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">stderr</span>
+    <span class="sd">&quot;&quot;&quot; Name of standard error file, if any. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">dompi</span> <span class="o">=</span> <span class="n">dompi</span>
+    <span class="sd">&quot;&quot;&quot; Whether to run with mpi or not. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Extra parameters to pass on to iterator. &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="CallProcess.poll"><a class="viewcode-back" href="../../../pyapi/process/call.html#pylada.process.call.CallProcess.poll">[docs]</a>  <span class="k">def</span> <span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Polls current job. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">Fail</span>
+
+    <span class="c"># checks whether program was already started or not.</span>
+    <span class="k">if</span> <span class="nb">super</span><span class="p">(</span><span class="n">CallProcess</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">poll</span><span class="p">():</span> <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="c"># check whether functional is set. </span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">functional</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="k">return</span> <span class="bp">True</span>
+    <span class="c"># check if we have currently running process.</span>
+    <span class="c"># if current process is finished running, closes stdout and stdout.</span>
+    <span class="k">try</span><span class="p">:</span> 
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span> <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">except</span> <span class="n">Fail</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_cleanup</span><span class="p">()</span>
+      <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">functional</span><span class="p">,</span> <span class="s">&#39;Extract&#39;</span><span class="p">)</span> \
+         <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">Extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">)</span><span class="o">.</span><span class="n">success</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span> 
+      <span class="bp">self</span><span class="o">.</span><span class="n">_cleanup</span><span class="p">()</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">functional</span><span class="p">,</span> <span class="s">&#39;Extract&#39;</span><span class="p">):</span> <span class="k">return</span> <span class="bp">True</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">Extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">)</span><span class="o">.</span><span class="n">success</span><span class="p">:</span> <span class="k">return</span> <span class="bp">True</span>
+    <span class="c"># at this point, an error must have occured.</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nberrors</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nberrors</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxtrials</span><span class="p">:</span> <span class="k">raise</span> <span class="n">Fail</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_next</span><span class="p">()</span>
+</div>
+  <span class="k">def</span> <span class="nf">_next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Launches actual calculation. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pickle</span> <span class="kn">import</span> <span class="n">dumps</span>
+    <span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">executable</span><span class="p">,</span> <span class="n">path</span> <span class="k">as</span> <span class="n">pypath</span>
+    <span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
+    <span class="kn">from</span> <span class="nn">.program</span> <span class="kn">import</span> <span class="n">ProgramProcess</span>
+    <span class="kn">from</span> <span class="nn">..misc</span> <span class="kn">import</span> <span class="n">Changedir</span>
+    <span class="c"># creates temp input script.</span>
+    <span class="k">with</span> <span class="n">Changedir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">)</span> <span class="k">as</span> <span class="n">outdir</span><span class="p">:</span> <span class="k">pass</span>
+    <span class="k">with</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s">&#39;.py&#39;</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">stdin</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dompi</span><span class="p">:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span>
+        <span class="n">stdin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="s">&quot;from sys import path</span><span class="se">\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;from boost.mpi import world</span><span class="se">\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;path[:] = {0!r}</span><span class="se">\n\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;from pickle import loads</span><span class="se">\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;params, functional = loads({1!r})</span><span class="se">\n\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;params[&#39;comm&#39;] = world</span><span class="se">\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;functional(**params)</span><span class="se">\n</span><span class="s">&quot;</span>\
+                     <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pypath</span><span class="p">,</span> <span class="n">dumps</span><span class="p">((</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">functional</span><span class="p">)))</span> <span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span> 
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;comm&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comm</span><span class="p">}</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">stdin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="s">&quot;from sys import path</span><span class="se">\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;path[:] = {0!r}</span><span class="se">\n\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;from pickle import loads</span><span class="se">\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;params, functional = loads({1!r})</span><span class="se">\n\n</span><span class="s">&quot;</span>\
+                     <span class="s">&quot;functional(**params)</span><span class="se">\n</span><span class="s">&quot;</span>\
+                     <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pypath</span><span class="p">,</span> <span class="n">dumps</span><span class="p">((</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">functional</span><span class="p">)))</span> <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span> <span class="o">=</span> <span class="n">stdin</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="c"># now create process. maxtrials is one if Extract exists, so that we can</span>
+    <span class="c"># check success using that instead.</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">process</span> <span class="o">=</span> <span class="n">ProgramProcess</span><span class="p">(</span> <span class="n">executable</span><span class="p">,</span> <span class="n">cmdline</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span><span class="p">],</span> 
+                                   <span class="n">outdir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
+                                   <span class="n">stderr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">maxtrials</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                   <span class="n">dompi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dompi</span> <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_comm</span><span class="o">.</span><span class="n">lend</span><span class="p">(</span><span class="s">&#39;all&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dompi</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">False</span>
+
+<div class="viewcode-block" id="CallProcess.start"><a class="viewcode-back" href="../../../pyapi/process/call.html#pylada.process.call.CallProcess.start">[docs]</a>  <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Starts current job. &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">super</span><span class="p">(</span><span class="n">CallProcess</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">comm</span><span class="p">):</span> <span class="k">return</span> <span class="bp">True</span>
+    <span class="c"># Check directly for errors/success if possible.</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">functional</span><span class="p">,</span> <span class="s">&#39;Extract&#39;</span><span class="p">)</span> \
+       <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">Extract</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">)</span><span class="o">.</span><span class="n">success</span> \
+       <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span> <span class="ow">is</span> <span class="bp">None</span> \
+       <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;overwrite&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">True</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_next</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">False</span><span class="p">;</span>
+</div>
+<div class="viewcode-block" id="CallProcess._cleanup"><a class="viewcode-back" href="../../../pyapi/process/call.html#pylada.process.call.CallProcess._cleanup">[docs]</a>  <span class="k">def</span> <span class="nf">_cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Removes temporary script. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">remove</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">CallProcess</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_cleanup</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;_stdin&#39;</span><span class="p">):</span> <span class="k">return</span>
+    <span class="k">try</span><span class="p">:</span> <span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+    <span class="k">finally</span><span class="p">:</span> <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stdin</span>
+</div>
+<div class="viewcode-block" id="CallProcess.wait"><a class="viewcode-back" href="../../../pyapi/process/call.html#pylada.process.call.CallProcess.wait">[docs]</a>  <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Waits for process to end, then cleanup. &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">super</span><span class="p">(</span><span class="n">CallProcess</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">wait</span><span class="p">():</span> <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span> <span class="o">==</span> <span class="bp">False</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_cleanup</span><span class="p">()</span>
+    <span class="k">return</span> <span class="bp">False</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../process.html" >pylada.process</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

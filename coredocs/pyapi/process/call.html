@@ -1,0 +1,222 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Execution of a callable &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Process Module" href="../process.html" />
+    <link rel="next" title="Parallel execution of a job-folder" href="jobfolder.html" />
+    <link rel="prev" title="Sequential execution of a generator of processes" href="iterator.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="jobfolder.html" title="Parallel execution of a job-folder"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="iterator.html" title="Sequential execution of a generator of processes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../process.html" accesskey="U">Process Module</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pylada.process.call">
+<span id="execution-of-a-callable"></span><h1>Execution of a callable<a class="headerlink" href="#module-pylada.process.call" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pylada.process.call.CallProcess">
+<em class="property">class </em><tt class="descclassname">pylada.process.call.</tt><tt class="descname">CallProcess</tt><big>(</big><em>functional</em>, <em>outdir</em>, <em>stdout=None</em>, <em>stderr=None</em>, <em>maxtrials=1</em>, <em>dompi=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/call.html#CallProcess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.call.CallProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="process.html#pylada.process.process.Process" title="pylada.process.process.Process"><tt class="xref py py-class docutils literal"><span class="pre">pylada.process.process.Process</span></tt></a></p>
+<p>Calls functional in child python process.</p>
+<p>This process <a class="reference external" href="http://docs.python.org/library/pickle.html">pickles</a> a callable and its arguments and executes it in a
+child python process.</p>
+<dl class="method">
+<dt id="pylada.process.call.CallProcess.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>functional</em>, <em>outdir</em>, <em>stdout=None</em>, <em>stderr=None</em>, <em>maxtrials=1</em>, <em>dompi=False</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/call.html#CallProcess.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.call.CallProcess.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>functional</strong> &#8211; A python callable. It should also be pickle-able.</li>
+<li><strong>outdir</strong> (<em>str</em>) &#8211; Path where the python child process should be executed.</li>
+<li><strong>stdout</strong> (<em>str</em>) &#8211; Optional path to an output file where the callable&#8217;s output shall be
+streamed.</li>
+<li><strong>stderr</strong> (<em>str</em>) &#8211; Optional path to an error file where the callable&#8217;s errors shall be
+streamed.</li>
+<li><strong>dompi</strong> (<em>bool</em>) &#8211; Whether the python child process shouold be launched as an MPI
+process.</li>
+<li><strong>maxtrials</strong> (<em>int</em>) &#8211; Maximum number of times to try re-launching each process upon
+failure.</li>
+<li><strong>kwargs</strong> &#8211; Keyword arguments to the callables should be given here, as keyword
+arguments to <a class="reference internal" href="#pylada.process.call.CallProcess" title="pylada.process.call.CallProcess"><tt class="xref py py-class docutils literal"><span class="pre">CallProcess</span></tt></a>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.call.CallProcess._cleanup">
+<tt class="descname">_cleanup</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/call.html#CallProcess._cleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.call.CallProcess._cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes temporary script.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.call.CallProcess.dompi">
+<tt class="descname">dompi</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.call.CallProcess.dompi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether to run with mpi or not.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.call.CallProcess.functional">
+<tt class="descname">functional</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.call.CallProcess.functional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Functional to execute.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.call.CallProcess.outdir">
+<tt class="descname">outdir</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.call.CallProcess.outdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory where to run job.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.call.CallProcess.params">
+<tt class="descname">params</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.call.CallProcess.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extra parameters to pass on to iterator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.call.CallProcess.poll">
+<tt class="descname">poll</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/call.html#CallProcess.poll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.call.CallProcess.poll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Polls current job.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.call.CallProcess.start">
+<tt class="descname">start</tt><big>(</big><em>comm</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/call.html#CallProcess.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.call.CallProcess.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts current job.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.call.CallProcess.stderr">
+<tt class="descname">stderr</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.call.CallProcess.stderr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of standard error file, if any.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.call.CallProcess.stdout">
+<tt class="descname">stdout</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.call.CallProcess.stdout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of standard output file, if any.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.call.CallProcess.wait">
+<tt class="descname">wait</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/call.html#CallProcess.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.call.CallProcess.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Waits for process to end, then cleanup.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="iterator.html"
+                        title="previous chapter">Sequential execution of a generator of processes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="jobfolder.html"
+                        title="next chapter">Parallel execution of a job-folder</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pyapi/process/call.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="jobfolder.html" title="Parallel execution of a job-folder"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="iterator.html" title="Sequential execution of a generator of processes"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../process.html" >Process Module</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

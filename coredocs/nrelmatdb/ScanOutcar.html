@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ScanOutcar.py &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="NRELMatDB database builder pipeline" href="index.html" />
+    <link rel="next" title="ScanXml.py" href="ScanXml.html" />
+    <link rel="prev" title="readVasp.py" href="readVasp.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ScanXml.html" title="ScanXml.py"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="readVasp.html" title="readVasp.py"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-nrelmat.ScanOutcar">
+<span id="scanoutcar-py"></span><h1>ScanOutcar.py<a class="headerlink" href="#module-nrelmat.ScanOutcar" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="nrelmat.ScanOutcar.main">
+<tt class="descclassname">nrelmat.ScanOutcar.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test driver.
+Extracts info from VASP OUTCAR, INCAR, and POSCAR files.
+See doc for badparms.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nrelmat.ScanOutcar.ResClass">
+<em class="property">class </em><tt class="descclassname">nrelmat.ScanOutcar.</tt><tt class="descname">ResClass</tt><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ResClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ResClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container for the results of scanOutcar.
+The results are saved as attributes of the object.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nrelmat.ScanOutcar.Sspec">
+<em class="property">class </em><tt class="descclassname">nrelmat.ScanOutcar.</tt><tt class="descname">Sspec</tt><big>(</big><em>tag</em>, <em>pat</em>, <em>which</em>, <em>numMin</em>, <em>numMax</em>, <em>tp</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#Sspec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.Sspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specifies regex, numMin, etc, for one scalar to be found in OUTCAR.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="nrelmat.ScanOutcar.ScanOutcar">
+<em class="property">class </em><tt class="descclassname">nrelmat.ScanOutcar.</tt><tt class="descname">ScanOutcar</tt><big>(</big><em>bugLev</em>, <em>inDir</em>, <em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts info from OUTCAR, INCAR, and POSCAR files.
+Typical usage:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">resObj</span> <span class="o">=</span> <span class="n">ResClass</span><span class="p">()</span>
+<span class="n">ScanOutcar</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">inDir</span><span class="p">,</span> <span class="n">resObj</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;ediff: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">resObj</span><span class="o">.</span><span class="n">ediff</span><span class="p">,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.parseIncar">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">parseIncar</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.parseIncar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.parseIncar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts info from a VASP INCAR file, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.parsePoscar">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">parsePoscar</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.parsePoscar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.parsePoscar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts info from a VASP POSCAR file, setting resObj attributes.
+No longer used.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getScalars">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getScalars</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getScalars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getScalars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts scalars from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getDate">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getDate</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getDate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getDate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts runDate from OUTCAR, setting resObj.runDate.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getTimes">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getTimes</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getTimes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getTimes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts timing info from OUTCAR, setting attrs in resObj.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getSystem">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getSystem</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getSystem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts systemName from OUTCAR, setting resObj.systemName</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getCategEnergy">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getCategEnergy</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getCategEnergy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getCategEnergy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts energyNoEntrps, efermi0 from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getBasisMats">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getBasisMats</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getBasisMats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getBasisMats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts basis matrices from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getTypeNames">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getTypeNames</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getTypeNames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getTypeNames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts typeNames from OUTCAR, setting resObj attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getTypeNums">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getTypeNums</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getTypeNums"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getTypeNums" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts typeNums (ions per type) from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getInitialPositions">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getInitialPositions</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getInitialPositions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getInitialPositions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts initial position matrices from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getFinalPositionsForce">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getFinalPositionsForce</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getFinalPositionsForce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getFinalPositionsForce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts final positions and forces from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getStressMat">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getStressMat</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getStressMat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getStressMat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts final stress matrix from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getTypeMassValence">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getTypeMassValence</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getTypeMassValence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getTypeMassValence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts masses and valences from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getTypePseudos">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getTypePseudos</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getTypePseudos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getTypePseudos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts pseudopotential names from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getMagmoms">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getMagmoms</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getMagmoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getMagmoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts magnetic moments from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getKpointMat">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getKpointMat</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getKpointMat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getKpointMat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts kpoints, weights, mults from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.getEigenMat">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">getEigenMat</tt><big>(</big><em>resObj</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.getEigenMat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.getEigenMat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts eigenvalues and occupancies from OUTCAR, setting resObj attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.findLines">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">findLines</tt><big>(</big><em>pats</em>, <em>numMin</em>, <em>numMax</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.findLines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.findLines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds a list of line numbers in OUTCAR matching pats.
+Each line num is the start of a group of lines
+that consecutively match the patterns in pats.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.parseMatrix">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">parseMatrix</tt><big>(</big><em>ntok</em>, <em>begLine</em>, <em>endLine</em>, <em>begCol</em>, <em>endCol</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.parseMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.parseMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses an array line:</p>
+<div class="highlight-python"><pre>0.0004124  2.1551750  2.1553184    -0.2320833  0.2320088  0.2320195
+2.1551376  0.0004322  2.1552987     0.2320129 -0.2320836  0.2320237
+2.1548955  2.1549131  0.0006743     0.2320650  0.2320652 -0.2320942</pre>
+</div>
+<p>Returns an np.ndarray.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.formatMatrix">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">formatMatrix</tt><big>(</big><em>vmat</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.formatMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.formatMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formats a matrix for printing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.formatMatrixPython">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">formatMatrixPython</tt><big>(</big><em>vmat</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.formatMatrixPython"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.formatMatrixPython" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formats a matrix in Python input format.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.checkClose">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">checkClose</tt><big>(</big><em>mata</em>, <em>matb</em>, <em>absErr</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.checkClose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.checkClose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks that two matrices have the same shape and are close in value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="nrelmat.ScanOutcar.ScanOutcar.throwerr">
+<tt class="descclassname">ScanOutcar.</tt><tt class="descname">throwerr</tt><big>(</big><em>msg</em>, <em>ix</em><big>)</big><a class="reference internal" href="../_modules/nrelmat/ScanOutcar.html#ScanOutcar.throwerr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#nrelmat.ScanOutcar.ScanOutcar.throwerr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raises an Exception</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="readVasp.html"
+                        title="previous chapter">readVasp.py</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ScanXml.html"
+                        title="next chapter">ScanXml.py</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelmatdb/ScanOutcar.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ScanXml.html" title="ScanXml.py"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="readVasp.html" title="readVasp.py"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" >NRELMatDB database builder pipeline</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,197 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>About &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="#" />
+    <link rel="top" title="Pylada 1.0 documentation" href="index.html" />
+    <link rel="next" title="User Guide" href="userguide.html" />
+    <link rel="prev" title="Pylada documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="userguide.html" title="User Guide"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Pylada documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Pylada 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="about">
+<h1>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h1>
+<p>Pylada is a modular python framework to control physics simulations, from DFT to
+empirical pseudo-potentials to point ion electrostatics. It&#8217;s goal is to
+provide the basic building blocks from which methods incorporating different
+Hamiltonians can be constructed. It is designed around three main concepts:</p>
+<blockquote>
+<div><ul class="simple">
+<li>constructing and manipulating periodic crystal structures. For instance, it
+is possible, starting from the unit cell of spinel to automatically create
+a supercell with vacancies or substitutions.</li>
+<li>manipulating functionals, such as VASP, and extracting their output. For
+instance, one could throw diamond at VASP, expect it to relax the
+structure, then perform a static calculation for maximum accuracy. Or
+possibly perform an epitaxial relaxation, something VASP does not do
+per say.</li>
+<li>Manipulate, launch, and check the results for thousands of calculations
+simultaneously. Think of calculating different of carbone allotropes. It
+would be impractical to qsub each and every job and then check that each
+ran correctly. Hence, Pylada provides an interface for that.</li>
+</ul>
+</div></blockquote>
+<p>With these building blocks in hand, it is possible, fairly easy, and - I&#8217;m told
+- even fun,  to construct complex computational routines. Computing phonons or
+formation enthalpy requires some know-how, certainly. But it is also quite
+repetitive. Pylada takes the gruelling out of it.</p>
+<p>Here are a few of the projects Pylada helped us with.</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>When brute force suffices:</em> A<sub>2</sub>BX<sub>4</sub> (A, B cations, X=O, S,
+Se, Te) form a vast family of compounds crystallizing in forty different
+structures. However, hundreds of possible combinations of A, B, X have
+never been identified in nature before. Do these exist and have simply
+never been reported? Or are they thermodynamically unstable and could never
+have been found? To answer this question, we systematically computed the
+formation enthalpy of hundreds of unknown A<sub>2</sub>BX<sub>4</sub> as well
+as that of their (reported) competing binaries and ternaries. We found
+indeed quite a few compounds, some which may be fairly easily grown, which
+simply passed through the sieve. Pylada made it a sinch to perform these
+individual calculations. It allowed us to shove them in a database and then
+scour the data to automatically create phase diagrams for each system.</li>
+<li><em>Stay abstract and leave off mano a mano calculations:</em> One of the goals of
+the project described above was to explore stable A<sub>2</sub>BX<sub>4</sub>
+for semi-conducting properties. More specifically, we were interested in
+predicting whether these compounds can be doped and how much. Or whether
+some point defects intrinsic to the material would form spontaneously when
+external dopants are introduced and limit the material&#8217;s carrier
+concentration. To do this, we created a simple script to automatically
+determine possible vacancies and substitutions, as well as their charge
+state. These defects are all <a class="reference external" href="http://dx.doi.org/10.1088/0965-0393/17/8/084002">the same</a>, so no need to worry and create
+each, one at a time.  Pylada made it possible to create the systems, launch
+the appropriate chain of calculations, and gather the results, and let
+physicists do physics rather than word processing input files.</li>
+<li><em>Manipulating DFT functionals:</em> <a class="reference external" href="http://dx.doi.org/10.1103/PhysRevB.77.241201">This DFT functional</a> was introduced to
+reproduce GW band-structures. It works by fitting a non-local potential.
+Originally, each fit would be performed by hand for each element. It turned
+out to be tedious. Especially since for more complicated compounds one
+would rather fit all the elements involved simultaneously. But Pylada offers
+python wrappers around DFT codes, and python offers a number of
+optimization functions. The two together make it possible to carry out
+painless optimization of a empirical DFT functional.</li>
+<li><em>Searching for and finding a needle:</em> Silicon is a possibly God&#8217;s greatest gift
+for nerds everywhere. It is n-type. It is p-type. It naturally forms a
+protective insulating oxide layer. However, it is an indirect gap material
+and absorbs visible light only through the mediation of phonons. It has
+been known for a while that it is possible to create Si/Ge superlattices
+which are nominally direct gap. Indeed, Si<sub>6</sub>Ge<sub>4</sub> on a
+strained (001) substrate absorb light at the band edges. But only
+academically so. It is possible that a superlattice with specific motif and
+Si and Ge layer with meaningful photon absorption exists somewhere, but
+there a literally billions upon trillions of possibilities. So which one to
+start off with? At that point, research tapered off. We combined an
+empirical pseudo-potential method with a genetic algorithm to perform the
+search for us. Eventually, the search <a class="reference external" href="http://dx.doi.org/10.1103/PhysRevLett.108.027401">payed off</a>.</li>
+<li><em>screwing up:</em> Speaking from painful and embarrassing personal experience,
+it is extremely easy to launch tens and hundreds of meaningless jobs. The
+physics is still for the user to figure out.</li>
+</ul>
+</div></blockquote>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Pylada documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="userguide.html"
+                        title="next chapter">User Guide</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/about.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="userguide.html" title="User Guide"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Pylada documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">Pylada 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

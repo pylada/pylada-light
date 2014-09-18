@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Abstract base-class &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Process Module" href="../process.html" />
+    <link rel="next" title="Execution of an external program" href="program.html" />
+    <link rel="prev" title="Process Module" href="../process.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="program.html" title="Execution of an external program"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../process.html" title="Process Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../process.html" accesskey="U">Process Module</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pylada.process.process">
+<span id="abstract-base-class"></span><h1>Abstract base-class<a class="headerlink" href="#module-pylada.process.process" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pylada.process.process.Process">
+<em class="property">class </em><tt class="descclassname">pylada.process.process.</tt><tt class="descname">Process</tt><big>(</big><em>maxtrials=1</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/process.html#Process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Abstract base class of all processes.</p>
+<p>This class defines the interface for processes. Derived classes should
+overload <a class="reference internal" href="#pylada.process.process.Process.start" title="pylada.process.process.Process.start"><tt class="xref py py-meth docutils literal"><span class="pre">start()</span></tt></a>, <a class="reference internal" href="#pylada.process.process.Process.poll" title="pylada.process.process.Process.poll"><tt class="xref py py-meth docutils literal"><span class="pre">poll()</span></tt></a>, and <a class="reference internal" href="#pylada.process.process.Process.wait" title="pylada.process.process.Process.wait"><tt class="xref py py-meth docutils literal"><span class="pre">wait()</span></tt></a>. The
+first is called to actually launch the sub-process (for instance, an
+actual call to vasp in
+<a class="reference internal" href="program.html#pylada.process.program.ProgramProcess" title="pylada.process.program.ProgramProcess"><tt class="xref py py-class docutils literal"><span class="pre">ProgramProcess</span></tt></a>).  It receives a
+dictionary or <tt class="xref py py-class docutils literal"><span class="pre">Communicator</span></tt> instance with a description of how
+the process should be launched, eg the number of processors, nodes, and
+so forth. At this point, an external child program will generally be
+running. The second function, <a class="reference internal" href="#pylada.process.process.Process.poll" title="pylada.process.process.Process.poll"><tt class="xref py py-meth docutils literal"><span class="pre">poll()</span></tt></a>, is called to check whether
+the sub-process, say VASP, is still running. It returns True if the
+process is finished. The last function is equivalent to calling
+<a class="reference internal" href="#pylada.process.process.Process.poll" title="pylada.process.process.Process.poll"><tt class="xref py py-meth docutils literal"><span class="pre">poll()</span></tt></a> until it returns True.</p>
+<p>Futhermore, a process can be <a class="reference internal" href="#pylada.process.process.Process.terminate" title="pylada.process.process.Process.terminate"><tt class="xref py py-meth docutils literal"><span class="pre">terminated</span></tt></a>,
+<a class="reference internal" href="#pylada.process.process.Process.kill" title="pylada.process.process.Process.kill"><tt class="xref py py-meth docutils literal"><span class="pre">killed</span></tt></a> and <a class="reference internal" href="#pylada.process.process.Process._cleanup" title="pylada.process.process.Process._cleanup"><tt class="xref py py-meth docutils literal"><span class="pre">cleaned</span> <span class="pre">up</span></tt></a>.
+In general, a process is used as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># initialized</span>
+<span class="n">process</span> <span class="o">=</span> <span class="n">SomeProcess</span><span class="p">()</span>
+<span class="c"># started on a number of processors</span>
+<span class="n">process</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="c"># checked </span>
+<span class="k">try</span><span class="p">:</span> 
+  <span class="k">if</span> <span class="n">process</span><span class="o">.</span><span class="n">poll</span><span class="p">():</span>
+    <span class="c"># finished, do something</span>
+<span class="k">except</span> <span class="n">Fail</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+  <span class="c"># error, do something</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="pylada.process.process.Process.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>maxtrials=1</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/process.html#Process.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a process.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.process.Process._cleanup">
+<tt class="descname">_cleanup</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/process.html#Process._cleanup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process._cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleans up behind process instance.</p>
+<p>This may mean closing standard input/output file, removing temporary
+files.. By default, calls cleanup of <a class="reference internal" href="#pylada.process.process.Process.process" title="pylada.process.process.Process.process"><tt class="xref py py-attr docutils literal"><span class="pre">process</span></tt></a>, and sets
+<a class="reference internal" href="#pylada.process.process.Process.process" title="pylada.process.process.Process.process"><tt class="xref py py-attr docutils literal"><span class="pre">process</span></tt></a> to None.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.process.Process.done">
+<tt class="descname">done</tt><a class="reference internal" href="../../_modules/pylada/process/process.html#Process.done"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process.done" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if job already finished.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.process.Process.kill">
+<tt class="descname">kill</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/process.html#Process.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process.kill" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kills current process.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.process.Process.maxtrials">
+<tt class="descname">maxtrials</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.process.Process.maxtrials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum number of restarts.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.process.Process.nberrors">
+<tt class="descname">nberrors</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.process.Process.nberrors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of times process was restarted.</p>
+<p>Some derived instances may well restart a failed sub-process. This is
+how often it has been restarted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.process.Process.nbrunning_processes">
+<tt class="descname">nbrunning_processes</tt><a class="reference internal" href="../../_modules/pylada/process/process.html#Process.nbrunning_processes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process.nbrunning_processes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of running processes.</p>
+<p>For simple processes, this will be one or zero.
+For multitasking processes this may be something more.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.process.Process.poll">
+<tt class="descname">poll</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/process.html#Process.poll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process.poll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Polls current job.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if the process is finished.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Raises NotStarted:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body">If the process was never launched.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.process.Process.process">
+<tt class="descname">process</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.process.Process.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently running process.</p>
+<p>This is the sub-process handled by this instance. At the lowest
+level, it is likely an instance of <a class="reference external" href="http://docs.python.org/library/subprocess.html#subprocess.Popen">subprocess.Popen</a>. It may,
+however, be a further abstraction, such as a
+<a class="reference internal" href="program.html#pylada.process.program.ProgramProcess" title="pylada.process.program.ProgramProcess"><tt class="xref py py-class docutils literal"><span class="pre">ProgramProcess</span></tt></a> instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.process.Process.start">
+<tt class="descname">start</tt><big>(</big><em>comm</em><big>)</big><a class="reference internal" href="../../_modules/pylada/process/process.html#Process.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts current job.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>comm</strong> (<tt class="xref py py-class docutils literal"><span class="pre">Communicator</span></tt>) &#8211; Holds information about how to launch an mpi-aware process.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if process is already finished.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><strong>MPISizeError</strong> &#8211; if no communicator is not None and <cite>comm[&#8216;n&#8217;] == 0</cite>. Assumes that
+running on 0 processors is an error in resource allocation.</li>
+<li><strong>AlreadyStarted</strong> &#8211; When called for a second time. Each process should be unique: we
+do not want to run the VASP program twice in the same location,
+especially not simultaneously.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.process.process.Process.started">
+<tt class="descname">started</tt><em class="property"> = None</em><a class="headerlink" href="#pylada.process.process.Process.started" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether the process was ever started.</p>
+<p>Whether <a class="reference internal" href="#pylada.process.process.Process.start" title="pylada.process.process.Process.start"><tt class="xref py py-meth docutils literal"><span class="pre">start()</span></tt></a> was called. It may only be called once.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.process.Process.terminate">
+<tt class="descname">terminate</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/process.html#Process.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process.terminate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminates current process.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.process.process.Process.wait">
+<tt class="descname">wait</tt><big>(</big><big>)</big><a class="reference internal" href="../../_modules/pylada/process/process.html#Process.wait"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.process.process.Process.wait" title="Permalink to this definition">¶</a></dt>
+<dd><p>Waits for process to end, then cleanup.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../process.html"
+                        title="previous chapter">Process Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="program.html"
+                        title="next chapter">Execution of an external program</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pyapi/process/process.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="program.html" title="Execution of an external program"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../process.html" title="Process Module"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../process.html" >Process Module</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

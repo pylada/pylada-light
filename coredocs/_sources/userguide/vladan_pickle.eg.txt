@@ -1,0 +1,70 @@
+
+
+lots of pickels
+pickles constructed from nonmag just.
+each generates lots of mag. jobs.
+estimate based on queue limits and put 30-40 CIFs into 1 pickle.
+
+keeps track of what's uploaded by pickel
+
+ipython
+
+explore <xyz>pickle
+
+(has many folders in it.)
+
+success = collect.success
+
+success (a python dictionary: paths are keys, t/f is value)
+ 
+(big list, mostly true, some false)
+
+
+goto <dir>
+or
+ls -lrt <dir>
+
+can see that it didn't converge in 10 runs.
+
+had 701 success.
+
+ignoring the rest b/c they are high energy, irrelevant
+
+loops over succeesful, writes them to a vile.
+
+explore pickles one at a time.
+
+why use ipython: 
+1) enjoyable
+2) don't want machine to make decisions. -- very efficient way to do a necessary step.
+
+file constains directory names of "good" runs.
+
+e = collect.energy
+use TAB to see what you can "collect", all in python dictionary.
+
+normalize them (per atom) in 2 lines:
+..
+
+e.g. sort out lowest energy configurations, in 2 line loop.
+
+
+*interactive* stuff is very useful when you're running, re-running, etc.
+
+----------
+
+explore errors
+[broken on peregrine: not seeing what's still in queue accurately]
+listfolders
+...
+
+------------
+
+Extract-- can be from a script.
+
+
+*keep and preserve useful functionality.*
+
+
+
+

@@ -1,0 +1,1108 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>nrelmat.fillDbVasp &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for nrelmat.fillDbVasp</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># Copyright 2013 National Renewable Energy Laboratory, Golden CO, USA</span>
+<span class="c"># This file is part of NREL MatDB.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License</span>
+<span class="c"># along with NREL MatDB.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">datetime</span><span class="o">,</span> <span class="nn">hashlib</span><span class="o">,</span> <span class="nn">json</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">traceback</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span> <span class="nb">all</span><span class="o">=</span><span class="s">&#39;raise&#39;</span><span class="p">,</span> <span class="n">under</span><span class="o">=</span><span class="s">&#39;ignore&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+
+<span class="kn">import</span> <span class="nn">readVasp</span>
+<span class="kn">import</span> <span class="nn">ScanDoscar</span>
+<span class="kn">import</span> <span class="nn">wrapReceive</span>
+<span class="kn">import</span> <span class="nn">wrapUpload</span>
+
+
+<span class="c">#====================================================================</span>
+
+<span class="n">vasprunName</span> <span class="o">=</span> <span class="s">&#39;vasprun.xml&#39;</span>
+<span class="n">outcarName</span> <span class="o">=</span> <span class="s">&#39;OUTCAR&#39;</span>
+
+<span class="c">#====================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">badparms</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Prints an error msg and usage info, and exits with rc 1.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Error: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;Parms:&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -bugLev      &lt;int&gt;      Debug level&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -func        &lt;string&gt;   createTableModel / fillTable&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -useCommit   &lt;boolean&gt;  false/true: do we commit changes to the DB.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -requireIcsd &lt;boolean&gt;  false/true: do we require that the file&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;                          paths names contain ICSD info.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -allowExc    &lt;boolean&gt;  false/true: continue after error.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -modType     &lt;string&gt;   SQL mod type: insert or update.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -readType    &lt;string&gt;   if outcar: OUTCAR; if xml: vasprun.xml&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;                          2014-06-10: now we only support outcar,&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;                          since some info is not in vasprun.xml.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -deleteTable &lt;boolean&gt;  false/true: If func is createTableModel,&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;                          do we delete the old table first.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -wrapPrefix  &lt;string&gt;   Prefix of dir names before wrapId,&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;                          like </span><span class="se">\&#39;</span><span class="s">/data/arch/md.</span><span class="se">\&#39;</span><span class="s">&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -topDir      &lt;string&gt;   Top of dir tree.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -dirList     &lt;string&gt;   File containing dirs to be ingested.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;                          If a dir name ends with &quot;metadata&quot;, the&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;                          &quot;metadata&quot; part is stripped.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -zzflag      &lt;string&gt;   Input file from wrapUpload.py.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -inSpec      &lt;string&gt;   JSON file containing DBMS parameters.&#39;</span>
+  <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../nrelmatdb/fillDbVasp.html#nrelmat.fillDbVasp.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Reads a dir tree and adds rows to the database table &quot;model&quot;.</span>
+<span class="sd">  The function is determined by the **-func** parameter; see below.</span>
+
+<span class="sd">  This function is called by wrapReceive.py.</span>
+
+<span class="sd">  Command line parameters:</span>
+
+<span class="sd">  ================  =========    ==============================================</span>
+<span class="sd">  Parameter         Type         Description</span>
+<span class="sd">  ================  =========    ==============================================</span>
+<span class="sd">  **-bugLev**       integer      Debug level.  Normally 0.</span>
+<span class="sd">  **-func**         string       Function.  See below.</span>
+<span class="sd">  **-useCommit**    boolean      false/true: do we commit changes to the DB.</span>
+<span class="sd">  **-requireIcsd**  boolean      no/yes: do we require that the file</span>
+<span class="sd">                                 path names contain ICSD info.</span>
+<span class="sd">                                 See notes below.</span>
+<span class="sd">  **-allowExc**     boolean      false/true: continue after error.</span>
+<span class="sd">  **-modType**      string       SQL mod type: insert or update.</span>
+<span class="sd">  **-readType**     string       if outcar: OUTCAR; if xml: for vasprun.xml.</span>
+<span class="sd">                                 2014-06-10: now we only support outcar,</span>
+<span class="sd">                                 since some info is not in vasprun.xml.</span>
+<span class="sd">  **-deleteTable**  boolean      false/true: If func is create*, do we</span>
+<span class="sd">                                 delete the old table first.</span>
+<span class="sd">  **-wrapPrefix**   string       Prefix of dir names before wrapId.</span>
+<span class="sd">  **-topDir**       string       Top of dir tree.</span>
+<span class="sd">  **-dirList**      string       File containing dirs to be ingested.</span>
+<span class="sd">                                 If a dir name ends with &quot;metadata&quot;, the</span>
+<span class="sd">                                 &quot;metadata&quot; part is stripped.</span>
+<span class="sd">  **-zzflag**       string       Input file from wrapUpload.py.</span>
+<span class="sd">  **-inSpec**       string       JSON file containing DBMS parameters.</span>
+<span class="sd">                                 See below.</span>
+<span class="sd">  ================  =========    ==============================================</span>
+
+<span class="sd">  **Values for the -func Parameter:**</span>
+
+<span class="sd">  **createTableModel**</span>
+<span class="sd">    Drop and create the model table.  In this case the -topDir</span>
+<span class="sd">    and -dirList parameters should be &quot;none&quot;.</span>
+
+<span class="sd">  **fillTable**</span>
+<span class="sd">    Read dirList and add rows to the database table &quot;model&quot;.</span>
+
+<span class="sd">  **inSpec File Parameters:**</span>
+
+<span class="sd">  ===================    ==============================================</span>
+<span class="sd">  Parameter              Description</span>
+<span class="sd">  ===================    ==============================================</span>
+<span class="sd">  **dbhost**             Database hostname.</span>
+<span class="sd">  **dbport**             Database port number.</span>
+<span class="sd">  **dbuser**             Database user name.</span>
+<span class="sd">  **dbpswd**             Database password.</span>
+<span class="sd">  **dbname**             Database database name.</span>
+<span class="sd">  **dbschema**           Database schema name.</span>
+<span class="sd">  **dbtablemodel**       Database name of the &quot;model&quot; table.</span>
+<span class="sd">  ===================    ==============================================</span>
+
+<span class="sd">  **inSpec file example:**::</span>
+
+<span class="sd">    {</span>
+<span class="sd">      &quot;dbhost&quot;         : &quot;scctest&quot;,</span>
+<span class="sd">      &quot;dbport&quot;         : &quot;6432&quot;,</span>
+<span class="sd">      &quot;dbuser&quot;         : &quot;x&quot;,</span>
+<span class="sd">      &quot;dbpswd&quot;         : &quot;x&quot;,</span>
+<span class="sd">      &quot;dbname&quot;         : &quot;cidlada&quot;,</span>
+<span class="sd">      &quot;dbschema&quot;       : &quot;satom&quot;,</span>
+<span class="sd">      &quot;dbtablemodel&quot;   : &quot;model&quot;</span>
+<span class="sd">    }</span>
+
+<span class="sd">  **requireIcsd:**</span>
+
+<span class="sd">  If requireIcsd is true, :func:`getIcsdMap` must be able</span>
+<span class="sd">  to extract ICSD info from the file names.  File names must be like: ::</span>
+
+<span class="sd">    .../icsd_083665/icsd_083665.cif/ls-anti-ferro-7/relax_cellshape/1</span>
+<span class="sd">             ^^^^^^                 ^^^^^^^^      ^ ^^^^^^^^^^^^^^^ ^</span>
+<span class="sd">            icsdNum                 magType  magNum relaxType       relaxNum</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">bugLev</span>      <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">func</span>        <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">useCommit</span>   <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">requireIcsd</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">allowExc</span>    <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">modType</span>     <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">readType</span>    <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">deleteTable</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">wrapPrefix</span>  <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">topDir</span>      <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">dirList</span>     <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">zzflag</span>      <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">inSpec</span>      <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;Parms must be key/value pairs&#39;</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">iarg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="p">]</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span>   <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-bugLev&#39;</span><span class="p">:</span> <span class="n">bugLev</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-func&#39;</span><span class="p">:</span> <span class="n">func</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-useCommit&#39;</span><span class="p">:</span> <span class="n">useCommit</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseBoolean</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-requireIcsd&#39;</span><span class="p">:</span> <span class="n">requireIcsd</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseBoolean</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-allowExc&#39;</span><span class="p">:</span> <span class="n">allowExc</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseBoolean</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-modType&#39;</span><span class="p">:</span> <span class="n">modType</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-readType&#39;</span><span class="p">:</span> <span class="n">readType</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-deleteTable&#39;</span><span class="p">:</span> <span class="n">deleteTable</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseBoolean</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-wrapPrefix&#39;</span><span class="p">:</span> <span class="n">wrapPrefix</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-topDir&#39;</span><span class="p">:</span> <span class="n">topDir</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-dirList&#39;</span><span class="p">:</span> <span class="n">dirList</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-zzflag&#39;</span><span class="p">:</span> <span class="n">zzflag</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-inSpec&#39;</span><span class="p">:</span> <span class="n">inSpec</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;unknown key: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -bugLev&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">func</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -func&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">useCommit</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -useCommit&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">requireIcsd</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;missing parameter: -requireIcsd&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">allowExc</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -allowExc&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">modType</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -modType&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">modType</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;insert&#39;</span><span class="p">,</span> <span class="s">&#39;update&#39;</span><span class="p">]:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;invalid -modType&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">readType</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -readType&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">deleteTable</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -deleteTable&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">wrapPrefix</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -wrapPrefix&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">topDir</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -topDir&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dirList</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -dirList&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">zzflag</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -zzflag&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">inSpec</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -inSpec&#39;</span><span class="p">)</span>
+
+  <span class="c"># 2014-06-10: now we only support outcar,</span>
+  <span class="c"># since some info is not in vasprun.xml.</span>
+  <span class="k">if</span> <span class="n">readType</span> <span class="o">!=</span> <span class="s">&#39;outcar&#39;</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;readType must be outcar&#39;</span><span class="p">)</span>
+
+  <span class="n">fillDbVasp</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">requireIcsd</span><span class="p">,</span> <span class="n">allowExc</span><span class="p">,</span>
+    <span class="n">modType</span><span class="p">,</span> <span class="n">readType</span><span class="p">,</span> <span class="n">deleteTable</span><span class="p">,</span> <span class="n">wrapPrefix</span><span class="p">,</span> <span class="n">topDir</span><span class="p">,</span> <span class="n">dirList</span><span class="p">,</span>
+    <span class="n">zzflag</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">)</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+</div>
+<div class="viewcode-block" id="fillDbVasp"><a class="viewcode-back" href="../../nrelmatdb/fillDbVasp.html#nrelmat.fillDbVasp.fillDbVasp">[docs]</a><span class="k">def</span> <span class="nf">fillDbVasp</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span>
+  <span class="n">func</span><span class="p">,</span>
+  <span class="n">useCommit</span><span class="p">,</span>
+  <span class="n">requireIcsd</span><span class="p">,</span>
+  <span class="n">allowExc</span><span class="p">,</span>
+  <span class="n">modType</span><span class="p">,</span>
+  <span class="n">readType</span><span class="p">,</span>
+  <span class="n">deleteTable</span><span class="p">,</span>
+  <span class="n">wrapPrefix</span><span class="p">,</span>
+  <span class="n">topDir</span><span class="p">,</span>
+  <span class="n">dirList</span><span class="p">,</span>
+  <span class="n">zzflag</span><span class="p">,</span>
+  <span class="n">inSpec</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Reads a dir tree and adds rows to the database table &quot;model&quot;.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * func (str): Overall function.  One of the following:</span>
+
+<span class="sd">      * ``&#39;createTableModel&#39;``</span>
+<span class="sd">        Drop and create the model table.</span>
+<span class="sd">      * ``&#39;fillTable&#39;``</span>
+<span class="sd">        Read a dir tree and add rows to the database table &quot;model&quot;.</span>
+
+<span class="sd">  * useCommit (boolean): If True, we commit changes to the DB.</span>
+<span class="sd">  * requireIcsd (boolean): if True, the absTopDir string must</span>
+<span class="sd">    contain ICSD info that :func:`getIcsdMap` can extract.</span>
+<span class="sd">  * allowExc (boolean): If True, continue after error</span>
+<span class="sd">  * modType (string): SQL mod type: insert or update.</span>
+<span class="sd">  * readType (string): If outcar use OUTCAR; if xml use vasprun.xml.</span>
+<span class="sd">  * deleteTable (boolean): If True and func is create\*,</span>
+<span class="sd">    delete the specified table before creating it.</span>
+<span class="sd">  * wrapPrefix (str): Prefix of dir names before wrapId.</span>
+<span class="sd">  * topDir (str): Top of the directory tree.</span>
+<span class="sd">  * dirList (str): File containing dirs to be ingested.</span>
+<span class="sd">    If a dir name ends with &quot;metadata&quot;, the</span>
+<span class="sd">    &quot;metadata&quot; part is stripped.</span>
+<span class="sd">  * zzflag (str): Input file from wrapUpload.py.</span>
+<span class="sd">  * inSpec (str): Name of JSON file containing DBMS parameters.</span>
+<span class="sd">                  See description at :func:`main`.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: func: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: useCommit: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">useCommit</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: requireIcsd: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">requireIcsd</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: allowExc: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">allowExc</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: modType: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">modType</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: readType: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">readType</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: deleteTable: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">deleteTable</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: topDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">topDir</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: dirList: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dirList</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: zzflag: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">zzflag</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: inSpec: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inSpec</span><span class="p">,)</span>
+
+  <span class="n">topDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">topDir</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: abs topDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">topDir</span><span class="p">,)</span>
+
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">inSpec</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+    <span class="n">specMap</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span> <span class="n">fin</span><span class="p">)</span>
+
+  <span class="n">dbhost</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbhost&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbport</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbport&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbuser</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbuser&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbpswd</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbpswd&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbname</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbschema</span>     <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbschema&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbtablemodel</span> <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbtablemodel&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">dbhost</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbhost&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbport</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbport&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbuser</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbuser&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbpswd</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbpswd&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbname&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbschema</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>     <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbschema&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbtablemodel</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbtablemodel&#39;</span><span class="p">)</span>
+  <span class="n">dbport</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">dbport</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: dbhost: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbhost</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: dbport: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbport</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillDbVasp: dbuser: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbuser</span><span class="p">,)</span>
+
+  <span class="c">##np.set_printoptions( threshold=10000)</span>
+
+  <span class="c"># Register psycopg2 adapter for np.ndarray</span>
+  <span class="c"># The function formatArray is defined below.</span>
+  <span class="k">def</span> <span class="nf">adaptVal</span><span class="p">(</span> <span class="n">val</span><span class="p">):</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">formatArray</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="c"># AsIs provides getquoted() which just calls the wrapped object&#39;s str().</span>
+    <span class="k">return</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">AsIs</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">string_</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+
+  <span class="c"># Validate the zzflag file</span>
+  <span class="k">if</span> <span class="n">zzflag</span> <span class="o">!=</span> <span class="s">&#39;none&#39;</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">zzflag</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+      <span class="n">msg</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">toks</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+      <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;version mismatch&#39;</span><span class="p">)</span>
+
+  <span class="n">conn</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">cursor</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+      <span class="n">host</span><span class="o">=</span><span class="n">dbhost</span><span class="p">,</span>
+      <span class="n">port</span><span class="o">=</span><span class="n">dbport</span><span class="p">,</span>
+      <span class="n">user</span><span class="o">=</span><span class="n">dbuser</span><span class="p">,</span>
+      <span class="n">password</span><span class="o">=</span><span class="n">dbpswd</span><span class="p">,</span>
+      <span class="n">database</span><span class="o">=</span><span class="n">dbname</span><span class="p">)</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;set search_path to </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">dbschema</span><span class="p">,))</span>
+
+    <span class="k">if</span> <span class="n">func</span> <span class="o">==</span> <span class="s">&#39;createTableModel&#39;</span><span class="p">:</span>
+      <span class="n">createTableModel</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">deleteTable</span><span class="p">,</span>
+        <span class="n">conn</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">dbschema</span><span class="p">,</span> <span class="n">dbtablemodel</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">func</span> <span class="o">==</span> <span class="s">&#39;fillTable&#39;</span><span class="p">:</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">dirList</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+      <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">):</span>
+          <span class="n">curDir</span> <span class="o">=</span> <span class="n">line</span>
+          <span class="c"># Strip trailing &quot;/metadata&quot;, if any</span>
+          <span class="k">if</span> <span class="n">curDir</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span> <span class="n">curDir</span> <span class="o">=</span> <span class="n">curDir</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+          <span class="k">if</span> <span class="n">curDir</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;metadata&#39;</span><span class="p">):</span> <span class="n">curDir</span> <span class="o">=</span> <span class="n">curDir</span><span class="p">[:</span><span class="o">-</span><span class="mi">8</span><span class="p">]</span>
+          <span class="k">if</span> <span class="n">curDir</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span> <span class="n">curDir</span> <span class="o">=</span> <span class="n">curDir</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+          <span class="c"># Find wrapId</span>
+          <span class="n">adir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">curDir</span><span class="p">)</span>
+          <span class="k">if</span> <span class="ow">not</span> <span class="n">adir</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span> <span class="n">wrapPrefix</span><span class="p">):</span>
+            <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;invalid adir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">adir</span><span class="p">,))</span>
+          <span class="n">wrapId</span> <span class="o">=</span> <span class="n">adir</span><span class="p">[</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrapPrefix</span><span class="p">)</span> <span class="p">:</span> <span class="p">]</span>
+          <span class="n">ix</span> <span class="o">=</span> <span class="n">wrapId</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+          <span class="k">if</span> <span class="n">ix</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;invalid wrapId: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,))</span>
+          <span class="n">wrapId</span> <span class="o">=</span> <span class="n">wrapId</span><span class="p">[:</span><span class="n">ix</span><span class="p">]</span>
+
+          <span class="n">fillRow</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">requireIcsd</span><span class="p">,</span> <span class="n">allowExc</span><span class="p">,</span> <span class="n">modType</span><span class="p">,</span>
+              <span class="n">readType</span><span class="p">,</span> <span class="n">wrapId</span><span class="p">,</span> <span class="n">topDir</span><span class="p">,</span> <span class="n">curDir</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span>
+              <span class="n">dbschema</span><span class="p">,</span> <span class="n">dbtablemodel</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown func: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">func</span><span class="p">,))</span>
+
+  <span class="k">finally</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">cursor</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">conn</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="createTableModel"><a class="viewcode-back" href="../../nrelmatdb/fillDbVasp.html#nrelmat.fillDbVasp.createTableModel">[docs]</a><span class="k">def</span> <span class="nf">createTableModel</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span>
+  <span class="n">useCommit</span><span class="p">,</span>
+  <span class="n">deleteTable</span><span class="p">,</span>
+  <span class="n">conn</span><span class="p">,</span>
+  <span class="n">cursor</span><span class="p">,</span>
+  <span class="n">dbschema</span><span class="p">,</span>
+  <span class="n">dbtablemodel</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Creates the database table &quot;model&quot;.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * useCommit (boolean): If True, we commit changes to the DB.</span>
+<span class="sd">  * deleteTable (boolean): If True, delete the table before creating it.</span>
+<span class="sd">  * conn (psycopg2.connection): Open DB connection</span>
+<span class="sd">  * cursor (psycopg2.cursor): Open DB cursor</span>
+<span class="sd">  * dbschema (str): Database schema name</span>
+<span class="sd">  * dbtablemodel (str): Database name of the &quot;model&quot; table.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">deleteTable</span><span class="p">:</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;DROP TABLE IF EXISTS </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbtablemodel</span><span class="p">,))</span>
+    <span class="k">if</span> <span class="n">useCommit</span><span class="p">:</span>
+      <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+  <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">    CREATE TABLE </span><span class="si">%s</span><span class="s"> (</span>
+<span class="s">      mident          serial,  -- unique ID for this row (this VASP run)</span>
+<span class="s">      wrapid          text,    -- unique ID for the upload</span>
+<span class="s">      abspath         text,    -- absolute path to dir</span>
+<span class="s">      relpath         text,    -- relative path below topDir (tail of abspath)</span>
+
+<span class="s">      -- Values derived from the directory path</span>
+<span class="s">      -- by wrapUpload.py getIcsdMap.</span>
+<span class="s">      -- Not stored in the database:</span>
+<span class="s">      --   statMap: map of fileName -&gt; statInfoMap for files in this dir.</span>
+
+<span class="s">      icsdNum         int,   -- ICSD number in CIF file: _database_code_ICSD</span>
+
+<span class="s">      magType         text,  -- type of magnetic moment:</span>
+<span class="s">                             --   hsf:  hs-ferro.  magNum = 0.</span>
+<span class="s">                             --   hsaf: hs-anti-ferro.  magNum = test num.</span>
+<span class="s">                             --   lsf:  ls-ferro.  magNum = 0.</span>
+<span class="s">                             --   lsaf: ls-anti-ferro.  magNum = test num.</span>
+<span class="s">                             --   nm:   non-magnetic.  magNum = 0.</span>
+<span class="s">      magNum          int,   -- number of hs-anti-ferro or ls-anti-ferro test.</span>
+
+<span class="s">      relaxType       text,  -- Type of run:</span>
+<span class="s">                             --   std: standard,</span>
+<span class="s">                             --   rc:  relax_cellshape,</span>
+<span class="s">                             --   ri:  relax_ions</span>
+<span class="s">      relaxNum        int,   -- Folder num for rc or ri: 0, 1, ...</span>
+
+<span class="s">      excMsg          text,  -- exception msg from readVasp.py</span>
+<span class="s">      excTrace        text,  -- exception trace from readVasp.py</span>
+<span class="s">                             -- If excMsg != None,</span>
+<span class="s">                             -- all following fields are None.</span>
+
+<span class="s">      -- Values set by readVasp.py</span>
+
+<span class="s">      --- program, version, date etc ---</span>
+<span class="s">      runDate        timestamp,          -- like &#39;2013-03-11 10:07:01&#39;</span>
+<span class="s">      iterRealTimes  double precision[], -- time (seconds) of each VASP iter</span>
+<span class="s">      iterTotalTime  double precision,   -- sum of iterRealTimes</span>
+<span class="s">      --- incar parameters ---</span>
+<span class="s">      systemName     text,               -- mos2_024000.cif</span>
+<span class="s">      encut_ev       double precision,   -- INCAR ENCUT value, eV</span>
+<span class="s">      ibrion         int,                -- INCAR IBRION value</span>
+<span class="s">      isif           int,                -- INCAR ISIF value</span>
+<span class="s">      numSpin        int,                -- INCAR ISPIN</span>
+<span class="s">      numKpoint      int,                -- NKPTS from OUTCAR or vasprun.xml</span>
+<span class="s">      numBand        int,                -- NBANDS from OUTCAR or vasprun.xml</span>
+<span class="s">      --- kpoints ---</span>
+<span class="s">      --- general parameters ---</span>
+<span class="s">      --- atom info ---</span>
+<span class="s">      numAtom        int,                -- == sum( typeNums)</span>
+<span class="s">      typeNames      text[],             -- unique atom types: [&#39;Mo&#39; &#39;S&#39;]</span>
+<span class="s">      typeNums       int[],              -- num of each type: [2 4]</span>
+<span class="s">      typeMasses_amu float[],            -- mass of each type</span>
+<span class="s">      typePseudos    text[],             -- pseudopotential name of each type</span>
+<span class="s">      typeValences   int[],              -- valence of each type</span>
+<span class="s">      atomNames      text[],             -- non-unique atom names:</span>
+<span class="s">                                         --   [&#39;Mo&#39;, &#39;Mo&#39;, &#39;S&#39;, &#39;S&#39;, &#39;S&#39;, &#39;S&#39;]</span>
+<span class="s">      atomMasses_amu float[],            -- non-unique atom masses</span>
+<span class="s">      atomPseudos    text[],             -- non-unique pseodopotential names</span>
+<span class="s">      atomValences   int[],              -- non-unique atom valences</span>
+
+<span class="s">      --- initial structure ---</span>
+<span class="s">      initialBasisMat         double precision[][],  -- one row per vector</span>
+<span class="s">      initialRecipBasisMat    double precision[][],  -- one row per vector</span>
+<span class="s">      initialCartPosMat       double precision[][],  -- one row per vector</span>
+<span class="s">      initialFracPosMat       double precision[][],  -- one row per vector</span>
+
+<span class="s">      --- final structure ---</span>
+<span class="s">      finalBasisMat           double precision[][],  -- one row per vector</span>
+<span class="s">      finalRecipBasisMat      double precision[][],  -- one row per vector</span>
+<span class="s">      finalCartPosMat         double precision[][],  -- one row per vector</span>
+<span class="s">      finalFracPosMat         double precision[][],  -- one row per vector</span>
+
+<span class="s">      --- misc calculated values ---</span>
+<span class="s">      numElectron             int,   -- total number of electrons</span>
+<span class="s">      totalValence            int,   -- totalValence - numElectron = netCharge</span>
+<span class="s">      netCharge               int,   -- totalvalence - numelectron</span>
+
+<span class="s">      --- final volume and density ---</span>
+<span class="s">      finalVolume_ang3        double precision,  -- volume of cell, Angstrom3</span>
+<span class="s">      finalDensity_g_cm3      double precision,  -- final cell density, g/cm3</span>
+
+<span class="s">      --- last calc forces ---</span>
+<span class="s">      finalForceMat_ev_ang         double precision[][],   -- final force matrix, eV/angstrom</span>
+<span class="s">      finalStressMat_kbar          double precision[][],   -- final stress matrix, kbar</span>
+<span class="s">      finalPressure_kbar           double precision,       -- final pressure, kbar</span>
+
+<span class="s">      --- eigenvalues and occupancies ---</span>
+<span class="s">      eigenMat                double precision[][],   -- eigenvalue matrix</span>
+<span class="s">      occupMat                double precision[][],   -- occupancy matrix</span>
+
+<span class="s">      --- dielectric function ---</span>
+<span class="s">      dielectricImag          double precision[][],  -- columns: E(ev),x,y,z,xy,yz,zx</span>
+<span class="s">      dielectricReal          double precision[][],  -- columns: E(ev),x,y,z,xy,yz,zx</span>
+
+<span class="s">      --- density of states</span>
+<span class="s">      dosMat                  double precision[][],  -- density of states matrix</span>
+
+<span class="s">      --- energy, efermi0 ---</span>
+<span class="s">      energyNoEntrp  double precision,     -- energy without entropy, eV</span>
+<span class="s">      energyPerAtom  double precision,     -- energyNoEntrp / numAtom, eV</span>
+<span class="s">      efermi0        double precision,     -- energy(sigma-&gt;0), eV</span>
+
+<span class="s">      -- Misc and LDAU --</span>
+<span class="s">      scalefactor       double precision,     -- POSCAR scale factor</span>
+<span class="s">      ismear            double precision,     -- ISMEAR from OUTCAR</span>
+<span class="s">      sigma             double precision,     -- SIGMA from OUTCAR</span>
+<span class="s">      ldautype          int,                  -- LDAUTYPE from OUTCAR</span>
+<span class="s">      ldaul_mat         int[][],              -- LDAU-L, numLdau * numType</span>
+<span class="s">      ldauu_mat         double precision[][], -- LDAU-U, numLdau * numType</span>
+<span class="s">      ldauj_mat         double precision[][], -- LDAU-J, numLdau * numType</span>
+<span class="s">      ldauo_mat         int[][],              -- LDAU-O, numLdau * numType</span>
+
+<span class="s">      --- cbMin, vbMax, bandgap, set by augmentDb.py ---</span>
+<span class="s">      cbMin             double precision,     -- min conduction band energy, eV</span>
+<span class="s">      vbMax             double precision,     -- max valence band energy, eV</span>
+<span class="s">      bandgapdirect     double precision,     -- eV min direct bandgap</span>
+<span class="s">      bandgapindirect   double precision,     -- eV min direct or</span>
+<span class="s">                                              -- indirect bandgap</span>
+
+<span class="s">      -- More values set by augmentDb.py</span>
+<span class="s">      formula        text,     -- like &#39;Na3 Fe5 O9&#39;</span>
+<span class="s">      sortedformula  text,     -- sorted by elements, like &#39;Fe5 Na3 O9&#39;</span>
+<span class="s">      chemtext       text,     -- every token surrounded by spaces,</span>
+<span class="s">                               -- like &#39; Fe 5 Na 3 O 9 &#39;</span>
+<span class="s">      minenergyid    int,      -- For &#39;fere&#39; standards only:</span>
+<span class="s">                               -- the mident having the min energyperatom,</span>
+<span class="s">                               -- for this [symgroupnum, formula, pseudos,</span>
+<span class="s">                               --   lastName, firstName]</span>
+
+<span class="s">      enthalpy double precision,  -- FERE enthalpy of formation per atom, eV</span>
+<span class="s">      magneticmoment double precision,  -- magnetic moment</span>
+<span class="s">      initialspacegroupname text,       -- initial space group name</span>
+<span class="s">      initialspacegroupnum int,         -- initial space group number</span>
+<span class="s">      finalspacegroupname text,         -- final space group name</span>
+<span class="s">      finalspacegroupnum int,           -- final space group number</span>
+<span class="s">      parentids int[],  -- midents corresponding to meta_parents</span>
+<span class="s">      familyid int,     -- mident of top ancestor on parentids chain</span>
+
+<span class="s">      --- metadata ---</span>
+<span class="s">      hashstring        text,     -- sha512 of our vasprun.xml</span>
+<span class="s">      meta_parents      text[],   -- sha512 of parent vasprun.xml, or null</span>
+<span class="s">      meta_firstName    text,     -- metadata: first name</span>
+<span class="s">      meta_lastName     text,     -- metadata: last name</span>
+<span class="s">      meta_publications text[],   -- metadata: publication DOI or placeholder</span>
+<span class="s">      meta_standards    text[],   -- metadata: controlled vocab keywords</span>
+<span class="s">                                  --   See: wrapUpload.py: parseMetadata:</span>
+<span class="s">                                  --   legalStandards</span>
+<span class="s">      meta_keywords     text[],   -- metadata: uncontrolled vocab keywords</span>
+<span class="s">      meta_notes        text      -- metadata: notes</span>
+<span class="s">    )</span>
+<span class="s">  &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbtablemodel</span><span class="p">,))</span>
+  <span class="k">if</span> <span class="n">useCommit</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+  <span class="k">print</span> <span class="s">&#39;fillDbVasp: table </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s"> created&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbtablemodel</span><span class="p">,)</span>
+
+  <span class="n">ixName</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_mident_index&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbtablemodel</span><span class="p">,)</span>
+  <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">    CREATE INDEX </span><span class="si">%s</span><span class="s"> ON </span><span class="si">%s</span><span class="s"> (mident)</span>
+<span class="s">  &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ixName</span><span class="p">,</span> <span class="n">dbtablemodel</span><span class="p">,))</span>
+  <span class="k">if</span> <span class="n">useCommit</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+  <span class="k">print</span> <span class="s">&#39;fillDbVasp: index </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s"> created&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ixName</span><span class="p">,)</span>
+
+  <span class="n">ixName</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_icsdnum_index&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbtablemodel</span><span class="p">,)</span>
+  <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">    CREATE INDEX </span><span class="si">%s</span><span class="s"> ON </span><span class="si">%s</span><span class="s"> (icsdnum)</span>
+<span class="s">  &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ixName</span><span class="p">,</span> <span class="n">dbtablemodel</span><span class="p">,))</span>
+  <span class="k">if</span> <span class="n">useCommit</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+  <span class="k">print</span> <span class="s">&#39;fillDbVasp: index </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s"> created&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ixName</span><span class="p">,)</span>
+
+  <span class="n">ixName</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">_hashstring_index&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbtablemodel</span><span class="p">,)</span>
+  <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;&#39;&#39;</span>
+<span class="s">    CREATE INDEX </span><span class="si">%s</span><span class="s"> ON </span><span class="si">%s</span><span class="s"> (hashstring)</span>
+<span class="s">  &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ixName</span><span class="p">,</span> <span class="n">dbtablemodel</span><span class="p">,))</span>
+  <span class="k">if</span> <span class="n">useCommit</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+  <span class="k">print</span> <span class="s">&#39;fillDbVasp: index </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s"> created&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ixName</span><span class="p">,)</span>
+
+
+<span class="c">#====================================================================</span>
+</div>
+<div class="viewcode-block" id="fillRow"><a class="viewcode-back" href="../../nrelmatdb/fillDbVasp.html#nrelmat.fillDbVasp.fillRow">[docs]</a><span class="k">def</span> <span class="nf">fillRow</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span>
+  <span class="n">useCommit</span><span class="p">,</span>
+  <span class="n">requireIcsd</span><span class="p">,</span>
+  <span class="n">allowExc</span><span class="p">,</span>
+  <span class="n">modType</span><span class="p">,</span>
+  <span class="n">readType</span><span class="p">,</span>
+  <span class="n">wrapId</span><span class="p">,</span>
+  <span class="n">topDir</span><span class="p">,</span>
+  <span class="n">curDir</span><span class="p">,</span>
+  <span class="n">conn</span><span class="p">,</span>
+  <span class="n">cursor</span><span class="p">,</span>
+  <span class="n">dbschema</span><span class="p">,</span>
+  <span class="n">dbtablemodel</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Adds one row to the model table, corresponding to relDir.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * useCommit (boolean): If True, we commit changes to the DB.</span>
+<span class="sd">  * requireIcsd (boolean): if True, the absTopDir string must</span>
+<span class="sd">    contain ICSD info that :func:`getIcsdMap` can extract.</span>
+<span class="sd">  * allowExc (boolean): If True, we continue after an error.</span>
+<span class="sd">  * modType (string): SQL mod type: insert or update.</span>
+<span class="sd">  * readType (string): If outcar use OUTCAR; if xml use vasprun.xml.</span>
+<span class="sd">  * wrapId (str): Arbitrary name for this set of data.</span>
+<span class="sd">  * topDir (str): Original top dir.  We ingest all dirs in</span>
+<span class="sd">                  this tree containing a metadata file.</span>
+<span class="sd">  * curDir (str): Input directory tree.  We ingest all dirs in</span>
+<span class="sd">                  this tree containing a metadata file.</span>
+<span class="sd">  * conn (psycopg2.connection): Open DB connection</span>
+<span class="sd">  * cursor (psycopg2.cursor): Open DB cursor</span>
+<span class="sd">  * dbschema (str): Database schema name</span>
+<span class="sd">  * dbtablemodel (str): Database name of the &quot;model&quot; table.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;fillRow: topDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">topDir</span><span class="p">,)</span>
+    <span class="k">print</span> <span class="s">&#39;fillRow: curDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curDir</span><span class="p">,)</span>
+
+  <span class="n">curDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">curDir</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;fillRow: abs:    </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curDir</span><span class="p">,)</span>
+
+  <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;set search_path to </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">dbschema</span><span class="p">,))</span>
+
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">curDir</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span> <span class="n">topDir</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;invalid dirs:</span><span class="se">\n</span><span class="s">  topDir: </span><span class="si">%s</span><span class="se">\n</span><span class="s">  curDir: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">topDir</span><span class="p">,</span> <span class="n">curDir</span><span class="p">,))</span>
+  <span class="n">relDir</span> <span class="o">=</span> <span class="n">curDir</span><span class="p">[</span> <span class="nb">len</span><span class="p">(</span><span class="n">topDir</span><span class="p">)</span> <span class="p">:</span> <span class="p">]</span>
+  <span class="k">if</span> <span class="n">relDir</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span> <span class="n">relDir</span> <span class="o">=</span> <span class="n">relDir</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;fillRow: relDir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">relDir</span><span class="p">,)</span>
+
+  <span class="c"># Check curDir</span>
+  <span class="k">if</span> <span class="n">curDir</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span> <span class="n">curDir</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;curDir not abs: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curDir</span><span class="p">,))</span>
+
+  <span class="n">mpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">curDir</span><span class="p">,</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">metadataName</span><span class="p">)</span>
+  <span class="n">metaMap</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseMetadata</span><span class="p">(</span> <span class="n">mpath</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+    <span class="n">wrapUpload</span><span class="o">.</span><span class="n">printMap</span><span class="p">(</span><span class="s">&#39;fillRow: metaMap&#39;</span><span class="p">,</span> <span class="n">metaMap</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">requireIcsd</span><span class="p">:</span>
+    <span class="n">icsdMap</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">getIcsdMap</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">curDir</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">icsdMap</span> <span class="o">=</span> <span class="p">{}</span>
+
+  <span class="c"># Get the hash digest of vasprun.xml or OUTCAR</span>
+  <span class="k">if</span> <span class="n">readType</span> <span class="o">==</span> <span class="s">&#39;outcar&#39;</span><span class="p">:</span> <span class="n">tname</span> <span class="o">=</span> <span class="n">outcarName</span>
+  <span class="k">elif</span> <span class="n">readType</span> <span class="o">==</span> <span class="s">&#39;xml&#39;</span><span class="p">:</span> <span class="n">tname</span> <span class="o">=</span> <span class="n">vasprunName</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;invalid readType: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">readType</span><span class="p">,))</span>
+  <span class="n">vname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">curDir</span><span class="p">,</span> <span class="n">tname</span><span class="p">)</span>
+  <span class="nb">hash</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">()</span>
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">vname</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+      <span class="n">stg</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+      <span class="k">if</span> <span class="n">stg</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span> <span class="k">break</span>
+      <span class="nb">hash</span><span class="o">.</span><span class="n">update</span><span class="p">(</span> <span class="n">stg</span><span class="p">)</span>
+  <span class="n">hashString</span> <span class="o">=</span> <span class="nb">hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+  <span class="c"># Check our hashString.</span>
+  <span class="c"># If insert, it must not be in the database</span>
+  <span class="c"># If update, it must be in the database</span>
+
+  <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span> <span class="s">&#39;SELECT mident, relpath FROM &#39;</span> <span class="o">+</span> <span class="n">dbtablemodel</span>
+    <span class="o">+</span> <span class="s">&#39; WHERE hashString = </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">hashString</span><span class="p">,))</span>
+  <span class="n">msg</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">statusmessage</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">msg</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;SELECT&#39;</span><span class="p">):</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;bad cursor.statusmessage: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,))</span>
+  <span class="n">rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+  <span class="k">if</span> <span class="n">modType</span> <span class="o">==</span> <span class="s">&#39;insert&#39;</span><span class="p">:</span>         <span class="c"># If this is insert new ...</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Duplicate hashString.</span><span class="se">\n</span><span class="s">&#39;</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  hashString: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="p">(</span><span class="n">hashString</span><span class="p">,)</span>
+      <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)):</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  old mident: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="mi">0</span><span class="p">],)</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  old relPath: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="mi">1</span><span class="p">],)</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  wrapId: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,)</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  relDir: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">relDir</span><span class="p">,)</span>
+      <span class="n">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+
+  <span class="k">elif</span> <span class="n">modType</span> <span class="o">==</span> <span class="s">&#39;update&#39;</span><span class="p">:</span>       <span class="c"># If this is update ...</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Update hashString not found.</span><span class="se">\n</span><span class="s">&#39;</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  hashString: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="p">(</span><span class="n">hashString</span><span class="p">,)</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  wrapId: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,)</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  relDir: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">relDir</span><span class="p">,)</span>
+      <span class="n">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Multiple hashStrings found.</span><span class="se">\n</span><span class="s">&#39;</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  hashString: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="p">(</span><span class="n">hashString</span><span class="p">,)</span>
+      <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)):</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  old mident: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span>  <span class="o">%</span> <span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="mi">0</span><span class="p">],)</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  old relPath: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="n">ii</span><span class="p">][</span><span class="mi">1</span><span class="p">],)</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  wrapId: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,)</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  relDir: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">relDir</span><span class="p">,)</span>
+      <span class="n">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown modType&#39;</span><span class="p">)</span>
+
+
+  <span class="c"># Check that parent hashString is in the database</span>
+  <span class="k">if</span> <span class="n">metaMap</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;parent&#39;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">parentHash</span> <span class="ow">in</span> <span class="n">metaMap</span><span class="p">[</span><span class="s">&#39;parent&#39;</span><span class="p">]:</span>
+      <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span> <span class="s">&#39;SELECT mident, relpath FROM &#39;</span> <span class="o">+</span> <span class="n">dbtablemodel</span>
+        <span class="o">+</span> <span class="s">&#39; WHERE hashString = </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">parentHash</span><span class="p">,))</span>
+      <span class="n">msg</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">statusmessage</span>
+      <span class="k">if</span> <span class="n">msg</span> <span class="o">!=</span> <span class="s">&#39;SELECT&#39;</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;bad statusmessage&#39;</span><span class="p">)</span>
+      <span class="n">rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;Parent hashString not found in DB.</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  wrapId: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">wrapId</span><span class="p">,)</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  relDir: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">relDir</span><span class="p">,)</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  our hashString: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hashString</span><span class="p">,)</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;  parent hashString: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parentHash</span><span class="p">,)</span>
+        <span class="n">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+
+  <span class="c"># Read and parse OUTCAR or vasprun.xml, depending on readType</span>
+  <span class="n">vaspObj</span> <span class="o">=</span> <span class="n">readVasp</span><span class="o">.</span><span class="n">parseDir</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">readType</span><span class="p">,</span> <span class="n">allowExc</span><span class="p">,</span>
+    <span class="n">curDir</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c"># print = -1</span>
+
+  <span class="n">doscarPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">curDir</span><span class="p">,</span> <span class="s">&#39;DOSCAR&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span> <span class="n">doscarPath</span><span class="p">):</span>
+    <span class="n">vaspObj</span><span class="o">.</span><span class="n">dosMat</span> <span class="o">=</span> <span class="n">ScanDoscar</span><span class="o">.</span><span class="n">scanDoscar</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">doscarPath</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&#39;fillRow: dosMat.shape: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vaspObj</span><span class="o">.</span><span class="n">dosMat</span><span class="o">.</span><span class="n">shape</span><span class="p">,)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">vaspObj</span><span class="o">.</span><span class="n">dosMat</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">print</span> <span class="s">&#39;fillRow: dosMat is None&#39;</span>
+
+  <span class="n">typeNums</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;typeNums&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">numAtom</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="k">if</span> <span class="n">typeNums</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="n">numAtom</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span> <span class="n">typeNums</span><span class="p">)</span>
+
+  <span class="n">energyNoEntrp</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">eners</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;energyNoEntrps&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">eners</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="n">energyNoEntrp</span> <span class="o">=</span> <span class="n">eners</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+  <span class="n">energyPerAtom</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="k">if</span> <span class="n">numAtom</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">energyNoEntrp</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">energyPerAtom</span> <span class="o">=</span> <span class="n">energyNoEntrp</span> <span class="o">/</span> <span class="n">numAtom</span>
+
+  <span class="n">colNames</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39; (</span>
+<span class="s">        wrapid,</span>
+<span class="s">        abspath,</span>
+<span class="s">        relpath,</span>
+<span class="s">        icsdNum,</span>
+<span class="s">        magType,</span>
+<span class="s">        magNum,</span>
+<span class="s">        relaxType,</span>
+<span class="s">        relaxNum,</span>
+<span class="s">        excMsg,</span>
+<span class="s">        excTrace,</span>
+<span class="s">        runDate,</span>
+<span class="s">        iterRealTimes,</span>
+<span class="s">        iterTotalTime,</span>
+<span class="s">        systemName,</span>
+<span class="s">        encut_ev,</span>
+<span class="s">        ibrion,</span>
+<span class="s">        isif,</span>
+<span class="s">        numSpin,</span>
+<span class="s">        numKpoint,</span>
+<span class="s">        numBand,</span>
+<span class="s">        numAtom,</span>
+<span class="s">        typeNames,</span>
+<span class="s">        typeNums,</span>
+<span class="s">        typeMasses_amu,</span>
+<span class="s">        typePseudos,</span>
+<span class="s">        typeValences,</span>
+<span class="s">        atomNames,</span>
+<span class="s">        atomMasses_amu,</span>
+<span class="s">        atomPseudos,</span>
+<span class="s">        atomValences,</span>
+<span class="s">        initialBasisMat,</span>
+<span class="s">        initialRecipBasisMat,</span>
+<span class="s">        initialCartPosMat,</span>
+<span class="s">        initialFracPosMat,</span>
+<span class="s">        finalBasisMat,</span>
+<span class="s">        finalRecipBasisMat,</span>
+<span class="s">        finalCartPosMat,</span>
+<span class="s">        finalFracPosMat,</span>
+<span class="s">        numElectron,</span>
+<span class="s">        totalValence,</span>
+<span class="s">        netCharge,</span>
+<span class="s">        finalVolume_ang3,</span>
+<span class="s">        finalDensity_g_cm3,</span>
+<span class="s">        finalForceMat_ev_ang,</span>
+<span class="s">        finalStressMat_kbar,</span>
+<span class="s">        finalPressure_kbar,</span>
+<span class="s">        eigenMat,</span>
+<span class="s">        occupMat,</span>
+<span class="s">        dielectricImag,</span>
+<span class="s">        dielectricReal,</span>
+<span class="s">        dosMat,</span>
+<span class="s">        energyNoEntrp,</span>
+<span class="s">        energyPerAtom,</span>
+<span class="s">        efermi0,</span>
+
+<span class="s">        scalefactor,</span>
+<span class="s">        ismear,</span>
+<span class="s">        sigma,</span>
+<span class="s">        ldautype,</span>
+<span class="s">        ldaul_mat,</span>
+<span class="s">        ldauu_mat,</span>
+<span class="s">        ldauj_mat,</span>
+<span class="s">        ldauo_mat,</span>
+
+<span class="s">        hashstring,        -- sha512 of our vasprun.xml</span>
+<span class="s">        meta_parents,      -- sha512 of parent vasprun.xml, or null</span>
+<span class="s">        meta_firstName,    -- metadata: first name</span>
+<span class="s">        meta_lastName,     -- metadata: last name</span>
+<span class="s">        meta_publications, -- metadata: publication DOI or placeholder</span>
+<span class="s">        meta_standards,    -- metadata: controlled vocab keywords</span>
+<span class="s">        meta_keywords,     -- metadata: uncontrolled vocab keywords</span>
+<span class="s">        meta_notes)        -- metadata: notes</span>
+<span class="s">  &#39;&#39;&#39;</span>
+
+  <span class="n">colToks</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39; (</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">) &#39;&#39;&#39;</span>
+
+
+  <span class="k">if</span> <span class="n">modType</span> <span class="o">==</span> <span class="s">&#39;insert&#39;</span><span class="p">:</span>           <span class="c"># If this is insert new ...</span>
+    <span class="n">queryStg</span> <span class="o">=</span> <span class="s">&#39;insert into </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> values </span><span class="si">%s</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="n">dbtablemodel</span><span class="p">,</span> <span class="n">colNames</span><span class="p">,</span> <span class="n">colToks</span><span class="p">,)</span>
+  <span class="k">elif</span> <span class="n">modType</span> <span class="o">==</span> <span class="s">&#39;update&#39;</span><span class="p">:</span>         <span class="c"># If this is update ...</span>
+    <span class="n">queryStg</span> <span class="o">=</span> <span class="s">&#39;update </span><span class="si">%s</span><span class="s"> set </span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s"> where hashstring = </span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s">&#39;</span> \
+      <span class="o">%</span> <span class="p">(</span><span class="n">dbtablemodel</span><span class="p">,</span> <span class="n">colNames</span><span class="p">,</span> <span class="n">colToks</span><span class="p">,</span> <span class="n">hashString</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown modType&#39;</span><span class="p">)</span>
+
+
+  <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="n">queryStg</span><span class="p">,</span>
+    <span class="p">(</span> <span class="n">wrapId</span><span class="p">,</span>
+      <span class="bp">None</span><span class="p">,</span>           <span class="c"># absPath     xxxx del all abspath</span>
+      <span class="n">relDir</span><span class="p">,</span>
+      <span class="n">icsdMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;icsdNum&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="n">icsdMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;magType&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="n">icsdMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;magNum&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="n">icsdMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;relaxType&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="n">icsdMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;relaxNum&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="n">vaspObj</span><span class="o">.</span><span class="n">excMsg</span><span class="p">,</span>
+      <span class="n">vaspObj</span><span class="o">.</span><span class="n">excTrace</span><span class="p">,</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;runDate&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;iterRealTimes&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;iterTotalTime&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;systemName&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;encut_ev&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;ibrion&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;isif&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;numSpin&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;numKpoint&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;numBand&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="n">numAtom</span><span class="p">,</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;typeNames&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;typeNums&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;typeMasses_amu&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;typePseudos&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;typeValences&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;atomNames&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;atomMasses_amu&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;atomPseudos&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;atomValences&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;initialBasisMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;initialRecipBasisMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;initialCartPosMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;initialFracPosMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;finalBasisMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;finalRecipBasisMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;finalCartPosMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;finalFracPosMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;numElectron&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;totalValence&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;netCharge&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;finalVolume_ang3&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;finalDensity_g_cm3&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;finalForceMat_ev_ang&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;finalStressMat_kbar&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;finalPressure_kbar&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;eigenMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;occupMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;dielectricImag&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;dielectricReal&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;dosMat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="n">energyNoEntrp</span><span class="p">,</span>
+      <span class="n">energyPerAtom</span><span class="p">,</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;efermi0&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;posScaleFactor&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;ismear&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;sigma&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;ldautype&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;ldaul_mat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;ldauu_mat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;ldauj_mat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="nb">getattr</span><span class="p">(</span> <span class="n">vaspObj</span><span class="p">,</span> <span class="s">&#39;ldauo_mat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+
+      <span class="n">hashString</span><span class="p">,</span>
+      <span class="n">metaMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;parents&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">),</span>
+      <span class="n">metaMap</span><span class="p">[</span><span class="s">&#39;firstName&#39;</span><span class="p">],</span>
+      <span class="n">metaMap</span><span class="p">[</span><span class="s">&#39;lastName&#39;</span><span class="p">],</span>
+      <span class="n">metaMap</span><span class="p">[</span><span class="s">&#39;publications&#39;</span><span class="p">],</span>
+      <span class="n">metaMap</span><span class="p">[</span><span class="s">&#39;standards&#39;</span><span class="p">],</span>
+      <span class="n">metaMap</span><span class="p">[</span><span class="s">&#39;keywords&#39;</span><span class="p">],</span>
+      <span class="n">metaMap</span><span class="p">[</span><span class="s">&#39;notes&#39;</span><span class="p">],</span>
+  <span class="p">))</span>
+
+  <span class="k">if</span> <span class="n">useCommit</span><span class="p">:</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="c"># xxx: special case for None? ... format as NULL?</span>
+</div>
+<div class="viewcode-block" id="formatArray"><a class="viewcode-back" href="../../nrelmatdb/fillDbVasp.html#nrelmat.fillDbVasp.formatArray">[docs]</a><span class="k">def</span> <span class="nf">formatArray</span><span class="p">(</span> <span class="n">val</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Formats a Python array into SQL format.</span>
+
+<span class="sd">  Recursively formats a Python array, so</span>
+<span class="sd">  the Python array `` [[11.1, 22.2], [33.3, 44.4]]``</span>
+<span class="sd">  is formatted into the string:</span>
+<span class="sd">  ``&#39;array[array[11.1,22.2],array[33.3,44.4]]&#39;``</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * vec (float[] or float[][] or ...): Python array.  May be multidimensional.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * Formatted array as a str.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;array[&#39;</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)):</span>
+      <span class="k">if</span> <span class="n">ii</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;,&#39;</span>
+      <span class="n">msg</span> <span class="o">+=</span> <span class="n">formatArray</span><span class="p">(</span> <span class="n">val</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>       <span class="c"># recursion</span>
+    <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;]&#39;</span>
+  <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> \
+    <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span> \
+    <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">):</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">val</span><span class="p">,)</span>
+  <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">val</span><span class="p">,)</span>
+  <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="c"># http://www.postgresql.org/docs/9.2/static/sql-syntax-lexical.html#SQL-SYNTAX-CONSTANTS</span>
+    <span class="c"># http://www.postgresql.org/message-id/01fc01cc5653$b1b95810$152c0830$@mail.ru</span>
+    <span class="c"># Caution on testing: select arrayConstant is more permissive</span>
+    <span class="c"># than update.</span>
+    <span class="c"># select array[ E&#39;b\&#39;e&quot;ta&#39;];</span>
+    <span class="c"># update taba set svec =  array[E&#39;alp\\h&quot;a\&#39;s&#39;];</span>
+    <span class="c"># update taba set svec = $${gammas,\&quot;\&#39;delta}$$;</span>
+
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">val</span><span class="p">,)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\\\</span><span class="s">&#39;</span><span class="p">)</span>     <span class="c"># replace \ with \\</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span>  <span class="s">&#39;</span><span class="se">\\</span><span class="s">&quot;&#39;</span><span class="p">)</span>      <span class="c"># replace &quot; with \&quot;</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\\&#39;</span><span class="s">&#39;</span><span class="p">)</span>     <span class="c"># replace &#39; with \&#39;</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;E</span><span class="se">\&#39;</span><span class="s">&#39;</span> <span class="o">+</span> <span class="n">msg</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span>            <span class="c"># use escaped strings</span>
+  <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown type: </span><span class="si">%s</span><span class="s"> for operand: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="n">val</span><span class="p">,))</span>
+  <span class="k">return</span> <span class="n">msg</span>
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="throwerr"><a class="viewcode-back" href="../../nrelmatdb/fillDbVasp.html#nrelmat.fillDbVasp.throwerr">[docs]</a><span class="k">def</span> <span class="nf">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Prints an error message and raises Exception.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * msg (str): Error message.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * (Never returns)</span>
+<span class="sd">  </span>
+<span class="sd">  **Raises**</span>
+
+<span class="sd">  * Exception</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">print</span> <span class="n">msg</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">msg</span>
+  <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+
+<span class="c">#====================================================================</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+
+<span class="c">#====================================================================</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

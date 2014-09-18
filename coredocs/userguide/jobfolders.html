@@ -1,0 +1,339 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Organized high-throughput calculations: job-folders &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="User Guide" href="../userguide.html" />
+    <link rel="next" title="IPython high-throughput interface" href="ipython.html" />
+    <link rel="prev" title="Example: Epitaxial relaxation method" href="vasp/example.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ipython.html" title="IPython high-throughput interface"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="vasp/example.html" title="Example: Epitaxial relaxation method"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" accesskey="U">User Guide</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="organized-high-throughput-calculations-job-folders">
+<span id="jobfolder-ug"></span><h1>Organized high-throughput calculations: job-folders<a class="headerlink" href="#organized-high-throughput-calculations-job-folders" title="Permalink to this headline">¶</a></h1>
+<p>Pylada provides tools to organize high-throughput calculations in a systematic
+manner.  The whole high-throughput experience revolves around <strong>job-folders</strong>.
+These are convenient ways of organizing actual calculations. They can be though
+of as folders on a file system, or directories in unix parlance, each one
+dedicated to running a single actual calculation (eg launching <a class="reference internal" href="vasp.html#vasp-ug"><em>VASP</em></a> once). The added benefits beyond creating the same file-structure
+with bash are:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>the ability to create a tree of folders/calculations using the power of the
+python programming language. No more copy-pasting files and unintelligible
+bash scripts!</li>
+<li>the ability to launch all folders simultaneously</li>
+<li>the ability to collect the results across all folders simultaneously, all
+within python, and with all of python&#8217;s goodies. E.g. no more copy-pasting
+into excel by hand. Just do the summing, and multiplying, and graphing
+there and then.</li>
+</ol>
+</div></blockquote>
+<p>Actually, there are a lot more benefits. Having everything - from input to
+output - within the same modern and efficient programming language means there
+is no limit to what can be achieved.</p>
+<p>The following describes how job-folders are created. The fun bits,
+launching jobs, collecting results, manipulating all job-folders
+simultaneously, can be found in the next section. Indeed, all of these are
+intrinsically linked to the Pylada&#8217;s IPython interface.</p>
+<div class="section" id="prep">
+<h2>Prep<a class="headerlink" href="#prep" title="Permalink to this headline">¶</a></h2>
+<p>First off, we will need a functional. Rather that use something heavy, like
+VASP, we will use a dummy functional which does pretty much nothing... Please
+copy the following into a file, any file, which I recommend to call dummy.py.
+Putting it into a file is important because we will want python to be able to
+refer to it later on.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># </span>
+<span class="c">#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see</span>
+<span class="c">#  &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">###############################</span>
+
+<span class="k">def</span> <span class="nf">Extract</span><span class="p">(</span><span class="n">outdir</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; An extraction function for a dummy functional &quot;&quot;&quot;</span>
+  <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
+  <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">getcwd</span>
+  <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+  <span class="kn">from</span> <span class="nn">pickle</span> <span class="kn">import</span> <span class="n">load</span>
+  <span class="k">if</span> <span class="n">outdir</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">outdir</span> <span class="o">=</span> <span class="n">getcwd</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This functional takes a few arguments, amongst which an output directory, and
+writes a file to disk. That&#8217;s pretty much it.</p>
+</div>
+<div class="section" id="creating-and-accessing-job-folders">
+<h2>Creating and accessing job-folders<a class="headerlink" href="#creating-and-accessing-job-folders" title="Permalink to this headline">¶</a></h2>
+<p>Job-folders can be created with two simple lines of codes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pylada.jobfolder</span> <span class="kn">import</span> <span class="n">JobFolder</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">JobFolder</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To add further job-folders, one can do:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">jobA</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s">&#39;jobA&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobB</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s">&#39;another&#39;</span> <span class="o">/</span> <span class="s">&#39;jobB&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobBprime</span> <span class="o">=</span> <span class="n">root</span> <span class="o">/</span> <span class="s">&#39;another&#39;</span> <span class="o">/</span> <span class="s">&#39;jobB&#39;</span> <span class="o">/</span> <span class="s">&#39;prime&#39;</span>
+</pre></div>
+</div>
+<p>As you can, see job-folders can be given any structure that on-disk directories
+can. What is more, a job-folder can access other job-folders with the same kind
+of syntax that one would use (on unices) to access other directories:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">jobA</span><span class="p">[</span><span class="s">&#39;/&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">root</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobA</span><span class="p">[</span><span class="s">&#39;../another/jobB&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">jobB</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobB</span><span class="p">[</span><span class="s">&#39;prime&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">jobBprime</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobBprime</span><span class="p">[</span><span class="s">&#39;../../&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">jobB</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s">&#39;..&#39;</span><span class="p">]</span>
+<span class="go">KeyError: &#39;Cannot go below root level.&#39;</span>
+</pre></div>
+</div>
+<p>Furthermore, job-folders know what they are:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">jobA</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;/jobA/&#39;</span>
+</pre></div>
+</div>
+<p>What their parents are:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">jobB</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;/another/&#39;</span>
+</pre></div>
+</div>
+<p>And what the root is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">jobBprime</span><span class="o">.</span><span class="n">root</span> <span class="ow">is</span> <span class="n">root</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobBprime</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;/&#39;</span>
+</pre></div>
+</div>
+<p>They also know what they contain:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;prime&#39;</span> <span class="ow">in</span> <span class="n">jobB</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s">&#39;/jobA&#39;</span> <span class="ow">in</span> <span class="n">jobBprime</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="making-a-job-folder-executable">
+<h2>Making a job-folder executable<a class="headerlink" href="#making-a-job-folder-executable" title="Permalink to this headline">¶</a></h2>
+<p>The whole point of a job-folder is to create an architecture for calculations.
+Each job-folder can contain at most a single calculation. A calculation is
+setup by passing to the job-folder a function and the parameters for calling it.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pylada.crystal.binary</span> <span class="kn">import</span> <span class="n">zinc_blende</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dummy</span> <span class="kn">import</span> <span class="n">functional</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobA</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="n">functional</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobA</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;structure&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">zinc_blende</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jobA</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+</pre></div>
+</div>
+<p>In the above, the function <tt class="docutils literal"><span class="pre">functional</span></tt> from the dummy module created
+previously is imported into the namespace. The special attribute
+<tt class="xref py py-attr docutils literal"><span class="pre">job.functional</span></tt> is
+set to <tt class="docutils literal"><span class="pre">functional</span></tt>. Two arguments, <tt class="docutils literal"><span class="pre">structure</span></tt> and <tt class="docutils literal"><span class="pre">value</span></tt>, are
+specified by adding the to the dictionary <tt class="xref py py-attr docutils literal"><span class="pre">job.params</span></tt>. Please note that the third
+line does not contain parenthesis: this is not a function call, it merely saves
+a reference to the function with the object of calling it later. &#8216;C&#8217; aficionados
+should think a saving a pointer to a function.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The reference to <tt class="docutils literal"><span class="pre">functional</span></tt> is <a class="reference external" href="http://docs.python.org/library/copy.html#copy.deepcopy">deepcopied</a>: the instance that
+is saved to jod-folder is <em>not</em> necessarily the one that was passed to i.
+On the other hand, the parameters (<tt class="docutils literal"><span class="pre">jobA.params</span></tt>) are held by reference
+rather than by value.</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p>To force a job-folder to hold a functional by reference rather than by
+value, do:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">jobA</span><span class="o">.</span><span class="n">_functional</span> <span class="o">=</span> <span class="n">functional</span>
+</pre></div>
+</div>
+</div>
+<p>The parameters  in <tt class="docutils literal"><span class="pre">job.params</span></tt> should be <a class="reference external" href="http://docs.python.org/library/pickle.html#what-can-be-pickled-and-unpickled">pickleable</a> so that the folder can
+be saved to disk later.  <tt class="xref py py-attr docutils literal"><span class="pre">functional</span></tt> must be a
+<a class="reference external" href="http://docs.python.org/library/pickle.html#what-can-be-pickled-and-unpickled">pickleable</a> <a class="reference external" href="http://docs.python.org/reference/datamodel.html#emulating-callable-objects">callable</a>. Setting <tt class="xref py py-attr docutils literal"><span class="pre">functional</span></tt> to
+something else will immediately fail. In practice, this means it can be a
+function or a callable class, as long as that function or class is imported
+from a module. It cannot be defined in <a class="reference external" href="http://docs.python.org/library/__main__.html">__main__</a>, e.g. the script that you
+run to create the job-folders:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">run</span> <span class="o">-</span><span class="n">i</span> <span class="n">jobscript</span><span class="o">.</span><span class="n">py</span> <span class="c"># functional must defined outside jobscript.py.</span>
+</pre></div>
+</div>
+<p>However, if jobscript is imported as a module, and the job-folders are
+created via a function, then <tt class="docutils literal"><span class="pre">functional</span></tt> can be defined inside
+jobscript.py:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">jobscript</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">newjobs</span> <span class="o">=</span> <span class="n">jobscript</span><span class="o">.</span><span class="n">create_my_jobfolders</span><span class="p">()</span> <span class="c"># functional can be defined in jobscript.py</span>
+</pre></div>
+</div>
+<p>These complications are due to the way python <a class="reference external" href="http://docs.python.org/library/pickle.html">pickles</a> data.  And pickling we
+need to save job-folders to disk.  The functional is called with the parameters
+passed to the folder as keyword arguments:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">jobA</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">outdir</span><span class="o">=</span><span class="n">jobA</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</pre></div>
+</div>
+<p>is exactly equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">functional</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">zinc_blende</span><span class="p">(),</span> <span class="n">value</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s">&#39;jobA&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that we have passed an extra argument <tt class="docutils literal"><span class="pre">outdir</span></tt>, which is the output
+directory. It is customary to set it to the name of the job (minus the leading /).
+Any one of the two previous commands will create a &#8220;JobA&#8221; sub-directory in the
+current directory.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Executable olders can be iterated the same way dictionaries can, with
+<a class="reference internal" href="../pyapi/jobfolder/jobfolder.html#pylada.jobfolder.jobfolder.JobFolder.keys" title="pylada.jobfolder.jobfolder.JobFolder.keys"><tt class="xref py py-meth docutils literal"><span class="pre">keys()</span></tt></a>,
+<a class="reference internal" href="../pyapi/jobfolder/jobfolder.html#pylada.jobfolder.jobfolder.JobFolder.iterkeys" title="pylada.jobfolder.jobfolder.JobFolder.iterkeys"><tt class="xref py py-meth docutils literal"><span class="pre">iterkeys()</span></tt></a>,
+<a class="reference internal" href="../pyapi/jobfolder/jobfolder.html#pylada.jobfolder.jobfolder.JobFolder.values" title="pylada.jobfolder.jobfolder.JobFolder.values"><tt class="xref py py-meth docutils literal"><span class="pre">values()</span></tt></a>,
+<a class="reference internal" href="../pyapi/jobfolder/jobfolder.html#pylada.jobfolder.jobfolder.JobFolder.itervalues" title="pylada.jobfolder.jobfolder.JobFolder.itervalues"><tt class="xref py py-meth docutils literal"><span class="pre">itervalues()</span></tt></a>,
+<a class="reference internal" href="../pyapi/jobfolder/jobfolder.html#pylada.jobfolder.jobfolder.JobFolder.items" title="pylada.jobfolder.jobfolder.JobFolder.items"><tt class="xref py py-meth docutils literal"><span class="pre">items()</span></tt></a>,
+<a class="reference internal" href="../pyapi/jobfolder/jobfolder.html#pylada.jobfolder.jobfolder.JobFolder.iteritems" title="pylada.jobfolder.jobfolder.JobFolder.iteritems"><tt class="xref py py-meth docutils literal"><span class="pre">iteritems()</span></tt></a>.</p>
+</div>
+</div>
+<div class="section" id="saving-and-loading-folders">
+<h2>Saving and loading folders<a class="headerlink" href="#saving-and-loading-folders" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="ipython.html#ipython-ug"><em>IPython interface</em></a> provides better ways to both.
+However, it is still possible to load and save job-folders to disk from a
+script:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pylada.jobfolder</span> <span class="kn">import</span> <span class="n">load</span><span class="p">,</span> <span class="n">save</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s">&#39;root.dict&#39;</span><span class="p">)</span> <span class="c"># saves to file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s">&#39;root.dict&#39;</span><span class="p">)</span> <span class="c"># loads from file</span>
+</pre></div>
+</div>
+<p>The file format is a <a class="reference external" href="http://docs.python.org/library/pickle.html">pickle</a>. It is not meant for human eyes. However, it can
+be transferred from one computer to the next. The parameters <tt class="docutils literal"><span class="pre">job.params</span></tt>
+should be <a class="reference external" href="http://docs.python.org/library/pickle.html#what-can-be-pickled-and-unpickled">pickleable</a>, as well as the functional, for this to work.
+The advantage of using these two functions is that they take care of locking
+access to file on-disk before reading or writing to it. This way, multiple
+processes can access the file without fear of getting into one another&#8217;s way.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">If either load or save takes for ever, check whether the lock-directory
+&#8221;.filename-pylada_lockdir&#8221; exists. If you are <em>sure</em> that no other process
+exists which is trying to access the file on disk, then you can delete the
+lock-directory and try saving/loading again. Alternatively, a timeout
+argument can be provided to raise an exception if the file cannot be locked.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Organized high-throughput calculations: job-folders</a><ul>
+<li><a class="reference internal" href="#prep">Prep</a></li>
+<li><a class="reference internal" href="#creating-and-accessing-job-folders">Creating and accessing job-folders</a></li>
+<li><a class="reference internal" href="#making-a-job-folder-executable">Making a job-folder executable</a></li>
+<li><a class="reference internal" href="#saving-and-loading-folders">Saving and loading folders</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vasp/example.html"
+                        title="previous chapter">Example: Epitaxial relaxation method</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ipython.html"
+                        title="next chapter">IPython high-throughput interface</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/userguide/jobfolders.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ipython.html" title="IPython high-throughput interface"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="vasp/example.html" title="Example: Epitaxial relaxation method"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

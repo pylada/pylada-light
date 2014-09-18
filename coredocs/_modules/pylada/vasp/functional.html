@@ -1,0 +1,1335 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pylada.vasp.functional &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="pylada.vasp" href="../vasp.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../vasp.html" accesskey="U">pylada.vasp</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pylada.vasp.functional</h1><div class="highlight"><pre>
+<span class="c">###############################</span>
+<span class="c">#  This file is part of PyLaDa.</span>
+<span class="c">#</span>
+<span class="c">#  Copyright (C) 2013 National Renewable Energy Lab</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit</span>
+<span class="c">#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as</span>
+<span class="c">#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It</span>
+<span class="c">#  is able to organise and launch computational jobs on PBS and SLURM.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General</span>
+<span class="c">#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at</span>
+<span class="c">#  your option) any later version.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even</span>
+<span class="c">#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c">#  Public License for more details.</span>
+<span class="c"># </span>
+<span class="c">#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see</span>
+<span class="c">#  &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">###############################</span>
+
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot; Sub-package containing the functional. &quot;&quot;&quot;</span>
+<span class="n">__docformat__</span> <span class="o">=</span> <span class="s">&quot;restructuredtext en&quot;</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Vasp&#39;</span><span class="p">]</span>
+<span class="kn">from</span> <span class="nn">..tools</span> <span class="kn">import</span> <span class="n">stateless</span><span class="p">,</span> <span class="n">assign_attributes</span>
+<span class="kn">from</span> <span class="nn">..tools.input</span> <span class="kn">import</span> <span class="n">AttrBlock</span>
+<span class="kn">from</span> <span class="nn">..misc</span> <span class="kn">import</span> <span class="n">add_setter</span>
+<span class="kn">from</span> <span class="nn">.extract</span> <span class="kn">import</span> <span class="n">Extract</span> <span class="k">as</span> <span class="n">ExtractVasp</span>
+<span class="kn">from</span> <span class="nn">pylada.misc</span> <span class="kn">import</span> <span class="n">bugLev</span>
+<span class="kn">from</span> <span class="nn">pylada.misc</span> <span class="kn">import</span> <span class="n">testValidProgram</span>
+
+
+<div class="viewcode-block" id="Vasp"><a class="viewcode-back" href="../../../pyapi/vasp/functional.html#pylada.vasp.functional.Vasp">[docs]</a><span class="k">class</span> <span class="nc">Vasp</span><span class="p">(</span><span class="n">AttrBlock</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Interface to VASP code.</span>
+<span class="sd">  </span>
+<span class="sd">      This interface makes it a bit easier to call VASP_ both for</span>
+<span class="sd">      high-throughput calculations and for complex calculations involving more</span>
+<span class="sd">      that one actual call to the program.</span>
+
+<span class="sd">      The main way to use the code is as follows.</span>
+
+<span class="sd">      First, one creates the actual functional:</span>
+
+<span class="sd">      &gt;&gt;&gt; from pylada.vasp import Vasp</span>
+<span class="sd">      &gt;&gt;&gt; functional = Vasp()</span>
+
+<span class="sd">      The one sets it up, taking care that all the required pseudo-potentials</span>
+<span class="sd">      are defined:</span>
+
+<span class="sd">      &gt;&gt;&gt; vasp.add_specie = &#39;H&#39;, &#39;$HOME/pseudos/PAWGGA/H&#39;</span>
+<span class="sd">      &gt;&gt;&gt; vasp.add_specie = &#39;C&#39;, &#39;$HOME/pseudos/PAWGGA/C&#39;</span>
+<span class="sd">      &gt;&gt;&gt; vasp.sigma = 0.2</span>
+<span class="sd">      &gt;&gt;&gt; vasp.prec = &#39;accurate&#39;</span>
+<span class="sd">      &gt;&gt;&gt; vasp.lcharg = True</span>
+
+<span class="sd">      The parameters of the functional have the same name as the tags in the</span>
+<span class="sd">      INCAR_. The syntax is also the same, except that integers, floats, and</span>
+<span class="sd">      booleans can be used wherever it makes sense.</span>
+
+<span class="sd">      Although a fair number of parameters already exist, some are missing. It</span>
+<span class="sd">      is possible to add them with:</span>
+
+<span class="sd">      &gt;&gt;&gt; vasp.add_keyword(&#39;tagname&#39;, value)</span>
+
+<span class="sd">      The tagname needs not be given in capital letters. The value can be a</span>
+<span class="sd">      string, in which case it will be printed in the INCAR_ as is, basic</span>
+<span class="sd">      types, such as integers, floats, and booleans, or list of such types. It</span>
+<span class="sd">      is then possible to access the new parameter as with any other:</span>
+
+<span class="sd">      &gt;&gt;&gt; vasp.tagname = 5</span>
+<span class="sd">      &gt;&gt;&gt; vasp.tagname</span>
+<span class="sd">      5</span>
+
+<span class="sd">      There are few special parameters with enhanced behaviors, such as</span>
+<span class="sd">      :py:attr:`magmom`, :py:attr:`encut`, or :py:attr:`ediff_per_atom`. </span>
+<span class="sd">      Any parameter can be completely disabled with:</span>
+
+<span class="sd">      &gt;&gt;&gt; vasp.sigma = None</span>
+
+<span class="sd">      In this case, SIGMA_ will simply not appear in the INCAR_. </span>
+
+<span class="sd">      The functional is then called with two or more arguments:</span>
+
+<span class="sd">      &gt;&gt;&gt; result = vasp(structure, &#39;this/directory&#39;, sigma=-1)</span>
+
+<span class="sd">      The first argument is a :py:class:`pylada.crystal.Structure` instance on</span>
+<span class="sd">      which to perform the calculation. The species in the structure should all</span>
+<span class="sd">      have a pseudo-potential declared vias :py:attr:`add_specie`. The second</span>
+<span class="sd">      argument is the directory where the calculations should take place. Other</span>
+<span class="sd">      arguments, such as ``sigma`` above will change the appropriate parameter</span>
+<span class="sd">      for the duration of the call (the call is stateless). </span>
+
+<span class="sd">      The result is an extraction object capable of grepping different</span>
+<span class="sd">      properties from the OUTCAR. The major property is</span>
+<span class="sd">      :py:attr:`~pylada.vasp.extract.Extract.success`. For more, please see</span>
+<span class="sd">      :py:class:`~pylada.vasp.extract.Extract`.</span>
+
+<span class="sd">      The best way to use this functional is in conjunction with the</span>
+<span class="sd">      high-throughput interface :py:mod:`pylada.jobfolder`.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">Extract</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">ExtractVasp</span><span class="p">)</span>
+  <span class="sd">&quot;&quot;&quot; Extraction class.</span>
+<span class="sd">  </span>
+<span class="sd">      This extraction class is used to grep output from an OUTCAR file.</span>
+<span class="sd">      This attribute merely describes the type of the extraction object as</span>
+<span class="sd">      :py:class:`~pylada.vasp.extract.Extract`.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">kpoints</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Initializes vasp class. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.keywords</span> <span class="kn">import</span> <span class="n">BoolKeyword</span><span class="p">,</span> <span class="n">Magmom</span><span class="p">,</span> <span class="n">System</span><span class="p">,</span> <span class="n">Npar</span><span class="p">,</span> <span class="n">ExtraElectron</span><span class="p">,</span>    \
+                          <span class="n">NElect</span><span class="p">,</span> <span class="n">Algo</span><span class="p">,</span> <span class="n">Ediff</span><span class="p">,</span> <span class="n">Ediffg</span><span class="p">,</span> <span class="n">Encut</span><span class="p">,</span> <span class="n">EncutGW</span><span class="p">,</span> <span class="n">IStart</span><span class="p">,</span> \
+                          <span class="n">ICharg</span><span class="p">,</span> <span class="n">IStruc</span><span class="p">,</span> <span class="n">LDAU</span><span class="p">,</span> <span class="n">PrecFock</span><span class="p">,</span> <span class="n">Precision</span><span class="p">,</span> <span class="n">Nsw</span><span class="p">,</span>      \
+                          <span class="n">Isif</span><span class="p">,</span> <span class="n">IBrion</span><span class="p">,</span> <span class="n">Relaxation</span><span class="p">,</span> <span class="n">ISmear</span><span class="p">,</span> <span class="n">LSorbit</span><span class="p">,</span> <span class="n">Sigma</span><span class="p">,</span>    \
+                          <span class="n">LMaxMix</span><span class="p">,</span> <span class="n">LVHar</span><span class="p">,</span> <span class="n">EdiffPerAtom</span><span class="p">,</span> <span class="n">EdiffgPerAtom</span><span class="p">,</span> <span class="n">NonScf</span>
+    <span class="kn">from</span> <span class="nn">..tools.input</span> <span class="kn">import</span> <span class="n">TypedKeyword</span><span class="p">,</span> <span class="n">ChoiceKeyword</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Vasp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional.Vasp.__init__: species: &quot;</span><span class="p">,</span> <span class="n">species</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional.Vasp.__init__: kpoints: &quot;</span><span class="p">,</span> <span class="n">kpoints</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional.Vasp.__init__: kwargs: &quot;</span><span class="p">,</span> <span class="n">kwargs</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span> <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="sd">&quot;&quot;&quot; Species in the system.</span>
+<span class="sd">    </span>
+<span class="sd">        Defines both POTCAR_, U, and/or NLEP parameters.  This is generally</span>
+<span class="sd">        done using the method :py:meth:`add_specie`.</span>
+
+<span class="sd">        .. _POTCAR: http://cms.mpi.univie.ac.at/wiki/index.php/POTCAR</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span> <span class="o">=</span> <span class="n">kpoints</span> <span class="k">if</span> <span class="n">kpoints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> \
+                   <span class="k">else</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">0</span><span class="se">\n</span><span class="s">M</span><span class="se">\n</span><span class="s">4 4 4</span><span class="se">\n</span><span class="s">0 0 0&quot;</span>
+    <span class="sd">&quot;&quot;&quot; kpoints for which to perform calculations. &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">restart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;restart&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Calculation from which to restart. </span>
+
+<span class="sd">        Depending on the values of :py:attr:`istart`, :py:attr:`icharg`, and</span>
+<span class="sd">        :py:attr:`istruc`, this calculation will copy the charge density,</span>
+<span class="sd">        wavefunctions, and structure from this object. It should be either</span>
+<span class="sd">        None, or an extraction object returned by a previous calculation (e.g.</span>
+<span class="sd">        :py:class:`~pylada.vasp.extract.Extract`):</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">           calc1 = vasp(structure)</span>
+<span class="sd">           calc2 = vasp(structure, restart=calc2, nonscf=True)</span>
+
+<span class="sd">        The snippet above performs a non-self-consistent calculation using the</span>
+<span class="sd">        first calculation. In this example, it is expected that</span>
+<span class="sd">        :py:attr:`istart`, :py:attr:`icharg`, and :py:attr:`istruc` are all set</span>
+<span class="sd">        to &#39;auto&#39;, in which case Pylada knows to do the right thing, e.g. copy</span>
+<span class="sd">        whatever is available, and nothing is ``vasp.restart is None``.</span>
+
+<span class="sd">        .. note:: </span>
+<span class="sd">        </span>
+<span class="sd">           The calculation from which to restart needs be successful, otherwise</span>
+<span class="sd">           it is not considered.</span>
+
+<span class="sd">        .. seealso:: :py:attr:`istart`, :py:attr:`istruc`, :py:attr:`icharg`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">program</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;program&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Path to vasp program. </span>
+<span class="sd">    </span>
+<span class="sd">        Can be one of the following:</span>
+
+<span class="sd">          - None: defaults to :py:attr:`~pylada.vasp_program`.</span>
+<span class="sd">            :py:attr:`~pylada.vasp_program` can take the same values as described</span>
+<span class="sd">            here, except for None.</span>
+<span class="sd">          - string: Should be the path to the vasp executable. It can be either</span>
+<span class="sd">            a full path, or an executable within the environment&#39;s $PATH</span>
+<span class="sd">            variable.</span>
+<span class="sd">          - callable: The callable is called with a :py:class:`Vasp` as sole</span>
+<span class="sd">            argument. It should return a string, as described above.  In other</span>
+<span class="sd">            words, different vasp executables can be used depending on the</span>
+<span class="sd">            parameters. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">addgrid</span> <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Adds additional support grid for augmentation charge evaluation. </span>
+
+<span class="sd">        Can be only True or False (or None for VASP_ default).</span>
+
+<span class="sd">        .. seealso:: ADDGRID_</span>
+<span class="sd">        .. _ADDGRID: http://cms.mpi.univie.ac.at/wiki/index.php/ADDGRID</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ispin</span>   <span class="o">=</span> <span class="n">ChoiceKeyword</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot; Whether to perform spin-polarized or spin-unpolarized calculations.</span>
+
+<span class="sd">        Can be only 1 or 2 (or None for VASP_ default).</span>
+
+<span class="sd">        .. seealso:: ISPIN_ </span>
+<span class="sd">        .. _ISPIN: http://cms.mpi.univie.ac.at/wiki/index.php/ISPIN</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">istart</span>    <span class="o">=</span> <span class="n">IStart</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Starting wavefunctions.</span>
+<span class="sd">    </span>
+<span class="sd">        This tag is about which wavefunction (WAVECAR_) file to read from, if</span>
+<span class="sd">        any.  It is best to keep this attribute set to -1, in which case, Pylada</span>
+<span class="sd">        takes care of copying the relevant files.</span>
+<span class="sd">    </span>
+<span class="sd">          - -1, &#39;auto&#39;: (Default) Automatically determined by Pylada. Depends on</span>
+<span class="sd">            the value of :py:attr:`restart` and the existence of the relevant</span>
+<span class="sd">            files. If a WAVECAR_ file exists, then ISTART_ will be set to 1</span>
+<span class="sd">            (constant cutoff).</span>
+<span class="sd">    </span>
+<span class="sd">          - 0, &#39;scratch&#39;: Start from scratch.</span>
+<span class="sd">    </span>
+<span class="sd">          - 1, &#39;cutoff&#39;: Restart with constant cutoff.</span>
+<span class="sd">    </span>
+<span class="sd">          - 2, &#39;basis&#39;: Restart with constant basis.</span>
+<span class="sd">    </span>
+<span class="sd">          - 3, &#39;full&#39;: Full restart, including TMPCAR.</span>
+
+<span class="sd">        This attribute can be set equivalently using an integer or a string, as</span>
+<span class="sd">        shown above. In practice, the integers will be converted to strings</span>
+<span class="sd">        within the python interface:</span>
+
+<span class="sd">          &gt;&gt;&gt; vasp.istart = 0</span>
+<span class="sd">          &gt;&gt;&gt; vasp.istart</span>
+<span class="sd">          &#39;scratch&#39;</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           Files are copied right before the calculation takes place, not when</span>
+<span class="sd">           the attribute is set.</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso::</span>
+<span class="sd">           </span>
+<span class="sd">           ISTART_, :py:attr:`icharg`, :py:attr:`istruc`, :py:attr:`restart`</span>
+
+<span class="sd">        .. _ISTART: http://cms.mpi.univie.ac.at/wiki/index.php/ISTART</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="bp">self</span><span class="o">.</span><span class="n">icharg</span>    <span class="o">=</span> <span class="n">ICharg</span><span class="p">(</span><span class="s">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Charge from which to start. </span>
+<span class="sd">    </span>
+<span class="sd">        This tag decides whether to restart from a previously calculated charge</span>
+<span class="sd">        density, or not. It is best to keep this attribute set to -1, in which</span>
+<span class="sd">        case, Pylada takes care of copying the relevant files.</span>
+<span class="sd">    </span>
+<span class="sd">          - -1: (Default) Automatically determined by Pylada. Depends on the</span>
+<span class="sd">                value of :py:attr:`restart` and the existence of the relevant</span>
+<span class="sd">                files. Also takes care of non-scf bit.</span>
+<span class="sd">    </span>
+<span class="sd">          - 0: Tries to restart from wavefunctions. Uses the latest WAVECAR_</span>
+<span class="sd">               file between the one currently in the output directory and the</span>
+<span class="sd">               one in the restart directory (if specified). Sets</span>
+<span class="sd">               :py:attr:`nonscf` to False.</span>
+<span class="sd">    </span>
+<span class="sd">               .. note:: CHGCAR_ is also copied, just in case.</span>
+<span class="sd">    </span>
+<span class="sd">          - 1: Tries to restart from wavefunctions. Uses the latest WAVECAR_</span>
+<span class="sd">               file between the one currently in the output directory and the</span>
+<span class="sd">               one in the restart directory (if specified). Sets</span>
+<span class="sd">               :py:attr:`nonscf` to False.</span>
+<span class="sd">    </span>
+<span class="sd">          - 2: Superimposition of atomic charge densities. Sets</span>
+<span class="sd">               :py:attr:`nonscf` to False.</span>
+<span class="sd">    </span>
+<span class="sd">          - 4: Reads potential from POT file (VASP-5.1 only). The POT file is</span>
+<span class="sd">               deduced the same way as for CHGAR and WAVECAR_ above. Sets</span>
+<span class="sd">               :py:attr:`nonscf` to False.</span>
+<span class="sd">    </span>
+<span class="sd">          - 10, 11, 12: Same as 0, 1, 2 above, but also sets :py:attr:`nonscf`</span>
+<span class="sd">               to True.  This is a shortcut. The value is actually kept to 0,</span>
+<span class="sd">               1, or 2:</span>
+<span class="sd">    </span>
+<span class="sd">               &gt;&gt;&gt; vasp.icharg = 10</span>
+<span class="sd">               &gt;&gt;&gt; vasp.nonscf, vasp.icharg</span>
+<span class="sd">               (True, 0)</span>
+<span class="sd">    </span>
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">           Files are copied right before the calculation takes place, not</span>
+<span class="sd">           before.</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso::</span>
+<span class="sd">        </span>
+<span class="sd">           ICHARG_, :py:attr:`nonscf`, :py:attr:`restart`, :py:attr:`istruc`,</span>
+<span class="sd">           :py:attr:`istart`</span>
+<span class="sd">    </span>
+<span class="sd">        .. _ICHARG: http://cms.mpi.univie.ac.at/wiki/index.php/ICHARG</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="bp">self</span><span class="o">.</span><span class="n">istruc</span>    <span class="o">=</span> <span class="n">IStruc</span><span class="p">(</span><span class="s">&#39;auto&#39;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Initial structure. </span>
+<span class="sd">    </span>
+<span class="sd">        Determines which structure is written to the POSCAR. In practice, it</span>
+<span class="sd">        makes it possible to restart a crashed job from the latest contcar.</span>
+<span class="sd">        There are two possible options:</span>
+<span class="sd">    </span>
+<span class="sd">          - auto: Pylada determines automatically what to use. If a CONTCAR</span>
+<span class="sd">                  exists in either the current directory or in the restart</span>
+<span class="sd">                  directory (if any), then uses the latest. Otherwise, uses</span>
+<span class="sd">                  input structure.</span>
+<span class="sd">          - scratch: Always uses input structure.</span>
+<span class="sd">          - contcar: Always use CONTCAR_ structure unless ``overwrite ==</span>
+<span class="sd">            True``.</span>
+<span class="sd">          - input: Always use input structure, never :py:attr:`restart` or</span>
+<span class="sd">            CONTCAR_ structure.</span>
+<span class="sd">    </span>
+<span class="sd">        If the run was given the ``overwrite`` option, then always uses the</span>
+<span class="sd">        input structure.</span>
+<span class="sd">    </span>
+<span class="sd">        .. note:: There is no VASP equivalent to this option.</span>
+<span class="sd">        .. seealso:: :py:attr:`restart`, :py:attr:`icharg`, :py:attr:`istart`</span>
+<span class="sd">    </span>
+<span class="sd">        .. _CONTCAR: http://cms.mpi.univie.ac.at/vasp/guide/node60.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">isym</span>      <span class="o">=</span> <span class="n">ChoiceKeyword</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot; Symmetry scheme.</span>
+
+<span class="sd">        .. seealso:: ISYM_</span>
+<span class="sd">        .. _ISYM: http://cms.mpi.univie.ac.at/vasp/guide/node115.html</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">lmaxmix</span>   <span class="o">=</span> <span class="n">LMaxMix</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Cutoff *l*-quantum number of PAW charge densities passed to mixer </span>
+
+<span class="sd">        .. seealso:: LMAXMIX_ </span>
+<span class="sd">        .. _LMAXMIX: http://cms.mpi.univie.ac.at/wiki/index.php/LMAXMIX</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">lvhar</span>     <span class="o">=</span> <span class="n">LVHar</span><span class="p">()</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">lorbit</span>    <span class="o">=</span> <span class="n">ChoiceKeyword</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot; Decides whether PROOUT and PROOCAR are writtent to disk.</span>
+
+<span class="sd">        Can be one of 0|1|2|5|10|11|12|None. </span>
+
+<span class="sd">        .. seealso:: LORBIT_ </span>
+<span class="sd">        .. _LORBIT: http://cms.mpi.univie.ac.at/wiki/index.php/LORBIT</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nbands</span>    <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Number of bands in the calculation.</span>
+
+<span class="sd">        Can be any integer.</span>
+
+<span class="sd">        .. seealso:: NBANDS_</span>
+<span class="sd">        .. _NBANDS: http://cms.mpi.univie.ac.at/wiki/index.php/NBANDS</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nomega</span>    <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Number of frequency grid points. </span>
+
+<span class="sd">        Can be any integer.</span>
+
+<span class="sd">        .. seealso:: NOMEGA_</span>
+<span class="sd">        .. _NOMEGA: http://cms.mpi.univie.ac.at/wiki/index.php/NOMEGA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nupdown</span>   <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">symprec</span>   <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lwave</span>     <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Whether or not to write the wavefunctions to the WAVECAR_.</span>
+
+<span class="sd">        Must be a boolean. Defaults to False (unlike VASP_).</span>
+
+<span class="sd">        .. seealso:: LWAVE_</span>
+<span class="sd">        .. _LWAVE: http://cms.mpi.univie.ac.at/wiki/index.php/LWAVE</span>
+<span class="sd">        .. _WAVECAR: http://cms.mpi.univie.ac.at/wiki/index.php/WAVECAR</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lcharg</span>    <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Whether or not to write the charge density to the CHGCAR_.</span>
+
+<span class="sd">        Must be a boolean. Defaults to True.</span>
+
+<span class="sd">        .. seealso:: LWAVE_</span>
+<span class="sd">        .. _LWAVE: http://cms.mpi.univie.ac.at/wiki/index.php/LWAVE</span>
+<span class="sd">        .. _CHGCAR: http://cms.mpi.univie.ac.at/wiki/index.php/CHGCAR</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lvtot</span>     <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Whether or not to write the local potential to the LOCPOT file. </span>
+
+<span class="sd">        Must be a boolean. Defaults to False.</span>
+
+<span class="sd">        .. seealso:: LVTOT_</span>
+<span class="sd">        .. _LVTOT: http://cms.mpi.univie.ac.at/wiki/index.php/LVTOT</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lrpa</span>      <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to include local field effects at the Hartree level only.</span>
+
+<span class="sd">        Must be a boolean or None (leaves default to VASP_).</span>
+
+<span class="sd">        .. seealso:: LRPA_</span>
+<span class="sd">        .. _LRPA: http://cms.mpi.univie.ac.at/wiki/index.php/LRPA</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="bp">self</span><span class="o">.</span><span class="n">loptics</span>   <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Whether to compute the frequency dependent dielectic matrix.</span>
+
+<span class="sd">        Must be a boolean or None (leaves default to VASP_).</span>
+
+<span class="sd">        .. seealso:: LOPTICS_</span>
+<span class="sd">        .. _LOPTICS: http://cms.mpi.univie.ac.at/wiki/index.php/LOPTICS</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lpead</span>     <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Compute the finite-difference k-derivative of the wavefunctions.</span>
+
+<span class="sd">        Must be a boolean or None (leaves default to VASP_).</span>
+
+<span class="sd">        .. seealso:: LPEAD_</span>
+<span class="sd">        .. _LPEAD: http://cms.mpi.univie.ac.at/wiki/index.php/LPEAD</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">lplane</span>     <span class="o">=</span> <span class="n">BoolKeyword</span><span class="p">()</span>
+
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">nelm</span>      <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Maximum number of self-consistent electronic minimization steps.</span>
+<span class="sd">       </span>
+<span class="sd">        Must be an integer or None (leaves default to VASP_).</span>
+
+<span class="sd">        .. seealso:: NELM_</span>
+<span class="sd">        .. _NELM: http://cms.mpi.univie.ac.at/wiki/index.php/NELM</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nelmin</span>    <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Minimum number of self-consistent electronic minimization steps.</span>
+<span class="sd">       </span>
+<span class="sd">        Must be an integer or None (leaves default to VASP_).</span>
+
+<span class="sd">        .. seealso:: NELMIN_</span>
+<span class="sd">        .. _NELMIN: http://cms.mpi.univie.ac.at/wiki/index.php/NELMIN</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nelmdl</span>    <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; Number of non-selfconsistent steps at the beginning. </span>
+<span class="sd">       </span>
+<span class="sd">        Must be an integer or None (leaves default to VASP_).</span>
+
+<span class="sd">        .. seealso:: NELMDL_</span>
+<span class="sd">        .. _NELMDL: http://cms.mpi.univie.ac.at/wiki/index.php/NELMDL</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ngx</span>       <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; number of grid points in the FFT-grid along the first lattice vector.</span>
+
+<span class="sd">        Must be an integer or None (leaves default to VASP_).</span>
+
+<span class="sd">        .. seealso:: NGX_, :py:attr:`ngy`, :py:attr:`ngz`</span>
+<span class="sd">        .. _NGX: http://cms.mpi.univie.ac.at/wiki/index.php/NGX</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ngy</span>       <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; number of grid points in the FFT-grid along the second lattice vector.</span>
+
+<span class="sd">        Must be an integer or None (leaves default to VASP_).</span>
+
+<span class="sd">        .. seealso:: NGY_, :py:attr:`ngx`, :py:attr:`ngz`</span>
+<span class="sd">        .. _NGY: http://cms.mpi.univie.ac.at/wiki/index.php/NGY</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ngz</span>       <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot; number of grid points in the FFT-grid along the third lattice vector.</span>
+
+<span class="sd">        Must be an integer or None (leaves default to VASP_).</span>
+
+<span class="sd">        .. seealso:: NGZ_, :py:attr:`ngx`, :py:attr:`ngy`</span>
+<span class="sd">        .. _NGZ: http://cms.mpi.univie.ac.at/wiki/index.php/NGZ</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nonscf</span>    <span class="o">=</span> <span class="n">NonScf</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; If True, performs a non-self consistent calculation.</span>
+
+<span class="sd">        The value of this keyword is checked by :py:attr:`icharg` and used</span>
+<span class="sd">        appropriately. The attribute :py:attr:`lsorbit` also acts and checks</span>
+<span class="sd">        on it. It is False by default.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="bp">self</span><span class="o">.</span><span class="n">magmom</span>    <span class="o">=</span> <span class="n">Magmom</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Sets the initial magnetic moments on each atom.</span>
+<span class="sd">    </span>
+<span class="sd">        There are three types of usage: </span>
+<span class="sd">    </span>
+<span class="sd">        - if None or False, does nothing</span>
+<span class="sd">        - if calculations are not spin-polarized, does nothing.</span>
+<span class="sd">        - if a string, uses that as for the MAGMOM_ keyword</span>
+<span class="sd">        - if True and at least one atom in the structure has a non-zero</span>
+<span class="sd">          ``magmom`` attribute, then creates the relevant moment input for</span>
+<span class="sd">          VASP_</span>
+<span class="sd">    </span>
+<span class="sd">        If the calculation is **not** spin-polarized, then the magnetic moment</span>
+<span class="sd">        tag is not set.</span>
+<span class="sd">    </span>
+<span class="sd">        .. note:: Please set by hand for non-collinear calculations</span>
+<span class="sd">        .. seealso:: MAGMOM_</span>
+<span class="sd">        .. _MAGMOM: http://cms.mpi.univie.ac.at/wiki/index.php/MAGMOM</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">system</span>    <span class="o">=</span> <span class="n">System</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; System title to use for calculation.</span>
+<span class="sd">    </span>
+<span class="sd">        - If None and ... </span>
+<span class="sd">           - if the structure has a ``name`` attribute, uses that as the</span>
+<span class="sd">             calculations title</span>
+<span class="sd">           - else does not use SYSTEM_ tag</span>
+<span class="sd">        - If something else which is convertible to a string,  and ...</span>
+<span class="sd">           - if the structure has a ``name`` attribute, uses &#39;string: name&#39; as</span>
+<span class="sd">             the title</span>
+<span class="sd">           - otherwise, uses the string</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: SYSTEM_</span>
+<span class="sd">        .. _SYSTEM: http://cms.mpi.univie.ac.at/vasp/guide/node94.html&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">npar</span>      <span class="o">=</span> <span class="n">Npar</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Parallelization over bands. </span>
+<span class="sd">    </span>
+<span class="sd">        Npar defines how many nodes work on one band.</span>
+<span class="sd">        It can be set to a particular number:</span>
+<span class="sd">    </span>
+<span class="sd">        &gt;&gt;&gt; vasp.npar = 2</span>
+<span class="sd">    </span>
+<span class="sd">        Or it can be deduced automatically. Different schemes are available:</span>
+<span class="sd">        </span>
+<span class="sd">          - power of two: npar is set to the largest power of 2 which divides</span>
+<span class="sd">            the number of processors.</span>
+<span class="sd">   </span>
+<span class="sd">            &gt;&gt;&gt; vasp.npar = &quot;power of two&quot;</span>
+<span class="sd">    </span>
+<span class="sd">            If the number of processors is not a power of two, prints nothing.</span>
+<span class="sd">    </span>
+<span class="sd">          - square root: npar is set to the square root of the number of</span>
+<span class="sd">            processors.</span>
+<span class="sd">    </span>
+<span class="sd">            &gt;&gt;&gt; vasp.npar = &quot;sqrt&quot;</span>
+<span class="sd">        </span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso: NPAR_ </span>
+<span class="sd">        .. _NPAR: http://cms.mpi.univie.ac.at/vasp/guide/node138.html&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">extraelectron</span> <span class="o">=</span> <span class="n">ExtraElectron</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Number of electrons relative to neutral system.</span>
+<span class="sd">        </span>
+<span class="sd">        Gets the number of electrons in the (neutral) system. Then adds value to</span>
+<span class="sd">        it and computes with the resulting number of electrons.</span>
+<span class="sd">    </span>
+<span class="sd">        &gt;&gt;&gt; vasp.extraelectron =  0  # charge neutral system</span>
+<span class="sd">        &gt;&gt;&gt; vasp.extraelectron =  1  # charge -1 (1 extra electron)</span>
+<span class="sd">        &gt;&gt;&gt; vasp.extraelectron = -1  # charge +1 (1 extra hole)</span>
+
+<span class="sd">        Disables :py:attr:`nelect` if set to anything but None: these two</span>
+<span class="sd">        properties are mutually exclusive.</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: NELECT_, :py:attr:`nelect`</span>
+<span class="sd">        .. _NELECT: http://cms.mpi.univie.ac.at/wiki/index.php/NELECT</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nelect</span> <span class="o">=</span> <span class="n">NElect</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Sets the absolute number of electrons.</span>
+<span class="sd">        </span>
+<span class="sd">        Disables :py:attr:`extraelectron` if set to something other than None.</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: NELECT_, :py:attr:`extraelectron`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">algo</span> <span class="o">=</span> <span class="n">Algo</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Electronic minimization. </span>
+<span class="sd">    </span>
+<span class="sd">        Defines the kind of algorithm vasp will run.</span>
+<span class="sd">          - very fast</span>
+<span class="sd">          - fast, f (default)</span>
+<span class="sd">          - normal, n</span>
+<span class="sd">          - all, a</span>
+<span class="sd">          - damped, d </span>
+<span class="sd">          - Diag </span>
+<span class="sd">          - conjugate, c (vasp 5)</span>
+<span class="sd">          - subrot (vasp 5)</span>
+<span class="sd">          - eigenval (vasp 5)</span>
+<span class="sd">          - Nothing (vasp 5)</span>
+<span class="sd">          - Exact  (vasp 5)</span>
+<span class="sd">          - chi</span>
+<span class="sd">          - gw</span>
+<span class="sd">          - gw0</span>
+<span class="sd">          - scgw</span>
+<span class="sd">          - scgw0</span>
+<span class="sd">    </span>
+<span class="sd">        If :py:data:`~pylada.is_vasp_4` is an existing configuration variable of</span>
+<span class="sd">        :py:mod:`pylada` the parameters marked as vasp 5 will fail.</span>
+<span class="sd">    </span>
+<span class="sd">        .. warning:: The string None is not  allowed, as it would lead to</span>
+<span class="sd">           confusion with the python object None. Please use &quot;Nothing&quot; instead.</span>
+<span class="sd">           The python object None will simply not print the ALGO_ keyword to</span>
+<span class="sd">           the INCAR_ file.</span>
+<span class="sd">    </span>
+<span class="sd">        .. note:: By special request, &quot;fast&quot; is the default algorithm.</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: ALGO_</span>
+<span class="sd">        .. _ALGO: http://cms.mpi.univie.ac.at/vasp/vasp/ALGO_tag.html</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="bp">self</span><span class="o">.</span><span class="n">ediff</span> <span class="o">=</span> <span class="n">Ediff</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Sets the absolute energy convergence criteria for electronic minimization.</span>
+<span class="sd">    </span>
+<span class="sd">        EDIFF_ is set to this value in the INCAR_. </span>
+<span class="sd">    </span>
+<span class="sd">        Disables :py:attr:`ediff_per_atom` if set to anything but None. These</span>
+<span class="sd">        two properties are mutually exclusive. If negative or null, defaults to</span>
+<span class="sd">        zero.</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: EDIFF_, :py:attr:`ediff_per_atom` </span>
+
+<span class="sd">        .. _EDIFF: http://cms.mpi.univie.ac.at/wiki/index.php/EDIFF</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ediff_per_atom</span> <span class="o">=</span> <span class="n">EdiffPerAtom</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Sets the relative energy convergence criteria for electronic minimization.</span>
+<span class="sd">    </span>
+<span class="sd">        EDIFF_ is set to this value *times* the number of atoms in the</span>
+<span class="sd">        structure.  This approach is more sensible than straight-off</span>
+<span class="sd">        :py:attr:`ediff` when doing high-throughput over many structures.</span>
+<span class="sd">        </span>
+<span class="sd">        Disables :py:attr:`ediff` if set to anything but None. These two</span>
+<span class="sd">        properties are mutually exclusive. If negative or null, defaults to</span>
+<span class="sd">        zero.</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: EDIFF_, :py:attr:`ediff`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ediffg</span> <span class="o">=</span> <span class="n">Ediffg</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Sets the absolute energy convergence criteria for ionic relaxation.</span>
+<span class="sd">    </span>
+<span class="sd">        EDIFFG_ is set to this value in the INCAR_. </span>
+<span class="sd">    </span>
+<span class="sd">        Disables :py:attr:`ediffg_per_atom` if set to anything but None. These</span>
+<span class="sd">        two properties are mutually exclusive.</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: EDIFFG_, :py:attr:`ediffg_per_atom`</span>
+<span class="sd">        .. _EDIFFG: http://cms.mpi.univie.ac.at/wiki/index.php/EDIFFG</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ediffg_per_atom</span> <span class="o">=</span> <span class="n">EdiffgPerAtom</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Sets the relative energy convergence criteria for ionic relaxation.</span>
+<span class="sd">  </span>
+<span class="sd">        - if positive: EDIFFG_ is set to this value *times* the number of atoms</span>
+<span class="sd">          in the structure. This means that the criteria is for the total energy per atom.</span>
+<span class="sd">        - if negative: same as a negative EDIFFG_, since that convergence</span>
+<span class="sd">          criteria is already per atom.</span>
+<span class="sd">        </span>
+<span class="sd">        This approach is more sensible than straight-off :py:attr:`ediffg` when</span>
+<span class="sd">        doing high-throughput over many structures.  Disables :py:attr:`ediffg`</span>
+<span class="sd">        if set to anything but None. These two properties are mutually</span>
+<span class="sd">        exclusive.</span>
+<span class="sd">  </span>
+<span class="sd">        .. seealso:: EDIFFG_, :py:attr:`ediffg`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">encut</span> <span class="o">=</span> <span class="n">Encut</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Defines cutoff factor for calculation. </span>
+<span class="sd">    </span>
+<span class="sd">        There are three ways to set this parameter:</span>
+<span class="sd">    </span>
+<span class="sd">        - if value is floating point and 0 &lt; value &lt;= 3: then the cutoff is</span>
+<span class="sd">          ``value * ENMAX``, where ENMAX is the maximum recommended cutoff for</span>
+<span class="sd">          the species in the system.</span>
+<span class="sd">        - if value &gt; 3 eV, then ENCUT_ is exactly value (in eV). Any energy</span>
+<span class="sd">          unit is acceptable.</span>
+<span class="sd">        - if value &lt; 0 eV or None, does not print anything to INCAR_. </span>
+<span class="sd">        </span>
+<span class="sd">        .. seealso:: ENCUT_</span>
+<span class="sd">        .. _ENCUT: http://cms.mpi.univie.ac.at/wiki/index.php/ENCUT</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">encutgw</span> <span class="o">=</span> <span class="n">EncutGW</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Defines cutoff factor for GW calculation. </span>
+<span class="sd">  </span>
+<span class="sd">        There are three ways to set this parameter:</span>
+<span class="sd">  </span>
+<span class="sd">        - if value is floating point and 0 &lt; value &lt;= 3: then the cutoff is</span>
+<span class="sd">          ``value * ENMAX``, where ENMAX is the maximum recommended cutoff for</span>
+<span class="sd">          the species in the system.</span>
+<span class="sd">        - if value &gt; 3 eV, then ENCUTGW_ is exactly value (in eV). Any energy</span>
+<span class="sd">          unit is acceptable.</span>
+<span class="sd">        - if value &lt; 0 eV or None, does not print anything to INCAR_. </span>
+<span class="sd">        </span>
+<span class="sd">        .. seealso:: ENCUTGW_</span>
+<span class="sd">        .. _ENCUTGW: http://cms.mpi.univie.ac.at/wiki/index.php/GW_calculations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ldau</span> <span class="o">=</span> <span class="n">LDAU</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Sets U, nlep, and enlep parameters. </span>
+<span class="sd">   </span>
+<span class="sd">        The U, nlep, and enlep parameters of the atomic species are set at the</span>
+<span class="sd">        same time as the pseudo-potentials. This object merely sets up the INCAR_</span>
+<span class="sd">        with right input.</span>
+<span class="sd">    </span>
+<span class="sd">        However, it does accept one parameter, which can be &quot;off&quot;, &quot;on&quot;, &quot;occ&quot; or</span>
+<span class="sd">        &quot;all&quot;, and defines the level of verbosity of VASP (with respect to U and nlep).</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: LDAU_, LDAUTYPE_, LDAUL_, LDAUJ_, :py:attr:`species`</span>
+
+<span class="sd">        .. _LDAU: http://cms.mpi.univie.ac.at/wiki/index.php/LDAU</span>
+<span class="sd">        .. _LDAUTYPE: http://cms.mpi.univie.ac.at/wiki/index.php/LDAUTYPE</span>
+<span class="sd">        .. _LDAUL: http://cms.mpi.univie.ac.at/wiki/index.php/LDAUL</span>
+<span class="sd">        .. _LDAUU: http://cms.mpi.univie.ac.at/wiki/index.php/LDAUU</span>
+<span class="sd">        .. _LDAUJ: http://cms.mpi.univie.ac.at/wiki/index.php/LDAUJ</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">precfock</span> <span class="o">=</span> <span class="n">PrecFock</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Sets up FFT grid in hartree-fock related routines.</span>
+<span class="sd">        </span>
+<span class="sd">        Allowable options are:</span>
+<span class="sd">    </span>
+<span class="sd">        - low</span>
+<span class="sd">        - medium</span>
+<span class="sd">        - fast</span>
+<span class="sd">        - normal</span>
+<span class="sd">        - accurate</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: PRECFOCK_</span>
+<span class="sd">        .. _PRECFOCK: http://cms.mpi.univie.ac.at/wiki/index.php/PRECFOCK</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">prec</span> <span class="o">=</span> <span class="n">Precision</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Sets accuracy of calculation. </span>
+<span class="sd">    </span>
+<span class="sd">        - accurate (default)</span>
+<span class="sd">        - low</span>
+<span class="sd">        - medium</span>
+<span class="sd">        - high</span>
+<span class="sd">        - single</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: PREC_</span>
+<span class="sd">        .. _PREC: http://cms.mpi.univie.ac.at/wiki/index.php/PREC</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nsw</span> <span class="o">=</span> <span class="n">Nsw</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Maxium number of ionic iterations. </span>
+
+<span class="sd">        .. seealso:: NSW_</span>
+<span class="sd">        .. _NSW: http://cms.mpi.univie.ac.at/wiki/index.php/NSW</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ibrion</span> <span class="o">=</span> <span class="n">IBrion</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Ions/cell-shape/volume optimization method.</span>
+<span class="sd">    </span>
+<span class="sd">        Can only take a restricted set of values: -1 | 0 | 1 | 2 | 3 | 5 | 6 | 7 | 8 | 44.</span>
+
+<span class="sd">        .. seealso::</span>
+<span class="sd">        </span>
+<span class="sd">           IBRION_, :py:attr:`relaxation`, :py:attr:`isif`, :py:attr:`nsw`</span>
+
+<span class="sd">        .. _IBRION: cms.mpi.univie.ac.at/wiki/index.php/IBRIONN</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">isif</span> <span class="o">=</span> <span class="n">Isif</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Degree of librerty to optimize during geometry optimization</span>
+
+<span class="sd">        .. seealso:: </span>
+<span class="sd">        </span>
+<span class="sd">           ISIF_, :py:attr:`relaxation`, :py:attr:`ibrion`, :py:attr:`nsw`</span>
+
+<span class="sd">        .. _ISIF: http://cms.mpi.univie.ac.at/vasp/guide/node112.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">relaxation</span> <span class="o">=</span> <span class="n">Relaxation</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Short-cut for setting up relaxation. </span>
+
+<span class="sd">        It accepts two parameters:</span>
+<span class="sd">        </span>
+<span class="sd">          - static: for calculation without geometric relaxation.</span>
+<span class="sd">          - combination of ionic, volume, cellshape: for the type of relaxation</span>
+<span class="sd">            requested.</span>
+
+<span class="sd">        It makes sure that :py:attr:`isif`, :py:attr:`ibrion`, and</span>
+<span class="sd">        :py:attr:`nsw` take the right value for the</span>
+<span class="sd">        kind of relaxation.</span>
+
+<span class="sd">        .. seealso:: :py:attr:`isif`, :py:attr:`ibrion`, :py:attr:`nsw`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ismear</span> <span class="o">=</span> <span class="n">ISmear</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Smearing function </span>
+
+<span class="sd">        Vasp allows a number of options:</span>
+
+<span class="sd">        - metal (-5): Tetrahedron method with Blochl correction (requires a</span>
+<span class="sd">          |Gamma|-centered *k*-mesh)</span>
+<span class="sd">        - tetra (-4): Tetrahedron method (requires a |Gamma|-centered *k*-mesh)</span>
+<span class="sd">        - dynamic (-3): Performs a loop over smearing parameters supplied in</span>
+<span class="sd">          :py:attr:`smearings`</span>
+<span class="sd">        - fixed: (-2): Fixed occupation, set *via* :py:attr:`ferwe` and</span>
+<span class="sd">          :py:attr:`ferdo`</span>
+<span class="sd">        - fermi (-1): Fermi function</span>
+<span class="sd">        - gaussian (0): Gaussian function</span>
+<span class="sd">        - mp n (n&gt;0): Methfessel-Paxton smearing function of order n</span>
+
+<span class="sd">        .. seealso::</span>
+<span class="sd">        </span>
+<span class="sd">          ISMEAR_, :py:attr:`sigma`, :py:attr:`smearings`, :py:attr:`ferwe`,</span>
+<span class="sd">          :py:attr:`ferdo`</span>
+<span class="sd">        </span>
+<span class="sd">        .. _ISMEAR: http://cms.mpi.univie.ac.at/wiki/index.php/ISMEAR</span>
+<span class="sd">        .. |Gamma|  unicode:: U+00393 .. GREEK CAPITAL LETTER GAMMA</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">Sigma</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Width of the smearing function.</span>
+
+<span class="sd">        Accepts floating points which may be signed with an energy unit using</span>
+<span class="sd">        the quantities_ package:</span>
+
+<span class="sd">          .. code-block:: python</span>
+
+<span class="sd">            from quantities import eV, hartree</span>
+
+<span class="sd">            vasp.smearing = 0.2           # Defaults to eV.</span>
+<span class="sd">            vasp.smearing = 0.2 * eV      # Same as above, but more explicit.</span>
+<span class="sd">            vasp.smearing = 0.5 * hartree # if you are so inclined.</span>
+<span class="sd">    </span>
+<span class="sd">        .. seealso:: SIGMA_, quantities_, :py:attr:`ismear`</span>
+<span class="sd">        .. _SIGMA: http://cms.mpi.univie.ac.at/wiki/index.php/SIGMA</span>
+<span class="sd">        .. _quantities: http://packages.python.org/quantities/index.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">smearings</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span>
+    <span class="sd">&quot;&quot;&quot; Smearing steps for ``ISMEAR=-3``.</span>
+
+<span class="sd">        List of floating points. Does not accept quantities_.</span>
+
+<span class="sd">        .. seealso:: ISMEAR_, :py:attr:`ismear`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ferwe</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span>
+    <span class="sd">&quot;&quot;&quot; Occupancy of the states for ``ISMEAR=-2``.</span>
+
+<span class="sd">        List of floating points.</span>
+<span class="sd">         </span>
+<span class="sd">        .. seealso:: FERWE_, :py:attr:`ismear`, :py:attr:`ferdo`</span>
+<span class="sd">        .. _FERWE: http://cms.mpi.univie.ac.at/wiki/index.php/FERWE</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">ferdo</span> <span class="o">=</span> <span class="n">TypedKeyword</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span>
+    <span class="sd">&quot;&quot;&quot; Occupancy of the down-spin states for ``ISMEAR=-2``.</span>
+
+<span class="sd">        List of floating points.</span>
+<span class="sd">         </span>
+<span class="sd">        .. seealso:: FERDO_, :py:attr:`ismear`, :py:attr:`ferwe`</span>
+<span class="sd">        .. _FERDO: http://cms.mpi.univie.ac.at/wiki/index.php/FERDO</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">lsorbit</span> <span class="o">=</span> <span class="n">LSorbit</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot; Run calculation with spin-orbit coupling. </span>
+<span class="sd">    </span>
+<span class="sd">        Accepts None, True, or False. If True, then sets :py:attr:`nonscf` to</span>
+<span class="sd">        True and :py:attr:`ispin` to 2.</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    
+    <span class="c"># copies values from other functional.</span>
+    <span class="k">if</span> <span class="n">copy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> 
+      <span class="bp">self</span><span class="o">.</span><span class="n">_input</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">_input</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">copy</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;_input&#39;</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span> <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+
+    <span class="c"># sets all known keywords as attributes.</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+      <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span> <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+  <span class="c"># NEVER CALLED!</span>
+<div class="viewcode-block" id="Vasp.__call__"><a class="viewcode-back" href="../../../pyapi/vasp/functional.html#pylada.vasp.functional.Vasp.__call__">[docs]</a>  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> 
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Calls vasp program and waits until completion. </span>
+<span class="sd">    </span>
+<span class="sd">        This function makes a blocking call to the VASP_ external program. It</span>
+<span class="sd">        will return only once the calculation is complete. To make asynchronous</span>
+<span class="sd">        calls to VASP_, please consider using :py:meth:`iter`.</span>
+
+<span class="sd">        For a description of the parameters, please see :py:meth:`iter`.</span>
+
+<span class="sd">        :returns: An extraction object of type :py:attr:`Extract`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">traceback</span>
+
+    <span class="c"># NEVER CALLED!</span>
+    <span class="c">#print &#39;functional __call__ A: ===== start stack trace&#39;</span>
+    <span class="c">#traceback.print_stack( file=sys.stdout)</span>
+    <span class="c">#print &#39;functional __call__ A: ===== end stack trace&#39;</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional __call__: outdir: &quot;</span><span class="p">,</span> <span class="n">outdir</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional __call__: structure:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">structure</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional __call__: comm: &quot;</span><span class="p">,</span> <span class="n">comm</span>
+
+    <span class="k">for</span> <span class="n">program</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="n">outdir</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+      <span class="c"># iterator may yield the result from a prior successful run. </span>
+      <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s">&#39;success&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span> <span class="k">continue</span>
+      <span class="c"># If the following is True, then the program failed to run correctly.</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">):</span> <span class="k">break</span>
+      <span class="c"># otherwise, it should yield a Program process to execute.</span>
+      <span class="c"># This next line starts the asynchronous call to the external VASP</span>
+      <span class="c"># program.</span>
+
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;vasp/functional __call__: before start&quot;</span>
+      <span class="n">program</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;vasp/functional __call__: before wait&quot;</span>
+      <span class="c"># This next lines waits until the VASP program is finished.</span>
+      <span class="n">program</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span> <span class="k">print</span> <span class="s">&quot;vasp/functional __call__: after wait&quot;</span>
+    <span class="c"># Last yield should be an extraction object.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">program</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&quot;Vasp failed to execute correctly.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">program</span>
+</div>
+  <span class="nd">@stateless</span>
+  <span class="nd">@assign_attributes</span><span class="p">(</span><span class="n">ignore</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;overwrite&#39;</span><span class="p">,</span> <span class="s">&#39;comm&#39;</span><span class="p">])</span>
+<div class="viewcode-block" id="Vasp.iter"><a class="viewcode-back" href="../../../pyapi/vasp/functional.html#pylada.vasp.functional.Vasp.iter">[docs]</a>  <span class="k">def</span> <span class="nf">iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Allows asynchronous vasp calculations</span>
+<span class="sd">     </span>
+<span class="sd">        This is a generator which yields two types of objects: </span>
+
+<span class="sd">           - :py:class:`~pylada.process.program.ProgramProcess`: once started,</span>
+<span class="sd">             this process will run an actual VASP_ calculation.</span>
+<span class="sd">           - :py:attr:`Extract`: once the program has been runned, and</span>
+<span class="sd">             extraction object is yielded, in order that the results of the run</span>
+<span class="sd">             can be analyzed. </span>
+
+<span class="sd">        In a new calculation, an instance of each type will be yielded, in the</span>
+<span class="sd">        order of their description above. It is expected that program is runned</span>
+<span class="sd">        first, using the first object, before looping to the second object. </span>
+<span class="sd">        Thie generator function makes it possible to run different instances of</span>
+<span class="sd">        VASP_ simultaneously. It also makes it possible to create more complex</span>
+<span class="sd">        calculations which necessitate more than one actual call to VASP_ (see</span>
+<span class="sd">        :py:class:`~pylada.vasp.relax.iter_relax`), while retaining the ability</span>
+<span class="sd">        to run multiple VASP_ programs simultaneously.</span>
+
+<span class="sd">        If successful results (see :py:attr:`Extract.success`) already exist in</span>
+<span class="sd">        outdir, Pylada defaults to *not* repeating the calculations. In that</span>
+<span class="sd">        case, the first object described above is *skipped* and only an</span>
+<span class="sd">        extraction object is yielded.</span>
+
+<span class="sd">        The :py:meth:`__call__` method loops over this generator and makes</span>
+<span class="sd">        actual VASP_ calls. Looking at its code is a good place to start, if</span>
+<span class="sd">        you want to understand this looping business. The benefit of this</span>
+<span class="sd">        approach can be seen in :py:class:`~pylada.vasp.relax.iter_relax` (more</span>
+<span class="sd">        complex calculations) and</span>
+<span class="sd">        :py:class:`pylada.process.jobfolder.JobFolderProcess`. </span>
+
+<span class="sd">        :param structure:  </span>
+<span class="sd">            :py:class:`~pylada.crystal.Structure` structure to compute.</span>
+<span class="sd">        :param outdir:</span>
+<span class="sd">            Output directory where the results should be stored.  This</span>
+<span class="sd">            directory will be checked for restart status, eg whether</span>
+<span class="sd">            calculations already exist. If None, then results are stored in</span>
+<span class="sd">            current working directory.</span>
+<span class="sd">        :param comm:</span>
+<span class="sd">            Holds arguments for executing VASP externally.</span>
+<span class="sd">        :param overwrite:</span>
+<span class="sd">            If True, will overwrite pre-existing results. </span>
+<span class="sd">            If False, will check whether a successful calculation exists. If</span>
+<span class="sd">            one does, then does not execute. </span>
+<span class="sd">        :param kwargs:</span>
+<span class="sd">            Any attribute of the VASP instance can be overridden for</span>
+<span class="sd">            the duration of this call by passing it as keyword argument:</span>
+
+<span class="sd">            &gt;&gt;&gt; for program in vasp.iter(structure, outdir, sigma=0.5):</span>
+<span class="sd">            ...</span>
+
+<span class="sd">            The above would call VASP_ with smearing of 0.5 eV (unless a</span>
+<span class="sd">            successfull calculation already exists, in which case the</span>
+<span class="sd">            calculations are *not* overwritten). </span>
+
+<span class="sd">        :yields: A process and/or an extraction object, as described above.</span>
+
+<span class="sd">        :raise RuntimeError: when computations do not complete.</span>
+<span class="sd">        :raise IOError: when outdir exists but is not a directory.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">        </span>
+<span class="sd">            This function is stateless. It expects that self and structure can</span>
+<span class="sd">            be deepcopied correctly.  </span>
+
+<span class="sd">        .. warning:: </span>
+<span class="sd">           </span>
+<span class="sd">            This will never overwrite successfull VASP calculation, even if the</span>
+<span class="sd">            parameters to the call are different.</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    <span class="c">###from .. import vasp_program</span>
+    <span class="kn">from</span> <span class="nn">..process.program</span> <span class="kn">import</span> <span class="n">ProgramProcess</span>
+    <span class="kn">from</span> <span class="nn">.extract</span> <span class="kn">import</span> <span class="n">Extract</span> <span class="k">as</span> <span class="n">ExtractVasp</span>
+    <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">traceback</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="c">#print &#39;vasp/functional iter: ===== start stack trace&#39;</span>
+      <span class="c">#traceback.print_stack( file=sys.stdout)</span>
+      <span class="c">#print &#39;vasp/functional iter: ===== end stack trace&#39;</span>
+
+      <span class="c"># Stack trace here is:</span>
+      <span class="c">#   ipython/launch/scattered_script.py&quot;, line 114, in &lt;module&gt;</span>
+      <span class="c">#     if __name__ == &quot;__main__&quot;: main()</span>
+      <span class="c">#   ipython/launch/scattered_script.py&quot;, line 109, in main</span>
+      <span class="c">#     jobfolder[name].compute(comm=comm, outdir=name)</span>
+      <span class="c">#   jobfolder/jobfolder.py&quot;, line 295, in compute</span>
+      <span class="c">#     res = self.functional.__call__(**params)</span>
+      <span class="c">#</span>
+      <span class="c">#   Probably the following is the dynamically compiled code</span>
+      <span class="c">#   created by tools/makeclass: create_call_from_iter.</span>
+      <span class="c">#   Code is similar to:</span>
+      <span class="c">#     def __call__(self, structure, outdir=None, comm=None, **kwargs):</span>
+      <span class="c">#       result  = None</span>
+      <span class="c">#       for program in self.iter(structure, outdir=outdir,</span>
+      <span class="c">#           comm=comm, **kwargs):</span>
+      <span class="c">#         program.start(comm)</span>
+      <span class="c">#         program.wait()</span>
+      <span class="c">#       return result</span>
+      <span class="c">#   File &quot;&lt;string&gt;&quot;, line 16, in __call__</span>
+      <span class="c">#</span>
+      <span class="c">#   Probably the following is the dynamically compiled code</span>
+      <span class="c">#   created by tools/makeclass: create_iter</span>
+      <span class="c">#   Code is similar to:</span>
+      <span class="c">#     def iter(self, structure, outdir=None, **kwargs):</span>
+      <span class="c">#       for o in iter_relax(</span>
+      <span class="c">#           SuperCall(self.__class__, self),</span>
+      <span class="c">#           structure, outdir=outdir, first_trial=self.first_trial,</span>
+      <span class="c">#           maxcalls=self.maxcalls, keepsteps=self.keepsteps,</span>
+      <span class="c">#           nofail=self.nofail, convergence=self.convergence,</span>
+      <span class="c">#           minrelsteps=self.minrelsteps, **kwargs):</span>
+      <span class="c">#         yield o</span>
+      <span class="c">#   File &quot;&lt;string&gt;&quot;, line 12, in iter</span>
+      <span class="c">#</span>
+      <span class="c">#   vasp/relax.py&quot;, line 272, in iter_relax</span>
+      <span class="c">#    for u in vasp.iter( relaxed_structure, outdir = fulldir,</span>
+      <span class="c">#      restart = output, relaxation = relaxation, **params):</span>
+      <span class="c">#   vasp/functional.py&quot;, line 960, in iter</span>
+      <span class="c">#     traceback.print_stack( file=sys.stdout)</span>
+
+      <span class="k">print</span> <span class="s">&#39;vasp/functional iter: outdir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">outdir</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;vasp/functional iter: structure:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">structure</span><span class="p">,)</span>
+
+    <span class="c"># check for pre-existing and successful run.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+      <span class="c"># Check with this instance&#39;s Extract, cos it is this calculation we shall</span>
+      <span class="c"># do here. Derived instance&#39;s Extract might be checking for other stuff.</span>
+      <span class="n">extract</span> <span class="o">=</span> <span class="n">Vasp</span><span class="o">.</span><span class="n">Extract</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">extract</span><span class="o">.</span><span class="n">success</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">extract</span> <span class="c"># in which case, returns extraction object.</span>
+        <span class="k">return</span>
+    
+    <span class="c"># copies/creates file environment for calculation.</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">bringup</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">outdir</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">overwrite</span><span class="p">)</span>
+
+    <span class="c"># figures out what program to call.</span>
+    <span class="n">vaspProgram</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="s">&#39;program&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">vaspProgram</span> <span class="o">==</span> <span class="bp">None</span><span class="p">):</span>
+      <span class="kn">import</span> <span class="nn">pylada</span>
+      <span class="n">vaspProgram</span> <span class="o">=</span> <span class="n">pylada</span><span class="o">.</span><span class="n">vasp_program</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;vasp/functional iter: vaspProgram: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vaspProgram</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;vasp/functional iter: testValidProgram: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">testValidProgram</span><span class="p">,)</span>
+    <span class="k">if</span> <span class="n">vaspProgram</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s">&#39;program was not set in the vasp functional&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">testValidProgram</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="n">vaspProgram</span> <span class="o">=</span> <span class="n">testValidProgram</span>
+
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">vaspProgram</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">):</span>
+      <span class="n">vaspProgram</span> <span class="o">=</span> <span class="n">vaspProgram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+    <span class="c"># creates a process with a callback to bring-down environment once it is</span>
+    <span class="c"># done.</span>
+    <span class="k">def</span> <span class="nf">onfinish</span><span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>  <span class="bp">self</span><span class="o">.</span><span class="n">bringdown</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
+    <span class="n">onfail</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OnFail</span><span class="p">(</span><span class="n">Vasp</span><span class="o">.</span><span class="n">Extract</span><span class="p">(</span><span class="n">outdir</span><span class="p">))</span>
+    <span class="k">yield</span> <span class="n">ProgramProcess</span><span class="p">(</span> <span class="n">vaspProgram</span><span class="p">,</span> <span class="n">cmdline</span><span class="o">=</span><span class="p">[],</span> <span class="n">outdir</span><span class="o">=</span><span class="n">outdir</span><span class="p">,</span>
+			  <span class="n">onfinish</span><span class="o">=</span><span class="n">onfinish</span><span class="p">,</span> <span class="n">onfail</span><span class="o">=</span><span class="n">onfail</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="s">&#39;stdout&#39;</span><span class="p">,</span>
+			  <span class="n">stderr</span><span class="o">=</span><span class="s">&#39;stderr&#39;</span><span class="p">,</span> <span class="n">dompi</span><span class="o">=</span><span class="n">comm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="p">)</span>
+    <span class="c"># yields final extraction object.</span>
+    <span class="k">yield</span> <span class="n">ExtractVasp</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+</div>
+  <span class="k">def</span> <span class="nf">bringup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">outdir</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates all input files necessary to run results.</span>
+
+<span class="sd">        Performs the following actions.</span>
+
+<span class="sd">        - Writes POSCAR_ file.</span>
+<span class="sd">        - Writes INCAR_ file.</span>
+<span class="sd">        - Writes KPOINTS_ file.</span>
+<span class="sd">        - Creates POTCAR_ file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+    <span class="kn">from</span> <span class="nn">..crystal</span> <span class="kn">import</span> <span class="n">specieset</span>
+    <span class="kn">from</span> <span class="nn">..misc.changedir</span> <span class="kn">import</span> <span class="n">Changedir</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">files</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;vasp/functional bringup: outdir: &#39;</span><span class="p">,</span> <span class="n">outdir</span>
+      <span class="k">print</span> <span class="s">&#39;vasp/functional bringup: structure:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">structure</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;vasp/functional bringup: kwargs: &#39;</span><span class="p">,</span> <span class="n">kwargs</span>
+
+    <span class="k">with</span> <span class="n">Changedir</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+      <span class="c"># creates INCAR file (and POSCAR via istruc).</span>
+      <span class="n">fpath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">files</span><span class="o">.</span><span class="n">INCAR</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;vasp/functional bringup: incar fpath: &quot;</span><span class="p">,</span> <span class="n">fpath</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">write_incar</span><span class="p">(</span> <span class="n">structure</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">fpath</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="n">outdir</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span> <span class="p">)</span>
+  
+      <span class="c"># creates kpoints file</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;vasp/functional bringup: files.KPOINTS: &quot;</span><span class="p">,</span> <span class="n">files</span><span class="o">.</span><span class="n">KPOINTS</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">KPOINTS</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">kp_file</span><span class="p">:</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_kpoints</span><span class="p">(</span><span class="n">kp_file</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
+  
+      <span class="c"># creates POTCAR file</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;vasp/functional bringup: files.POTCAR: &quot;</span><span class="p">,</span> <span class="n">files</span><span class="o">.</span><span class="n">POTCAR</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">POTCAR</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">potcar</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">specieset</span><span class="p">(</span><span class="n">structure</span><span class="p">):</span>
+          <span class="n">outLines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">read_potcar</span><span class="p">()</span>
+          <span class="n">potcar</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span> <span class="n">outLines</span><span class="p">)</span>
+      <span class="c"># Add is running file marker.</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;.pylada_is_running&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">file</span><span class="p">:</span> <span class="k">pass</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;vasp/functional bringup: is_run dir: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),)</span>
+    
+  <span class="k">def</span> <span class="nf">bringdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Copies contcar to outcar. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
+    <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">remove</span>
+    <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">files</span>
+    <span class="kn">from</span> <span class="nn">..misc</span> <span class="kn">import</span> <span class="n">Changedir</span>
+    <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">traceback</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;vasp/functional bringdown: directory: &#39;</span><span class="p">,</span> <span class="n">directory</span>
+      <span class="k">print</span> <span class="s">&#39;vasp/functional bringdown: initial structure:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">structure</span><span class="p">,)</span>
+
+    <span class="k">with</span> <span class="n">Changedir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span> <span class="k">as</span> <span class="n">pwd</span><span class="p">:</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;pylada.FUNCTIONAL&#39;</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span> <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span> <span class="bp">self</span><span class="p">))</span>
+
+      <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="s">&#39;.pylada_is_running&#39;</span><span class="p">):</span> <span class="n">remove</span><span class="p">(</span><span class="s">&#39;.pylada_is_running&#39;</span><span class="p">)</span>
+
+
+  <span class="k">def</span> <span class="nf">write_incar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Writes incar file. &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span>
+    <span class="kn">from</span> <span class="nn">..misc</span> <span class="kn">import</span> <span class="n">RelativePath</span>
+    <span class="kn">from</span> <span class="nn">.files</span> <span class="kn">import</span> <span class="n">INCAR</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional write_incar: path: &quot;</span><span class="p">,</span> <span class="n">path</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional write_incar: structure:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">structure</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional write_incar: kwargs: &quot;</span><span class="p">,</span> <span class="n">kwargs</span>
+
+    <span class="c"># check what type path is.</span>
+    <span class="c"># if not a file, opens one an does recurrent call.</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">path</span> <span class="o">=</span> <span class="n">INCAR</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;write&quot;</span><span class="p">):</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">RelativePath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="nb">file</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_incar</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="nb">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+      <span class="k">return</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;outdir&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;outdir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">vasp</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c"># twice, in-case some parameters change others.</span>
+
+    <span class="c"># At this point (vasp==self)._input is a map of the incar parameters.</span>
+    <span class="c"># The values may be primitives or callables.</span>
+    <span class="c"># Example: self._input[&#39;foobar&#39;] = &#39;FOOBARED&#39;</span>
+
+    <span class="nb">map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_map</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">vasp</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c"># The resulting map is a map of the incar parameters.</span>
+    <span class="c"># The values may be primitives or callables.</span>
+
+    <span class="n">length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">map</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+      <span class="n">outLine</span> <span class="o">=</span> <span class="s">&#39;{0: &gt;{length}} = {1}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">value</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">length</span><span class="p">)</span>
+      <span class="n">path</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="n">outLine</span><span class="p">)</span>
+
+
+
+  <span class="k">def</span> <span class="nf">write_kpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">file</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">kpoints</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Writes kpoints to a stream. &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional write_kpoints: file: &quot;</span><span class="p">,</span> <span class="nb">file</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional write_kpoints: structure:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">structure</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&quot;vasp/functional write_kpoints: kpoints: &quot;</span><span class="p">,</span> <span class="n">kpoints</span>
+
+    <span class="k">if</span> <span class="n">kpoints</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">kpoints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span> <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">,</span> <span class="s">&quot;__call__&quot;</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">write_kpoints</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c"># numpy array or such.</span>
+      <span class="n">outLine</span> <span class="o">=</span> <span class="s">&quot;Explicit list of kpoints.</span><span class="se">\n</span><span class="s">{0}</span><span class="se">\n</span><span class="s">Cartesian</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">))</span>
+      <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="n">outLine</span><span class="p">)</span>
+
+      <span class="k">for</span> <span class="n">kpoint</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kpoints</span><span class="p">:</span>
+        <span class="n">outLine</span> <span class="o">=</span> <span class="s">&quot;{0[0]} {0[1]} {0[2]} {1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+          <span class="n">kpoint</span><span class="p">,</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kpoint</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="n">kpoint</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="n">outLine</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Returns representation of this instance &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">..tools.uirepr</span> <span class="kn">import</span> <span class="n">uirepr</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">()</span> <span class="k">if</span> <span class="n">defaults</span> <span class="k">else</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">uirepr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="n">defaults</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">__ui_repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Vasp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__ui_repr__</span><span class="p">(</span><span class="n">imports</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;add_specie&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;__ui_name__&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+  <span class="nd">@add_setter</span>
+  <span class="k">def</span> <span class="nf">add_specie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Adds a specie to current functional. </span>
+<span class="sd">     </span>
+<span class="sd">        The argument is a tuple containing the following.</span>
+
+<span class="sd">        - Symbol/name (str). </span>
+<span class="sd">        - Directory where POTCAR_ resides (str).</span>
+<span class="sd">        - List of U parameters (optional, see module vasp.specie).</span>
+<span class="sd">        - Maximum (or minimum) oxidation state (optional, int).</span>
+<span class="sd">        - ... Any other argument in order of `vasp.specie.Specie.__init__`.</span>
+
+<span class="sd">        In practice, adding a specie to the dictionary :py:attr:`specie` can be</span>
+<span class="sd">        done as follows:</span>
+
+<span class="sd">        &gt;&gt;&gt; vasp.add_specie = &#39;H&#39;, &#39;$HOME/pseudos/PAWGGA/H&#39;</span>
+
+<span class="sd">        This would add an &#39;H&#39; pseudo-potential to the mix. Subsequent calls to</span>
+<span class="sd">        the functionals need *not* involve an H atom. It is possible to define</span>
+<span class="sd">        more pseudo-potentials than are actually used. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">.specie</span> <span class="kn">import</span> <span class="n">Specie</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Too few arguments.&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">[</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Specie</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    
+  <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sets state from pickle.</span>
+
+<span class="sd">        Takes care of older pickle versions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Vasp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">()</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+       <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span> <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Vasp.OnFail"><a class="viewcode-back" href="../../../pyapi/vasp/functional.html#pylada.vasp.functional.Vasp.OnFail">[docs]</a>  <span class="k">class</span> <span class="nc">OnFail</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checks whether VASP run succeeded.</span>
+
+<span class="sd">	Who knows what could happen and make VASP return an error. As long as</span>
+<span class="sd">        the OUTCAR is OK, everything should be OK.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extract</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">extract</span> <span class="o">=</span> <span class="n">extract</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">process</span><span class="p">,</span> <span class="n">error</span><span class="p">):</span>
+      <span class="kn">from</span> <span class="nn">..process</span> <span class="kn">import</span> <span class="n">Fail</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">extract</span><span class="o">.</span><span class="n">uncache</span><span class="p">()</span>
+      <span class="k">try</span><span class="p">:</span> <span class="n">success</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract</span><span class="o">.</span><span class="n">success</span>
+      <span class="k">except</span><span class="p">:</span> <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">Fail</span><span class="p">(</span> <span class="s">&#39;VASP failed to run correctly.</span><span class="se">\n</span><span class="s">&#39;</span>                       \
+                    <span class="s">&#39;It returned with error {0}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">)</span>
+</div></div>
+<span class="k">del</span> <span class="n">stateless</span>
+<span class="k">del</span> <span class="n">assign_attributes</span>
+<span class="k">del</span> <span class="n">AttrBlock</span>
+<span class="k">del</span> <span class="n">add_setter</span>
+<span class="k">del</span> <span class="n">ExtractVasp</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../pylada.html" >pylada</a> &raquo;</li>
+          <li><a href="../vasp.html" >pylada.vasp</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

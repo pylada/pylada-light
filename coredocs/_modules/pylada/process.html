@@ -1,0 +1,229 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pylada.process &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="pylada" href="../pylada.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pylada.html" accesskey="U">pylada</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pylada.process</h1><div class="highlight"><pre>
+<span class="c">###############################</span>
+<span class="c">#  This file is part of PyLaDa.</span>
+<span class="c">#</span>
+<span class="c">#  Copyright (C) 2013 National Renewable Energy Lab</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit</span>
+<span class="c">#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as</span>
+<span class="c">#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It</span>
+<span class="c">#  is able to organise and launch computational jobs on PBS and SLURM.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General</span>
+<span class="c">#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at</span>
+<span class="c">#  your option) any later version.</span>
+<span class="c"># </span>
+<span class="c">#  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even</span>
+<span class="c">#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c">#  Public License for more details.</span>
+<span class="c"># </span>
+<span class="c">#  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see</span>
+<span class="c">#  &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c">###############################</span>
+
+<span class="sd">&quot;&quot;&quot; Manages external processes and jobfolders. </span>
+
+<span class="sd">    This sub-module provides an abstraction between resources which</span>
+<span class="sd">    purports to launch external programs, say a</span>
+<span class="sd">    :py:class:`~pylada.vasp.functional.Vasp` instance, and the actual</span>
+<span class="sd">    program. There are two main issues the module attempts to resolve: </span>
+
+<span class="sd">      - an interface which hides the details of launching mpi jobs on one</span>
+<span class="sd">        or another super-computer</span>
+<span class="sd">      - an interface to launch different calculations in parallel but from</span>
+<span class="sd">        a single actual system process, e.g. asynchronous management of</span>
+<span class="sd">        different mpi-processes</span>
+<span class="sd">    </span>
+<span class="sd">    The first point above is easy to understand: some machines use openmpi_</span>
+<span class="sd">    as is, others provide different flavors of mpich, and Cray use their</span>
+<span class="sd">    own crap pseudo-proprietary software. It&#39;s best to keep all those</span>
+<span class="sd">    details in one place. The second point is to make it easy to launch</span>
+<span class="sd">    different calculations simultaneously. It provides an additional layer</span>
+<span class="sd">    for parallelization, in addition to the one provided below at the</span>
+<span class="sd">    application level by mpich and friends,  and above it by the queuing</span>
+<span class="sd">    system of a particular super-computer. </span>
+
+<span class="sd">    The module is organized around :py:class:`~process.Process` and its</span>
+<span class="sd">    derived classes. Instances of these classes are meant to be used as</span>
+<span class="sd">    follows:</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">      process = SomeProcess()</span>
+<span class="sd">      process.start(comm)</span>
+<span class="sd">      # do something else</span>
+<span class="sd">      try:</span>
+<span class="sd">       if process.poll():</span>
+<span class="sd">         # process did finish.</span>
+<span class="sd">      except Fail as e: </span>
+<span class="sd">        # an error occured</span>
+
+<span class="sd">    The first two lines initialize and start a process of some kind, which</span>
+<span class="sd">    could be as simple as lauching an external :py:class:`program</span>
+<span class="sd">    &lt;program.ProgramProcess&gt;` or as complicated as lauching different jobs</span>
+<span class="sd">    from a :py:class:`~pylada.jobfolder.jobfolder.JobFolder` instance in</span>
+<span class="sd">    :py:class:`parallel &lt;jobfolder.JobFolderProcess&gt;`. The rest of the</span>
+<span class="sd">    snippet checks whether the process is finished. If it finished</span>
+<span class="sd">    correctly, then :py:meth:`~process.Process.poll` (rather, the overloaded</span>
+<span class="sd">    functions in the derived class) returns True. Otherwise, it throws</span>
+<span class="sd">    :py:class:`Fail`.</span>
+
+<span class="sd">    It is expected that processes will be returned (or yielded) by</span>
+<span class="sd">    functionals, and then further managed by the script of interest. As such,</span>
+<span class="sd">    the initialization of a process will depend upon the actual functional,</span>
+<span class="sd">    and what it purports to do. However, it should be possible from then on</span>
+<span class="sd">    to manage the process in a standard way. This standard interface is</span>
+<span class="sd">    described by the abstract base class :py:class:`~process.Process`.</span>
+
+<span class="sd">    .. _openmpi: http://www.open-mpi.org/</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">__docformat__</span> <span class="o">=</span> <span class="s">&quot;restructuredtext en&quot;</span>
+<span class="n">__all__</span>  <span class="o">=</span> <span class="p">[</span> <span class="s">&#39;Process&#39;</span><span class="p">,</span> <span class="s">&#39;ProgramProcess&#39;</span><span class="p">,</span> <span class="s">&#39;CallProcess&#39;</span><span class="p">,</span> <span class="s">&#39;IteratorProcess&#39;</span><span class="p">,</span>
+             <span class="s">&#39;JobFolderProcess&#39;</span><span class="p">,</span> <span class="s">&#39;PoolProcess&#39;</span><span class="p">,</span> <span class="s">&#39;Fail&#39;</span><span class="p">,</span> <span class="s">&#39;which&#39;</span><span class="p">,</span> <span class="s">&#39;DummyProcess&#39;</span> <span class="p">]</span>
+
+<span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="n">root</span>
+<span class="kn">from</span> <span class="nn">pool</span> <span class="kn">import</span> <span class="n">PoolProcess</span>
+<span class="kn">from</span> <span class="nn">process</span> <span class="kn">import</span> <span class="n">Process</span>
+<span class="kn">from</span> <span class="nn">call</span> <span class="kn">import</span> <span class="n">CallProcess</span>
+<span class="kn">from</span> <span class="nn">program</span> <span class="kn">import</span> <span class="n">ProgramProcess</span>
+<span class="kn">from</span> <span class="nn">iterator</span> <span class="kn">import</span> <span class="n">IteratorProcess</span>
+<span class="kn">from</span> <span class="nn">jobfolder</span> <span class="kn">import</span> <span class="n">JobFolderProcess</span>
+<span class="kn">from</span> <span class="nn">dummy</span> <span class="kn">import</span> <span class="n">DummyProcess</span>
+
+<div class="viewcode-block" id="ProcessError"><a class="viewcode-back" href="../../pyapi/process.html#pylada.process.ProcessError">[docs]</a><span class="k">class</span> <span class="nc">ProcessError</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Root of special exceptions issued by process module. &quot;&quot;&quot;</span></div>
+<div class="viewcode-block" id="Fail"><a class="viewcode-back" href="../../pyapi/process.html#pylada.process.Fail">[docs]</a><span class="k">class</span> <span class="nc">Fail</span><span class="p">(</span><span class="n">ProcessError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Process failed to run successfully. &quot;&quot;&quot;</span>
+  <span class="k">pass</span></div>
+<div class="viewcode-block" id="AlreadyStarted"><a class="viewcode-back" href="../../pyapi/process.html#pylada.process.AlreadyStarted">[docs]</a><span class="k">class</span> <span class="nc">AlreadyStarted</span><span class="p">(</span><span class="n">ProcessError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Process already started.</span>
+<span class="sd">      </span>
+<span class="sd">      Thrown when :py:meth:`~process.Process.start` or its overloaded friend is</span>
+<span class="sd">      called for a second time.</span>
+<span class="sd">  &quot;&quot;&quot;</span></div>
+<div class="viewcode-block" id="NotStarted"><a class="viewcode-back" href="../../pyapi/process.html#pylada.process.NotStarted">[docs]</a><span class="k">class</span> <span class="nc">NotStarted</span><span class="p">(</span><span class="n">ProcessError</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Process was never started.</span>
+<span class="sd">      </span>
+<span class="sd">      Thrown when :py:meth:`~process.Process.poll` or its overloaded friend is</span>
+<span class="sd">      called before the process is started.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="which"><a class="viewcode-back" href="../../pyapi/process.html#pylada.process.which">[docs]</a><span class="k">def</span> <span class="nf">which</span><span class="p">(</span><span class="n">program</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Gets location of program by mimicking bash which command. &quot;&quot;&quot;</span>
+  <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span><span class="p">,</span> <span class="n">getcwd</span>
+  <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">split</span><span class="p">,</span> <span class="n">expanduser</span><span class="p">,</span> <span class="n">expandvars</span><span class="p">,</span> <span class="n">join</span>
+  <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+  <span class="kn">from</span> <span class="nn">..misc</span> <span class="kn">import</span> <span class="n">RelativePath</span>
+  <span class="kn">from</span> <span class="nn">..error</span> <span class="kn">import</span> <span class="ne">IOError</span>
+
+  <span class="k">def</span> <span class="nf">is_exe</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">access</span><span class="p">,</span> <span class="n">X_OK</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isfile</span>
+    <span class="k">return</span> <span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">and</span> <span class="n">access</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">X_OK</span><span class="p">)</span>
+
+  <span class="n">exprog</span> <span class="o">=</span> <span class="n">expanduser</span><span class="p">(</span><span class="n">expandvars</span><span class="p">(</span><span class="n">program</span><span class="p">))</span>
+  <span class="n">fpath</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">exprog</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">fpath</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">is_exe</span><span class="p">(</span><span class="n">exprog</span><span class="p">):</span> <span class="k">return</span> <span class="n">RelativePath</span><span class="p">(</span><span class="n">exprog</span><span class="p">)</span><span class="o">.</span><span class="n">path</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">([</span><span class="n">getcwd</span><span class="p">()],</span> <span class="n">environ</span><span class="p">[</span><span class="s">&quot;PATH&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)):</span>
+      <span class="k">if</span> <span class="n">is_exe</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="n">exprog</span><span class="p">)):</span> <span class="k">return</span> <span class="n">RelativePath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="n">exprog</span><span class="p">))</span><span class="o">.</span><span class="n">path</span>
+
+  <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s">&#39;Could not find executable {0}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">program</span><span class="p">))</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pylada.html" >pylada</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

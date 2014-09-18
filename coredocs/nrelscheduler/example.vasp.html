@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>schedMain Example B: VASP &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="Welcome to schedMain’s documentation!" href="index.html" />
+    <link rel="next" title="Examples" href="../examples.html" />
+    <link rel="prev" title="schedMain Example A: static files" href="example.static.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../examples.html" title="Examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="example.static.html" title="schedMain Example A: static files"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Welcome to schedMain&#8217;s documentation!</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="schedmain-example-b-vasp">
+<span id="example-vasp"></span><h1>schedMain Example B: VASP<a class="headerlink" href="#schedmain-example-b-vasp" title="Permalink to this headline">¶</a></h1>
+<p class="graphviz">
+<img src="../_images/graphviz-6ce67fbecb13406c3165919863290237e713665b.png" alt="digraph exampleStatic {
+  //graph [label=&quot;NREL MatDB Data Flow&quot;, labelloc=t, fontsize=30];
+  rank=source;
+  legendx [shape=none, margin=0, label=&lt;
+    &lt;table border=&quot;0&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;font point-size=&quot;20&quot;&gt;&lt;b&gt; Task Dependencies &lt;/b&gt;&lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;font point-size=&quot;12&quot;&gt;
+    All of the following tasks run in directory&lt;br/&gt;
+    icsd_06845 or a subdirectory of it.&lt;br/&gt;
+    However there could be many icsd_*&lt;br/&gt;
+    directories specified in the initWork file,&lt;br/&gt;
+    and all would run in parallel.
+    &lt;/font&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+  rankdir = TB;
+  node [color=blue, shape=box, fontsize=10];
+  edge [fontsize=11];
+  //URL=&quot;index.html&quot;;       // default for entire graph
+
+
+  nonmagSetup [shape=none, margin=0, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;font point-size=&quot;12&quot;&gt;&lt;b&gt;&lt;u&gt;
+        nonmagSetup.py in dir icsd_06845
+      &lt;/u&gt;&lt;/b&gt;&lt;/font&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Specified in initWork &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Starts immediately (no prereqs) &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt; &lt;b&gt; Sets up the next step by: &lt;/b&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes nonmagSetup.postOkWork, which specifies runVaspChain.py in dir non-magnetic &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes non-magnetic/runVaspChain.preWork, which specifies prerequisite nonmagSetup.py &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt; &lt;b&gt; Sets up the step after runVaspChain by: &lt;/b&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes non-magnetic/runVaspChain.postOkWork, which specifies magSetup.py &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes magSetup.preWork, which specifies prerequisite runVaspChain &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+
+  nonmagVasp [shape=none, margin=0, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;font point-size=&quot;12&quot;&gt;&lt;b&gt;&lt;u&gt;
+        runVaspChain.py in dir non-magnetic
+      &lt;/u&gt;&lt;/b&gt;&lt;/font&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; * In subdir relax_cellShape, runs VASP cell shape relaxation  &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; * In subdir relax_ions, runs VASP cell ionic relaxation  &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; * In subdir final, runs one final VASP &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+
+  magSetup [shape=none, margin=0, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;font point-size=&quot;12&quot;&gt;&lt;b&gt;&lt;u&gt;
+        magSetup.py in dir icsd_06845
+      &lt;/u&gt;&lt;/b&gt;&lt;/font&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Starts after non-mag runVaspChain &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt; &lt;b&gt; Sets up the next tasks by: &lt;/b&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes magSetup.postOkWork, which specifies runVaspChain.py in all the mag dirs: ls-ferro, hs-ferro, and *anti-ferro* for larger structures &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes runVaspChain.preWork in all the mag dirs, which specifies prerequisite magSetup.py &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt; &lt;b&gt; Sets up the step after all the runVaspChains complete by: &lt;/b&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes runVaspChain.postOkWork in all the mag dirs, which specifies gwSetup.py &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes gwSetup.preWork, which specifies prerequisites runVaspChain in all the mag dirs &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+
+
+
+  magVasp [shape=none, margin=0, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;font point-size=&quot;12&quot;&gt;&lt;b&gt;&lt;u&gt;
+        runVaspChain.py (multiple tasks, one in each of the mag dirs)
+      &lt;/u&gt;&lt;/b&gt;&lt;/font&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; * In subdir relax_cellShape, runs VASP cell shape relaxation  &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; * In subdir relax_ions, runs VASP cell ionic relaxation  &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; * In subdir final, runs one final VASP &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+
+  gwSetup [shape=none, margin=0, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;font point-size=&quot;12&quot;&gt;&lt;b&gt;&lt;u&gt;
+        gwSetup.py in dir icsd_06845
+      &lt;/u&gt;&lt;/b&gt;&lt;/font&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Starts after all the mag runVaspChains &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt; &lt;b&gt; Sets up the next step by: &lt;/b&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes gwSetup.postOkWork, which specifies runVaspChain.py in dir gwdir &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt;  * Writes gwdir/runVaspChain.preWork, which specifies prerequisite gwSetup.py &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+
+
+  gwVasp [shape=none, margin=0, label=&lt;
+    &lt;table border=&quot;1&quot; cellborder=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;1&quot;&gt;
+      &lt;tr&gt; &lt;td align=&quot;center&quot;&gt; &lt;font point-size=&quot;12&quot;&gt;&lt;b&gt;&lt;u&gt;
+        runVaspChain.py in dir gwdir
+      &lt;/u&gt;&lt;/b&gt;&lt;/font&gt; &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; * In subdir relax_cellShape, runs VASP cell shape relaxation  &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; * In subdir relax_ions, runs VASP cell ionic relaxation  &lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt; &lt;td align=&quot;left&quot;&gt; * In subdir final, runs one final VASP &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  &gt;];
+
+
+
+  legendx -&gt; nonmagSetup [style=invis];
+  nonmagSetup -&gt; nonmagVasp
+  nonmagVasp -&gt; magSetup
+  magSetup -&gt; magVasp
+  magVasp -&gt; gwSetup
+  gwSetup -&gt; gwVasp
+}" />
+</p>
+<div class="section" id="demo-mode">
+<h2>Demo mode<a class="headerlink" href="#demo-mode" title="Permalink to this headline">¶</a></h2>
+<p>We will run this example twice - first in demo mode,
+without invoking VASP, and later with VASP.
+Here in demo mode we will make two abreviations:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Instead of using the HPC queueing system with <tt class="docutils literal"><span class="pre">qsub</span></tt>,
+we will execute scripts on the local host with bash.</li>
+<li>Instead of calling VASP we will simply copy in the results
+of a previous VASP run.  The results aren&#8217;t meaningful,
+but it allows us to demonstrate quickly the overall schedMain framework.</li>
+</ul>
+</div></blockquote>
+<p>To run this example, pick a name of some directory
+for testing, say <tt class="docutils literal"><span class="pre">testb</span></tt>.  Then:</p>
+<div class="highlight-python"><pre>cp -r schedMain/example.vasp testb
+cd testb
+
+# Set up dummy files to be used instead of calling VASP
+cp -r demoFiles global/vaspDemo</pre>
+</div>
+<p>Make sure your PYTHONPATH includes <tt class="docutils literal"><span class="pre">nrelmat/readVasp.py</span></tt>.
+For example:</p>
+<div class="highlight-python"><pre>export PYTHONPATH=$PYTHONPATH:.../nrelmat</pre>
+</div>
+<p>Finally, run the scheduler:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="o">.../</span><span class="n">schedMain</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">globalDir</span> <span class="k">global</span> <span class="o">-</span><span class="n">ancDir</span> <span class="o">.</span> <span class="o">-</span><span class="n">initWork</span> <span class="n">initWork</span> <span class="o">-</span><span class="n">delaySec</span> <span class="mi">1</span> <span class="o">-</span><span class="n">redoAll</span> <span class="n">n</span>
+</pre></div>
+</div>
+<p>The output format and task status values are documented
+in <a class="reference internal" href="example.static.html#example-static"><em>schedMain Example A: static files</em></a>.</p>
+<div class="section" id="real-mode">
+<h3>Real mode<a class="headerlink" href="#real-mode" title="Permalink to this headline">¶</a></h3>
+<p>Real mode means we will use the HPC queueing system and we
+will execute VASP.  This will run <strong>much</strong> more slowly
+than our quick demo.  First we need to inform the scheduler
+about the HPC queueing system and our VASP.</p>
+</div>
+</div>
+<div class="section" id="set-up-the-hpc-queueing-system">
+<h2>Set up the HPC queueing system<a class="headerlink" href="#set-up-the-hpc-queueing-system" title="Permalink to this headline">¶</a></h2>
+<p>For example assume your system is named &#8220;myHpc&#8221;.
+In the file <tt class="docutils literal"><span class="pre">schedMisc.py</span></tt> you will find a section like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;peregrine&#39;</span><span class="p">:</span> <span class="n">cmdLine</span> <span class="o">=</span> <span class="s">&#39;showq&#39;</span>
+</pre></div>
+</div>
+<p>You need to add a similar section that specifies the command
+used on myHPC to show the queue; something like:</p>
+<div class="highlight-python"><pre>elif hostType == 'myHpc': cmdLine = 'showq'</pre>
+</div>
+<p>In schedMisc.py you also will find a section like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">hostType</span> <span class="o">==</span> <span class="s">&#39;peregrine&#39;</span><span class="p">:</span>
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">qtoks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">9</span> <span class="ow">and</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&#39;^\d+$&#39;</span><span class="p">,</span> <span class="n">qtoks</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>   <span class="c"># ignore headings</span>
+    <span class="p">(</span><span class="n">qjobId</span><span class="p">,</span> <span class="n">quserId</span><span class="p">,</span> <span class="n">qstate</span><span class="p">)</span> <span class="o">=</span> <span class="n">qtoks</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">qstate</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;BatchHold&#39;</span><span class="p">,</span> <span class="s">&#39;Hold&#39;</span><span class="p">,</span> <span class="s">&#39;Idle&#39;</span><span class="p">,</span> <span class="s">&#39;SystemHold&#39;</span><span class="p">,</span> <span class="s">&#39;UserHold&#39;</span><span class="p">]:</span>
+      <span class="n">status</span> <span class="o">=</span> <span class="n">ST_WAIT</span>
+    <span class="k">elif</span> <span class="n">qstate</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Running&#39;</span><span class="p">]:</span> <span class="n">status</span> <span class="o">=</span> <span class="n">ST_RUN</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;getPbsMap: unknown status: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">qline</span><span class="p">,)</span>
+      <span class="n">status</span> <span class="o">=</span> <span class="n">ST_WAIT</span>              <span class="c"># assume it&#39;s some variant of wait</span>
+    <span class="n">pbsMap</span><span class="p">[</span><span class="n">qjobId</span><span class="p">]</span> <span class="o">=</span> <span class="n">status</span>
+</pre></div>
+</div>
+<p>You need to add a similar section for myHPC.  The new
+section must extract from the showq output the job ID and
+the job status, and must translate the status to one of the
+ST_* constants at the top of schedMisc.py.</p>
+<p>Similarly, search for <tt class="docutils literal"><span class="pre">hostType</span></tt> and add sections appropriate
+for myHpc in the following files:</p>
+<div class="highlight-python"><pre>* taskClass.py
+* example.vasp/global/cmd/magSetup.py
+* example.vasp/global/cmd/nonmagSetup.py
+* example.vasp/global/cmd/runVaspChain.py
+* example.vasp/global/cmd/rvmisc.py</pre>
+</div>
+</div>
+<div class="section" id="set-up-vasp">
+<h2>Set up VASP<a class="headerlink" href="#set-up-vasp" title="Permalink to this headline">¶</a></h2>
+<p>In your home directory create a file named <tt class="docutils literal"><span class="pre">pyladaExec.sh</span></tt>,
+and use an ascii text editor (vim, emacs, etc) to add
+content like the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Add any setup you like, such as export PATH,</span>
+<span class="c"># export LD_LIBRARY_PATH, etc.</span>
+
+<span class="c"># Start VASP</span>
+<span class="o">.../</span><span class="n">my</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">VASP</span>
+</pre></div>
+</div>
+<p>Make sure the file is executable:</p>
+<div class="highlight-python"><pre>chmod u+x pyladaExec.sh</pre>
+</div>
+<p>Delete the dummy VASP files we used in the demo above:</p>
+<div class="highlight-python"><pre>rm -r global/vaspDemo</pre>
+</div>
+</div>
+<div class="section" id="run-schedmain">
+<h2>Run schedMain<a class="headerlink" href="#run-schedmain" title="Permalink to this headline">¶</a></h2>
+<p>Finally we run the scheduler:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="o">.../</span><span class="n">schedMain</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">globalDir</span> <span class="k">global</span> <span class="o">-</span><span class="n">ancDir</span> <span class="o">.</span> <span class="o">-</span><span class="n">initWork</span> <span class="n">initWork</span> <span class="o">-</span><span class="n">delaySec</span> <span class="mi">5</span> <span class="o">-</span><span class="n">redoAll</span> <span class="n">n</span> <span class="o">-</span><span class="n">hostType</span> <span class="n">myHpc</span>
+</pre></div>
+</div>
+<p>This could run for a few minutes to a few days, depending on
+your HPC queues.  Using <tt class="docutils literal"><span class="pre">-delaySec</span> <span class="pre">5</span></tt> instead of 1 makes the
+display less busy, but the job runs essentially as fast.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">schedMain Example B: VASP</a><ul>
+<li><a class="reference internal" href="#demo-mode">Demo mode</a><ul>
+<li><a class="reference internal" href="#real-mode">Real mode</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#set-up-the-hpc-queueing-system">Set up the HPC queueing system</a></li>
+<li><a class="reference internal" href="#set-up-vasp">Set up VASP</a></li>
+<li><a class="reference internal" href="#run-schedmain">Run schedMain</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="example.static.html"
+                        title="previous chapter">schedMain Example A: static files</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../examples.html"
+                        title="next chapter">Examples</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/nrelscheduler/example.vasp.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../examples.html" title="Examples"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="example.static.html" title="schedMain Example A: static files"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../userguide.html" >User Guide</a> &raquo;</li>
+          <li><a href="index.html" >Welcome to schedMain&#8217;s documentation!</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

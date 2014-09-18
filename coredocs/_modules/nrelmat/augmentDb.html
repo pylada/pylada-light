@@ -1,0 +1,1400 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>nrelmat.augmentDb &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for nrelmat.augmentDb</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># Copyright 2013 National Renewable Energy Laboratory, Golden CO, USA</span>
+<span class="c"># This file is part of NREL MatDB.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is free software: you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU General Public License as published by</span>
+<span class="c"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c"># (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># NREL MatDB is distributed in the hope that it will be useful,</span>
+<span class="c"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c"># GNU General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License</span>
+<span class="c"># along with NREL MatDB.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="kn">import</span> <span class="nn">datetime</span><span class="o">,</span> <span class="nn">fractions</span><span class="o">,</span> <span class="nn">json</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pyspglib</span> <span class="kn">import</span> <span class="n">spglib</span>
+
+<span class="kn">import</span> <span class="nn">wrapUpload</span>
+<span class="kn">import</span> <span class="nn">fillDbVasp</span>
+
+<span class="c">#====================================================================</span>
+
+<span class="k">class</span> <span class="nc">DbObj</span><span class="p">(</span> <span class="nb">object</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Empty class so we can set attributes</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">pass</span>
+
+<span class="c">#====================================================================</span>
+
+<span class="c"># Creates an ASE bulk look-alike object, as required by spglib,</span>
+<span class="c"># using the info retrieved from the DB.</span>
+
+<span class="k">class</span> <span class="nc">AseBulk</span><span class="p">:</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">rowCellMat</span><span class="p">,</span> <span class="n">cartPosMat</span><span class="p">,</span> <span class="n">atomNames</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">rowCellMat</span> <span class="o">=</span> <span class="n">rowCellMat</span>   <span class="c"># cell matrix, in rows</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">cartPosMat</span> <span class="o">=</span> <span class="n">cartPosMat</span>   <span class="c"># cartesian position matrix</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">atomNames</span> <span class="o">=</span> <span class="n">atomNames</span>     <span class="c"># names of atoms, like</span>
+                                   <span class="c">#  [&#39;Fe&#39;, &#39;Fe&#39;, &#39;O&#39;, &#39;O&#39;, &#39;O&#39;]</span>
+
+  <span class="k">def</span> <span class="nf">get_cell</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="c"># The spglib python wants rows.</span>
+    <span class="c"># Internally the spglib python converts to columns</span>
+    <span class="c"># for the underlying spglib C library.</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rowCellMat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;double&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">get_scaled_positions</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="n">cellInv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">rowCellMat</span><span class="p">)</span>
+    <span class="n">scalePosMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span> <span class="n">row</span><span class="p">,</span> <span class="n">cellInv</span> <span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cartPosMat</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">scalePosMat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;double&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">)</span>
+    
+  <span class="k">def</span> <span class="nf">get_atomic_numbers</span><span class="p">(</span> <span class="bp">self</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">pylada</span> <span class="kn">import</span> <span class="n">periodic_table</span>
+    <span class="n">atomNums</span> <span class="o">=</span> <span class="p">[</span><span class="n">periodic_table</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span> <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atomNames</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">atomNums</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">badparms</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Prints an error msg and usage info, and exits with rc 1.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Error: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">,)</span>
+  <span class="k">print</span> <span class="s">&#39;Parms:&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -bugLev      &lt;int&gt;      debug level&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -useCommit   &lt;boolean&gt;  false/true: do we commit changes to the DB.&#39;</span>
+  <span class="k">print</span> <span class="s">&#39;  -inSpec      &lt;string&gt;   inSpecJsonFile&#39;</span>
+  <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  This program adds additional information to the model database table.</span>
+<span class="sd">  The following functions in this file fill the indicated columns</span>
+<span class="sd">  in the model table.  The columns must have been created previously</span>
+<span class="sd">  by the fillDbVasp.py function createTable.</span>
+
+<span class="sd">  ==============  =============  ==============================================</span>
+<span class="sd">  Function        Column         Notes</span>
+<span class="sd">  ==============  =============  ==============================================</span>
+<span class="sd">  addChemform     formula        Standard chemical formula: ``&quot;H2 O&quot;``.</span>
+
+<span class="sd">  addChemform     sortedformula  Chemical formula: ``&quot;H2 O&quot;``, with</span>
+<span class="sd">                                 atoms sorted in alphabetic order.</span>
+
+<span class="sd">  addChemForm     chemtext       Structured formula, easier for parsing.</span>
+<span class="sd">                                 Every token is surrounded by spaces, and</span>
+<span class="sd">                                 single occurance atoms have the explicit</span>
+<span class="sd">                                 &quot;1&quot; count:</span>
+<span class="sd">                                 ``&quot; H 2 O 1 &quot;``.</span>
+<span class="sd"> </span>
+<span class="sd">  addMinenergy    minenergyid    == mident having min energyperatom</span>
+<span class="sd">                                 for this formula and finalspacegroupnum.</span>
+<span class="sd">  ==============  =============  ==============================================</span>
+
+
+<span class="sd">  Command line parameters:</span>
+
+<span class="sd">  ==============  ===========   ===============================================</span>
+<span class="sd">  Parameter       Type          Description</span>
+<span class="sd">  ==============  ===========   ===============================================</span>
+<span class="sd">  **-bugLev**     integer       Debug level.  Normally 0.</span>
+<span class="sd">  **-useCommit**  boolean       false/true: do we commit changes to the DB.</span>
+<span class="sd">  **-inSpec**     string        JSON file containing DB parameters.  See below.</span>
+<span class="sd">  ==============  ===========   ===============================================</span>
+
+<span class="sd">  **inSpec File Parameters:**</span>
+
+<span class="sd">  ===================    ==============================================</span>
+<span class="sd">  Parameter              Description</span>
+<span class="sd">  ===================    ==============================================</span>
+<span class="sd">  **dbhost**             Database hostname.</span>
+<span class="sd">  **dbport**             Database port number.</span>
+<span class="sd">  **dbuser**             Database user name.</span>
+<span class="sd">  **dbpswd**             Database password.</span>
+<span class="sd">  **dbname**             Database database name.</span>
+<span class="sd">  **dbschema**           Database schema name.</span>
+<span class="sd">  **dbtablemodel**       Database name of the &quot;model&quot; table.</span>
+<span class="sd">  ===================    ==============================================</span>
+
+<span class="sd">  **inSpec file example:**::</span>
+
+<span class="sd">    {</span>
+<span class="sd">      &quot;dbhost&quot;         : &quot;scctest&quot;,</span>
+<span class="sd">      &quot;dbport&quot;         : &quot;6432&quot;,</span>
+<span class="sd">      &quot;dbuser&quot;         : &quot;x&quot;,</span>
+<span class="sd">      &quot;dbpswd&quot;         : &quot;x&quot;,</span>
+<span class="sd">      &quot;dbname&quot;         : &quot;cidlada&quot;,</span>
+<span class="sd">      &quot;dbschema&quot;       : &quot;satom&quot;,</span>
+<span class="sd">      &quot;dbtablemodel&quot;   : &quot;model&quot;</span>
+<span class="sd">    }</span>
+
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">bugLev</span>     <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">useCommit</span>  <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">inSpec</span>     <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;Parms must be key/value pairs&#39;</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">iarg</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="p">]</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span>   <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-bugLev&#39;</span><span class="p">:</span> <span class="n">bugLev</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-useCommit&#39;</span><span class="p">:</span> <span class="n">useCommit</span> <span class="o">=</span> <span class="n">wrapUpload</span><span class="o">.</span><span class="n">parseBoolean</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="s">&#39;-inSpec&#39;</span><span class="p">:</span> <span class="n">inSpec</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;unknown key: &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,))</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -bugLev&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">useCommit</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -useCommit&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">inSpec</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;parm not specified: -inSpec&#39;</span><span class="p">)</span>
+
+  <span class="c"># Register psycopg2 adapter for np.ndarray</span>
+  <span class="c"># The function formatArray is defined below.</span>
+  <span class="k">def</span> <span class="nf">adaptVal</span><span class="p">(</span> <span class="n">val</span><span class="p">):</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">fillDbVasp</span><span class="o">.</span><span class="n">formatArray</span><span class="p">(</span> <span class="n">val</span><span class="p">)</span>
+    <span class="c"># AsIs provides getquoted() which just calls the wrapped object&#39;s str().</span>
+    <span class="k">return</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">AsIs</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+  <span class="n">psycopg2</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">register_adapter</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">string_</span><span class="p">,</span> <span class="n">adaptVal</span><span class="p">)</span>
+
+  <span class="n">augmentDb</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">)</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="augmentDb"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.augmentDb">[docs]</a><span class="k">def</span> <span class="nf">augmentDb</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">useCommit</span><span class="p">,</span> <span class="n">inSpec</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Adds additional information to the model database table.</span>
+
+<span class="sd">  See documentation for the :func:`main` function.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level.  Normally 0.</span>
+<span class="sd">  * useCommit (bool): do we commit changes to the DB.</span>
+<span class="sd">  * inSpec (str): Name of JSON file containing DB parameters.</span>
+<span class="sd">                  See description at :func:`main`.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * None</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">print</span> <span class="s">&#39;augmentDb: useCommit: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">useCommit</span><span class="p">,)</span>
+
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span> <span class="n">inSpec</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+    <span class="n">specMap</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span> <span class="n">fin</span><span class="p">)</span>
+
+  <span class="n">dbhost</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbhost&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbport</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbport&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbuser</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbuser&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbpswd</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbpswd&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbname</span>       <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbname&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbschema</span>     <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbschema&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+  <span class="n">dbtablemodel</span> <span class="o">=</span> <span class="n">specMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;dbtablemodel&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">dbhost</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbhost&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbport</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbport&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbuser</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbuser&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbpswd</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbpswd&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbname</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>       <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbname&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbschema</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>     <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbschema&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dbtablemodel</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">badparms</span><span class="p">(</span><span class="s">&#39;inSpec name not found: dbtablemodel&#39;</span><span class="p">)</span>
+  <span class="n">dbport</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">dbport</span><span class="p">)</span>
+
+  <span class="n">conn</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="n">cursor</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+      <span class="n">host</span><span class="o">=</span><span class="n">dbhost</span><span class="p">,</span>
+      <span class="n">port</span><span class="o">=</span><span class="n">dbport</span><span class="p">,</span>
+      <span class="n">user</span><span class="o">=</span><span class="n">dbuser</span><span class="p">,</span>
+      <span class="n">password</span><span class="o">=</span><span class="n">dbpswd</span><span class="p">,</span>
+      <span class="n">database</span><span class="o">=</span><span class="n">dbname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;main: got conn.  dbhost: </span><span class="si">%s</span><span class="s">  dbport: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dbhost</span><span class="p">,</span> <span class="n">dbport</span><span class="p">,)</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;set search_path to </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">dbschema</span><span class="p">,))</span>
+
+    <span class="n">db_rows</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">sqlMsg</span> <span class="o">=</span> <span class="s">&#39;SELECT * FROM </span><span class="si">%s</span><span class="s"> ORDER BY mident&#39;</span>  <span class="o">%</span> <span class="p">(</span><span class="n">dbtablemodel</span><span class="p">,)</span>
+
+      <span class="c"># For testing use:</span>
+      <span class="c">#WHERE wrapid = &#39;@2013.12.04@09.42.21.719000@ciduser@data.redmesa.raw.As@&#39;</span>
+      <span class="c">#WHERE wrapid = &#39;@2014.03.25@10.22.24.696353@ciduser@data.peregrine.upload.lany.2013.10.31.raw.fixed.2013_PRB_GGAUvsHSE@&#39;</span>
+      <span class="c">#WHERE wrapid = &#39;@2014.04.08@19.58.58.011410@ssulliva@scratch.ssulliva.slany.gw@&#39;</span>
+      <span class="c">#WHERE model.mident = ANY( ARRAY[</span>
+      <span class="c">#   2739, 2740, 2741, 2755, 2817,</span>
+      <span class="c">#   2818, 2820, 2835, 2836, 2848,</span>
+      <span class="c">#   3046, 3047, 3048, 3568, 3880,</span>
+      <span class="c">#   3881, 3882, 4173, 4592, 4593,</span>
+      <span class="c">#   4594, 4772, 17126, 17193, 23445,</span>
+      <span class="c">#  27102, 30971, 31004, 31037, 31070,</span>
+      <span class="c">#  34729, 39530, 39597, 39634, 39653,</span>
+      <span class="c">#  39668, 59421, 61882, 64391, 66165])</span>
+
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span> <span class="n">sqlMsg</span><span class="p">)</span>
+    <span class="n">dbRows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">dbCols</span> <span class="o">=</span> <span class="p">[</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">desc</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">]</span>
+    <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">dbRows</span><span class="p">)</span>
+    <span class="n">ncol</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">dbCols</span><span class="p">)</span>
+
+
+    <span class="n">objPairs</span> <span class="o">=</span> <span class="p">[]</span>        <span class="c"># one pair [curObj, newObj] per row</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">dbRows</span><span class="p">:</span>
+
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ncol</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;len mismatch&#39;</span><span class="p">)</span>
+
+      <span class="c"># Fill curObj with the values of this row</span>
+      <span class="n">curObj</span> <span class="o">=</span> <span class="n">DbObj</span><span class="p">()</span>
+      <span class="k">for</span> <span class="n">icol</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">ncol</span><span class="p">):</span>
+        <span class="nb">setattr</span><span class="p">(</span> <span class="n">curObj</span><span class="p">,</span> <span class="n">dbCols</span><span class="p">[</span><span class="n">icol</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="n">icol</span><span class="p">])</span>
+
+      <span class="n">objPairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">DbObj</span><span class="p">()))</span>
+
+    <span class="c">#print &#39;\nxxxxxxxxxxxxxx start objPairs[0][0] xxxxxxxxxxxxxxxxx&#39;</span>
+    <span class="c">#wrapUpload.printMap(&#39;objPairs[0][0]&#39;, objPairs[0][0].__dict__, 0)</span>
+    <span class="c">#print &#39;xxxxxxxxxxxxxx end objPairs[0][0] xxxxxxxxxxxxxxxxx\n&#39;</span>
+
+
+    <span class="n">addMisc</span><span class="p">(</span>        <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+    <span class="n">addBandgap</span><span class="p">(</span>     <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+    <span class="n">addChemform</span><span class="p">(</span>    <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+    <span class="n">addSpaceGroups</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+
+    <span class="c"># addMinenergy must be after addSpaceGroups</span>
+    <span class="n">addMinenergy</span><span class="p">(</span>   <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+    <span class="n">addEnthalpy</span><span class="p">(</span>    <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+    <span class="n">addMagmom</span><span class="p">(</span>      <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+    <span class="n">addDosMat</span><span class="p">(</span>      <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+    <span class="n">addDielectric</span><span class="p">(</span>  <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+    <span class="n">addFamily</span><span class="p">(</span>      <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">)</span>   <span class="c"># updates newObjs</span>
+
+
+
+    <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+      <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+      <span class="n">keys</span> <span class="o">=</span> <span class="n">newObj</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+      <span class="n">keys</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+      <span class="n">colNames</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="n">colVals</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">colNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">colVals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">newObj</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span> <span class="n">colNames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">colNameStg</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span> <span class="n">colNames</span><span class="p">)</span>
+        <span class="n">colTagStg</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">colNames</span><span class="p">)</span> <span class="o">*</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">,&#39;</span><span class="p">)</span> <span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>       <span class="c"># del final &#39;,&#39;</span>
+
+        <span class="n">updateStg</span> <span class="o">=</span> <span class="s">&#39;UPDATE </span><span class="si">%s</span><span class="s"> SET (</span><span class="si">%s</span><span class="s">) = (</span><span class="si">%s</span><span class="s">) WHERE mident = </span><span class="si">%d</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span> <span class="n">dbtablemodel</span><span class="p">,</span> <span class="n">colNameStg</span><span class="p">,</span> <span class="n">colTagStg</span><span class="p">,</span> <span class="n">curObj</span><span class="o">.</span><span class="n">mident</span><span class="p">,)</span>
+
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span> <span class="n">updateStg</span><span class="p">,</span> <span class="n">colVals</span><span class="p">)</span>
+
+
+      <span class="c"># xxx outdent?</span>
+      <span class="k">if</span> <span class="n">useCommit</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="k">print</span> <span class="s">&#39;augmentDb: commit done.  mident: </span><span class="si">%d</span><span class="s">  formula: </span><span class="si">%s</span><span class="s">  num col: </span><span class="si">%d</span><span class="s">&#39;</span> \
+            <span class="o">%</span> <span class="p">(</span><span class="n">curObj</span><span class="o">.</span><span class="n">mident</span><span class="p">,</span> <span class="n">newObj</span><span class="o">.</span><span class="n">formula</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span> <span class="n">newObj</span><span class="o">.</span><span class="n">__dict__</span><span class="p">),)</span>
+
+
+  <span class="k">finally</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">cursor</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">conn</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span> <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+
+
+
+
+
+
+<span class="c">#====================================================================</span>
+
+
+</div>
+<span class="k">def</span> <span class="nf">addMisc</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the atomnames, volume, pressure, misc, for all structures.</span>
+
+<span class="sd">  For example for H2O readVasp.py gives</span>
+<span class="sd">  and 2 typeNames [&#39;H&#39;, &#39;O&#39;] with typeNums [2, 1],</span>
+<span class="sd">  and we compute the 3 atomNames [&#39;H&#39;, &#39;H&#39;, &#39;O&#39;].</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="c"># xxx all doc</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addMisc entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+    <span class="c">#print &#39;\nxxxxxxxxxxxx start curobj xxxxxxxxxxxxxxx&#39;</span>
+    <span class="c">#wrapUpload.printMap(&#39;curObj&#39;, curObj.__dict__, 0)</span>
+    <span class="c">#print &#39;\nxxxxxxxxxxxx end curobj xxxxxxxxxxxxxxx&#39;</span>
+    <span class="c">#print &#39;\nxxxxxxxxxxxx start newobj xxxxxxxxxxxxxxx&#39;</span>
+    <span class="c">#wrapUpload.printMap(&#39;newObj&#39;, newObj.__dict__, 0)</span>
+    <span class="c">#print &#39;\nxxxxxxxxxxxx end newobj xxxxxxxxxxxxxxx&#39;</span>
+
+    <span class="k">if</span> <span class="n">curObj</span><span class="o">.</span><span class="n">iterrealtimes</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span> <span class="n">newObj</span><span class="o">.</span><span class="n">itertotaltime</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">newObj</span><span class="o">.</span><span class="n">itertotaltime</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">iterrealtimes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;addMisc: itertotaltime: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newObj</span><span class="o">.</span><span class="n">itertotaltime</span><span class="p">,)</span>
+
+    <span class="n">numType</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenames</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenums</span><span class="p">)</span> <span class="o">!=</span> <span class="n">numType</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;numType mismatch&#39;</span><span class="p">)</span>
+
+    <span class="n">atomTypes</span> <span class="o">=</span> <span class="p">[]</span>        <span class="c"># indices into typeNames, typeNums</span>
+    <span class="n">atomNames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">atomMasses_amu</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">atomPseudos</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">atomValences</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numType</span><span class="p">):</span>
+      <span class="n">numEle</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenums</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+      <span class="n">atomTypes</span>      <span class="o">+=</span> <span class="n">numEle</span> <span class="o">*</span> <span class="p">[</span> <span class="n">ii</span> <span class="p">]</span>
+      <span class="n">atomNames</span>      <span class="o">+=</span> <span class="n">numEle</span> <span class="o">*</span> <span class="p">[</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenames</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="p">]</span>
+      <span class="n">atomMasses_amu</span> <span class="o">+=</span> <span class="n">numEle</span> <span class="o">*</span> <span class="p">[</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typemasses_amu</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="p">]</span>
+      <span class="n">atomPseudos</span>    <span class="o">+=</span> <span class="n">numEle</span> <span class="o">*</span> <span class="p">[</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typepseudos</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="p">]</span>
+      <span class="n">atomValences</span>   <span class="o">+=</span> <span class="n">numEle</span> <span class="o">*</span> <span class="p">[</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typevalences</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="p">]</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;addMisc: atomTypes: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">atomTypes</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;addMisc: atomNames: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">atomNames</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;addMisc: atomMasses_amu: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">atomMasses_amu</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;addMisc: atomPseudos: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">atomPseudos</span><span class="p">,)</span>
+      <span class="k">print</span> <span class="s">&#39;addMisc: atomValences: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">atomValences</span><span class="p">,)</span>
+
+    <span class="n">newObj</span><span class="o">.</span><span class="n">atomnames</span> <span class="o">=</span> <span class="n">atomNames</span>
+    <span class="n">newObj</span><span class="o">.</span><span class="n">atommasses_amu</span> <span class="o">=</span> <span class="n">atomMasses_amu</span>
+    <span class="n">newObj</span><span class="o">.</span><span class="n">atompseudos</span> <span class="o">=</span> <span class="n">atomPseudos</span>
+    <span class="n">newObj</span><span class="o">.</span><span class="n">atomvalences</span> <span class="o">=</span> <span class="n">atomValences</span>
+
+    <span class="c"># totalValence = sum( count[i] * valence[i])</span>
+    <span class="c"># PyLada calls this valence.</span>
+    <span class="n">newObj</span><span class="o">.</span><span class="n">totalvalence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenums</span><span class="p">,</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typevalences</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;addMisc: totalValence: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newObj</span><span class="o">.</span><span class="n">totalvalence</span><span class="p">,)</span>
+
+    <span class="c"># In defect calcs of Lany, we can have numElectron==288</span>
+    <span class="c"># and totalValence==289, leaving the supercell with</span>
+    <span class="c"># positive charge, for a donor.</span>
+    <span class="n">newObj</span><span class="o">.</span><span class="n">netcharge</span> <span class="o">=</span> <span class="n">newObj</span><span class="o">.</span><span class="n">totalvalence</span> <span class="o">-</span> <span class="n">curObj</span><span class="o">.</span><span class="n">numelectron</span>
+
+    <span class="c"># volume, Angstrom^3</span>
+    <span class="c"># The scale is hard coded as 1.0 in PyLada crystal/read.py,</span>
+    <span class="c"># in both icsd_cif_a and icsd_cif_b.</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span> <span class="n">curObj</span><span class="p">,</span> <span class="s">&#39;finalbasismat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">finalvolume_ang3</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">finaldensity_g_cm3</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">volScale</span> <span class="o">=</span> <span class="mf">1.0</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">finalvolume_ang3</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span>
+        <span class="n">volScale</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">finalbasismat</span><span class="p">)))</span>
+      <span class="c"># Density</span>
+      <span class="c"># xxx better: get atomic weights from periodic table</span>
+      <span class="n">volCm3</span> <span class="o">=</span> <span class="n">newObj</span><span class="o">.</span><span class="n">finalvolume_ang3</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.e8</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span>  <span class="c"># 10**8 Angstrom per cm</span>
+      <span class="n">totMass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenums</span><span class="p">,</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typemasses_amu</span><span class="p">)</span>
+      <span class="n">totMassGm</span> <span class="o">=</span> <span class="n">totMass</span> <span class="o">*</span>  <span class="mf">1.660538921e-24</span>        <span class="c">#  1.660538921e-24 g / amu</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">finaldensity_g_cm3</span> <span class="o">=</span> <span class="n">totMassGm</span> <span class="o">/</span> <span class="n">volCm3</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;finalVolume_ang3: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newObj</span><span class="o">.</span><span class="n">finalvolume_ang3</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;volCm3: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">volCm3</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;totMass: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">totMass</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;totMassGm: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">totMassGm</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;finalDensity_g_cm3: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newObj</span><span class="o">.</span><span class="n">finaldensity_g_cm3</span><span class="p">,)</span>
+
+    <span class="c"># reciprocal space volume, * (2*pi)**3</span>
+    <span class="c"># As in PyLada.</span>
+    <span class="c"># Someday need new db col for recipvolume</span>
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span> <span class="n">curObj</span><span class="p">,</span> <span class="s">&#39;finalbasismat&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">recipvolume</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">basisMat</span> <span class="o">=</span> <span class="n">volScale</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">finalbasismat</span><span class="p">)</span>
+      <span class="n">invMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span> <span class="n">basisMat</span><span class="p">)</span>
+      <span class="n">recipVolume</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span> <span class="n">invMat</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">**</span><span class="mi">3</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;recipVolume: basisMat:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">basisMat</span><span class="p">),)</span>
+        <span class="k">print</span> <span class="s">&#39;recipVolume: invMat:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">invMat</span><span class="p">),)</span>
+        <span class="k">print</span> <span class="s">&#39;recipVolume: det:</span><span class="se">\n</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span> <span class="n">invMat</span><span class="p">)),)</span>
+        <span class="k">print</span> <span class="s">&#39;recipVolume: </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">recipVolume</span><span class="p">,)</span>
+
+    <span class="c"># Calc pressure</span>
+    <span class="c"># xxx Caution: we do not include the non-diag terms in:</span>
+    <span class="c">#   VASP: force.F: FORCE_AND_STRESS: line 1410:</span>
+    <span class="c">#     PRESS=(TSIF(1,1)+TSIF(2,2)+TSIF(3,3))/3._q &amp;</span>
+    <span class="c">#        &amp;      -DYN%PSTRESS/(EVTOJ*1E22_q)*LATT_CUR%OMEGA</span>
+
+    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span> <span class="n">curObj</span><span class="p">,</span> <span class="s">&#39;finalstressmat_kbar&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">finalpressure_kbar</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">finalpressure_kbar</span> \
+        <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">finalstressmat_kbar</span><span class="p">)</span><span class="o">.</span><span class="n">diagonal</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="mf">3.0</span>
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;getStressMat: finalPressure_kbar: </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">newObj</span><span class="o">.</span><span class="n">finalpressure_kbar</span><span class="p">,)</span>
+
+
+<span class="c">#====================================================================</span>
+
+<span class="k">def</span> <span class="nf">addBandgap</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Uses eigenMat to set cbMinVals, cbMinIxs, cbMin,</span>
+<span class="sd">  and similarly for Max,</span>
+<span class="sd">  and bandgapDirects, bandgapIndirects, and bandgap.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addBandgap entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+
+    <span class="k">if</span> <span class="n">curObj</span><span class="o">.</span><span class="n">eigenmat</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="c"># Someday need new db cols:</span>
+      <span class="c">#newObj.cbminvals = None</span>
+      <span class="c">#newObj.cbminixs  = None</span>
+      <span class="c">#newObj.vbmaxvals = None</span>
+      <span class="c">#newObj.vbmaxixs  = None</span>
+      <span class="c">#newObj.bandgapdirects = None</span>
+      <span class="c">#newObj.bandgapindirects = None</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">cbmin</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">vbmax</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">bandgapdirect</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">bandgapindirect</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="c"># Conduction band min</span>
+      <span class="c"># cbMinMat[isp][ikp] = min of eigvals &gt; efermi0</span>
+      <span class="c">#</span>
+      <span class="c"># Valence band max</span>
+      <span class="c"># vbMaxMat[isp][ikp] = max of eigvals &lt;= efermi0</span>
+
+      <span class="n">eigenMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">eigenmat</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;addBandGap: eig shape: &#39;</span><span class="p">,</span> <span class="n">eigenMat</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">print</span> <span class="s">&#39;addBandGap: numSpin: </span><span class="si">%d</span><span class="s">  numKpoint: </span><span class="si">%d</span><span class="s">  numBand: </span><span class="si">%d</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">curObj</span><span class="o">.</span><span class="n">numspin</span><span class="p">,</span> <span class="n">curObj</span><span class="o">.</span><span class="n">numkpoint</span><span class="p">,</span> <span class="n">curObj</span><span class="o">.</span><span class="n">numband</span><span class="p">,)</span>
+
+      <span class="n">numSpin</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">numspin</span>
+      <span class="n">numKpoint</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">numkpoint</span>
+      <span class="c"># Sometimes numBand == 128 but eigenMat.shape == [x,x,64]</span>
+      <span class="c">#xxx numBand = curObj.numband</span>
+      <span class="n">numBand</span> <span class="o">=</span> <span class="n">eigenMat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+      <span class="c"># For each isp and kpoint, what is min eigvalue &gt; efermi0</span>
+      <span class="n">cbMinMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">[</span><span class="n">numSpin</span><span class="p">,</span> <span class="n">numKpoint</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+      <span class="n">vbMaxMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">[</span><span class="n">numSpin</span><span class="p">,</span> <span class="n">numKpoint</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+      <span class="n">cbMinMat</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+      <span class="n">vbMaxMat</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+      <span class="c"># For each isp, what is min or max across all kpoints</span>
+      <span class="n">cbMinVals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">[</span><span class="n">numSpin</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+      <span class="n">vbMaxVals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">[</span><span class="n">numSpin</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+      <span class="n">cbMinVals</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+      <span class="n">vbMaxVals</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+      <span class="c"># For each isp, which kpoint has the min or max</span>
+      <span class="n">cbMinIxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">[</span><span class="n">numSpin</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+      <span class="n">vbMaxIxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span> <span class="p">[</span><span class="n">numSpin</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+      <span class="n">cbMinIxs</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+      <span class="n">vbMaxIxs</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+      <span class="k">for</span> <span class="n">isp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numSpin</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ikp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numKpoint</span><span class="p">):</span>
+          <span class="k">for</span> <span class="n">iband</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numBand</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">eigenMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">][</span><span class="n">iband</span><span class="p">]</span>
+
+            <span class="n">algorithm</span> <span class="o">=</span> <span class="s">&#39;occupMat&#39;</span>
+
+            <span class="k">if</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s">&#39;fermi0&#39;</span><span class="p">:</span>
+              <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">efermi0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="n">vbMaxMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]:</span> <span class="n">vbMaxMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="n">vbMaxVals</span><span class="p">[</span><span class="n">isp</span><span class="p">]:</span>
+                  <span class="n">vbMaxVals</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                  <span class="n">vbMaxIxs</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="n">ikp</span>
+              <span class="k">else</span><span class="p">:</span>    <span class="c"># val &gt; curObj.efermi0</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="n">cbMinMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]:</span> <span class="n">cbMinMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="n">cbMinVals</span><span class="p">[</span><span class="n">isp</span><span class="p">]:</span>
+                  <span class="n">cbMinVals</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                  <span class="n">cbMinIxs</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="n">ikp</span>
+
+            <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s">&#39;occupMat&#39;</span><span class="p">:</span>
+              <span class="k">if</span> <span class="n">numSpin</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">occLo</span> <span class="o">=</span> <span class="mf">0.02</span>
+                <span class="n">occHi</span> <span class="o">=</span> <span class="mf">1.98</span>
+              <span class="k">elif</span> <span class="n">numSpin</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">occLo</span> <span class="o">=</span> <span class="mf">0.01</span>
+                <span class="n">occHi</span> <span class="o">=</span> <span class="mf">0.99</span>
+              <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown numSpin&#39;</span><span class="p">)</span>
+
+              <span class="n">occ</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">occupmat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">][</span><span class="n">iband</span><span class="p">]</span>
+              <span class="k">if</span> <span class="n">occ</span> <span class="o">&gt;=</span> <span class="n">occHi</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="n">vbMaxMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]:</span> <span class="n">vbMaxMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="n">vbMaxVals</span><span class="p">[</span><span class="n">isp</span><span class="p">]:</span>
+                  <span class="n">vbMaxVals</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                  <span class="n">vbMaxIxs</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="n">ikp</span>
+              <span class="k">if</span> <span class="n">occ</span> <span class="o">&lt;=</span> <span class="n">occLo</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="n">cbMinMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]:</span> <span class="n">cbMinMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="n">cbMinVals</span><span class="p">[</span><span class="n">isp</span><span class="p">]:</span>
+                  <span class="n">cbMinVals</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+                  <span class="n">cbMinIxs</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="n">ikp</span>
+
+            <span class="k">else</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown algorithm&#39;</span><span class="p">)</span>
+
+      <span class="c"># Find bandgapDirects[isp] = min gap for the same kpoint</span>
+      <span class="c"># Find bandgapIndirects[isp] = min gap across kpoints</span>
+      <span class="n">bandgapDirects</span> <span class="o">=</span> <span class="n">numSpin</span> <span class="o">*</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
+      <span class="n">bandgapIndirects</span> <span class="o">=</span> <span class="n">numSpin</span> <span class="o">*</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span>
+      <span class="k">for</span> <span class="n">isp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numSpin</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ikp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numKpoint</span><span class="p">):</span>
+          <span class="n">gap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cbMinMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]</span> <span class="o">-</span> <span class="n">vbMaxMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">])</span>
+          <span class="k">if</span> <span class="n">gap</span> <span class="o">&lt;</span> <span class="n">bandgapDirects</span><span class="p">[</span><span class="n">isp</span><span class="p">]:</span> <span class="n">bandgapDirects</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="n">gap</span>
+        <span class="n">bandgapIndirects</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cbMinVals</span><span class="p">[</span><span class="n">isp</span><span class="p">]</span> <span class="o">-</span> <span class="n">vbMaxVals</span><span class="p">[</span><span class="n">isp</span><span class="p">])</span>
+
+      <span class="c"># Someday need new db cols:</span>
+      <span class="c">#newObj.cbminvals = cbMinVals</span>
+      <span class="c">#newObj.cbminixs  = cbMinIxs</span>
+      <span class="c">#newObj.vbmaxvals = vbMaxVals</span>
+      <span class="c">#newObj.vbmaxixs  = vbMaxIxs</span>
+      <span class="c">#newObj.bandgapdirects = bandgapDirects</span>
+      <span class="c">#newObj.bandgapindirects = bandgapIndirects</span>
+
+      <span class="n">newObj</span><span class="o">.</span><span class="n">cbmin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span> <span class="n">cbMinVals</span><span class="p">)</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">vbmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span> <span class="n">vbMaxVals</span><span class="p">)</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">bandgapdirect</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span> <span class="n">bandgapDirects</span><span class="p">)</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">bandgapindirect</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span> <span class="n">bandgapIndirects</span><span class="p">)</span>
+
+      <span class="c"># This is the PyLada version</span>
+      <span class="c">#newObj.cbmin = min( cbMinVals)</span>
+      <span class="c">#newObj.vbmax = max( vbMaxVals)</span>
+      <span class="c">#newObj.bandgap = newObj.cbmin - newObj.vbmax</span>
+      <span class="c">#if newObj.bandgap &lt; 0: newObj.bandgap = 0</span>
+
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+
+        <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">addBandGap: efermi0: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">curObj</span><span class="o">.</span><span class="n">efermi0</span><span class="p">,)</span>
+        <span class="k">for</span> <span class="n">isp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numSpin</span><span class="p">):</span>
+          <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">addBandGap: start isp: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">isp</span><span class="p">,)</span>
+          <span class="k">for</span> <span class="n">ikp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numKpoint</span><span class="p">):</span>
+            <span class="n">vval</span> <span class="o">=</span> <span class="n">vbMaxMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]</span>
+            <span class="n">cval</span> <span class="o">=</span> <span class="n">cbMinMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">]</span>
+            <span class="n">vmsg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%8.4f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vval</span><span class="p">,)</span>
+            <span class="n">cmsg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%8.4f</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cval</span><span class="p">,)</span>
+            <span class="k">if</span> <span class="n">ikp</span> <span class="o">==</span> <span class="n">vbMaxIxs</span><span class="p">[</span><span class="n">isp</span><span class="p">]:</span> <span class="n">vmsg</span> <span class="o">+=</span> <span class="s">&#39; ***&#39;</span>
+            <span class="k">if</span> <span class="n">ikp</span> <span class="o">==</span> <span class="n">cbMinIxs</span><span class="p">[</span><span class="n">isp</span><span class="p">]:</span> <span class="n">cmsg</span> <span class="o">+=</span> <span class="s">&#39; ***&#39;</span>
+            <span class="k">print</span> <span class="s">&#39;  isp: </span><span class="si">%d</span><span class="s">  ikp: </span><span class="si">%3d</span><span class="s">  vbMaxMat: </span><span class="si">%-14s</span><span class="s">  cbMinMat: </span><span class="si">%-14s</span><span class="s">&#39;</span> \
+              <span class="o">%</span> <span class="p">(</span> <span class="n">isp</span><span class="p">,</span> <span class="n">ikp</span><span class="p">,</span> <span class="n">vmsg</span><span class="p">,</span> <span class="n">cmsg</span><span class="p">,)</span>
+          <span class="k">print</span> <span class="s">&#39;&#39;</span>
+
+        <span class="k">print</span> <span class="s">&#39;addBandGap: vbMaxIxs: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vbMaxIxs</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;addBandGap: vbMaxVals: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vbMaxVals</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;addBandGap: cbMinIxs: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cbMinIxs</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;addBandGap: cbMinVals: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cbMinVals</span><span class="p">,)</span>
+
+        <span class="k">print</span> <span class="s">&#39;addBandGap: bandgapDirects:   </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bandgapDirects</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;addBandGap: bandgapIndirects: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bandgapIndirects</span><span class="p">,)</span>
+
+        <span class="k">print</span> <span class="s">&#39;addBandGap: newObj.cbmin:    </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newObj</span><span class="o">.</span><span class="n">cbmin</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;addBandGap: newObj.vbmax:    </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newObj</span><span class="o">.</span><span class="n">vbmax</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;addBandGap: newObj.bandgapdirect:    </span><span class="si">%s</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">newObj</span><span class="o">.</span><span class="n">bandgapdirect</span><span class="p">,)</span>
+        <span class="k">print</span> <span class="s">&#39;addBandGap: newObj.bandgapindirect:  </span><span class="si">%s</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">newObj</span><span class="o">.</span><span class="n">bandgapindirect</span><span class="p">,)</span>
+
+        <span class="c"># Write plot data to tempplota%ispin</span>
+        <span class="k">for</span> <span class="n">isp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numSpin</span><span class="p">):</span>
+          <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;tempplota</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">isp</span><span class="p">,),</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ikp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numKpoint</span><span class="p">):</span>
+              <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%g</span><span class="s">  </span><span class="si">%g</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vbMaxMat</span><span class="p">[</span><span class="n">isp</span><span class="p">,</span><span class="n">ikp</span><span class="p">],</span> <span class="n">cbMinMat</span><span class="p">[</span><span class="n">isp</span><span class="p">,</span><span class="n">ikp</span><span class="p">],)</span>
+
+        <span class="c"># Write plot data to tempplotb%ispin</span>
+        <span class="k">for</span> <span class="n">isp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numSpin</span><span class="p">):</span>
+          <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;tempplotb</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">isp</span><span class="p">,),</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ikp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numKpoint</span><span class="p">):</span>
+              <span class="k">for</span> <span class="n">iband</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="n">numBand</span><span class="p">):</span>
+                <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">fout</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%d</span><span class="s">  </span><span class="si">%g</span><span class="s">&#39;</span> \
+                  <span class="o">%</span> <span class="p">(</span><span class="n">ikp</span><span class="p">,</span> <span class="n">eigenMat</span><span class="p">[</span><span class="n">isp</span><span class="p">][</span><span class="n">ikp</span><span class="p">][</span><span class="n">iband</span><span class="p">],)</span>
+
+<span class="c">#====================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">addChemform</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the formula, sortedformula, and chemtext fields.</span>
+<span class="sd">  Set attributes:</span>
+
+<span class="sd">  formula:</span>
+<span class="sd">    chemical formula, determined from typenames and typenums,</span>
+<span class="sd">    and factoring by the greatest common divison.</span>
+<span class="sd">    For example, ``&#39;H2 O&#39;``.</span>
+
+<span class="sd">  sortedformula:</span>
+<span class="sd">    like formula, but the elements are sorted alphabetically.</span>
+<span class="sd">    For example, ``&#39;H2 O&#39;``.</span>
+
+<span class="sd">  chemtext:</span>
+<span class="sd">    Same as the formula, but every token is surrounded</span>
+<span class="sd">    spaces and singletons have an explicit &#39;1&#39;,</span>
+<span class="sd">    for ease in parsing.</span>
+<span class="sd">    For example, ``&#39; H 2 O 1 &#39;``.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addChemform entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">mident</span>
+    <span class="n">tnames</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenames</span>
+    <span class="n">tnums</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenums</span>
+
+    <span class="k">if</span> <span class="n">tnames</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">tnums</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">tlen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">tnames</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span> <span class="n">tnums</span><span class="p">)</span> <span class="o">!=</span> <span class="n">tlen</span><span class="p">:</span> <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;tlen mismatch&#39;</span><span class="p">)</span>
+
+      <span class="c"># Replace tnums with tnums / gcd( tnums)</span>
+      <span class="k">if</span> <span class="n">tlen</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">tnums</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">gcd</span> <span class="o">=</span> <span class="n">tnums</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">tlen</span><span class="p">):</span>
+          <span class="n">gcd</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">gcd</span><span class="p">(</span> <span class="n">gcd</span><span class="p">,</span> <span class="n">tnums</span><span class="p">[</span><span class="n">jj</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tlen</span><span class="p">):</span>
+          <span class="n">tnums</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="o">/=</span> <span class="n">gcd</span>
+
+      <span class="c"># For chemtext we insert an initial and final blank,</span>
+      <span class="c"># so every value is surrounded by spaces,</span>
+      <span class="c"># for easier handling in SQL.</span>
+      <span class="n">formula</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+      <span class="n">chemtext</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+      <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tlen</span><span class="p">):</span>
+        <span class="c"># Coordinate formula format with pyramid: views.py: vwQueryStd</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">formula</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span>
+        <span class="n">formula</span> <span class="o">+=</span> <span class="n">tnames</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">tnums</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="n">formula</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tnums</span><span class="p">[</span><span class="n">ii</span><span class="p">])</span>
+        <span class="n">chemtext</span> <span class="o">+=</span> <span class="s">&#39; </span><span class="si">%s</span><span class="s"> </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tnames</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="n">tnums</span><span class="p">[</span><span class="n">ii</span><span class="p">],)</span>
+      <span class="n">chemtext</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span>
+
+      <span class="c"># Index sort for parallel arrays tnames, tnums,</span>
+      <span class="c"># so we can calc sortedformula.</span>
+      <span class="n">ixs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">tlen</span><span class="p">)</span>
+      <span class="n">ixs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span> <span class="k">lambda</span> <span class="n">ia</span><span class="p">,</span> <span class="n">ib</span><span class="p">:</span> <span class="nb">cmp</span><span class="p">(</span> <span class="n">tnames</span><span class="p">[</span><span class="n">ia</span><span class="p">],</span> <span class="n">tnames</span><span class="p">[</span><span class="n">ib</span><span class="p">]))</span>
+      <span class="n">sortedformula</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+      <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tlen</span><span class="p">):</span>
+        <span class="c"># Coordinate formula format with pyramid: views.py: vwQueryStd</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sortedformula</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">sortedformula</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span>
+        <span class="n">sortedformula</span> <span class="o">+=</span> <span class="n">tnames</span><span class="p">[</span><span class="n">ixs</span><span class="p">[</span><span class="n">ii</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">tnums</span><span class="p">[</span><span class="n">ixs</span><span class="p">[</span><span class="n">ii</span><span class="p">]]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="n">sortedformula</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tnums</span><span class="p">[</span><span class="n">ixs</span><span class="p">[</span><span class="n">ii</span><span class="p">]])</span>
+
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span><span class="s">&#39;addChemform: mident: </span><span class="si">%d</span><span class="s">  tnames: </span><span class="si">%s</span><span class="s">  tnums: </span><span class="si">%s</span><span class="s">&#39;</span>
+          <span class="o">+</span> <span class="s">&#39;  formula: </span><span class="si">%s</span><span class="s">  sortedformula: </span><span class="si">%s</span><span class="s">  chemtext: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">)</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">tnames</span><span class="p">,</span> <span class="n">tnums</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span> <span class="n">formula</span><span class="p">),</span>
+          <span class="nb">repr</span><span class="p">(</span> <span class="n">sortedformula</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span> <span class="n">chemtext</span><span class="p">),)</span>
+
+      <span class="n">newObj</span><span class="o">.</span><span class="n">formula</span> <span class="o">=</span> <span class="n">formula</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">sortedformula</span> <span class="o">=</span> <span class="n">sortedformula</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">chemtext</span> <span class="o">=</span> <span class="n">chemtext</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">formula</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">sortedformula</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">chemtext</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">addSpaceGroups</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the initial and final space groups, for all structures.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addSpaceGroups entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">mident</span>
+    <span class="n">atomnames</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">atomnames</span>
+    <span class="n">initialbasismat</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">initialbasismat</span>
+    <span class="n">initialcartposmat</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">initialcartposmat</span>
+    <span class="n">finalbasismat</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">finalbasismat</span>
+    <span class="n">finalcartposmat</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">finalcartposmat</span>
+
+    <span class="k">if</span> <span class="n">initialbasismat</span> <span class="o">==</span> <span class="bp">None</span> \
+      <span class="ow">or</span> <span class="n">initialcartposmat</span> <span class="o">==</span> <span class="bp">None</span> \
+      <span class="ow">or</span> <span class="n">finalbasismat</span> <span class="o">==</span> <span class="bp">None</span> \
+      <span class="ow">or</span> <span class="n">finalcartposmat</span> <span class="o">==</span> <span class="bp">None</span> \
+      <span class="ow">or</span> <span class="n">atomnames</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+
+      <span class="n">initialSgName</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">initialSgNum</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">finalSgName</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">finalSgNum</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="p">(</span><span class="n">initialSgName</span><span class="p">,</span> <span class="n">initialSgNum</span><span class="p">)</span> <span class="o">=</span> <span class="n">getSpaceGroup</span><span class="p">(</span>
+        <span class="n">initialbasismat</span><span class="p">,</span> <span class="n">initialcartposmat</span><span class="p">,</span> <span class="n">atomnames</span><span class="p">)</span>
+      <span class="p">(</span><span class="n">finalSgName</span><span class="p">,</span> <span class="n">finalSgNum</span><span class="p">)</span> <span class="o">=</span> <span class="n">getSpaceGroup</span><span class="p">(</span>
+        <span class="n">finalbasismat</span><span class="p">,</span> <span class="n">finalcartposmat</span><span class="p">,</span> <span class="n">atomnames</span><span class="p">)</span>
+
+    <span class="n">newObj</span><span class="o">.</span><span class="n">initialspacegroupname</span> <span class="o">=</span> <span class="n">initialSgName</span>
+    <span class="n">newObj</span><span class="o">.</span><span class="n">initialspacegroupnum</span> <span class="o">=</span> <span class="n">initialSgNum</span>
+    <span class="n">newObj</span><span class="o">.</span><span class="n">finalspacegroupname</span> <span class="o">=</span> <span class="n">finalSgName</span>
+    <span class="n">newObj</span><span class="o">.</span><span class="n">finalspacegroupnum</span> <span class="o">=</span> <span class="n">finalSgNum</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+
+<span class="k">def</span> <span class="nf">getSpaceGroup</span><span class="p">(</span> <span class="n">rowCellMat</span><span class="p">,</span> <span class="n">cartPosMat</span><span class="p">,</span> <span class="n">atomnames</span><span class="p">):</span>
+
+  <span class="c"># Create the ASE bulk look-alike object needed by spglib</span>
+  <span class="n">aseBulk</span> <span class="o">=</span> <span class="n">AseBulk</span><span class="p">(</span> <span class="n">rowCellMat</span><span class="p">,</span> <span class="n">cartPosMat</span><span class="p">,</span> <span class="n">atomnames</span><span class="p">)</span>
+
+  <span class="c"># Call spglib</span>
+  <span class="n">scaleFactor</span> <span class="o">=</span> <span class="mf">1.0</span>
+  <span class="n">symprec</span> <span class="o">=</span> <span class="mf">1.e-2</span>
+  <span class="n">sgStg</span> <span class="o">=</span> <span class="n">spglib</span><span class="o">.</span><span class="n">get_spacegroup</span><span class="p">(</span> <span class="n">aseBulk</span><span class="p">,</span> <span class="n">symprec</span><span class="p">)</span>
+
+  <span class="c"># Parse the resulting string into name, number.</span>
+  <span class="n">mat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">r&#39;^(.+)\((\d+)\)$&#39;</span><span class="p">,</span> <span class="n">sgStg</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">mat</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;unknown sgStg.  mident: </span><span class="si">%d</span><span class="s">  sgStg: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">sgStg</span><span class="p">,))</span>
+  <span class="n">sgName</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+  <span class="n">sgNum</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="n">mat</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+  <span class="c"># spglib returns bogus name when num is 0.</span>
+  <span class="k">if</span> <span class="n">sgNum</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">sgName</span> <span class="o">=</span> <span class="bp">None</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="n">sgName</span><span class="p">,</span> <span class="n">sgNum</span><span class="p">)</span>
+
+<span class="c">#====================================================================</span>
+
+
+<span class="c"># addMinenergy must be after addSpaceGroups</span>
+
+<div class="viewcode-block" id="addMinenergy"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.addMinenergy">[docs]</a><span class="k">def</span> <span class="nf">addMinenergy</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the min energyperatom for each formula.</span>
+
+<span class="sd">  minenergyid == the mident of the row having the min energyperatom</span>
+<span class="sd">  for this formula.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addMinenergy entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+
+  <span class="c"># Find the min energy for each group</span>
+  <span class="c"># having standard=fere and an ICSD SG,</span>
+  <span class="c"># and the same formula, same ICSD-SG, same PP, same author</span>
+  <span class="n">minMap</span> <span class="o">=</span> <span class="p">{}</span>       <span class="c"># (formula,finalspacegroupnum,etc) -&gt; [minEnergy, mident]</span>
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">mident</span>
+    <span class="n">standards</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_standards</span>
+    <span class="n">sgnum</span> <span class="o">=</span> <span class="n">newObj</span><span class="o">.</span><span class="n">finalspacegroupnum</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">formula</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typepseudos</span>
+    <span class="n">lastName</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_lastname</span>
+    <span class="n">firstName</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_firstname</span>
+
+    <span class="k">if</span> <span class="s">&#39;fere&#39;</span> <span class="ow">in</span> <span class="n">standards</span> \
+      <span class="ow">and</span> <span class="bp">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">sgnum</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">lastName</span><span class="p">,</span> <span class="n">firstName</span><span class="p">]:</span>
+
+      <span class="n">keyStg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">sgnum</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">lastName</span><span class="p">,</span> <span class="n">firstName</span><span class="p">,)</span>
+
+      <span class="n">mident</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">mident</span>
+      <span class="n">energy</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">energyperatom</span>
+
+      <span class="n">pair</span> <span class="o">=</span> <span class="n">minMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">keyStg</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">pair</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">energy</span> <span class="o">&lt;</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">minMap</span><span class="p">[</span><span class="n">keyStg</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">mident</span><span class="p">)</span>
+
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">mident</span>
+    <span class="n">standards</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_standards</span>
+    <span class="n">sgnum</span> <span class="o">=</span> <span class="n">newObj</span><span class="o">.</span><span class="n">finalspacegroupnum</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">formula</span>
+    <span class="n">pseudos</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typepseudos</span>
+    <span class="n">lastName</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_lastname</span>
+    <span class="n">firstName</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_firstname</span>
+
+    <span class="c"># mident having the min energy for this formula</span>
+    <span class="n">minId</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="s">&#39;fere&#39;</span> <span class="ow">in</span> <span class="n">standards</span> \
+      <span class="ow">and</span> <span class="bp">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">sgnum</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">lastName</span><span class="p">,</span> <span class="n">firstName</span><span class="p">]:</span>
+
+      <span class="n">keyStg</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="n">sgnum</span><span class="p">,</span> <span class="n">pseudos</span><span class="p">,</span> <span class="n">lastName</span><span class="p">,</span> <span class="n">firstName</span><span class="p">,)</span>
+
+      <span class="n">pair</span> <span class="o">=</span> <span class="n">minMap</span><span class="p">[</span><span class="n">keyStg</span><span class="p">]</span>      <span class="c"># [minEnergy, minId]</span>
+      <span class="n">minId</span> <span class="o">=</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;addMinenergy: mident: </span><span class="si">%d</span><span class="s">  formula: </span><span class="si">%s</span><span class="s">  sgnum: </span><span class="si">%s</span><span class="s">  minId: </span><span class="si">%d</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">sgnum</span><span class="p">,</span> <span class="n">minId</span><span class="p">,)</span>
+
+    <span class="n">newObj</span><span class="o">.</span><span class="n">minenergyid</span> <span class="o">=</span> <span class="n">minId</span>
+
+
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="addEnthalpy"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.addEnthalpy">[docs]</a><span class="k">def</span> <span class="nf">addEnthalpy</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the enthalpy of formation per atom, for all structures.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addEnthalpy entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">mident</span>
+    <span class="n">formula</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">formula</span>
+    <span class="n">typenames</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenames</span>
+    <span class="n">typenums</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typenums</span>
+    <span class="n">typepseudos</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">typepseudos</span>
+    <span class="n">netcharge</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">netcharge</span>
+    <span class="n">meta_standards</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_standards</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">energyperatom</span>
+
+    <span class="n">enthalpy</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="s">&#39;fere&#39;</span> <span class="ow">in</span> <span class="n">meta_standards</span> <span class="ow">and</span> <span class="n">netcharge</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">enthalpy</span> <span class="o">=</span> <span class="n">calcEnthalpy</span><span class="p">(</span>
+        <span class="n">bugLev</span><span class="p">,</span> <span class="n">mident</span><span class="p">,</span> <span class="n">typenames</span><span class="p">,</span> <span class="n">typenums</span><span class="p">,</span> <span class="n">typepseudos</span><span class="p">,</span> <span class="n">energy</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&#39;addEnthalpy: mident: </span><span class="si">%d</span><span class="s">  formula: </span><span class="si">%s</span><span class="s">  energy: </span><span class="si">%s</span><span class="s">  enthalpy: </span><span class="si">%s</span><span class="s">&#39;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">enthalpy</span><span class="p">,)</span>
+
+    <span class="n">newObj</span><span class="o">.</span><span class="n">enthalpy</span> <span class="o">=</span> <span class="n">enthalpy</span>
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<span class="k">def</span> <span class="nf">addMagmom</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the magnetic moment for all structures.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addMagmom entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+    <span class="n">mident</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">mident</span>
+    <span class="n">efermi0</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">efermi0</span>
+    <span class="n">eigenmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">curObj</span><span class="o">.</span><span class="n">eigenmat</span><span class="p">)</span>
+
+    <span class="n">magmom</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">efermi0</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">eigenmat</span> <span class="o">!=</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">eigenmat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+
+      <span class="n">eig0</span> <span class="o">=</span> <span class="n">eigenmat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+      <span class="n">eig1</span> <span class="o">=</span> <span class="n">eigenmat</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+      <span class="n">occ0</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eig0</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">efermi0</span><span class="p">])</span>
+      <span class="n">occ1</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">eig1</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">efermi0</span><span class="p">])</span>
+
+      <span class="n">nkpts</span> <span class="o">=</span> <span class="n">eigenmat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">magmom</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span> <span class="n">occ0</span> <span class="o">-</span> <span class="n">occ1</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span> <span class="n">nkpts</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="p">(</span><span class="s">&#39;addMagmom: mident: </span><span class="si">%d</span><span class="s">  occ0: </span><span class="si">%d</span><span class="s">  occ1: </span><span class="si">%d</span><span class="s">&#39;</span> \
+          <span class="o">+</span> <span class="s">&#39;  nkpts: </span><span class="si">%d</span><span class="s">  magmom: </span><span class="si">%g</span><span class="s">&#39;</span><span class="p">)</span> \
+          <span class="o">%</span> <span class="p">(</span> <span class="n">mident</span><span class="p">,</span> <span class="n">occ0</span><span class="p">,</span> <span class="n">occ1</span><span class="p">,</span> <span class="n">nkpts</span><span class="p">,</span> <span class="n">magmom</span><span class="p">,)</span>
+
+    <span class="n">newObj</span><span class="o">.</span><span class="n">magneticmoment</span> <span class="o">=</span> <span class="n">magmom</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">addDosMat</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Removes the dosmat value from entries where it doesn&#39;t belong.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addDosMat entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+    <span class="n">dosmat</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">dosmat</span>
+    <span class="k">if</span> <span class="s">&#39;post-dos&#39;</span> <span class="ow">in</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_standards</span> <span class="ow">and</span> <span class="n">dosmat</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">dosmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">dosmat</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">curObj</span><span class="o">.</span><span class="n">numspin</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">dosmat</span> <span class="o">=</span> <span class="n">dosmat</span><span class="p">[</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>     <span class="c"># just keep E, DOS</span>
+      <span class="k">elif</span> <span class="n">curObj</span><span class="o">.</span><span class="n">numspin</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">dosmat</span> <span class="o">=</span> <span class="n">dosmat</span><span class="p">[</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>     <span class="c"># just keep E, DOSup, DOSdown</span>
+
+      <span class="c"># xxx start here.  We want:</span>
+      <span class="c"># dosmat[ :, 1] = dosmat[:,1] - newObj.vbmax</span>
+      <span class="c"># but each time we run aug, we decrement dosmat.</span>
+      <span class="c">#</span>
+      <span class="c"># xxx separate all destructive changes: dosmat, dielectric*</span>
+
+    <span class="k">else</span><span class="p">:</span> <span class="n">dosmat</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">newObj</span><span class="o">.</span><span class="n">dosmat</span> <span class="o">=</span> <span class="n">dosmat</span>
+
+
+<span class="c">#====================================================================</span>
+
+
+
+<span class="k">def</span> <span class="nf">addDielectric</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Removes the dosmat value from entries where it doesn&#39;t belong.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addDielectric entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s">&#39;post-lopt&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_standards</span><span class="p">:</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">dielectricimag</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="n">newObj</span><span class="o">.</span><span class="n">dielectricreal</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+
+<span class="k">def</span> <span class="nf">addFamily</span><span class="p">(</span> <span class="n">bugLev</span><span class="p">,</span> <span class="n">objPairs</span><span class="p">):</span>   <span class="c"># updates newObjs</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Removes the dosmat value from entries where it doesn&#39;t belong.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * bugLev (int): Debug level; normally 0.</span>
+<span class="sd">  * curObjs: current objects, one per DB row</span>
+<span class="sd">  * newObjs: objects with new fields only, one per DB row</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">nrow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">objPairs</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;addFamily entry: nrow: </span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nrow</span><span class="p">,)</span>
+
+  <span class="n">shaMap</span> <span class="o">=</span> <span class="p">{}</span>              <span class="c"># curObj.hashstring -&gt; pair [curObj, newObj]</span>
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="n">pair</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>
+    <span class="n">shaMap</span><span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hashstring</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair</span>
+
+  <span class="c"># Set parentids</span>
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObj</span><span class="p">,</span> <span class="n">newObj</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>       <span class="c"># pair [curObj, newObj]</span>
+    <span class="n">parentids</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">parStgs</span> <span class="o">=</span> <span class="n">curObj</span><span class="o">.</span><span class="n">meta_parents</span>
+    <span class="k">if</span> <span class="n">parStgs</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="n">parentids</span> <span class="o">=</span> <span class="p">[</span><span class="n">shaMap</span><span class="p">[</span><span class="n">parStg</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mident</span> <span class="k">for</span> <span class="n">parStg</span> <span class="ow">in</span> <span class="n">parStgs</span><span class="p">]</span>
+    <span class="n">newObj</span><span class="o">.</span><span class="n">parentids</span> <span class="o">=</span> <span class="n">parentids</span>
+
+  <span class="c"># Set familyid = most distant ancestor</span>
+  <span class="k">for</span> <span class="n">iobj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrow</span><span class="p">):</span>
+    <span class="p">(</span><span class="n">curObjOrig</span><span class="p">,</span> <span class="n">newObjOrig</span><span class="p">)</span> <span class="o">=</span> <span class="n">objPairs</span><span class="p">[</span><span class="n">iobj</span><span class="p">]</span>       <span class="c"># pair [curObj, newObj]</span>
+    <span class="c"># Run up the parent chain to the most distant ancestor</span>
+    <span class="p">(</span><span class="n">curObjAnc</span><span class="p">,</span> <span class="n">newObjAnc</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">curObjOrig</span><span class="p">,</span> <span class="n">newObjOrig</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">curObjAnc</span><span class="o">.</span><span class="n">meta_parents</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+      <span class="c"># Only use the first parent</span>
+      <span class="p">(</span><span class="n">curObjAnc</span><span class="p">,</span> <span class="n">newObjAnc</span><span class="p">)</span> <span class="o">=</span> <span class="n">shaMap</span><span class="p">[</span> <span class="n">curObjAnc</span><span class="o">.</span><span class="n">meta_parents</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="n">curObjAnc</span> <span class="o">!=</span> <span class="n">curObjOrig</span><span class="p">:</span>
+      <span class="n">newObjAnc</span><span class="o">.</span><span class="n">familyid</span> <span class="o">=</span> <span class="n">curObjAnc</span><span class="o">.</span><span class="n">mident</span>       <span class="c"># set ancestor&#39;s familyid</span>
+      <span class="n">newObjOrig</span><span class="o">.</span><span class="n">familyid</span> <span class="o">=</span> <span class="n">curObjAnc</span><span class="o">.</span><span class="n">mident</span>      <span class="c"># set our familyid</span>
+
+
+
+<span class="c">#====================================================================</span>
+
+
+
+
+<div class="viewcode-block" id="calcEnthalpy"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.calcEnthalpy">[docs]</a><span class="k">def</span> <span class="nf">calcEnthalpy</span><span class="p">(</span>
+  <span class="n">bugLev</span><span class="p">,</span>
+  <span class="n">mident</span><span class="p">,</span>
+  <span class="n">typenames</span><span class="p">,</span>
+  <span class="n">typenums</span><span class="p">,</span>
+  <span class="n">typepseudos</span><span class="p">,</span>
+  <span class="n">energy</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Calculates the enthalpy of formation per atom, for a single structure.</span>
+
+<span class="sd">  **Parameters (using example magnetitie, Fe3 O4)**:</span>
+
+<span class="sd">  * mident (int): The unique DB identifier.</span>
+<span class="sd">  * typenames (str[]): List of unique type names, ex. [&#39;Fe&#39;, &#39;O&#39;]</span>
+<span class="sd">  * typenums (int[]): Number of each unique type, ex. [3, 4]</span>
+<span class="sd">  * typepseudos (str[]): Pseudopotential for each type,</span>
+<span class="sd">      [&#39;PAW_PBE Fe 06Sep2000&#39;, &#39;PAW_PBE O_s 07Sep2000&#39;]</span>
+<span class="sd">  * energy (float): final total energy without entropy, per atom in cell</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * enthalpy (float): enthalpy of formation per atom</span>
+
+<span class="sd">  See:</span>
+<span class="sd">  DOI: 10.1103/PhysRevB.85.115104</span>
+
+<span class="sd">  http://prb.aps.org/pdf/PRB/v85/i11/e115104</span>
+<span class="sd">  Correcting density functional theory for accurate predictions</span>
+<span class="sd">  of compound enthalpies of formation:</span>
+<span class="sd">  Fitted elemental-phase reference energies</span>
+<span class="sd">  Vladan Stevanovic, Stephan Lany, Xiuwen Zhang, Alex Zunger</span>
+
+<span class="sd">  page 11, Table V: mu^{FERE}</span>
+
+<span class="sd">  Email from Stevanovic, Monday, August 12, 2013 5:45 PM</span>
+<span class="sd">  For the enthalpy of formation calculations I will use the</span>
+<span class="sd">  following example. So, if we have a ternary compound with the</span>
+<span class="sd">  chemical formula A_mB_nX_l, where A, B and X represent the</span>
+<span class="sd">  symbols of the elements forming the compound and if N=m+n+l the</span>
+<span class="sd">  total number of atoms in the compound the enthalpy of formation</span>
+<span class="sd">  can be calculated as:</span>
+
+<span class="sd">      dHf (eV/atom) = [Etot(eV/atom) * N - (m*musMap[&#39;A&#39;]</span>
+<span class="sd">      + n*musMap[&#39;B&#39;] + l*musMap[&#39;X&#39;] ) ] / N</span>
+
+<span class="sd">  where Etot(eV/atom) is the VASP total energy per atom which is</span>
+<span class="sd">  currently listed in the database and musMap[&#39;A&#39;],</span>
+<span class="sd">  musMap[&#39;B&#39;], and musMap[&#39;X&#39;] you read from the attached</span>
+<span class="sd">  dictionary.</span>
+
+
+<span class="sd">  This is the same as:</span>
+
+<span class="sd">      enthalpy = - sum_i( n_i * mus_i) / sum( n_i)</span>
+
+<span class="sd">  where n_i = number of element i, and mus_i = mus value for element i.</span>
+<span class="sd">  We use this calculation for ALL structures, not just ternaries.</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="n">musList</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c"># Element Pseudopotential  FERE value</span>
+    <span class="c"># ------- ---------------  ----------</span>
+    <span class="p">[</span> <span class="s">&#39;Ag&#39;</span><span class="p">,</span>  <span class="s">&#39;Ag&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.82700958541595615</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Al&#39;</span><span class="p">,</span>  <span class="s">&#39;Al&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.02</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;As&#39;</span><span class="p">,</span>  <span class="s">&#39;As&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">5.06</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Au&#39;</span><span class="p">,</span>  <span class="s">&#39;Au&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">2.2303410086960551</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ba&#39;</span><span class="p">,</span>  <span class="s">&#39;Ba_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.3944992462870172</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Be&#39;</span><span class="p">,</span>  <span class="s">&#39;Be&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.3972092621754264</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Bi&#39;</span><span class="p">,</span>  <span class="s">&#39;Bi_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">4.3853003286558812</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ca&#39;</span><span class="p">,</span>  <span class="s">&#39;Ca_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.64</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Cd&#39;</span><span class="p">,</span>  <span class="s">&#39;Cd&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.56</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="c"># but if LDAUTYPE=2 and U=5eV, use Cd: +0.19     # xxx</span>
+
+    <span class="p">[</span> <span class="s">&#39;Cl&#39;</span><span class="p">,</span>  <span class="s">&#39;Cl&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">1.6262437135301639</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Co&#39;</span><span class="p">,</span>  <span class="s">&#39;Co&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">4.7543486260270402</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Cr&#39;</span><span class="p">,</span>  <span class="s">&#39;Cr_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">7.2224146752384204</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Cu&#39;</span><span class="p">,</span>  <span class="s">&#39;Cu&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">1.9725806522979044</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;F&#39;</span><span class="p">,</span>   <span class="s">&#39;F&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">1.7037867766570287</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;F&#39;</span><span class="p">,</span>   <span class="s">&#39;F_s&#39;</span><span class="p">,</span>    <span class="o">-</span><span class="mf">1.68</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Fe&#39;</span><span class="p">,</span>  <span class="s">&#39;Fe&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">6.1521343161090325</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ga&#39;</span><span class="p">,</span>  <span class="s">&#39;Ga_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">2.37</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ge&#39;</span><span class="p">,</span>  <span class="s">&#39;Ge_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">4.137439286830797</span><span class="p">,</span>    <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Hf&#39;</span><span class="p">,</span>  <span class="s">&#39;Hf_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">7.397695761161847</span><span class="p">,</span>    <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Hg&#39;</span><span class="p">,</span>  <span class="s">&#39;Hg&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.12361566177444684</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;In&#39;</span><span class="p">,</span>  <span class="s">&#39;In_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">2.31</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ir&#39;</span><span class="p">,</span>  <span class="s">&#39;Ir&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">5.964577394407752</span><span class="p">,</span>    <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;K&#39;</span><span class="p">,</span>   <span class="s">&#39;K_sv&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.80499202755075006</span><span class="p">,</span>  <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;La&#39;</span><span class="p">,</span>  <span class="s">&#39;La&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.6642174822805287</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Li&#39;</span><span class="p">,</span>  <span class="s">&#39;Li_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.6529591953887741</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Mg&#39;</span><span class="p">,</span>  <span class="s">&#39;Mg&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.99</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Mg&#39;</span><span class="p">,</span>  <span class="s">&#39;Mg_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.99</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Mn&#39;</span><span class="p">,</span>  <span class="s">&#39;Mn&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">6.9965778258511993</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;N&#39;</span><span class="p">,</span>   <span class="s">&#39;N&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">8.51</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;N&#39;</span><span class="p">,</span>   <span class="s">&#39;N_s&#39;</span><span class="p">,</span>    <span class="o">-</span><span class="mf">8.51</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Na&#39;</span><span class="p">,</span>  <span class="s">&#39;Na_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.0640326227725869</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Nb&#39;</span><span class="p">,</span>  <span class="s">&#39;Nb_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">6.6867516375690608</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ni&#39;</span><span class="p">,</span>  <span class="s">&#39;Ni&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.5687859474688026</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;O&#39;</span><span class="p">,</span>   <span class="s">&#39;O_s&#39;</span><span class="p">,</span>    <span class="o">-</span><span class="mf">4.76</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;O&#39;</span><span class="p">,</span>   <span class="s">&#39;O&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">4.73</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;P&#39;</span><span class="p">,</span>   <span class="s">&#39;P&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">5.64</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Pd&#39;</span><span class="p">,</span>  <span class="s">&#39;Pd&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.1174044624888873</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Pt&#39;</span><span class="p">,</span>  <span class="s">&#39;Pt&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.9527597082085424</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Rb&#39;</span><span class="p">,</span>  <span class="s">&#39;Rb_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.6750560483522855</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Rh&#39;</span><span class="p">,</span>  <span class="s">&#39;Rh&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">4.7622899695820369</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;S&#39;</span><span class="p">,</span>   <span class="s">&#39;S&#39;</span><span class="p">,</span>      <span class="o">-</span><span class="mf">4.00</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Sb&#39;</span><span class="p">,</span>  <span class="s">&#39;Sb&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">4.2862260747305099</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Sc&#39;</span><span class="p">,</span>  <span class="s">&#39;Sc_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">4.6302422200922519</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Se&#39;</span><span class="p">,</span>  <span class="s">&#39;Se&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.55</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Si&#39;</span><span class="p">,</span>  <span class="s">&#39;Si&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">4.9927748122726356</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Sn&#39;</span><span class="p">,</span>  <span class="s">&#39;Sn_d&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">3.7894939351245469</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Sr&#39;</span><span class="p">,</span>  <span class="s">&#39;Sr_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1.1674559193419329</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ta&#39;</span><span class="p">,</span>  <span class="s">&#39;Ta_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">8.8184831379805324</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Te&#39;</span><span class="p">,</span>  <span class="s">&#39;Te&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">3.2503408197224912</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Ti&#39;</span><span class="p">,</span>  <span class="s">&#39;Ti_pv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">5.5167842601434147</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;V&#39;</span><span class="p">,</span>   <span class="s">&#39;V_pv&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">6.4219725884764864</span><span class="p">,</span>   <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Y&#39;</span><span class="p">,</span>   <span class="s">&#39;Y_sv&#39;</span><span class="p">,</span>   <span class="o">-</span><span class="mf">4.812621315561298</span><span class="p">,</span>    <span class="p">],</span>
+    <span class="p">[</span> <span class="s">&#39;Zn&#39;</span><span class="p">,</span>  <span class="s">&#39;Zn&#39;</span><span class="p">,</span>     <span class="o">-</span><span class="mf">0.84</span><span class="p">,</span>                 <span class="p">],</span>
+    <span class="c"># but if LDAUTYPE=2 and U=6eV, use Zn: -0.51     # xxx</span>
+
+    <span class="p">[</span> <span class="s">&#39;Zr&#39;</span><span class="p">,</span>  <span class="s">&#39;Zr_sv&#39;</span><span class="p">,</span>  <span class="o">-</span><span class="mf">5.8747056261113126</span><span class="p">,</span>   <span class="p">],</span>
+  <span class="p">]</span>
+
+  <span class="n">musMap</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">musList</span><span class="p">:</span>
+    <span class="n">musMap</span><span class="p">[</span><span class="n">ele</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ele</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+  <span class="k">if</span> <span class="n">typenums</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">typenums</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">enthalpy</span> <span class="o">=</span> <span class="bp">None</span>
+  <span class="k">else</span><span class="p">:</span>
+
+    <span class="n">totNum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span> <span class="n">typenums</span><span class="p">)</span>
+
+    <span class="n">enthalpy</span> <span class="o">=</span> <span class="n">energy</span>
+
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">typepseudos</span><span class="p">)):</span>
+      <span class="n">pseudoStg</span> <span class="o">=</span> <span class="n">typepseudos</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>          <span class="c"># like &#39;PAW_PBE Ca_pv 06Sep2000&#39;</span>
+      <span class="n">num</span> <span class="o">=</span> <span class="n">typenums</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span>
+      <span class="n">toks</span> <span class="o">=</span> <span class="n">pseudoStg</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">throwerr</span><span class="p">(</span><span class="s">&#39;bad pseudo.  mident: </span><span class="si">%s</span><span class="s">  names: </span><span class="si">%s</span><span class="s">  nums: </span><span class="si">%s</span><span class="s">  pseudos: </span><span class="si">%s</span><span class="s">&#39;</span>
+          <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">typenames</span><span class="p">,</span> <span class="n">typenums</span><span class="p">,</span> <span class="n">typepseudos</span><span class="p">,))</span>
+      <span class="n">pseudoName</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">mufere</span> <span class="o">=</span> <span class="n">musMap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">pseudoName</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;calcEnthalpy: mident: </span><span class="si">%d</span><span class="s">  pseudoStg: </span><span class="si">%s</span><span class="s">  mufere: </span><span class="si">%s</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">pseudoStg</span><span class="p">,</span> <span class="n">mufere</span><span class="p">,)</span>
+      <span class="k">if</span> <span class="n">mufere</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;calcEnthalpy: warning: no pseudo &quot;</span><span class="si">%s</span><span class="s">&quot;.  mident: </span><span class="si">%s</span><span class="s">  names: </span><span class="si">%s</span><span class="s">  nums: </span><span class="si">%s</span><span class="s">  pseudos: </span><span class="si">%s</span><span class="s">&#39;</span> \
+          <span class="o">%</span> <span class="p">(</span><span class="n">pseudoName</span><span class="p">,</span> <span class="n">mident</span><span class="p">,</span> <span class="n">typenames</span><span class="p">,</span> <span class="n">typenums</span><span class="p">,</span> <span class="n">typepseudos</span><span class="p">,)</span>
+        <span class="n">enthalpy</span> <span class="o">=</span> <span class="bp">None</span>
+      <span class="k">if</span> <span class="n">enthalpy</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">enthalpy</span> <span class="o">-=</span> <span class="n">num</span> <span class="o">*</span> <span class="n">mufere</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">totNum</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">bugLev</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&#39;calcEnthalpy: mident: </span><span class="si">%d</span><span class="s">  enthalpy: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mident</span><span class="p">,</span> <span class="n">enthalpy</span><span class="p">,)</span>
+  <span class="k">return</span> <span class="n">enthalpy</span>
+
+
+<span class="c">#====================================================================</span>
+
+</div>
+<div class="viewcode-block" id="throwerr"><a class="viewcode-back" href="../../nrelmatdb/augmentDb.html#nrelmat.augmentDb.throwerr">[docs]</a><span class="k">def</span> <span class="nf">throwerr</span><span class="p">(</span> <span class="n">msg</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">  Prints an error message and raises Exception.</span>
+
+<span class="sd">  **Parameters**:</span>
+
+<span class="sd">  * msg (str): Error message.</span>
+
+<span class="sd">  **Returns**</span>
+
+<span class="sd">  * (Never returns)</span>
+
+<span class="sd">  **Raises**</span>
+
+<span class="sd">  * Exception</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+
+  <span class="k">print</span> <span class="n">msg</span>
+  <span class="k">print</span> <span class="o">&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">msg</span>
+  <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span> <span class="n">msg</span><span class="p">)</span>
+
+<span class="c">#====================================================================</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span> <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

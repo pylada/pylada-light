@@ -1,0 +1,478 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Atom, Structure, and HFTransform &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="crystal" href="../crystal.html" />
+    <link rel="next" title="Methods" href="methods.html" />
+    <link rel="prev" title="crystal" href="../crystal.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="methods.html" title="Methods"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../crystal.html" title="crystal"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../crystal.html" accesskey="U">crystal</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="atom-structure-and-hftransform">
+<h1>Atom, Structure, and HFTransform<a class="headerlink" href="#atom-structure-and-hftransform" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pylada.crystal.cppwrappers.Atom">
+<em class="property">class </em><tt class="descclassname">pylada.crystal.cppwrappers.</tt><tt class="descname">Atom</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.Atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Defines an atomic site.</p>
+<dl class="docutils">
+<dt>__init__ accepts different kind of input.</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>The position can be given as:</dt>
+<dd><ul class="first last simple">
+<li>the first <em>three</em> positional argument</li>
+<li>as a keyword argument <tt class="docutils literal"><span class="pre">position</span></tt>,</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>The type can be given as:</dt>
+<dd><ul class="first last simple">
+<li>arguments listed after the first three giving the position.
+A list is created to hold references to these arguments.</li>
+<li>as a keyword argument <tt class="docutils literal"><span class="pre">type</span></tt>.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first">All other keyword arguments become attributes. In other words, one could add <tt class="docutils literal"><span class="pre">magnetic=0.5</span></tt> if one wanted to specify the magnetic moment of an atom.</p>
+</li>
+</ul>
+</dd>
+</dl>
+<p>For instance, the following will create a silicon atom at the origin:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">atom</span> <span class="o">=</span> <span class="n">Atom</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;Si&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or we could place a iron atom with a magntic moment:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">atom</span> <span class="o">=</span> <span class="n">Atom</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s">&#39;Si&#39;</span><span class="p">,</span> <span class="n">moment</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">moment</span></tt> keyword will create a corresponding <tt class="docutils literal"><span class="pre">atom.moment</span></tt> keyword with a value of 0.5. There are strictly no limits on what kind of type to include as attributes. However, in order to work well with the rest of Pylada, it is best if extra attributes are pickle-able.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">the position is always owned by the object. Two atoms will not own the same position object. The position given on input is <em>copied</em>, <em>not</em> referenced. All other attributes behave like other python attributes: they are refence if complex objects and copies if a basic python type.</p>
+</div>
+<p>This class is also available directly under <a class="reference internal" href="../crystal.html#module-pylada.crystal" title="pylada.crystal"><tt class="xref py py-mod docutils literal"><span class="pre">pylada.crystal</span></tt></a>.</p>
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Atom.copy">
+<tt class="descname">copy</tt><big>(</big><big>)</big> &rarr; Atom<a class="headerlink" href="#pylada.crystal.cppwrappers.Atom.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a deepcopy of the atom.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Atom.to_dict">
+<tt class="descname">to_dict</tt><big>(</big><big>)</big> &rarr; dict<a class="headerlink" href="#pylada.crystal.cppwrappers.Atom.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary with shallow copies of items.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.crystal.cppwrappers.Atom.pos">
+<tt class="descname">pos</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.Atom.pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Position in cartesian coordinates.</p>
+<p>The position does not yet have units. Units depend upon <cite>pylada.crystal.Structure.scale</cite>.
+Finally, the position is owned internally by the atom. It cannot be set to reference an object
+(say a list or numpy array). <tt class="docutils literal"><span class="pre">atom.pos</span> <span class="pre">=</span> <span class="pre">some_list</span></tt> will copy the values of``some_list``.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.crystal.cppwrappers.Atom.type">
+<tt class="descname">type</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.Atom.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Occupation of this atomic site.</p>
+<p>Can be any object whatsoever.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pylada.crystal.cppwrappers.Structure">
+<em class="property">class </em><tt class="descclassname">pylada.crystal.cppwrappers.</tt><tt class="descname">Structure</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.Structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Defines a structure.</p>
+<p>A structure is a special kind of sequence containing only <a class="reference internal" href="#pylada.crystal.cppwrappers.Atom" title="pylada.crystal.cppwrappers.Atom"><tt class="xref py py-class docutils literal"><span class="pre">Atom</span></tt></a>. It also sports attributes such a cell and scale.</p>
+<dl class="docutils">
+<dt>__init__ accepts different kind of input.</dt>
+<dd><ul class="first last simple">
+<li>if 9 numbers are given as arguments, these create the cell vectors, where the first three numbers define the first row of the matrix(not the first cell vector, eg column).</li>
+<li>if only one object is given it should be the cell matrix.</li>
+<li>the cell can also be given as a keyword argument.</li>
+<li>the scale can only be given as a keyword argument.</li>
+<li>All other keyword arguments become attributes. In other words, one could add <tt class="docutils literal"><span class="pre">magnetic=0.5</span></tt> if one wanted to specify the magnetic moment of a structure. It would later be accessible as an attribute, eg as <tt class="docutils literal"><span class="pre">structure.magnetic</span></tt>.</li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The cell is always owned by the object. Two structures will not own the same cell object. The cell given on input is <em>copied</em>, <em>not</em> referenced. All other attributes behave like other python attributes: they are refence if complex objects and copies if a basic python type.</p>
+</div>
+<p>This class is also available directly under <a class="reference internal" href="../crystal.html#module-pylada.crystal" title="pylada.crystal"><tt class="xref py py-mod docutils literal"><span class="pre">pylada.crystal</span></tt></a>.</p>
+<dl class="attribute">
+<dt id="pylada.crystal.cppwrappers.Structure.volume">
+<tt class="descname">volume</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volume of the structure.</p>
+<p>Includes scale.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.crystal.cppwrappers.Structure.cell">
+<tt class="descname">cell</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cell matrix in cartesian coordinates.</p>
+<p>Unlike most ab-initio codes, cell-vectors are given in column vector format. The cell does not yet have units. Units depend upon <a class="reference internal" href="#pylada.crystal.cppwrappers.Structure.scale" title="pylada.crystal.cppwrappers.Structure.scale"><tt class="xref py py-class docutils literal"><span class="pre">Structure.scale</span></tt></a>. Across pylada, it is expected that a cell time this scale are angstroms. Finally, the cell is owned internally by the structure. It cannot be set to reference an object (say a list or numpy array). <tt class="docutils literal"><span class="pre">structure.cell</span> <span class="pre">=</span> <span class="pre">some_list</span></tt> will copy the values of <tt class="docutils literal"><span class="pre">some_list</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.crystal.cppwrappers.Structure.scale">
+<tt class="descname">scale</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scale factor of this structure.
+Should be a number or unit given by the python package <a class="reference external" href="http://packages.python.org/quantities/index.html">quantities</a>.
+If given as a number, then the current units are kept.
+Otherwise, it changes the units.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.copy">
+<tt class="descname">copy</tt><big>(</big><big>)</big> &rarr; Structure<a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a deepcopy of the structure.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.to_dict">
+<tt class="descname">to_dict</tt><big>(</big><big>)</big> &rarr; dict<a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary with shallow copies of items.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big> &rarr; None<a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all atoms from structure.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.insert">
+<tt class="descname">insert</tt><big>(</big><em>index</em>, <em>atom</em><big>)</big> &rarr; None<a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inserts atom at given position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> &#8211; Position at which to insert the atom.</li>
+<li><strong>atom</strong> &#8211; <a class="reference internal" href="#pylada.crystal.cppwrappers.Atom" title="pylada.crystal.cppwrappers.Atom"><tt class="xref py py-class docutils literal"><span class="pre">Atom</span></tt></a> or subtype to insert.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.pop">
+<tt class="descname">pop</tt><big>(</big><em>index</em><big>)</big> &rarr; Atom<a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes and returns atom at given position.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.extend">
+<tt class="descname">extend</tt><big>(</big><em>atoms</em><big>)</big> &rarr; None<a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends list of atoms to structure.</p>
+<p>The argument is any iterable objects containing only atoms, e.g. another Structure.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.append">
+<tt class="descname">append</tt><big>(</big><em>atoms</em><big>)</big> &rarr; None<a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends an Atom or subtype to the structure.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.transform">
+<tt class="descname">transform</tt><big>(</big><em>matrix</em><big>)</big> &rarr; Structure<a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a structure in-place.</p>
+<p>Applies an affine transformation to a structure. An affine transformation is a 4x3 matrix, where the upper 3 rows correspond to a rotation (applied first), and the last row to a translation (applied second).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>matrix</strong> &#8211; Affine transformation defined as a 4x3 numpy array.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A new <a class="reference internal" href="#pylada.crystal.cppwrappers.Structure" title="pylada.crystal.cppwrappers.Structure"><tt class="xref py py-class docutils literal"><span class="pre">Structure</span></tt></a> (or derived) instance.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.add_atom">
+<tt class="descname">add_atom</tt><big>(</big><em>...</em><big>)</big> &rarr; Structure<a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.add_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds atom to structure.</p>
+<p>The argument to this function is either another atom, in which case a reference to that atom is appended to the structure. Or, it is any arguments used to initialize atoms in <a class="reference internal" href="#pylada.crystal.cppwrappers.Atom" title="pylada.crystal.cppwrappers.Atom"><tt class="xref py py-class docutils literal"><span class="pre">Atom</span></tt></a>. Finally, this function can be chained as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">structure</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;Au&#39;</span><span class="p">)</span>                        \
+         <span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;Pd&#39;</span><span class="p">,</span> <span class="s">&#39;Si&#39;</span><span class="p">],</span> <span class="n">m</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>\
+         <span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="n">atom_from_another_structure</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the example above, both <tt class="docutils literal"><span class="pre">structure</span></tt> and the <em>other</em> structure will reference the same atom (<tt class="docutils literal"><span class="pre">atom_from_another_structure</span></tt>). Changing, say, that atom&#8217;s type in one structure will also change it in the other.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The structure itself, so that add_atom methods can be chained.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.__getitem__">
+<tt class="descname">__getitem__</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves atom or slice.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> &#8211; If an integer, returns a refence to that atom. If a slice, returns a list with all atoms in that slice.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.Structure.__setitem__">
+<tt class="descname">__setitem__</tt><big>(</big><big>)</big><a class="headerlink" href="#pylada.crystal.cppwrappers.Structure.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets atom or atoms.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> &#8211; If an integers, sets that atom to the input value.     If a slice, then sets all atoms in refered to in the structure to the corresponding atom in the value.</li>
+<li><strong>value</strong> &#8211; If index is an integer, this should be an <a class="reference internal" href="#pylada.crystal.cppwrappers.Atom" title="pylada.crystal.cppwrappers.Atom"><tt class="xref py py-class docutils literal"><span class="pre">atom</span></tt></a>. If index is a slice, then this should be a sequence of <a class="reference internal" href="#pylada.crystal.cppwrappers.Atom" title="pylada.crystal.cppwrappers.Atom"><tt class="xref py py-class docutils literal"><span class="pre">atoms</span></tt></a> of the exact length of the slice.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pylada.crystal.cppwrappers.HFTransform">
+<em class="property">class </em><tt class="descclassname">pylada.crystal.cppwrappers.</tt><tt class="descname">HFTransform</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.HFTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Defines a hftransform.</p>
+<p>The Hart-Forcade transform computes the cyclic group of supercell
+with respect to its backbone lattice. It can then be used to index
+atoms in the supercell, irrespective of which periodic image is given
+<a class="reference internal" href="../../userguide/crystal.html#hf">[HF]</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>lattice</strong> (<a class="reference internal" href="#pylada.crystal.cppwrappers.Structure" title="pylada.crystal.cppwrappers.Structure"><tt class="xref py py-func docutils literal"><span class="pre">Structure()</span></tt></a> or matrix) &#8211; Defines the cyclic group.</li>
+<li><strong>supercell</strong> (<a class="reference internal" href="#pylada.crystal.cppwrappers.Structure" title="pylada.crystal.cppwrappers.Structure"><tt class="xref py py-func docutils literal"><span class="pre">Structure()</span></tt></a> or matrix) &#8211; Supercell for which to compute cyclic group.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This class is also available directly under <a class="reference internal" href="../crystal.html#module-pylada.crystal" title="pylada.crystal"><tt class="xref py py-mod docutils literal"><span class="pre">pylada.crystal</span></tt></a>.</p>
+<dl class="attribute">
+<dt id="pylada.crystal.cppwrappers.HFTransform.quotient">
+<tt class="descname">quotient</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.HFTransform.quotient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Periodicity quotient.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pylada.crystal.cppwrappers.HFTransform.transform">
+<tt class="descname">transform</tt><a class="headerlink" href="#pylada.crystal.cppwrappers.HFTransform.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation matrix to go from position to hf index.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.HFTransform.copy">
+<tt class="descname">copy</tt><big>(</big><big>)</big> &rarr; HFTransform<a class="headerlink" href="#pylada.crystal.cppwrappers.HFTransform.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a deepcopy of the hftransform.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.HFTransform.indices">
+<tt class="descname">indices</tt><big>(</big><em>position</em><big>)</big> &rarr; numpy.array<a class="headerlink" href="#pylada.crystal.cppwrappers.HFTransform.indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>indices of input atomic position in cyclic Z-group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vec</strong> &#8211; A 3d-vector in the sublattice of interest.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The 3-d indices in the cyclic group.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.HFTransform.flatten_indices">
+<tt class="descname">flatten_indices</tt><big>(</big><em>indices</em>, <em>index=0</em><big>)</big> &rarr; numpy.array<a class="headerlink" href="#pylada.crystal.cppwrappers.HFTransform.flatten_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flattens cyclic Z-group indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<em>int</em>) &#8211; First index into cyclic Z-group.</li>
+<li><strong>j</strong> (<em>int</em>) &#8211; Second index into cyclic Z-group.</li>
+<li><strong>j</strong> &#8211; Third index into cyclic Z-group.</li>
+<li><strong>site</strong> (<em>int</em>) &#8211; Optional site index for multilattices.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An integer which can serve as an index into a 1d array.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pylada.crystal.cppwrappers.HFTransform.index">
+<tt class="descname">index</tt><big>(</big><em>position</em>, <em>index=0</em><big>)</big> &rarr; numpy.array<a class="headerlink" href="#pylada.crystal.cppwrappers.HFTransform.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flat index into cyclic Z-group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pos</strong> &#8211; (3d-vector)
+Atomic position with respect to the sublattice of
+interest.  Do not forget to shift the sublattice
+back to the origin.</li>
+<li><strong>site</strong> &#8211; (integer)
+Optional site index. If there are more than one
+sublattice in the structure, then the flattened
+indices need to take this into account.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../crystal.html"
+                        title="previous chapter">crystal</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="methods.html"
+                        title="next chapter">Methods</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pyapi/crystal/classes.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="methods.html" title="Methods"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../crystal.html" title="crystal"
+             >previous</a> |</li>
+        <li><a href="../../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../pyapi.html" >Python API</a> &raquo;</li>
+          <li><a href="../crystal.html" >crystal</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

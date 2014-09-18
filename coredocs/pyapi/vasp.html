@@ -1,0 +1,188 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Vasp Module &mdash; Pylada 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Pylada 1.0 documentation" href="../index.html" />
+    <link rel="up" title="Python API" href="../pyapi.html" />
+    <link rel="next" title="Vasp class" href="vasp/functional.html" />
+    <link rel="prev" title="Parallel execution of a job-folder with per-folder numbers of processors" href="process/pool.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vasp/functional.html" title="Vasp class"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="process/pool.html" title="Parallel execution of a job-folder with per-folder numbers of processors"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../pyapi.html" accesskey="U">Python API</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="vasp-module">
+<h1>Vasp Module<a class="headerlink" href="#vasp-module" title="Permalink to this headline">¶</a></h1>
+<p>Pylada provides an interface wrapping the <a class="reference external" href="http://www.vasp.at/">VASP</a> density functional theory code.
+This interface manages the input to <a class="reference external" href="http://www.vasp.at/">VASP</a>, launching the code itself (as an
+external program), and retrieving the results as python object. It makes it
+much easier to use <a class="reference external" href="http://www.vasp.at/">VASP</a> as one step of a more complex computational scheme.</p>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="vasp/functional.html">Vasp class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vasp/relax.html">Relaxation methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vasp/extract.html">Extraction classes</a></li>
+</ul>
+</div>
+<dl class="function">
+<dt id="pylada.vasp.read_input">
+<tt class="descclassname">pylada.vasp.</tt><tt class="descname">read_input</tt><big>(</big><em>filepath='input.py'</em>, <em>namespace=None</em><big>)</big><a class="reference internal" href="../_modules/pylada/vasp.html#read_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.vasp.read_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specialized read_input function for vasp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><dl class="first last docutils">
+<dt>filepath <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">A path to the input file.</p>
+</dd>
+<dt>namespace <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd><p class="first last">Additional names to include in the local namespace when evaluating
+the input file.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p>It add a few names to the input-file&#8217;s namespace.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pylada.vasp.read_incar">
+<tt class="descclassname">pylada.vasp.</tt><tt class="descname">read_incar</tt><big>(</big><em>filename='INCAR'</em><big>)</big><a class="reference internal" href="../_modules/pylada/vasp.html#read_incar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pylada.vasp.read_incar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a functional from an INCAR.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> &#8211; <p>It can be one of the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>An iterable object: each iteration should yield a line in the
+INCAR.</li>
+<li>A string (single line): path to a directory containing an <a class="reference external" href="http://cms.mpi.univie.ac.at/wiki/index.php/INCAR">INCAR</a> or
+to an <a class="reference external" href="http://cms.mpi.univie.ac.at/wiki/index.php/INCAR">INCAR</a> file itself.</li>
+<li>A string (multi-line): should be the content of an <a class="reference external" href="http://cms.mpi.univie.ac.at/wiki/index.php/INCAR">INCAR</a>.</li>
+</ul>
+</div></blockquote>
+<p>Defaults to &#8216;INCAR&#8217;.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A vasp functional equivalent to the <a class="reference external" href="http://cms.mpi.univie.ac.at/wiki/index.php/INCAR">INCAR</a>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="vasp/functional.html#pylada.vasp.functional.Vasp" title="pylada.vasp.functional.Vasp"><tt class="xref py py-class docutils literal"><span class="pre">Vasp</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="process/pool.html"
+                        title="previous chapter">Parallel execution of a job-folder with per-folder numbers of processors</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="vasp/functional.html"
+                        title="next chapter">Vasp class</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/pyapi/vasp.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="vasp/functional.html" title="Vasp class"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="process/pool.html" title="Parallel execution of a job-folder with per-folder numbers of processors"
+             >previous</a> |</li>
+        <li><a href="../index.html">Pylada 1.0 documentation</a> &raquo;</li>
+          <li><a href="../pyapi.html" >Python API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mayeul d&#39;Avezac.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
