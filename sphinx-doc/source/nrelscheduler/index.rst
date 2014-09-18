@@ -16,10 +16,3 @@ Contents:
    Example B: VASP <example.vasp>
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

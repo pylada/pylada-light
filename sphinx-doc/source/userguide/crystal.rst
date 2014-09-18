@@ -89,7 +89,7 @@ Atoms in the structure can be accessed in the structure as though it were a list
 
 >>> atom0 = structure[0]
 >>> atom1 = structure[1]
->>> atom0 is structure[-1]
+>>> atom0 is structure[-2]
 True
 
 Just like any list, the structure can be accessed starting from the end, using
@@ -130,13 +130,7 @@ A boolean
 >>> print structure[0].type
 False
 
-Or even itself
-
->>> atom0.type = atom0
->>> print structure[0].type
-Atom(0, 0, 0, 'C', spin='d0')
-
-Though how that would be useful is not clear. The position, however, is
+The position, however, is
 *always* a numpy_ array. Try otherwise, and you will get an error. Note above
 that we set the type using ``atom0`` and then print it out using
 ``structure[0]``. ``atom0`` is a variable created earlier. It references the
@@ -179,6 +173,11 @@ The units are given using the structure's scale attribute:
 >>> structure.scale = 0.5 * nanometer
 >>> print structure.scale
 5
+
+CURRENT PYLADA RETURNS
+>>> print structure.scale
+0.5 nm
+
 
 The package quantities_ allows us to specify units explicitly. Note however
 that the scale is converted to angstroms. Units are arbitrary and an arbitrary
