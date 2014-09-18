@@ -62,7 +62,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Pylada'
+project = u'Pylada-light'
 copyright = u'2012, Mayeul d\'Avezac'
 
 # The version info for the project you're documenting, acts as replacement for
