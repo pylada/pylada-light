@@ -113,15 +113,19 @@ function(add_python_module module)
         endif()
     endif()
     if(NOT "${pyfiles}" STREQUAL "")
-        if(NOT TARGET ${targetname}_copy AND NOT TARGET ${targetname})
-            add_custom_target(${targetname}_copy ALL)
+        file(RELATIVE_PATH targetname_copy "${PROJECT_SOURCE_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}")
+        string(REGEX REPLACE "( |/)" "_" targetname_copy "${targetname_copy}")
+        set(targetname_copy "copy_${targetname_copy}")
+        if(NOT TARGET ${targetname_copy} AND NOT TARGET ${targetname})
+            add_custom_target(${targetname_copy} ALL)
         endif()
-        add_copy_files(${targetname}_copy
+        add_copy_files(${targetname_copy}
             FILES ${pyfiles}
             DESTINATION "${PYTHON_BINARY_DIR}/${location}"
         )
         if(TARGET ${targetname})
-            add_dependencies(${targetname} ${targetname}_copy)
+            add_dependencies(${targetname} ${targetname_copy})
         endif()
         if(do_install)
             install_python(FILES ${pyfiles} DESTINATION ${location})

@@ -1,5 +1,5 @@
 from os.path import basename, dirname, join, abspath
-from os import getcwd
+from os import getcwd, chdir
 from setuptools import setup, Extension
 from distutils.command.build import build as dBuild
 from setuptools.command.install import install as dInstall
@@ -7,10 +7,12 @@ from setuptools.command.build_ext import build_ext as dBuildExt
 from setuptools.command.bdist_egg import bdist_egg as dBuildDistEgg
 from setuptools.command.sdist import sdist as dSDist
 from setuptools.command.egg_info import egg_info as dEggInfo
+from setuptools.command.develop import develop as dDevelop
 from distutils.dir_util import mkpath
 
 source_dir = dirname(abspath(__file__))
 package_dir = join(source_dir, 'pkg_install')
+long_description = open(join(source_dir, 'README.rst'), 'r').read()
 mkpath(package_dir)
 
 def cmake_cache_line(variable, value, type='STRING'):
@@ -48,7 +50,6 @@ class Build(dBuild):
     def _configure(self, build_dir):
         from distutils import log
         from distutils.spawn import spawn
-        from os import chdir
 
         current_dir = getcwd()
         mkpath(build_dir)
@@ -67,7 +68,6 @@ class Build(dBuild):
     def _build(self, build_dir):
         from distutils import log
         from distutils.spawn import spawn
-        from os import chdir
 
         log.info("CMake: building in %s" % build_dir)
         current_dir = getcwd()
@@ -78,11 +78,13 @@ class Build(dBuild):
             spawn([cmake, '--build', '.'])
         finally: chdir(current_dir)
 
-    def run(self):
-
+    def cmake_build(self):
         build_dir = join(dirname(abspath(__file__)), self.build_base)
         self._configure(build_dir)
         self._build(build_dir)
+
+    def run(self):
+        self.cmake_build()
         try:
             prior = getattr(self.distribution, 'running_binary', False)
             self.distribution.running_binary = True
@@ -93,7 +95,6 @@ class Build(dBuild):
 class Install(dInstall):
     def run(self):
         from distutils import log
-        from os import chdir
         self.distribution.run_command('build')
         current_cwd = getcwd()
         build_dir = join(dirname(abspath(__file__)), self.build_base)
@@ -119,7 +120,7 @@ class Install(dInstall):
 class BuildExt(dBuildExt):
     def __init__(self, *args, **kwargs):
         dBuildExt.__init__(self, *args, **kwargs)
-    def run(self):pass
+    def run(self): pass
 
 class BuildDistEgg(dBuildDistEgg):
     def __init__(self, *args, **kwargs):
@@ -160,6 +161,15 @@ class EggInfo(dEggInfo):
             dist.ext_modules, dist.ext_package = old_values[:2]
             dist.packages, dist.package_dir = old_values[2:]
 
+class Develop(dDevelop):
+    def run(self):
+        if not self.uninstall:
+            build = self.distribution.get_command_obj("build")
+            build.cmake_build()
+        dDevelop.run(self)
+
+
+
 class SDist(dSDist):
     def __init__(self, *args, **kwargs):
         dSDist.__init__(self, *args, **kwargs)
@@ -174,70 +184,74 @@ class SDist(dSDist):
         finally:
             dist.ext_modules, dist.ext_package = old_values[:2]
             dist.packages, dist.package_dir = old_values[2:]
-setup(
-    name = "pylada",
-    version = "1.0",
+try:
+    cwd = getcwd()
+    chdir(source_dir)
+    setup(
+        name = "pylada",
+        version = "1.0",
 
-    install_requires = ['numpy', 'scipy', 'nose', 'quantities',
-        'nose_parameterized'
-    ],
-    platforms = ['GNU/Linux','Unix','Mac OS-X'],
+        install_requires = ['numpy', 'scipy', 'nose', 'quantities',
+            'nose_parameterized'
+        ],
+        platforms = ['GNU/Linux','Unix','Mac OS-X'],
 
-    zip_safe = False,
-    cmdclass = {
-        'build': Build, 'install': Install,
-        'build_ext': BuildExt, 'bdist_egg': BuildDistEgg,
-        'egg_info': EggInfo
-    },
+        zip_safe = False,
+        cmdclass = {
+            'build': Build, 'install': Install,
+            'build_ext': BuildExt, 'bdist_egg': BuildDistEgg,
+            'egg_info': EggInfo, 'develop': Develop
+        },
 
-    author = ["Peter Graf"],
-    author_email = "peter.graf@nrel.gov",
-    description = "Productivity environment for Density Functional Theory",
-    license = "GPL-2",
-    url = "https://github.com/pylada/pylada",
-    ext_modules = [Extension(u, []) for u in [
-        'pylada.crystal.cppwrappers',
-        'pylada.crystal.tests.atom_self',
-        'pylada.tests._pyobject',
-        'pylada.tests._quantity',
-        'pylada.tests._gruber',
-        'pylada.tests._smith',
-        'pylada.cppwrappers',
-        'pylada.ewald.cppwrappers',
-        'pylada.math',
-    ]],
-    ext_package = 'pylada',
-    packages = [
-        'pylada', 'pylada.tests',
-        'pylada.physics',
-        'pylada.jobfolder', 'pylada.jobfolder.tests',
-        'pylada.crystal', 'pylada.crystal.tests',
-        'pylada.misc',
-        'pylada.config',
-        'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
-        'pylada.ewald', 'pylada.ewald.tests',
-        'pylada.process',
-        'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
-        'pylada.vasp.extract.tests', 'pylada.vasp.nlep', 'pylada.vasp.incar',
-        'pylada.vasp.incar.tests',
-        'pylada.tools', 'pylada.tools.tests', 'pylada.tools.input',
-        'pylada.tools.input.tests'
-    ],
-    package_dir = {'': basename(package_dir)},
-    include_package_data=True,
+        author = ["Peter Graf"],
+        author_email = "peter.graf@nrel.gov",
+        description = "Productivity environment for Density Functional Theory",
+        license = "GPL-2",
+        url = "https://github.com/pylada/pylada",
+        ext_modules = [Extension(u, []) for u in [
+            'pylada.crystal.cppwrappers',
+            'pylada.crystal.tests.atom_self',
+            'pylada.tests._pyobject',
+            'pylada.tests._quantity',
+            'pylada.tests._gruber',
+            'pylada.tests._smith',
+            'pylada.cppwrappers',
+            'pylada.ewald.cppwrappers',
+            'pylada.math',
+        ]],
+        ext_package = 'pylada',
+        packages = [
+            'pylada', 'pylada.tests',
+            'pylada.physics',
+            'pylada.jobfolder', 'pylada.jobfolder.tests',
+            'pylada.crystal', 'pylada.crystal.tests',
+            'pylada.misc',
+            'pylada.config',
+            'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
+            'pylada.ewald', 'pylada.ewald.tests',
+            'pylada.process',
+            'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
+            'pylada.vasp.extract.tests', 'pylada.vasp.nlep', 'pylada.vasp.incar',
+            'pylada.vasp.incar.tests',
+            'pylada.tools', 'pylada.tools.tests', 'pylada.tools.input',
+            'pylada.tools.input.tests'
+        ],
+        package_dir = {'': str(basename(package_dir))},
+        include_package_data=True,
 
-    keywords= "Physics",
-    classifiers = [
-         'Development Status :: 0 - Beta',
-         'Intended Audience :: Developers',
-         'Intended Audience :: Science/Research',
-         'License :: OSI Approved :: GNU Public License v3 (GPLv3)',
-         'Operating System :: OS Independent',
-         'Programming Language :: Python :: 2.6',
-         'Programming Language :: Python :: 2.7',
-         'Topic :: Scientific/Engineering',
-         'Topic :: Software Development :: Libraries :: Python Modules',
-         'Topic :: Software Development :: Libraries :: Application Frameworks',
-    ],
-    long_description = open(join(dirname(__file__), 'README.rst'), 'r').read()
-)
+        keywords= "Physics",
+        classifiers = [
+             'Development Status :: 0 - Beta',
+             'Intended Audience :: Developers',
+             'Intended Audience :: Science/Research',
+             'License :: OSI Approved :: GNU Public License v3 (GPLv3)',
+             'Operating System :: OS Independent',
+             'Programming Language :: Python :: 2.6',
+             'Programming Language :: Python :: 2.7',
+             'Topic :: Scientific/Engineering',
+             'Topic :: Software Development :: Libraries :: Python Modules',
+             'Topic :: Software Development :: Libraries :: Application Frameworks',
+        ],
+        long_description = long_description
+    )
+finally: chdir(cwd)
