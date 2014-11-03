@@ -223,7 +223,7 @@ def set_queue_parser(parser):
   from ... import queues, accounts, debug_queue, features
 
   parser.add_argument(
-    '--account', dest='account', type=str,
+    '--account', dest='account', type=str, 
     help='Launches jobs on specific account if present.')
 
   parser.add_argument(

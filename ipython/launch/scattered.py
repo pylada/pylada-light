@@ -148,6 +148,8 @@ def launch(self, event, jobfolders):
       with open(pbsscripts[-1], "w") as file:
         string = pbs_string(**pbsargs) if hasattr(pbs_string, '__call__')      \
                  else pbs_string.format(**pbsargs) 
+        # peregrine takes back the option of "anynode"
+        string = string.replace("#PBS -l feature=anynode", "##PBS -l feature=anynode")
         if bugLev >= 1:
           print "launch/scattered: ===== start pbsscripts[-1]: %s =====" \
             % (pbsscripts[-1],)
@@ -220,7 +222,7 @@ def launch(self, event, jobfolders):
 def completer(self, info, data):
   """ Completer for scattered launcher. """
   from .. import jobfolder_file_completer
-  from ... import queues, accounts, debug_queue, featuers
+  from ... import queues, accounts, debug_queue, features
   if len(data) > 0: 
     if data[-1] == "--walltime":
       return [ u for u in self.user_ns                                         \
