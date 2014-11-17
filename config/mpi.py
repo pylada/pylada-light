@@ -190,7 +190,8 @@ def launch_program( cmdl, comm=None, formatter=None, env=None,
   if bugLev >= 1:
     print "config/mpi: launch_program: popen: %s" % (popen,)
     print "config/mpi: launch_program: popen.pid: %s" % (popen.pid,)
-  if testValidProgram: popen.wait()
+  popen.wait()
+  #if testValidProgram: popen.wait()
   return popen
 
 
