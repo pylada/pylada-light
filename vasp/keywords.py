@@ -1065,7 +1065,7 @@ class IBrion(BaseKeyword):
     self.value = value
   def output_map(self, **kwargs):
     vasp = kwargs['vasp']
-    if vasp.relaxation == 'static': 
+    if vasp.relaxation == 'static' and self.value is None: 
       return {self.keyword: str(-1)}
     if self.value is None: return None
     return {self.keyword: str(self.value)}
