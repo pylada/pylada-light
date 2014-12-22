@@ -17,5 +17,5 @@ install:
 script:
   - make
   - ctest .. -V
-#  - pip install --user git+file://$(pwd)/../
-#  - python -c "import pylada; pylada.test()"
+  - pip install --user git+git://github.com/$TRAVIS_REPO_SLUG@$TRAVIS_COMMIT
+  - python -c "import pylada; pylada.test()"
