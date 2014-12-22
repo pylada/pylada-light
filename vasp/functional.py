@@ -1040,8 +1040,8 @@ class Vasp(AttrBlock):
     def onfinish(process, error):  self.bringdown(outdir, structure)
     onfail   = self.OnFail(Vasp.Extract(outdir))
     yield ProgramProcess( vaspProgram, cmdline=[], outdir=outdir,
-			  onfinish=onfinish, onfail=onfail, stdout='stdout',
-			  stderr='stderr', dompi=comm is not None )
+         onfinish=onfinish, onfail=onfail, stdout='stdout',
+         stderr='stderr', dompi=comm is not None )
     # yields final extraction object.
     yield ExtractVasp(outdir)
 
