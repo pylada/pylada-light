@@ -815,6 +815,14 @@ class Vasp(AttrBlock):
         Accepts None, True, or False. If True, then sets :py:attr:`nonscf` to
         True and :py:attr:`ispin` to 2.
     """ 
+
+    self.files = None
+    """ Copies additional files to vasp directory
+
+        If None, does nothing (default). Otherwise, it can be a string or a
+        list of strings. Each string should be a valid unix full path. The path
+        can contain environment variables.
+    """
     
     # copies values from other functional.
     if copy is not None: 
@@ -829,11 +837,10 @@ class Vasp(AttrBlock):
     for key, value in kwargs.iteritems():
       if hasattr(self, key): setattr(self, key, value)
 
-  # NEVER CALLED!
   def __call__( self, structure, outdir=None, comm=None, overwrite=False, 
                 **kwargs):
-    """ Calls vasp program and waits until completion. 
-    
+    """ Calls vasp program and waits until completion.
+
         This function makes a blocking call to the VASP_ external program. It
         will return only once the calculation is complete. To make asynchronous
         calls to VASP_, please consider using :py:meth:`iter`.
@@ -1083,7 +1090,26 @@ class Vasp(AttrBlock):
       with open('.pylada_is_running', 'w') as file: pass
       if bugLev >= 5:
         print 'vasp/functional bringup: is_run dir: %s' % (os.getcwd(),)
-    
+
+      self._copy_additional_files(outdir)
+
+  def _copy_additional_files(self, outdir):
+      """ Copy files from attribute files """
+      from collections import Sequence
+      from ..misc import RelativePath, copyfile, Changedir
+      files = getattr(self, 'files', [])
+      if files is None:
+        return
+      if isinstance(files, str) or not isinstance(files, Sequence):
+        files = [files]
+      files = [
+        RelativePath(getattr(filename, 'path', filename)).path
+        for filename in files
+      ]
+      with Changedir(outdir):
+        for filename in files:
+          copyfile(filename)
+
   def bringdown(self, directory, structure):
     """ Copies contcar to outcar. """
     from os.path import exists
