@@ -212,6 +212,17 @@ class Structure(MutableSequence):
             result += ")"
         return result
 
+    def transform(self, rotation, translation=None):
+        """ Applies rotation and translation to structure """
+        from numpy import dot
+        self.cell = dot(rotation, self.cell)
+        if translation is None:
+            for atom in self:
+                atom.pos = dot(rotation, atom.pos)
+        else:
+            for atom in self:
+                atom.pos = dot(rotation, atom.pos) + translation
+
     def copy(self):
         """ Returns a deepcopy of this structure """
         from copy import deepcopy

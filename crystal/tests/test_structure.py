@@ -284,3 +284,15 @@ def test_pickle():
       assert all(abs(i.pos - j.pos) < 1e-8)
       assert i.type == j.type
       assert getattr(i, 'm', False) == getattr(j, 'm', False)
+
+
+def test_transform():
+    a = Structure([0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0], scale=5.45, m=True)\
+        .add_atom(0, 0, 0, "Au")\
+        .add_atom(0.25, 0.5, 0.25, "Au", "Pd", m=True)
+
+    rotation = array([[1, -1, -1], [-1, 1, -1], [-1, -1, 1]])
+    a.transform(-rotation, [0, 1, 1])
+    assert all(abs(a.cell - identity(3)) < 1e-8)
+    assert all(abs(a[0].pos - [0, 1, 1]) < 1e-8)
+    assert all(abs(a[1].pos - [0.5, 1, 1.5]) < 1e-8)
