@@ -25,6 +25,7 @@
 ###############################
 
 add_python_module("pylada.crystal"
+    EXLUDE *.h *.cc
     EXTENSION cppwrappers
     PYFILES "*.py"
     HEADERS

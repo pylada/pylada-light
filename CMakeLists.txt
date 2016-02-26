@@ -51,12 +51,6 @@ foreach(name Boost EIGEN3)
     endif()
 endforeach()
 
-option(tests               "Compile tests."                             on)
-option(external_program_tests "Allow tests which run external programs (vasp, crystal...)" on)
-if(tests)
-  enable_testing()
-endif(tests)
-
 # Easily add python modules
 include(PythonModule)
 # Easily add node tests
@@ -64,33 +58,32 @@ if(tests)
     include(nose)
 endif()
 
-
 # required for (at least) crystal
 add_subdirectory(crystal)
 add_subdirectory(python)
-add_subdirectory(math)
-add_subdirectory(errors)
-add_subdirectory(physics)
-add_subdirectory(misc)
-
-# additional requirements for (at least) vasp
-add_subdirectory(vasp)
-add_subdirectory(config)
-add_subdirectory(tools)
-add_subdirectory(process)
-
-# enum is for defects
-add_subdirectory(enum)
-
-# Add documentation target: make documentation
-include(sphinx)
-# with the above, ewald and jobfolder and ipython don't need anything else:
-add_subdirectory(ewald)
-add_subdirectory(jobfolder)
-add_subdirectory(ipython)
-
-# after all that, turns out nrelmatdb uses this:
-add_subdirectory(periodic_table)
+# add_subdirectory(math)
+# add_subdirectory(errors)
+# add_subdirectory(physics)
+# add_subdirectory(misc)
+#
+# # additional requirements for (at least) vasp
+# add_subdirectory(vasp)
+# add_subdirectory(config)
+# add_subdirectory(tools)
+# add_subdirectory(process)
+#
+# # enum is for defects
+# add_subdirectory(enum)
+#
+# # Add documentation target: make documentation
+# include(sphinx)
+# # with the above, ewald and jobfolder and ipython don't need anything else:
+# add_subdirectory(ewald)
+# add_subdirectory(jobfolder)
+# add_subdirectory(ipython)
+#
+# # after all that, turns out nrelmatdb uses this:
+# add_subdirectory(periodic_table)
 
 #add_custom_target(doc 
 #      COMMAND make html
