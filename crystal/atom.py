@@ -68,7 +68,10 @@ class Atom(object):
     @pos.setter
     def pos(self, value):
         from numpy import require
-        self._pos = require(value, dtype=self._pos.dtype)
+        if not hasattr(value, 'dtype'):
+            self._pos = require(value, dtype=self._pos.dtype)
+        else:
+            self._pos = value
 
     def __repr__(self):
         """ Dumps atom to string """
