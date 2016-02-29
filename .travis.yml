@@ -20,4 +20,8 @@ script:
   - pip install --user git+git://github.com/$TRAVIS_REPO_SLUG@$TRAVIS_COMMIT
   - python -c "import pylada; pylada.test()"
 notifications:
-  slack: pylada:J4ytpqLv9KJqG18zAnENZVRL
+  slack:
+    matrix:
+    - pylada:J4ytpqLv9KJqG18zAnENZVRL
+    rooms:
+      secure: HjsbOCT//OjseJlfoomf/QiMVDbkpOjicy4u9Gd23yKcImCKuZTs9nzgmOK5yN7rdaoVQ+ewbKY+6knZLrLlsuvC3ElPaw2rOdqSXoohVltvBxiBaIFm/EdAqXxK0mebfY2JCNbJEK//AnAqZcxPs/OVKRUF1pLhVPM6ZvrK7ic=
