@@ -19,3 +19,5 @@ script:
   - ctest .. -V
   - pip install --user git+git://github.com/$TRAVIS_REPO_SLUG@$TRAVIS_COMMIT
   - python -c "import pylada; pylada.test()"
+notifications:
+  slack: pylada:J4ytpqLv9KJqG18zAnENZVRL
