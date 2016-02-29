@@ -24,14 +24,9 @@
 #  with PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-add_python_module("pylada.crystal"
-    EXLUDE *.h *.cc
-    EXTENSION cppwrappers
-    PYFILES "*.py"
-    HEADERS
-        "*.h" "atom/*.h" "structure/*.h" "hart-forcade/*.h"
-        "hart-forcade/*.hpp"
-)
-
-add_subdirectory(defects)
-add_subdirectory(tests)
+add_library(smith STATIC smith_normal_form.cc)
+add_python_module("pylada.crystal" CPP GLOB *.py smith_normal_form.pyx)
+target_link_libraries(pylada.crystal.smith_normal_form-cython smith)
+#
+# add_subdirectory(defects)
+# add_subdirectory(tests)

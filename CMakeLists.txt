@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-project (Pylada C CXX Fortran)
+project (Pylada C CXX)
 set (Pylada_VERSION_MAJOR 0)
 set (Pylada_VERSION_MINOR 1)
 
@@ -30,10 +30,11 @@ set (Pylada_VERSION_MINOR 1)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 include(LookUp-GreatCMakeCookOff)
 
-include(FortranCInterface)
-FortranCInterface_HEADER(${PROJECT_BINARY_DIR}/FCMangle.h
-                         MACRO_NAMESPACE "FC_"
-                         SYMBOL_NAMESPACE "FC_" )
+# enable_language(Fortran)
+# include(FortranCInterface)
+# FortranCInterface_HEADER(${PROJECT_BINARY_DIR}/FCMangle.h
+#                          MACRO_NAMESPACE "FC_"
+#                          SYMBOL_NAMESPACE "FC_" )
 option(tests "Compile tests." on)
 option(external_program_tests
     "Allow tests which run external programs (vasp, crystal...)" on)
