@@ -23,6 +23,7 @@
 """ Contains basic data type and methods for crystal structures. """
 __docformat__ = "restructuredtext en"
 from .atom import Atom
+from .cutilities import smith_normal_form
 # __all__ = [ 'Structure', 'Atom', 'HFTransform', 'zero_centered', 'into_voronoi',
 #             'into_cell', 'third_order_cc', 'supercell', 'primitive', 'is_primitive', 'space_group',
 #             'transform', 'periodic_dnc', 'neighbors', 'coordination_shells',

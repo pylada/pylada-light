@@ -25,7 +25,7 @@ def test_smith_normal_form():
     from numpy import dot, all
     from numpy.random import randint
     from numpy.linalg import det
-    from pylada.crystal.smith_normal_form import smith_normal_form
+    from pylada.crystal.cutilities import smith_normal_form
 
     for i in xrange(50):
         cell = randint(-5, 5, size=(3, 3))
@@ -35,8 +35,8 @@ def test_smith_normal_form():
         assert all(dot(dot(l, cell), r) == s)
 
 
-def test_require_non_singular_matrix():
-    from pylada.crystal.smith_normal_form import smith_normal_form
+def test_snf_require_non_singular_matrix():
+    from pylada.crystal.cutilities import smith_normal_form
     from numpy import array
     from pytest import raises
     with raises(ValueError):

@@ -25,8 +25,8 @@
 ###############################
 
 add_library(smith STATIC smith_normal_form.cc)
-add_python_module("pylada.crystal" CPP GLOB *.py smith_normal_form.pyx)
-target_link_libraries(pylada.crystal.smith_normal_form-cython smith)
+add_python_module("pylada.crystal" CPP GLOB *.py cutilities.pyx)
+target_link_libraries(pylada.crystal.cutilities-cython smith)
 #
 # add_subdirectory(defects)
 # add_subdirectory(tests)
