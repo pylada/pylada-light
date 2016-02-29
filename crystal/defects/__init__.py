@@ -2,38 +2,38 @@
 #  This file is part of PyLaDa.
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
-# 
+#
 #  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
 #  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
 #  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
 #  is able to organise and launch computational jobs on PBS and SLURM.
-# 
+#
 #  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
 #  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
 #  your option) any later version.
-# 
+#
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 #  Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
 """ Point-defect helper functions. """
 __docformat__ = "restructuredtext en"
-__all__ = [ 'symmetrically_inequivalent_sites', 'coordination_inequivalent_sites', \
-            'vacancy', 'substitution', 'charged_states', \
-            'band_filling', 'potential_alignment', 'charge_corrections', \
-            'magmom', 'low_spin_states', 'high_spin_states', 'magname'] #, \
+__all__ = ['symmetrically_inequivalent_sites', 'coordination_inequivalent_sites',
+           'vacancy', 'substitution', 'charged_states',
+           'band_filling', 'potential_alignment', 'charge_corrections',
+           'magmom', 'low_spin_states', 'high_spin_states', 'magname']  # , \
 #           'ExtractSingle', 'ExtractMaterial' ]
 
 #from extract import Single as ExtractSingle, Material as ExtractMaterial
 
+
 def symmetrically_inequivalent_sites(lattice, type):
-# Haowei, not tested, but seldomly used in practice
   """ Yields sites occupied by type which are inequivalent according to symmetry operations. 
-  
+
       When creating a vacancy on, say, "O", or a substitution of "Al" by "Mg",
       there may be more than one site which qualifies. We want to iterate over
       those sites which are inequivalent only, so that only the minimum number
@@ -43,7 +43,7 @@ def symmetrically_inequivalent_sites(lattice, type):
         lattice sites can be defined as occupiable by more than one atomic type\:
         lattice.site.type[i] = ["Al", "Mg"]. These sites will be counted if
         type in lattice.site.type, where type is the input parameter.
- 
+
       :Parameters:
           lattice : `pylada.crystal.Lattice`
             Lattice for which to find equivalent sites.
@@ -56,9 +56,9 @@ def symmetrically_inequivalent_sites(lattice, type):
   from numpy.linalg import inv, norm
   from pylada.crystal import into_cell, space_group, primitive
 
-  # all sites with occupation "type". 
+  # all sites with occupation "type".
   sites = [site for site in lattice if type in site.type]
-  site_indices = [i for i,site in enumerate(lattice) if type in site.type]
+  site_indices = [i for i, site in enumerate(lattice) if type in site.type]
 
   # inverse cell.
   invcell = inv(lattice.cell)
@@ -67,14 +67,14 @@ def symmetrically_inequivalent_sites(lattice, type):
   while i < len(sites):
     # iterates over symmetry operations.
     for op in space_group(primitive(lattice)):
-      pos = dot(op[:3], site.pos) + op[3] 
+      pos = dot(op[:3], site.pos) + op[3]
       # finds index of transformed position, using translation quivalents.
       for t, other in enumerate(sites):
         if norm(into_cell(pos, lattice.cell, invcell)) < 1e-12:
           print t
           break
       # removes equivalent site and index from lists if necessary
-      if t != i and t < len(sites): 
+      if t != i and t < len(sites):
         sites.pop(t)
         site_indices.pop(t)
     i += 1
@@ -87,7 +87,8 @@ def first_shell(structure, pos, tolerance=0.25):
   from copy import deepcopy
 
   struct = deepcopy(structure)
-  for i, a in enumerate(struct):    a.index = i
+  for i, a in enumerate(struct):
+    a.index = i
   neighs = [n for n in neighbors(struct, 12, pos)]
   d = neighs[0][2]
   return [n for n in neighs if abs(n[2] - d) < tolerance * d]
@@ -96,11 +97,11 @@ def first_shell(structure, pos, tolerance=0.25):
 def coordination_number(structure, pos, tolerance=0.25):
   """ Returns coordination number of given position in structure. """
   return len(first_shell(structure, pos, tolerance))
-  
+
 
 def coordination(structure, pos, tolerance=0.25):
   """ Returns coordination number of given position in structure. """
-  return "".join( [ n[0].type for n in first_shell(structure, pos, tolerance)] )
+  return "".join([n[0].type for n in first_shell(structure, pos, tolerance)])
 
 
 def coordination_inequivalent_sites(lattice, type, tolerance=0.25):
@@ -125,11 +126,11 @@ def coordination_inequivalent_sites(lattice, type, tolerance=0.25):
 
       :return: indices of inequivalent sites.
   """
-  # all sites with occupation "type". 
+  # all sites with occupation "type".
   sites = [(i, site) for i, site in enumerate(lattice) if type in site.type]
 
   indices = []
-  coords  = set()
+  coords = set()
   for i, site in sites:
     #coord = coordination_number(lattice, site.pos, tolerance)
     coord = coordination(lattice, site.pos, tolerance)
@@ -143,26 +144,36 @@ def non_interstitials(structure, indices, mods):
   """ Yields substitutions for given indices to structure. """
   from copy import deepcopy
   from re import compile
-  if not hasattr(indices, '__len__'): indices = [indices]
+  if not hasattr(indices, '__len__'):
+    indices = [indices]
 
-  cation_regex  = compile(r'^\s*cations?\s*$')
+  cation_regex = compile(r'^\s*cations?\s*$')
   vacancy_regex = compile(r'^\s*vacanc(?:y|ies)\s*$')
-  specie_regex  = compile(r'^\s*[A-Z][a-z]?(?:\d+)?\s*$')
+  specie_regex = compile(r'^\s*[A-Z][a-z]?(?:\d+)?\s*$')
 
   # modify input to something which makes sense and check it.
-  if mods is None: all_mods = [None]
-  elif isinstance(mods, str): all_mods = [mods]
-  else: all_mods = mods
+  if mods is None:
+    all_mods = [None]
+  elif isinstance(mods, str):
+    all_mods = [mods]
+  else:
+    all_mods = mods
   mods = []
   whatthehell = []
   for type in all_mods:
-    if type is None: mods.append(None)
-    elif cation_regex.match(type.lower()) is not None:  mods.extend(_cationic_species(structure)) 
-    elif vacancy_regex.match(type.lower()) is not None: mods.append(None)
-    elif specie_regex.match(type) is not None: mods.append(type)
-    else: whatthehell.append(type)
+    if type is None:
+      mods.append(None)
+    elif cation_regex.match(type.lower()) is not None:
+      mods.extend(_cationic_species(structure))
+    elif vacancy_regex.match(type.lower()) is not None:
+      mods.append(None)
+    elif specie_regex.match(type) is not None:
+      mods.append(type)
+    else:
+      whatthehell.append(type)
   assert len(whatthehell) == 0,\
-         ValueError('Cannot understand following specie types: {0}.'.format(whatthehell))
+      ValueError(
+      'Cannot understand following specie types: {0}.'.format(whatthehell))
   mods = list(set(mods))
 
   # loop over atoms to modify.
@@ -173,34 +184,39 @@ def non_interstitials(structure, indices, mods):
     # loop over atoms to modifications.
     for modif in mods:
       result = deepcopy(structure)
-      if modif == input_atom.type: continue # can't substitute with self.
-      if modif is None: 
+      if modif == input_atom.type:
+        continue  # can't substitute with self.
+      if modif is None:
         result.pop(j)
         name = "vacancy_{0}".format(input_atom.type)
         output_atom = deepcopy(input_atom)
         output_atom.type = 'None'
-      else: 
+      else:
         result[j].type = modif
         output_atom = deepcopy(input_atom)
         output_atom.type = modif
         name = "{0}_on_{1}".format(output_atom.type, input_atom.type)
-      if len(indices) > 1: name += "/site_{0}".format(i)
+      if len(indices) > 1:
+        name += "/site_{0}".format(i)
       result.name = name
       yield result, output_atom, input_atom.type
 
 
-def inequiv_non_interstitials(structure, lattice, type, mods, do_coords = True, tolerance=0.25):
+def inequiv_non_interstitials(structure, lattice, type, mods, do_coords=True, tolerance=0.25):
   """ Loop over inequivalent non-interstitials. """
-  if do_coords: type = type.split()[0]
+  if do_coords:
+    type = type.split()[0]
   inequivs = coordination_inequivalent_sites(lattice, type, tolerance) if do_coords \
-             else symmetrically_inequivalent_sites(lattice, type)
+      else symmetrically_inequivalent_sites(lattice, type)
   indices = []
   for i in inequivs:
     # finds first qualifying atom.
     for which, atom in enumerate(structure):
-      if atom.site == i: break
+      if atom.site == i:
+        break
     indices.append(which)
-  for result in non_interstitials(structure, indices, mods): yield result
+  for result in non_interstitials(structure, indices, mods):
+    yield result
 
 
 def interstitials(structure, lattice, interstitials):
@@ -210,55 +226,68 @@ def interstitials(structure, lattice, interstitials):
 
   for desc in interstitials:
     assert hasattr(desc, "__iter__"),\
-           ValueError("For interstitials, desc should be a sequence: {0}".format(desc))
+        ValueError(
+        "For interstitials, desc should be a sequence: {0}".format(desc))
     assert len([u for u in desc]) == 3,\
-           ValueError("For interstitials, desc should be a sequence of length 3: {0}".format(desc))
+        ValueError(
+        "For interstitials, desc should be a sequence of length 3: {0}".format(desc))
     type, position, name = tuple([u for u in desc])
     result = deepcopy(structure)
     pos = dot(lattice.cell, position)
-    result.add_atom( pos[0], pos[1], pos[2], type )
+    result.add_atom(pos[0], pos[1], pos[2], type)
     result.name = "{0}_interstitial_{1}".format(type, name)
     defect = deepcopy(result[-1])
     # haowei:note here, index was added for a interstitial
-    defect.index = -1   
+    defect.index = -1
     yield result, defect, 'None'
+
 
 def _cationic_species(structure):
   """ Returns list of cationic species. """
   return list(set([a.type for a in structure if a.type not in ['O', 'S', 'Se', 'Te']]))
 
+
 def iterdefects(structure, lattice, defects, tolerance=0.25):
   """ Iterates over all defects for any number of types and modifications. """
   from re import compile
 
-  cation_regex       = compile(r'^\s*cations?\s*$')
-  cation_id_regex    = compile(r'^\s*cations?(\d+)\s*$')
+  cation_regex = compile(r'^\s*cations?\s*$')
+  cation_id_regex = compile(r'^\s*cations?(\d+)\s*$')
   cation_coord_regex = compile(r'^\s*cations?\s+coord\s*$')
   interstitial_regex = compile(r'^\s*interstitials?\s*$')
-  type_regex         = compile(r'^\s*(?:vacanc(?:y|ies)|[A-Z][a-z]?(?:\d+)?)(?:\s+coord)?\s*$')
-  already_cations    = False
+  type_regex = compile(
+      r'^\s*(?:vacanc(?:y|ies)|[A-Z][a-z]?(?:\d+)?)(?:\s+coord)?\s*$')
+  already_cations = False
 
   for key, value in defects.items():
-    if key is None: keys = [None]
-    elif interstitial_regex.match(key.lower()) is not None: keys = [None]
+    if key is None:
+      keys = [None]
+    elif interstitial_regex.match(key.lower()) is not None:
+      keys = [None]
     elif cation_regex.match(key.lower()) is not None:
-      assert already_cations == False, ValueError('Can only have one cation tag.')
+      assert already_cations == False, ValueError(
+          'Can only have one cation tag.')
       already_cations = True
       keys = _cationic_species(structure)
     elif cation_id_regex.match(key.lower()) is not None:
-      assert already_cations == False, ValueError('Can only have one cation tag.')
+      assert already_cations == False, ValueError(
+          'Can only have one cation tag.')
       already_cations = True
       d = int(cation_id_regex.match(key.lower()).group(1))
       keys = ['{0}{1}'.format(k, d) for k in _cationic_species(structure)]
     elif cation_coord_regex.match(key.lower()) is not None:
-      assert already_cations == False, ValueError('Can only have one cation tag.')
+      assert already_cations == False, ValueError(
+          'Can only have one cation tag.')
       already_cations = True
       keys = ['{0} coord'.format(k) for k in _cationic_species(structure)]
-    else: keys = [key]
+    else:
+      keys = [key]
     for type in keys:
       assert type is None or type_regex.match(type) is not None,\
-             ValueError("Cannot understand type {0}.".format(type))
-      for result in any_defect(structure, lattice, type, value, tolerance): yield result
+          ValueError("Cannot understand type {0}.".format(type))
+      for result in any_defect(structure, lattice, type, value, tolerance):
+        yield result
+
 
 def any_defect(structure, lattice, type, subs, tolerance=0.25):
   """ Yields point-defects of a given type and different modifications. 
@@ -295,36 +324,48 @@ def any_defect(structure, lattice, type, subs, tolerance=0.25):
   from re import compile
 
   specie_regex = compile(r'^\s*[A-Z][a-z]?\s*$')
-  id_regex     = compile(r'^\s*([A-Z][a-z]?)(\d+)\s*$')
-  coord_regex  = compile(r'^\s*([A-Z][a-z]?)\s+coord\s*$')
+  id_regex = compile(r'^\s*([A-Z][a-z]?)(\d+)\s*$')
+  coord_regex = compile(r'^\s*([A-Z][a-z]?)\s+coord\s*$')
 
   # Interstitials.
-  if hasattr(type, 'rstrip'): type = type.rstrip()
-  if hasattr(type, 'lstrip'): type = type.lstrip()
-  if type is None or type.lower() in ['interstitial', 'interstitials', 'none']: 
-    for result in interstitials(structure, lattice, subs): yield result
+  if hasattr(type, 'rstrip'):
+    type = type.rstrip()
+  if hasattr(type, 'lstrip'):
+    type = type.lstrip()
+  if type is None or type.lower() in ['interstitial', 'interstitials', 'none']:
+    for result in interstitials(structure, lattice, subs):
+      yield result
   # Old: looking for specific atoms.
   # not used in practice. Haowei
   elif id_regex.match(type) is not None:
     # looks for atom to modify
     found = id_regex.match(type)
-    type, index = found.group(1), int(found.group(2)) 
-    if index < 1: index = 1
+    type, index = found.group(1), int(found.group(2))
+    if index < 1:
+      index = 1
     for i, site in enumerate(lattice):
-      if type not in site.type: continue
+      if type not in site.type:
+        continue
       index -= 1
-      if index == 0: break
+      if index == 0:
+        break
     assert index == 0, ValueError("Could not find {0}.".format(type))
     for index, atom in enumerate(structure):
-      if atom.site == i: break
+      if atom.site == i:
+        break
     assert atom.site == i, ValueError('Could not find atomic-site.')
-    for result in non_interstitials(structure, index, subs): yield result
+    for result in non_interstitials(structure, index, subs):
+      yield result
   # O, Mn ... but not O1: looking for symmetrically inequivalent sites.
-  elif specie_regex.match(type) is not None: 
-    for result in inequiv_non_interstitials(structure, lattice, type, subs, False, tolerance): yield result
-  elif coord_regex.match(type) is not None: 
-    for result in inequiv_non_interstitials(structure, lattice, type, subs, True, tolerance): yield result
-  else: raise ValueError("Don't understand defect type {0}".format(type))
+  elif specie_regex.match(type) is not None:
+    for result in inequiv_non_interstitials(structure, lattice, type, subs, False, tolerance):
+      yield result
+  elif coord_regex.match(type) is not None:
+    for result in inequiv_non_interstitials(structure, lattice, type, subs, True, tolerance):
+      yield result
+  else:
+    raise ValueError("Don't understand defect type {0}".format(type))
+
 
 def charged_states(species, A, B):
   """ Loops over charged systems. 
@@ -358,15 +399,18 @@ def charged_states(species, A, B):
         - Number of electrons to add to the system (not charge). 
         - a suggested name for the charge state calculation.
   """
-  if A == 'None': A = None
-  if B == 'None': B = None
-  assert A is not None or B is not None, ValueError("Both A and B cannot be None")
+  if A == 'None':
+    A = None
+  if B == 'None':
+    B = None
+  assert A is not None or B is not None, ValueError(
+      "Both A and B cannot be None")
 
   if A is None:   # vacancy! Charge states are in 0 to -B.oxidation.
     B = species[B]
     max_charge = -B.oxidation if hasattr(B, "oxidation") else 0
     min_charge = 0
-  elif B is None: # interstial! Charge states are in 0, A.oxidation.
+  elif B is None:  # interstial! Charge states are in 0, A.oxidation.
     A = species[A[0]]
     max_charge = A.oxidation if hasattr(A, "oxidation") else 0
     min_charge = 0
@@ -376,14 +420,18 @@ def charged_states(species, A, B):
     Box = B.oxidation if hasattr(B, "oxidation") else 0
     max_charge = max(Aox - Box, -Box, 0)
     min_charge = min(Aox - Box, -Box, 0)
-    
-  if max_charge < min_charge: max_charge, min_charge = min_charge, max_charge
 
-  for charge in range(min_charge, max_charge+1):
+  if max_charge < min_charge:
+    max_charge, min_charge = min_charge, max_charge
+
+  for charge in range(min_charge, max_charge + 1):
     # directory
-    if   charge == 0:   oxdir = "charge_neutral"
-    elif charge > 0:    oxdir = "charge_" + str(charge) 
-    elif charge < 0:    oxdir = "charge_" + str(charge) 
+    if charge == 0:
+      oxdir = "charge_neutral"
+    elif charge > 0:
+      oxdir = "charge_" + str(charge)
+    elif charge < 0:
+      oxdir = "charge_" + str(charge)
     yield -charge, oxdir
 
 
@@ -418,26 +466,29 @@ def band_filling(defect, host, vbm=None, cbm=None, potal=None, ntype=None, **kwa
   from numpy import sum, multiply, newaxis
   from quantities import eV
 
-  potal = potential_alignment(defect, host, **kwargs) if potal == None else potal*eV
+  potal = potential_alignment(
+      defect, host, **kwargs) if potal == None else potal * eV
 
-  cbm = (host.cbm if cbm == None else cbm*eV) + potal
+  cbm = (host.cbm if cbm == None else cbm * eV) + potal
 
   if defect.eigenvalues.ndim == 3:
-    dummy = multiply(defect.eigenvalues-cbm, defect.multiplicity[newaxis,:,newaxis])
+    dummy = multiply(defect.eigenvalues - cbm,
+                     defect.multiplicity[newaxis, :, newaxis])
     dummy = multiply(dummy, defect.occupations)
   elif defect.eigenvalues.ndim == 2:
-    dummy = multiply(defect.eigenvalues-cbm, defect.multiplicity[:, newaxis])
+    dummy = multiply(defect.eigenvalues - cbm, defect.multiplicity[:, newaxis])
     dummy = multiply(dummy, defect.occupations)
   result_n = -sum(dummy[defect.eigenvalues > cbm]) / sum(defect.multiplicity)
 
-  vbm = (host.vbm if vbm == None else vbm*eV) + potal
+  vbm = (host.vbm if vbm == None else vbm * eV) + potal
 
   if defect.eigenvalues.ndim == 3:
-    dummy = multiply(vbm-defect.eigenvalues, defect.multiplicity[newaxis,:,newaxis])
-    dummy = multiply(dummy, 1e0-defect.occupations)
+    dummy = multiply(vbm - defect.eigenvalues,
+                     defect.multiplicity[newaxis, :, newaxis])
+    dummy = multiply(dummy, 1e0 - defect.occupations)
   elif defect.eigenvalues.ndim == 2:
-    dummy = multiply(vbm-defect.eigenvalues, defect.multiplicity[:, newaxis])
-    dummy = multiply(dummy, 2e0-defect.occupations)
+    dummy = multiply(vbm - defect.eigenvalues, defect.multiplicity[:, newaxis])
+    dummy = multiply(dummy, 2e0 - defect.occupations)
   result_p = -sum(dummy[defect.eigenvalues < vbm]) / sum(defect.multiplicity)
 
   result = result_n + result_p
@@ -446,13 +497,13 @@ def band_filling(defect, host, vbm=None, cbm=None, potal=None, ntype=None, **kwa
   elif ntype == False:
     return result_p.rescale(eV)
   else:
-    if float(result_n)*float(result_p) > 1E-12 :
+    if float(result_n) * float(result_p) > 1E-12:
       print "### WARNING: set ntype=True or False explitly for band filling correction."
       print "    band filling for ntype: {0}".format(result_n.rescale(eV))
       print "    band filling for ptype: {0}".format(result_p.rescale(eV))
     return result.rescale(eV)
 
-  
+
 def explore_defect(defect, host, **kwargs):
   """ Diagnostic tool to determine defect from defect calculation and host. 
   
@@ -483,7 +534,7 @@ def explore_defect(defect, host, **kwargs):
   from copy import deepcopy
   from pylada.crystal.defects import reindex_sites
   from pylada.crystal import supercell
-  
+
   dstr = deepcopy(defect.structure)
   hstr = host.structure
   reindex_sites(dstr, hstr, **kwargs)
@@ -491,19 +542,22 @@ def explore_defect(defect, host, **kwargs):
   result = {'interstitial': [], 'substitution': [], 'vacancy': []}
   # looks for intersitials and substitutionals.
   for i, atom in enumerate(dstr):
-    if atom.site == -1: 
+    if atom.site == -1:
       result['interstitial'].append(i)
-    elif atom.type != hstr[atom.site].type: 
+    elif atom.type != hstr[atom.site].type:
       result['substitution'].append(i)
 
   # looks for vacancies.
   # haowei: supercell,  scale
-  filled = supercell(lattice=hstr, supercell=dstr.cell*dstr.scale/hstr.scale)
+  filled = supercell(lattice=hstr, supercell=dstr.cell *
+                     dstr.scale / hstr.scale)
   reindex_sites(filled, dstr, **kwargs)
   for atom in filled:
-    if atom.site != -1: continue
+    if atom.site != -1:
+      continue
     result['vacancy'].append(deepcopy(atom))
   return result
+
 
 def potential_alignment(defect, host, maxdiff=None, first_shell=False, tolerance=0.25):
   """ Returns potential alignment correction. 
@@ -562,30 +616,34 @@ def potential_alignment(defect, host, maxdiff=None, first_shell=False, tolerance
       for n in ffirst_shell(dstr, atom.pos, tolerance=tolerance):
         acceptable[n[0].index] = False
 
-  # make a deepcopy for backup 
+  # make a deepcopy for backup
   raw_acceptable = list(acceptable)
   if maxdiff != None and maxdiff > 0.0:
-    # directly compare the atomic site between the host and defect cell/supercell
-    diff_dh = [ (0.0 * eV if not ok else abs(e - host.electropot[a.site]).rescale(eV)) \
-         for e, a, ok in zip(defect.electropot, dstr, acceptable) ]
-  
+    # directly compare the atomic site between the host and defect
+    # cell/supercell
+    diff_dh = [(0.0 * eV if not ok else abs(e - host.electropot[a.site]).rescale(eV))
+               for e, a, ok in zip(defect.electropot, dstr, acceptable)]
+
     for ixx in range(len(acceptable)):
-      if acceptable[ixx] == False: pass
-      elif float(diff_dh[ixx].magnitude) > maxdiff: acceptable[ixx] = False
+      if acceptable[ixx] == False:
+        pass
+      elif float(diff_dh[ixx].magnitude) > maxdiff:
+        acceptable[ixx] = False
 
   if not any(acceptable):
     # if some one try to use maxdiff = 0.0000000001, @&#(@&#(#@^@
     print "WARNING: maxdiff is too small! Jump to maxdiff=None"
-    # return to the default one, which accept all the atomic sites except the defect sites
-    acceptable = list(raw_acceptable) 
+    # return to the default one, which accept all the atomic sites except the
+    # defect sites
+    acceptable = list(raw_acceptable)
 
   iterable = zip(defect.electropot, dstr, acceptable)
 
-  return mean([ (e - host.electropot[a.site]).rescale(eV).magnitude\
-                for e, a, ok in iterable if ok ]) * eV
+  return mean([(e - host.electropot[a.site]).rescale(eV).magnitude
+               for e, a, ok in iterable if ok]) * eV
 
 
-def third_order_charge_correction(structure, charge = None, n = 30, epsilon = 1.0, **kwargs):
+def third_order_charge_correction(structure, charge=None, n=30, epsilon=1.0, **kwargs):
   """ Returns energy of third order charge correction. 
   
       :Parameters: 
@@ -610,35 +668,41 @@ def third_order_charge_correction(structure, charge = None, n = 30, epsilon = 1.
   from quantities import elementary_charge, eV, pi, angstrom
   from pylada.physics import a0, Ry
 ##  from . import third_order   ## this is now python only
-  from pylada.crystal import third_order_cc ## Pgraf's port of the old c-version.  could be much faster
+  # Pgraf's port of the old c-version.  could be much faster
+  from pylada.crystal import third_order_cc
 
-  if charge is None: charge = 1e0
-  elif charge == 0: return 0e0 * eV
-  if hasattr(charge, "units"):  charge  = float(charge.rescale(elementary_charge))
-  if hasattr(epsilon, "units"): epsilon = float(epsilon.simplified)
-  cell = (structure.cell*structure.scale).rescale(a0)
-  return third_order_cc(cell, n) * (4e0*pi/3e0) * Ry.rescale(eV) * charge * charge \
-         * (1e0 - 1e0/epsilon) / epsilon
-         
-def third_order(cell,n=100):
+  if charge is None:
+    charge = 1e0
+  elif charge == 0:
+    return 0e0 * eV
+  if hasattr(charge, "units"):
+    charge = float(charge.rescale(elementary_charge))
+  if hasattr(epsilon, "units"):
+    epsilon = float(epsilon.simplified)
+  cell = (structure.cell * structure.scale).rescale(a0)
+  return third_order_cc(cell, n) * (4e0 * pi / 3e0) * Ry.rescale(eV) * charge * charge \
+      * (1e0 - 1e0 / epsilon) / epsilon
+
+
+def third_order(cell, n=100):
   from numpy import array, arange, dot
   from numpy.linalg import det
   from itertools import product
-  
-  factor = abs(det(cell)) * n**3
-  
-  pos = array([0.5,0.5,0.5], dtype=float) 
-  result = 0.0
-  for p in product(arange(n)/float(n), repeat=3):
-    dsqrd = []
-    for img in product([-1,0,1], repeat=3):
-      d = dot(cell, (array(p) + array(img) - pos)) 
-      dsqrd.append(dot(d,d))
-    result += min(dsqrd)
-      
-  return result/factor
 
-    
+  factor = abs(det(cell)) * n**3
+
+  pos = array([0.5, 0.5, 0.5], dtype=float)
+  result = 0.0
+  for p in product(arange(n) / float(n), repeat=3):
+    dsqrd = []
+    for img in product([-1, 0, 1], repeat=3):
+      d = dot(cell, (array(p) + array(img) - pos))
+      dsqrd.append(dot(d, d))
+    result += min(dsqrd)
+
+  return result / factor
+
+
 def first_order_charge_correction(structure, charge=None, epsilon=1e0, cutoff=20.0, **kwargs):
   """ First order charge correction of +1 charge in given supercell. 
   
@@ -663,9 +727,12 @@ def first_order_charge_correction(structure, charge=None, epsilon=1e0, cutoff=20
   from pylada.physics import Ry
   from pylada.ewald import ewald
 
-  if charge is None: charge = 1
-  elif charge == 0: return 0e0 * eV
-  if hasattr(charge, "units"): charge = float(charge.rescale(elementary_charge))
+  if charge is None:
+    charge = 1
+  elif charge == 0:
+    return 0e0 * eV
+  if hasattr(charge, "units"):
+    charge = float(charge.rescale(elementary_charge))
 
   ewald_cutoff = cutoff * Ry
 
@@ -676,6 +743,7 @@ def first_order_charge_correction(structure, charge=None, epsilon=1e0, cutoff=20
 
   result = ewald(struc, ewald_cutoff).energy / epsilon
   return -result.rescale(eV)
+
 
 def charge_corrections(structure, **kwargs):
   """ Electrostatic charge correction (first and third order). 
@@ -693,7 +761,9 @@ def charge_corrections(structure, **kwargs):
       .. __:  http://dx.doi.org/10.1103/PhysRevB.78.235104
   """
   return   first_order_charge_correction(structure, **kwargs) \
-         - third_order_charge_correction(structure, **kwargs) \
+      - third_order_charge_correction(structure, **kwargs) \
+
+
 
 def magnetic_neighborhood(structure, defect, species):
   """ Finds magnetic neighberhood of a defect. 
@@ -718,7 +788,7 @@ def magnetic_neighborhood(structure, defect, species):
   from numpy.linalg import norm
   from pylada.crystal import neighbors
   from . import reindex_sites, first_shell as ffirst_shell
-  
+
   # checks if substitution with a magnetic defect.
   if hasattr(defect, "index") and defect.index < len(structure.atoms):
     atom = structure[defect.index]
@@ -729,20 +799,27 @@ def magnetic_neighborhood(structure, defect, species):
 # neighbors = [n.index for n in neighbors if n.distance < neighbors[0].distance + 1e-1]
 # # only keep the magnetic neighborhood.
 # return [n for n in neighbors if species[structure.atoms[n].type].magnetic]
-# haowei: here I give a tolerance = 0.1, previously Mayeul did it like d_nn * 0.1
-  return [ n[0].index for n in ffirst_shell(structure, defect.pos, tolerance=0.1) ]
+# haowei: here I give a tolerance = 0.1, previously Mayeul did it like
+# d_nn * 0.1
+  return [n[0].index for n in ffirst_shell(structure, defect.pos, tolerance=0.1)]
+
 
 def equiv_bins(n, N):
   """ Generator over ways to fill N equivalent bins with n equivalent balls. """
   from itertools import chain
   from numpy import array
   assert N > 0
-  if N == 1: yield [n]; return
-  if n == 0: yield [0 for x in range(N)]
+  if N == 1:
+    yield [n]
+    return
+  if n == 0:
+    yield [0 for x in range(N)]
   for u in xrange(n, 0, -1):
-    for f in  equiv_bins(n-u, N-1):
+    for f in equiv_bins(n - u, N - 1):
       result = array([x for x in chain([u], f)])
-      if all(result[0:-1]-result[1:] >= 0): yield result
+      if all(result[0:-1] - result[1:] >= 0):
+        yield result
+
 
 def inequiv_bins(n, N):
   """ Generator over ways to fill N inequivalent bins with n equivalent balls. """
@@ -753,43 +830,58 @@ def inequiv_bins(n, N):
     for perm in permutations(u, len(u)):
       seen = False
       for other in history:
-        same = not any( p != o for p, o in zip(perm, other) )
-        if same: seen = True; break
-      if not seen: history.append(perm); yield [x for x in perm]
+        same = not any(p != o for p, o in zip(perm, other))
+        if same:
+          seen = True
+          break
+      if not seen:
+        history.append(perm)
+        yield [x for x in perm]
+
 
 def electron_bins(n, atomic_types):
   """ Loops over electron bins. """
-  from itertools import product 
+  from itertools import product
   from numpy import zeros, array
-  # creates a dictionary where every type is associated with a list of indices into atomic_types.
+  # creates a dictionary where every type is associated with a list of
+  # indices into atomic_types.
   Ns = {}
   for type in set(atomic_types):
-    Ns[type] = [i for i,u in enumerate(atomic_types) if u == type]
+    Ns[type] = [i for i, u in enumerate(atomic_types) if u == type]
   # Distributes electrons over inequivalent atomic types.
   for over_types in inequiv_bins(n, len(Ns.keys())):
     # now distributes electrons over each type independently.
-    iterables = [ equiv_bins(v, len(Ns[type])) for v, type in zip(over_types, Ns.keys()) ] 
+    iterables = [equiv_bins(v, len(Ns[type]))
+                 for v, type in zip(over_types, Ns.keys())]
     for nelecs in product(*iterables):
       # creates a vector where indices run as in atomic_types argument.
       result = zeros((len(atomic_types),), dtype="float64")
-      for v, (type, value) in zip(nelecs, Ns.items()): result[value] = array(v)
+      for v, (type, value) in zip(nelecs, Ns.items()):
+        result[value] = array(v)
       yield result
+
 
 def magmom(indices, moments, nbatoms):
   """ Yields a magmom string from knowledge of which moments are non-zero. """
   s = [0 for i in range(nbatoms)]
-  for i, m in zip(indices, moments): s[i] = m
+  for i, m in zip(indices, moments):
+    s[i] = m
   compact = [[1, s[0]]]
   for m in s[1:]:
-    if abs(compact[-1][1] - m) < 1e-12: compact[-1][0] += 1
-    else: compact.append( [1, m] )
-    
+    if abs(compact[-1][1] - m) < 1e-12:
+      compact[-1][0] += 1
+    else:
+      compact.append([1, m])
+
   string = ""
   for n, m in compact:
-    if n > 1: string +=" {0}*{1}".format(n, m)
-    elif n == 1: string += " {0}".format(m)
+    if n > 1:
+      string += " {0}*{1}".format(n, m)
+    elif n == 1:
+      string += " {0}".format(m)
     assert n != 0
   return string
+
 
 def electron_counting(structure, defect, species, extrae):
   """ Enumerate though number of electron in point-defect magnetic neighberhood. 
@@ -820,34 +912,44 @@ def electron_counting(structure, defect, species, extrae):
   indices = magnetic_neighborhood(structure, defect, species)
 
   # no magnetic neighborhood.
-  if len(indices) == 0: 
+  if len(indices) == 0:
     yield None, None
     return
 
   # has magnetic neighberhood from here on.
   atoms = [structure[i] for i in indices]
   types = [a.type for a in atoms]
-  nelecs = array([species[type].valence - species[type].oxidation for type in types])
+  nelecs = array(
+      [species[type].valence - species[type].oxidation for type in types])
 
   # loop over different electron distributions.
   for tote in electron_bins(abs(extrae), types):
     # total number of electrons on each atom.
-    if extrae < 0:   tote = nelecs - tote
-    elif extrae > 0: tote += nelecs
+    if extrae < 0:
+      tote = nelecs - tote
+    elif extrae > 0:
+      tote += nelecs
 
     # sanity check. There may be more electrons than orbitals at this point.
     sane = True
     for n, type in zip(tote, types):
-      if n < 0: sane = False; break;
+      if n < 0:
+        sane = False
+        break
       z = Z(type)
-      if (z >= 21 and z <= 30) or (z >= 39 and z <= 48) or (z >= 57 and z <= 80):  
-        if n > 10: sane = False;  break
-      elif n > 8: sane = False; break
+      if (z >= 21 and z <= 30) or (z >= 39 and z <= 48) or (z >= 57 and z <= 80):
+        if n > 10:
+          sane = False
+          break
+      elif n > 8:
+        sane = False
+        break
 
-    if not sane: continue
+    if not sane:
+      continue
 
     yield indices, tote
- 
+
 
 def low_spin_states(structure, defect, species, extrae, do_integer=True, do_average=True):
   """ Enumerate though low-spin-states in point-defect. 
@@ -876,27 +978,35 @@ def low_spin_states(structure, defect, species, extrae, do_integer=True, do_aver
   from numpy import array, abs, all
 
   history = []
+
   def check_history(*args):
     for i, t in history:
-      if all(abs(i-args[0]) < 1e-12) and all(abs(t-args[1]) < 1e-12):
+      if all(abs(i - args[0]) < 1e-12) and all(abs(t - args[1]) < 1e-12):
         return False
     history.append(args)
     return True
 
-
-  if do_integer: 
+  if do_integer:
     for indices, tote in electron_counting(structure, defect, species, extrae):
-      if tote is None: continue # non-magnetic case
+      if tote is None:
+        continue  # non-magnetic case
       indices, moments = array(indices), array(tote) % 2
-      if all(abs(moments) < 1e-12): continue # non - magnetic case
-      if check_history(indices, moments): yield indices, moments
-  if do_average: 
+      if all(abs(moments) < 1e-12):
+        continue  # non - magnetic case
+      if check_history(indices, moments):
+        yield indices, moments
+  if do_average:
     for indices, tote in electron_counting(structure, defect, species, 0):
-      if tote is None: continue # non-magnetic case
-      if len(indices) < 2: continue
-      indices, moments = array(indices), array(tote) % 2 + extrae / float(len(tote))
-      if all(abs(moments) < 1e-12): continue # non - magnetic case
-      if check_history(indices, moments): yield indices, moments
+      if tote is None:
+        continue  # non-magnetic case
+      if len(indices) < 2:
+        continue
+      indices, moments = array(indices), array(
+          tote) % 2 + extrae / float(len(tote))
+      if all(abs(moments) < 1e-12):
+        continue  # non - magnetic case
+      if check_history(indices, moments):
+        yield indices, moments
 
 
 def high_spin_states(structure, defect, species, extrae, do_integer=True, do_average=True):
@@ -926,44 +1036,55 @@ def high_spin_states(structure, defect, species, extrae, do_integer=True, do_ave
   """
   from numpy import array, abs, all
 
-  def is_d(t): 
+  def is_d(t):
     """ Determines whether an atomic specie is transition metal. """
     from . import Z
     z = Z(t)
-    return (z >= 21 and z <= 30) or (z >= 39 and z <= 48) or (z >= 57 and z <= 80) 
+    return (z >= 21 and z <= 30) or (z >= 39 and z <= 48) or (z >= 57 and z <= 80)
 
-  def determine_moments(arg, ts): 
+  def determine_moments(arg, ts):
     """ Computes spin state from number of electrons. """
-    f = lambda n, t: (n if n < 6 else 10-n) if is_d(t) else (n if n < 5 else 8-n)
-    return [f(n,t) for n, t in zip(arg, ts)]
+    f = lambda n, t: (n if n < 6 else 10 -
+                      n) if is_d(t) else (n if n < 5 else 8 - n)
+    return [f(n, t) for n, t in zip(arg, ts)]
 
   history = []
+
   def check_history(*args):
     for i, t in history:
-      if all(abs(i-args[0]) < 1e-12) and all(abs(t-args[1]) < 1e-12):
+      if all(abs(i - args[0]) < 1e-12) and all(abs(t - args[1]) < 1e-12):
         return False
     history.append(args)
     return True
-  
-  if do_integer: 
+
+  if do_integer:
     for indices, tote in electron_counting(structure, defect, species, extrae):
-      if tote is None: continue # non-magnetic case
-      
+      if tote is None:
+        continue  # non-magnetic case
+
       types = [structure.atoms[i].type for i in indices]
       indices, moments = array(indices), array(determine_moments(tote, types))
-      if all(moments == 0): continue # non - magnetic case
-      if check_history(indices, moments):  yield indices, moments
+      if all(moments == 0):
+        continue  # non - magnetic case
+      if check_history(indices, moments):
+        yield indices, moments
 
-  if do_average: 
+  if do_average:
     for indices, tote in electron_counting(structure, defect, species, 0):
-      if tote is None: continue # non-magnetic case
-      if len(indices) < 2: continue
+      if tote is None:
+        continue  # non-magnetic case
+      if len(indices) < 2:
+        continue
 
       types = [structure[i].type for i in indices]
       indices = array(indices)
-      moments = array(determine_moments(tote, types)) + float(extrae) / float(len(types))
-      if all(abs(moments) < 1e-12): continue # non - magnetic case
-      if check_history(indices, moments):  yield indices, moments
+      moments = array(determine_moments(tote, types)) + \
+          float(extrae) / float(len(types))
+      if all(abs(moments) < 1e-12):
+        continue  # non - magnetic case
+      if check_history(indices, moments):
+        yield indices, moments
+
 
 def reindex_sites(structure, lattice, tolerance=0.5):
   """ Reindexes atoms of structure according to lattice sites.
@@ -978,34 +1099,44 @@ def reindex_sites(structure, lattice, tolerance=0.5):
   # haowei: should not change lattice
   lat = deepcopy(lattice)
   # first give a natural index for the sites in lattice
-  for i, a in enumerate(lat):  a.site = i  
-  # in the supercell, each atom carry the site from the lat above, and will goes into the neighs
-  lat = supercell(lattice=lat, supercell=structure.cell*structure.scale/lat.scale)
+  for i, a in enumerate(lat):
+    a.site = i
+  # in the supercell, each atom carry the site from the lat above, and will
+  # goes into the neighs
+  lat = supercell(lattice=lat, supercell=structure.cell *
+                  structure.scale / lat.scale)
   for atom in structure:
     neighs_in_str = [n for n in neighbors(structure, 1, atom.pos)]
     d = neighs_in_str[0][2]
     # if two atoms from structure and lattice have exactly the same coordination
     # and hence dist = 0, it will be neglected by neighbors
-    # add 1E-6 to atom.pos to avoid this, but aparrently this is not a perfect solution, Haowei
-    neighs = [n for n in neighbors(lat, 2, atom.pos+1E-6)]
+    # add 1E-6 to atom.pos to avoid this, but aparrently this is not a perfect
+    # solution, Haowei
+    neighs = [n for n in neighbors(lat, 2, atom.pos + 1E-6)]
     assert abs(neighs[1][2]) > 1e-12,\
-           RuntimeError('Found two sites occupying the same position.')
-    if neighs[0][2]*lat.scale > tolerance*d: 
+        RuntimeError('Found two sites occupying the same position.')
+    if neighs[0][2] * lat.scale > tolerance * d:
       atom.site = -1
-    else: 
+    else:
       atom.site = neighs[0][0].site
+
 
 def magname(moments, prefix=None, suffix=None):
   """ Construct name for magnetic moments. """
-  if len(moments) == 0: return "paramagnetic"
+  if len(moments) == 0:
+    return "paramagnetic"
   string = str(moments[0])
-  for m in moments[1:]: string += "_" + str(m)
-  if prefix is not None: string = prefix + "_" + string
-  if suffix is not None: string += "_" + suffix
+  for m in moments[1:]:
+    string += "_" + str(m)
+  if prefix is not None:
+    string = prefix + "_" + string
+  if suffix is not None:
+    string += "_" + suffix
   return string
+
 
 def Z(type):
   from pylada.periodic_table import find, symbols
-  if type not in symbols: return None
+  if type not in symbols:
+    return None
   return find(symbol=type).atomic_number
-  
