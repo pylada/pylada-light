@@ -7,8 +7,10 @@ before_install:
   - sudo apt-get install gfortran
   - sudo apt-get install python-scipy python-numpy
   - sudo apt-get install libboost-all-dev
-  - pip install --user ipython
-  - pip install --user quantities
+  - sudo pip install --upgrade setuptools
+  - sudo pip install --upgrade pip
+  - sudo pip install ipython
+  - sudo pip install quantities
 install:
   - mkdir build
   - cd build
