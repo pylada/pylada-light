@@ -9,12 +9,11 @@ before_install:
   - sudo apt-get install libboost-all-dev
   - sudo pip install --no-cache ipython
   - sudo pip install --no-cache quantities
-install:
+script:
   - mkdir build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -Dexternal_program_tests=OFF ..
   - make lookup_dependencies # eigen and/or boost
-script:
   - make
   - ctest .. -V
   - pip install --user git+git://github.com/$TRAVIS_REPO_SLUG@$TRAVIS_COMMIT
@@ -25,5 +24,3 @@ notifications:
     - pylada:J4ytpqLv9KJqG18zAnENZVRL
     rooms:
       secure: HjsbOCT//OjseJlfoomf/QiMVDbkpOjicy4u9Gd23yKcImCKuZTs9nzgmOK5yN7rdaoVQ+ewbKY+6knZLrLlsuvC3ElPaw2rOdqSXoohVltvBxiBaIFm/EdAqXxK0mebfY2JCNbJEK//AnAqZcxPs/OVKRUF1pLhVPM6ZvrK7ic=
-after_failure:
-  - cd build && cat CMakeCache.txt
