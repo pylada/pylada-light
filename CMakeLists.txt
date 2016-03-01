@@ -35,6 +35,9 @@ include(LookUp-GreatCMakeCookOff)
 # FortranCInterface_HEADER(${PROJECT_BINARY_DIR}/FCMangle.h
 #                          MACRO_NAMESPACE "FC_"
 #                          SYMBOL_NAMESPACE "FC_" )
+
+include(AddCPP11Flags)
+
 option(tests "Compile tests." on)
 option(external_program_tests
     "Allow tests which run external programs (vasp, crystal...)" on)

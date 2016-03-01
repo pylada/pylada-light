@@ -41,3 +41,39 @@ def test_snf_require_non_singular_matrix():
     from pytest import raises
     with raises(ValueError):
         smith_normal_form(array([[0, 0, 0], [1, 2, 0], [3, 4, 5]]))
+
+
+def is_integer(o, tolerance=1e-8):
+    from numpy import allclose, floor
+    return allclose(o, floor(o + 0.1), tolerance)
+
+
+def test_gruber():
+  from numpy import dot
+  from numpy.linalg import inv
+  from pylada.crystal.cutilities import gruber
+
+  cell = [[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]]
+  lim = 5
+
+  for a00 in [-1, 1]:
+    for a10 in xrange(-lim, lim + 1):
+      for a11 in [-1, 1]:
+        for a20 in xrange(-lim, lim + 1):
+          for a21 in xrange(-lim, lim + 1):
+            for a22 in [-1, 1]:
+              a = [[a00, 0, 0], [a10, a11, 0], [a20, a21, a22]]
+              g = gruber(dot(cell, a))
+              assert is_integer(dot(inv(cell), g))
+              assert is_integer(dot(inv(g), cell))
+
+
+def test_gruber_fails_on_singular_matrix():
+    from numpy import array
+    from pylada.crystal.cutilities import gruber
+    from pytest import raises
+    with raises(ValueError):
+        gruber(array([[0, 0, 0], [1, 2, 0], [4, 5, 6]]))
+
+    with raises(RuntimeError):
+        gruber(array([[1, 0, 0], [1, 1, 0], [4, 5, 1]]), itermax=2)

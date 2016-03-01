@@ -24,7 +24,8 @@
 ******************************/
 
 #include <Eigen/Dense>
-#include "crystal/smith_normal_form.h"
+#include "crystal/cutilities.h"
+#include "crystal/types.h"
 
 namespace pylada {
 namespace {
@@ -186,6 +187,6 @@ void smith_normal_form(types::t_int *_S, types::t_int *_L, types::t_int *_R) {
   // set up the system _out = _left * _smith * _right.
   L = types::iMatrix3d::Identity();
   R = types::iMatrix3d::Identity();
-  smith_impl_(R, L, S);
+  smith_impl_(L, R, S);
 }
 }

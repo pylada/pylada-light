@@ -24,9 +24,9 @@
 #  with PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-add_library(smith STATIC smith_normal_form.cc)
+add_library(cutilities STATIC smith_normal_form.cc gruber.cc noopt.cc)
 add_python_module("pylada.crystal" CPP GLOB *.py cutilities.pyx)
-target_link_libraries(pylada.crystal.cutilities-cython smith)
+target_link_libraries(pylada.crystal.cutilities-cython cutilities)
 #
 # add_subdirectory(defects)
 # add_subdirectory(tests)
