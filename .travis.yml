@@ -7,6 +7,7 @@ before_install:
   - sudo apt-get install gfortran
   - sudo apt-get install python-scipy python-numpy
   - sudo apt-get install libboost-all-dev
+  - sudo pip install --upgrade numpy
   - sudo pip install --no-cache ipython
   - sudo pip install --no-cache quantities
 script:
