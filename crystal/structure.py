@@ -36,7 +36,7 @@ class Structure(MutableSequence):
         elif len(args) == 4 or len(args) == 2:
             self._cell = array(args, dtype='float64').reshape(2, 2)
         elif len(args) == 1:
-            self._cell = array(args, dtype='float64')
+            self._cell = array(args[0], dtype='float64')
         elif len(args) != 0:
             raise TypeError(
                 "Incorrect number of arguments when creating structure")
