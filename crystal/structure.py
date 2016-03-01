@@ -196,9 +196,7 @@ class Structure(MutableSequence):
     def __repr__(self):
         """ Parsable representation of this object """
         result = self.__class__.__name__ + "("
-        cell = self.cell.copy()
-        cell = ", ".join([repr(u) for u in cell.reshape(cell.size)])
-        result += "%s, scale=%s" % (cell, repr(self.scale))
+        result += "%s, scale=%s" % (repr(self.cell), repr(self.scale))
         for key, value in self.__dict__.items():
             if key[0] != '_':
                 result += ", %s=%s" % (key, repr(value))

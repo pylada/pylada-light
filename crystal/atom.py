@@ -48,12 +48,16 @@ class Atom(object):
 
         if len(args) >= 3:
             self._pos = array(args[:3])
+        elif len(args) == 2 or len(args) == 1:
+            self._pos = array(args[0])
         elif 'pos' in kwargs:
             self._pos = array(kwargs.pop('pos'))
         else:
             self._pos = array([0., 0., 0.])
         if len(args) == 4:
             self.type = args[3]
+        elif len(args) == 2:
+            self.type = args[1]
         elif len(args) > 4:
             self.type = args[3:]
         else:

@@ -43,10 +43,10 @@ def test_gvectors_fcc():
     from numpy import array, allclose, sqrt
     from numpy.linalg import norm
     from itertools import chain
-    from pylada.crystal import space_group
+    from pylada.crystal import _space_group
 
     cell = array([[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]])
-    result = space_group.__gvectors(cell, 1e-12)
+    result = _space_group.__gvectors(cell, 1e-12)
     assert len(result) == 3
     assert len(result[0]) > 0
     assert len(result[0]) == len(result[1])
@@ -64,10 +64,10 @@ def test_gvectors_non_fcc():
     from numpy import array, allclose, sqrt
     from numpy.linalg import norm
     from itertools import chain
-    from pylada.crystal import space_group
+    from pylada.crystal import _space_group
 
     cell = array([[0.6, 0.5, 0.5], [0.6, -0.5, 0.5], [0.6, 0.5, -0.5]])
-    result = space_group.__gvectors(cell, 1e-12)
+    result = _space_group.__gvectors(cell, 1e-12)
     assert len(result) == 3
     assert len(result[0]) > 0
     assert len(result[1]) == len(result[2])
@@ -91,7 +91,7 @@ def test_cellinvariants(cell, numops):
     """ Test number of symmetry operations. """
     from numpy import all, abs, dot, array
     from numpy.linalg import inv, det
-    from pylada.crystal.space_group import cell_invariants
+    from pylada.crystal._space_group import cell_invariants
 
     ops = cell_invariants(cell)
     if isinstance(cell, Structure):

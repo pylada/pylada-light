@@ -52,6 +52,7 @@ cpdef __gvectors(double[:, ::1] cell, double tolerance):
     return gvectors
 
 
+
 cdef __cell_invariants(double[:, ::1] cell, double tolerance):
     from numpy import zeros, identity, abs, dot, array, require, allclose
     from numpy.linalg import det, inv
@@ -85,6 +86,7 @@ cdef __cell_invariants(double[:, ::1] cell, double tolerance):
                 break
         if doadd:
             result.append(require(rotation, dtype='float64', requirements=['F_CONTIGUOUS']))
+
     return result
 
 
@@ -97,6 +99,7 @@ def cell_invariants(cell, tolerance=1e-12):
         :param structure:
             The :py:class:`Structure` instance for which to find the space group. Can also be a 3x3
             matrix.
+
         :param tolerance:
             acceptable tolerance when determining symmetries. Defaults to 1e-8.
 
@@ -119,3 +122,71 @@ def cell_invariants(cell, tolerance=1e-12):
     if cell.shape[0] != 3:
         raise ValueError("Expected a 3x3 matrix as input")
     return __cell_invariants(cell, tolerance)
+
+def space_group(lattice, tolerance=1e-12):
+    """ Finds and stores point group operations
+
+        Implementation taken from ENUM_.
+
+        :param lattice:
+            The :class:`Structure` instance for which to find the point group.
+
+        :param tolerance:
+            Acceptable tolerance when determining symmetries. Defaults to 1e-8.
+
+        :returns:
+            python list of affine symmetry operations for the given structure. Each element is a 4x3
+            numpy array, with the first 3 rows forming the rotation, and the last row is the
+            translation.  The affine transform is applied as rotation * vector + translation.
+
+        :raises ValueError:
+            if the input  structure is not primitive.
+
+        .. _ENUM: http://enum.sourceforge.net
+    """
+    from numpy import dot, allclose, zeros
+    from numpy.linalg import inv
+    from pylada.crystal import gruber, Atom, into_voronoi, into_cell
+    if len(lattice) == 0:
+        raise ValueError("Empty lattice")
+
+    # if not is_primitive(lattice, tolerance)):
+    #     raise ValueError("Input lattice is not primitive")
+
+    # Finds minimum translation.
+    translation = lattice[0].pos
+    cell = gruber(lattice.cell, tolerance=tolerance)
+    invcell = inv(cell)
+
+    point_group = cell_invariants(lattice.cell)
+    assert len(point_group) > 0
+
+    centered = [Atom(into_cell(u.pos - translation, cell, invcell), u.type) for u in lattice]
+
+    # translations limited to those from one atom type to othe atom of same type
+    translations = [u.pos for u in centered if u.type == lattice[0].type]
+
+    result = []
+    for pg in point_group:
+        for trial in translations:
+            # Checks that this is a mapping of the lattice upon itself.
+            for unmapped in centered:
+                transpos = into_cell(dot(pg, unmapped.pos) + trial, cell, invcell)
+                for atom in centered:
+                    if atom.type != unmapped.type:
+                        continue
+                    if allclose(atom.pos, transpos, tolerance):
+                        break
+                # else executes only no atom is mapping of unmapped
+                else:
+                    break
+            # else executes only if all positions in structures have mapping
+            else:
+                transform = zeros((len(trial) + 1, len(trial)), dtype='float64', order='F')
+                transform[:3, :3] = pg
+                transform[3, :] = into_voronoi(
+                    trial - dot(pg, translation) + translation, cell, invcell)
+                result.append(transform)
+                # only one trial translation is possible, so break out of loop early
+                break
+    return result

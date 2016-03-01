@@ -21,12 +21,29 @@
 ###############################
 """ Checks that space group is correct. """
 
-from nose_parameterized import parameterized
+from pytest import mark
+
+def rotation_matrix(theta, axis):
+    """
+    Return the rotation matrix associated with counterclockwise rotation about
+    the given axis by theta radians.
+    """
+    from numpy import array, asarray, sqrt, dot, sin, cos
+    axis = asarray(axis)
+    theta = asarray(theta)
+    axis = axis/sqrt(dot(axis, axis))
+    a = cos(theta/2.0)
+    b, c, d = -axis*sin(theta/2.0)
+    aa, bb, cc, dd = a*a, b*b, c*c, d*d
+    bc, ad, ac, ab, bd, cd = b*c, a*d, a*c, a*b, b*d, c*d
+    return array([[aa+bb-cc-dd, 2*(bc+ad), 2*(bd-ac)],
+                  [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
+                  [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
 def test_fcc():
-  """ Test fcc space-group and equivalents """
+  """ Test fcc space-group """
   from numpy import all, abs, dot
-  from pylada.crystal.cppwrappers import space_group, Structure, equivalent, transform
+  from pylada.crystal import space_group, Structure, transform
 
   structure = Structure([[0,0.5,0.5],[0.5,0,0.5],[0.5,0.5,0]], m=True).add_atom(0,0,0,"Si", m=True)
   ops = space_group(structure)
@@ -43,19 +60,15 @@ def test_fcc():
       assert a.type == atom.type
       assert getattr(atom, 'm', False) 
 
-    assert equivalent(structure, other, cartesian=False)
-    assert equivalent(other, structure, cartesian=False)
 
-@parameterized([(0.25,), (0.36,)])
+@mark.parametrize('u', [0.25, 0.36])
 def test_b5(u):
-  """ Test b5 space-group and equivalents """
+  """ Test b5 space-group """
   from random import random, randint
   from numpy import all, abs, dot, pi
   from numpy.linalg import inv, norm
   from numpy.random import random_sample
-  from pylada.crystal.cppwrappers import space_group, Structure, equivalent,     \
-                                       transform
-  from pylada.math import Rotation
+  from pylada.crystal import space_group, Structure, transform
   from pylada.crystal import which_site
 
 
@@ -94,9 +107,6 @@ def test_b5(u):
       sites.append(j)
     assert len(set(sites)) == len(structure)
 
-    assert equivalent(structure, other, cartesian=False)
-    assert equivalent(other, structure, cartesian=False)
-
   structure[0], structure[-1] = structure[-1], structure[0]
   ops = space_group(structure)
   assert len(ops) == 48
@@ -116,17 +126,14 @@ def test_b5(u):
       sites.append(j)
     assert len(set(sites)) == len(structure)
 
-    assert equivalent(structure, other, cartesian=False)
-    assert equivalent(other, structure, cartesian=False)
-
   # try random rotation, translations, atom swap
   structure[0], structure[-1] = structure[-1], structure[0]
   for u in xrange(10):
     axis = random_sample((3,))
     axis /= norm(axis)
-    rotation = Rotation( pi*random(), axis)  
-    rotation[3] = random_sample((3,))
-    other = transform(structure, rotation)
+    rotation = rotation_matrix( pi*random(), axis)
+    translation = random_sample((3,))
+    other = transform(structure, rotation, translation)
     for u in xrange(10):
       l, m = randint(0, len(structure)-1), randint(0, len(structure)-1)
       a, b = other[l], other[m]
@@ -135,7 +142,7 @@ def test_b5(u):
     ops = space_group(other)
     for z, op in enumerate(ops):
       assert op.shape == (4, 3)
-    
+
       other2 = transform(other, op)
       assert all(abs(dot(op[:3], other.cell)-other2.cell) < 1e-8)
       for a, atom in zip(other, other2):
@@ -146,23 +153,18 @@ def test_b5(u):
         pos = dot(op[:3], atom.pos) + op[3]
         j = which_site(pos, other, invcell)
         if j == -1:
-          print i, z
-          print atom 
-          print op
-          print pos
-          print other
+          print(i, z)
+          print(atom)
+          print(op)
+          print(pos)
+          print(other)
           raise Exception()
         sites.append(j)
       assert len(set(sites)) == len(other)
 
-      assert equivalent(other, other2, cartesian=False)
-      assert equivalent(other2, other, cartesian=False)
-
-    
 def test_zb():
   from numpy import all, abs, dot
   from pylada.crystal import space_group, transform, binary
-  from pylada.crystal.cppwrappers import equivalent
 
   structure = binary.zinc_blende()
   ops = space_group(structure)
@@ -176,9 +178,6 @@ def test_zb():
       assert all(abs(dot(op[:3], a.pos) + op[3] - atom.pos) < 1e-8)
       assert a.type == atom.type
 
-    assert equivalent(structure, other, cartesian=False)
-    assert equivalent(other, structure, cartesian=False)
-     
   for atom in structure: atom.type = ['A', 'B']
   ops = space_group(structure)
   assert len(ops) == 48
@@ -190,6 +189,3 @@ def test_zb():
     for a, atom in zip(structure, other):
       assert all(abs(dot(op[:3], a.pos) + op[3] - atom.pos) < 1e-8)
       assert a.type == atom.type
-
-    assert equivalent(structure, other, cartesian=False)
-    assert equivalent(other, structure, cartesian=False)
