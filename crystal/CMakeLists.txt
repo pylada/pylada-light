@@ -25,7 +25,7 @@
 ###############################
 
 add_library(cutilities STATIC smith_normal_form.cc gruber.cc noopt.cc)
-add_python_module("pylada.crystal" CPP GLOB *.py cutilities.pyx)
+add_python_module("pylada.crystal" CPP GLOB *.py cutilities.pyx space_group.pyx)
 target_link_libraries(pylada.crystal.cutilities-cython cutilities)
 #
 # add_subdirectory(defects)
