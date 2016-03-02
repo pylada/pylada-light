@@ -225,3 +225,9 @@ class Structure(MutableSequence):
         """ Returns a deepcopy of this structure """
         from copy import deepcopy
         return deepcopy(self)
+
+    @property
+    def volume(self):
+        from numpy.linalg import det
+        from numpy import abs
+        return abs(det(self.cell))
