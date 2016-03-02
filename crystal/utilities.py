@@ -99,5 +99,5 @@ def are_periodic_images(pos0, pos1, invcell=None, cell=None, tolerance=1e-8):
         invcell = inv(cell)
 
     result = dot(invcell, pos0 - pos1)
-    result -= floor(result + 1e-12)
+    result -= floor(result + tolerance)
     return all(abs(result) < tolerance)

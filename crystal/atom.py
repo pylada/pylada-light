@@ -90,3 +90,8 @@ class Atom(object):
         result = self.__dict__.copy()
         result['pos'] = result.pop('_pos')
         return result
+
+    def copy(self):
+        """ Deep copy of this object """
+        from copy import deepcopy
+        return deepcopy(self)

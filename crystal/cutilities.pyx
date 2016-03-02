@@ -71,3 +71,49 @@ def gruber(np.ndarray cell not None, size_t itermax = 0, double tolerance = 1e-1
     c_gruber(<t_real*>c_result, <t_real*>c_cell, itermax, tolerance)
     return transpose(result)
 
+
+def supercell(lattice, cell):
+    """ Creates a supercell of an input lattice
+
+        :param lattice:
+            :py:class:`Structure` from which to create the supercell. Cannot be empty. Must be
+            deepcopiable. \n" ":param cell: Cell in cartesian coordinates of the supercell.
+
+        :returns:
+            A :py:class:`Structure` representing the supercell. If ``lattice`` contains an attribute
+            ``name``, then the result's is set to \"supercell of ...\".  All other attributes of the
+            lattice are deep-copied to the supercell. The atoms within the result contain an
+            attribute ``index`` which is an index to the equivalent site within ``lattice``.
+            Otherwise, the atoms are deep copies of the lattice sites.
+    """
+    from numpy.linalg import inv
+    from numpy import array, require, dot
+    from . import HFTransform, into_cell
+
+    if len(lattice) == 0:
+        raise ValueError("Lattice is empty")
+    cell = require(cell, dtype='float64')
+
+    result = lattice.copy()
+    result.clear();
+    result.cell = cell;
+
+    if len(getattr(lattice, 'name', '')) > 0:
+        result.name = "supercell of %s" % lattice.name
+
+    transform = HFTransform(lattice.cell, result.cell)
+
+    invtransform = inv(transform.transform)
+    invcell = inv(result.cell)
+
+    for i in range(transform.quotient[0]):
+        for j in range(transform.quotient[1]):
+            for k in range(transform.quotient[2]):
+                pos = dot(invtransform, array([i, j, k], dtype='float64'))
+
+                for l, site in enumerate(lattice):
+                    atom = site.copy()
+                    atom.pos = into_cell(pos + site.pos, result.cell, invcell)
+                    atom.site = l
+                    result.append(atom)
+    return result;
