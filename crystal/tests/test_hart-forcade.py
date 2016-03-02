@@ -44,41 +44,42 @@ def test_indices():
             a.indices(vec + [0.1, 0.1, 0])
 
 
-# def test_supercell_indices():
-#     from random import randint
-#     from numpy import all, abs, dot, array
-#     from pylada.crystal import HFTransform, Structure, supercell
-#
-#     unitcell = array([[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]])
-#     lattice = Structure(unitcell).add_atom(0, 0, 0, "Si")
-#     supercell = supercell(lattice, dot(lattice.cell, [[3, 0, 5], [0, 0, -1], [-2, 1, 2]]))
-#
-#     a = HFTransform(unitcell, supercell)
-#
-#     assert all(abs(a.transform - [[0, 2, 0], [1, 5, -1], [-2, -4, 0]]) < 1e-8)
-#     assert all(abs(a.quotient - [1, 1, 3]) < 1e-8)
-#     all_indices = set()
-#     for atom in supercell:
-#         indices = a.indices(atom.pos)
-#         index = a.index(atom.pos)
-#         assert index not in all_indices, (index, all_indices)
-#         assert all(indices >= 0)
-#         assert all(indices <= a.quotient)
-#         assert index == a.flatten_indices(*indices)
-#         all_indices.add(index)
-#         for i in xrange(20):
-#             vec = dot(supercell.cell, array(
-#                 [randint(-20, 20), randint(-20, 20), randint(-20, 20)], dtype="float64"))
-#             vec += atom.pos
-#             assert all(abs(a.indices(vec) - indices) < 1e-8)
-#             with raises(ValueError):
-#                 a.indices(vec + [0.1, 0.1, 0])
-#
-#             assert index == a.index(vec)
-#             with raises(ValueError):
-#                 a.index(vec + [0.1, 0.1, 0])
-#
-#             assert len(all_indices) == len(supercell)
+def test_supercell_indices():
+    from pytest import raises
+    from random import randint
+    from numpy import all, abs, dot, array
+    from pylada.crystal import HFTransform, Structure, supercell
+
+    unitcell = array([[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]])
+    lattice = Structure(unitcell).add_atom(0, 0, 0, "Si")
+    supercell = supercell(lattice, dot(lattice.cell, [[3, 0, 5], [0, 0, -1], [-2, 1, 2]]))
+
+    a = HFTransform(unitcell, supercell)
+
+    assert all(abs(a.transform - [[0, 2, 0], [1, 5, -1], [-2, -4, 0]]) < 1e-8)
+    assert all(abs(a.quotient - [1, 1, 3]) < 1e-8)
+    all_indices = set()
+    for atom in supercell:
+        indices = a.indices(atom.pos)
+        index = a.index(atom.pos)
+        assert index not in all_indices, (index, all_indices)
+        assert all(indices >= 0)
+        assert all(indices <= a.quotient)
+        assert index == a.flatten_indices(*indices)
+        all_indices.add(index)
+        for i in xrange(20):
+            vec = dot(supercell.cell, array(
+                [randint(-20, 20), randint(-20, 20), randint(-20, 20)], dtype="float64"))
+            vec += atom.pos
+            assert all(abs(a.indices(vec) - indices) < 1e-8)
+            with raises(ValueError):
+                a.indices(vec + [0.1, 0.1, 0])
+
+            assert index == a.index(vec)
+            with raises(ValueError):
+                a.index(vec + [0.1, 0.1, 0])
+
+    assert len(all_indices) == len(supercell)
 
 
 def b5(u=0.25):
@@ -102,38 +103,40 @@ def b5(u=0.25):
     return structure
 
 
-# @mark.parametrize('u', [0.25, 0.23])
-# def test_deformed_b5(u):
-#     from random import randint
-#     from numpy import all, abs, dot, array, concatenate
-#     from pylada.crystal import HFTransform, supercell
-#
-#     lattice = b5(u)
-#     supercell = supercell(lattice, dot(lattice.cell, [[2, 2, 0], [0, 2, 2], [4, 0, 4]]))
-#
-#     a = HFTransform(lattice.cell, supercell)
-#
-#     assert all(abs(a.transform - [[-1, 1, 1], [1, -1, 1], [5, -3, -1]]) < 1e-8)
-#     assert all(abs(a.quotient - [2, 2, 8]) < 1e-8)
-#     all_indices = set()
-#     others = set()
-#     for atom in supercell:
-#         indices = a.indices(atom.pos - lattice[atom.site].pos)
-#         index = a.index(atom.pos - lattice[atom.site].pos, atom.site)
-#         assert index not in all_indices, (index, all_indices)
-#         assert all(indices >= 0)
-#         assert all(indices <= a.quotient)
-#         all_indices.add(index)
-#         assert str(concatenate((indices, [atom.site]))) not in others
-#         others.add(str(concatenate((indices, [atom.site]))))
-#         for i in xrange(20):
-#             vec = dot(supercell.cell, array(
-#                 [randint(-20, 20), randint(-20, 20), randint(-20, 20)], dtype="float64"))
-#             vec += atom.pos - lattice[atom.site].pos
-#             assert all(abs(a.indices(vec) - indices) < 1e-8)
-#             with raises(ValueError):
-#                 a.indices(vec + [0.1, 0.1, 0])
-#         assert index == a.index(vec, atom.site)
-#         with raises(ValueError):
-#             a.index(vec + [0.1, 0.1, 0])
-#     assert len(all_indices) == len(supercell)
+@mark.parametrize('u', [0.25, 0.23])
+def test_deformed_b5(u):
+    from pytest import raises
+    from random import randint
+    from numpy import all, abs, dot, array, concatenate
+    from pylada.crystal import HFTransform, supercell
+
+    lattice = b5(u)
+    supercell = supercell(lattice, dot(lattice.cell, [[2, 2, 0], [0, 2, 2], [4, 0, 4]]))
+
+    a = HFTransform(lattice.cell, supercell)
+
+    assert all(abs(a.transform - [[-1, 1, 1], [1, -1, 1], [5, -3, -1]]) < 1e-8)
+    assert all(abs(a.quotient - [2, 2, 8]) < 1e-8)
+    all_indices = set()
+    others = set()
+    for atom in supercell:
+        indices = a.indices(atom.pos - lattice[atom.site].pos)
+        index = a.index(atom.pos - lattice[atom.site].pos, atom.site)
+        assert index not in all_indices, (index, all_indices)
+        assert all(indices >= 0)
+        assert all(indices <= a.quotient)
+        all_indices.add(index)
+        assert str(concatenate((indices, [atom.site]))) not in others
+        others.add(str(concatenate((indices, [atom.site]))))
+        for i in xrange(20):
+            vec = dot(supercell.cell, array(
+                [randint(-20, 20), randint(-20, 20), randint(-20, 20)], dtype="float64"))
+            vec += atom.pos - lattice[atom.site].pos
+            assert all(abs(a.indices(vec) - indices) < 1e-8)
+            with raises(ValueError):
+                a.indices(vec + [0.1, 0.1, 0])
+        assert index == a.index(vec, atom.site)
+        with raises(ValueError):
+            a.index(vec + [0.1, 0.1, 0])
+
+    assert len(all_indices) == len(supercell)

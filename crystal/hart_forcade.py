@@ -42,7 +42,7 @@ class HFTransform(object):
         from numpy.linalg import inv
         from . import smith_normal_form
         cell = require(getattr(lattice, 'cell', lattice), dtype='float64')
-        supercell = require(supercell, dtype='float64')
+        supercell = require(getattr(supercell, 'cell', supercell), dtype='float64')
 
         invcell = inv(cell)
         invsupcell = dot(invcell, supercell)
@@ -73,7 +73,7 @@ class HFTransform(object):
         """
         return k  + self.quotient[2] * (j + self.quotient[1] * (i + site * self.quotient[0]))
 
-    def flat_index(self, pos, site=0):
+    def index(self, pos, site=0):
         """ Flat index into cyclic Z-group
 
             :param pos: (3d-vector)
@@ -84,7 +84,7 @@ class HFTransform(object):
                 Optional site index. If there are more than one sublattice in the structure, then
                 the flattened indices need to take this into account.
         """
-        return self.flatten_indices(*pos, site=site)
+        return self.flatten_indices(*self.indices(pos), site=site)
 
     def indices(self, pos):
         """ indices of input atomic position in cyclic Z-group
