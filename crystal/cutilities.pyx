@@ -10,7 +10,10 @@ cdef extern from "crystal/cutilities.h" namespace "pylada":
     void c_gruber "pylada::gruber"(t_real *out, t_real *_in, size_t itermax, t_real _tol) except +
 
 def smith_normal_form(np.ndarray cell not None):
-    """ Computes smith normal form on input matrix """
+    """ Computes smith normal form on input matrix
+
+        :returns: (S, left, right)
+    """
     from numpy.linalg import det
     from numpy import asarray, transpose
     if cell.ndim == 2 and cell.shape[0] != 3 and cell.shape[1] != 3:

@@ -27,6 +27,7 @@ from .structure import Structure
 from ._space_group import space_group, cell_invariants
 from .cutilities import smith_normal_form, gruber
 from .utilities import into_cell, into_voronoi, zero_centered, are_periodic_images
+from .hart_forcade import HFTransform
 
 
 def transform(structure, rotation, translation=None):
