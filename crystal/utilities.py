@@ -14,7 +14,7 @@ def into_cell(position, cell, inverse=None):
     if inverse is None:
         inverse = inv(cell)
     result = dot(inverse, position)
-    return dot(cell, result - floor(result))
+    return dot(cell, result - floor(result + 1e-12))
 
 def zero_centered(position, cell, inverse=None):
     """ Folds vector back to origin

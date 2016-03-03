@@ -43,7 +43,7 @@ cdef __translations(structure, double tolerance):
         for mapping in structure:
             pos = into_cell(mapping.pos + translation, cell, invcell)
             for mappee in structure:
-                if mapping.type == mappee.type and allclose(mappee, pos, tolerance):
+                if mapping.type == mappee.type and allclose(mappee.pos, pos, tolerance):
                     break
             else:
                 break
@@ -53,9 +53,9 @@ cdef __translations(structure, double tolerance):
     return translations
 
 
-def primitive(structure, double tolerance=1e-12):
+def primitive(structure, double tolerance=1e-8):
     from numpy.linalg import inv, det
-    from numpy import all, abs, array, dot, allclose
+    from numpy import all, abs, array, dot, allclose, round
     from . import gruber, into_cell, into_voronoi, into_cell
 
     if len(structure) == 0:
@@ -72,9 +72,9 @@ def primitive(structure, double tolerance=1e-12):
         return result
 
     # adds original translations.
-    translations.append(cell[0, :])
-    translations.append(cell[1, :])
-    translations.append(cell[2, :])
+    translations.append(cell[:, 0])
+    translations.append(cell[:, 1])
+    translations.append(cell[:, 2])
 
     # Looks for cell with smallest volume 
     new_cell = result.cell.copy()
@@ -103,7 +103,7 @@ def primitive(structure, double tolerance=1e-12):
                     volume = abs(det(trial))
 
     # Found the new cell with smallest volume (e.g. primivite)
-    if abs(structure.volume - volume) > tolerance:
+    if abs(structure.volume - volume) < tolerance:
         raise RuntimeError("Found translation but no primitive cell.")
 
     # now creates new lattice.
@@ -113,7 +113,7 @@ def primitive(structure, double tolerance=1e-12):
     for site in structure:
         pos = into_cell(site.pos, result.cell, invcell)
         for unique in result:
-            if allclose(unique.pos, pos, tolerance):
+            if site.type == unique.type and allclose(unique.pos, pos, tolerance):
                 break
         else:
             result.append(site.copy())

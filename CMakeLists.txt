@@ -59,7 +59,8 @@ endforeach()
 include(PythonModule)
 # Easily add node tests
 if(tests)
-    include(nose)
+  include(AddPyTest)
+  setup_pytest("${EXTERNAL_ROOT}/python" "${PROJECT_BINARY_DIR}/py.test.sh")
 endif()
 
 # required for (at least) crystal

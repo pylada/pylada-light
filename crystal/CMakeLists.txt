@@ -29,4 +29,4 @@ add_python_module("pylada.crystal" CPP GLOB *.py cutilities.pyx _space_group.pyx
 target_link_libraries(pylada.crystal.cutilities-cython cutilities)
 #
 # add_subdirectory(defects)
-# add_subdirectory(tests)
+add_subdirectory(tests)
