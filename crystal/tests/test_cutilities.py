@@ -39,7 +39,8 @@ def test_snf_require_non_singular_matrix():
     from pylada.crystal.cutilities import smith_normal_form
     from numpy import array
     from pytest import raises
-    with raises(ValueError):
+    from pylada import error
+    with raises(error.ValueError):
         smith_normal_form(array([[0, 0, 0], [1, 2, 0], [3, 4, 5]]))
 
 
@@ -71,9 +72,10 @@ def test_gruber():
 def test_gruber_fails_on_singular_matrix():
     from numpy import array
     from pylada.crystal.cutilities import gruber
+    from pylada import error
     from pytest import raises
-    with raises(ValueError):
+    with raises(error.ValueError):
         gruber(array([[0, 0, 0], [1, 2, 0], [4, 5, 6]]))
 
-    with raises(RuntimeError):
+    with raises(error.RuntimeError):
         gruber(array([[1, 0, 0], [1, 1, 0], [4, 5, 1]]), itermax=2)

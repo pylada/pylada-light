@@ -37,13 +37,14 @@ class Atom(object):
 
     def __init__(self, *args, **kwargs):
         from numpy import array
+        from .. import error
         super(Atom, self).__init__()
 
         if len(args) >= 3 and 'pos' in kwargs:
-            raise TypeError(
+            raise error.TypeError(
                 "Position given through argument and keyword arguments both")
         if len(args) > 3 and 'type' in kwargs:
-            raise TypeError(
+            raise error.TypeError(
                 "Type given through argument and keyword arguments both")
 
         dtype = kwargs.pop('dtype', 'float64')

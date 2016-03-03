@@ -112,15 +112,16 @@ def cell_invariants(cell, tolerance=1e-12):
         .. _ENUM: http://enum.sourceforge.net/
     """
     from numpy import require
+    from .. import error
     # Makes it easier to input structure 
     cell = getattr(cell, 'cell', cell)
     cell = require(cell, dtype='float64', requirements=['C_CONTIGUOUS'])
     if len(cell.shape) != 2:
-        raise ValueError("Expected a matrix as input")
+        raise error.ValueError("Expected a matrix as input")
     if cell.shape[0] != cell.shape[1]:
-        raise ValueError("Expected a *square* matrix as input")
+        raise error.ValueError("Expected a *square* matrix as input")
     if cell.shape[0] != 3:
-        raise ValueError("Expected a 3x3 matrix as input")
+        raise error.ValueError("Expected a 3x3 matrix as input")
     return __cell_invariants(cell, tolerance)
 
 def space_group(lattice, tolerance=1e-12):
@@ -146,12 +147,13 @@ def space_group(lattice, tolerance=1e-12):
     """
     from numpy import dot, allclose, zeros
     from numpy.linalg import inv
-    from pylada.crystal import gruber, Atom, into_voronoi, into_cell
+    from . import gruber, Atom, into_voronoi, into_cell, is_primitive
+    from .. import error
     if len(lattice) == 0:
-        raise ValueError("Empty lattice")
+        raise error.ValueError("Empty lattice")
 
-    # if not is_primitive(lattice, tolerance)):
-    #     raise ValueError("Input lattice is not primitive")
+    if not is_primitive(lattice, tolerance):
+        raise error.ValueError("Input lattice is not primitive")
 
     # Finds minimum translation.
     translation = lattice[0].pos

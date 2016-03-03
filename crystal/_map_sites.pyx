@@ -46,11 +46,12 @@ def map_sites(mapper, mappee, cmp=None, double tolerance=1e-12):
     from numpy.linalg import inv, norm
     from numpy import dot, round, allclose, array, argmin, nonzero
     from . import gruber, into_cell, into_voronoi
+    from .. import error
 
     if len(mapper) == 0:
-        raise ValueError("Empty mapper structure")
+        raise error.ValueError("Empty mapper structure")
     if len(mappee) == 0:
-        raise ValueError("Empty mappee structure")
+        raise error.ValueError("Empty mappee structure")
 
     if cmp is None:
         cmp = lambda x, y: x.type == y.type
@@ -65,7 +66,7 @@ def map_sites(mapper, mappee, cmp=None, double tolerance=1e-12):
 
     intcell = dot(invcell, mappee.cell) * scale_ratio
     if not allclose(intcell, round(intcell + 1e-8), tolerance):
-        raise ValueError("Mappee not a supercell of mapper")
+        raise error.ValueError("Mappee not a supercell of mapper")
 
     sites = array([into_cell(site.pos, cell, invcell) for site in mapper]) / scale_ratio
     for atom in mappee:
@@ -79,6 +80,6 @@ def map_sites(mapper, mappee, cmp=None, double tolerance=1e-12):
         elif len(found_sites) == 1:
             atom.site = found_sites[0]
         else:
-            raise RuntimeError("Sites %s are equivalent" % found_sites)
+            raise error.RuntimeError("Sites %s are equivalent" % found_sites)
 
     return allmapped

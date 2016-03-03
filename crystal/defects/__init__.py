@@ -287,81 +287,82 @@ def iterdefects(structure, lattice, defects, tolerance=0.25):
 
 
 def any_defect(structure, lattice, type, subs, tolerance=0.25):
-  """ Yields point-defects of a given type and different modifications. 
-  
-      Loops over all equivalent point-defects.
+    """ Yields point-defects of a given type and different modifications. 
 
-      :Parameters:
-        structure : `pylada.crystal.Structure`
-          structure on which to operate
-        lattice : `pylada.crystal.Lattice`
-          back-bone lattice of the structure.
-        type : str or None or sequence
-          type of atoms for which to create substitution.
-          If None, will create a vacancy.
-          If ``subs`` is None, then will create a vacancy. In that case, type
-          should be a sequence describing the interstitials:
+        Loops over all equivalent point-defects.
 
-          >>> type = [ "Li", (0,0,0), "16c" ],\
-          >>>        [ "Li", (0.75,0.75,0.75), "32e_0.75" ] 
-           
-          Each item in the sequence is itself a sequence where the first item is the
-          specie, and the other items the positions and name of the
-          interstitials for that specie. 
-        subs : str or None
-          substitution type. If None, will create an interstitial.
+        :Parameters:
+          structure : `pylada.crystal.Structure`
+            structure on which to operate
+          lattice : `pylada.crystal.Lattice`
+            back-bone lattice of the structure.
+          type : str or None or sequence
+            type of atoms for which to create substitution.
+            If None, will create a vacancy.
+            If ``subs`` is None, then will create a vacancy. In that case, type
+            should be a sequence describing the interstitials:
 
-      :return: a 2-tuple consisting of:
+            >>> type = [ "Li", (0,0,0), "16c" ],\
+            >>>        [ "Li", (0.75,0.75,0.75), "32e_0.75" ] 
 
-        - the structure with a substitution.
-        - the substituted atom in the structure above. The atom is given an
-          additional attribute, C{index}, referring to list of atoms in the
-          structure.
-  """
-  from re import compile
+            Each item in the sequence is itself a sequence where the first item is the
+            specie, and the other items the positions and name of the
+            interstitials for that specie. 
+          subs : str or None
+            substitution type. If None, will create an interstitial.
 
-  specie_regex = compile(r'^\s*[A-Z][a-z]?\s*$')
-  id_regex = compile(r'^\s*([A-Z][a-z]?)(\d+)\s*$')
-  coord_regex = compile(r'^\s*([A-Z][a-z]?)\s+coord\s*$')
+        :return: a 2-tuple consisting of:
 
-  # Interstitials.
-  if hasattr(type, 'rstrip'):
-    type = type.rstrip()
-  if hasattr(type, 'lstrip'):
-    type = type.lstrip()
-  if type is None or type.lower() in ['interstitial', 'interstitials', 'none']:
-    for result in interstitials(structure, lattice, subs):
-      yield result
-  # Old: looking for specific atoms.
-  # not used in practice. Haowei
-  elif id_regex.match(type) is not None:
-    # looks for atom to modify
-    found = id_regex.match(type)
-    type, index = found.group(1), int(found.group(2))
-    if index < 1:
-      index = 1
-    for i, site in enumerate(lattice):
-      if type not in site.type:
-        continue
-      index -= 1
-      if index == 0:
-        break
-    assert index == 0, ValueError("Could not find {0}.".format(type))
-    for index, atom in enumerate(structure):
-      if atom.site == i:
-        break
-    assert atom.site == i, ValueError('Could not find atomic-site.')
-    for result in non_interstitials(structure, index, subs):
-      yield result
-  # O, Mn ... but not O1: looking for symmetrically inequivalent sites.
-  elif specie_regex.match(type) is not None:
-    for result in inequiv_non_interstitials(structure, lattice, type, subs, False, tolerance):
-      yield result
-  elif coord_regex.match(type) is not None:
-    for result in inequiv_non_interstitials(structure, lattice, type, subs, True, tolerance):
-      yield result
-  else:
-    raise ValueError("Don't understand defect type {0}".format(type))
+          - the structure with a substitution.
+          - the substituted atom in the structure above. The atom is given an
+            additional attribute, C{index}, referring to list of atoms in the
+            structure.
+    """
+    from re import compile
+    from .. import error
+
+    specie_regex = compile(r'^\s*[A-Z][a-z]?\s*$')
+    id_regex = compile(r'^\s*([A-Z][a-z]?)(\d+)\s*$')
+    coord_regex = compile(r'^\s*([A-Z][a-z]?)\s+coord\s*$')
+
+    # Interstitials.
+    if hasattr(type, 'rstrip'):
+      type = type.rstrip()
+    if hasattr(type, 'lstrip'):
+      type = type.lstrip()
+    if type is None or type.lower() in ['interstitial', 'interstitials', 'none']:
+      for result in interstitials(structure, lattice, subs):
+        yield result
+    # Old: looking for specific atoms.
+    # not used in practice. Haowei
+    elif id_regex.match(type) is not None:
+      # looks for atom to modify
+      found = id_regex.match(type)
+      type, index = found.group(1), int(found.group(2))
+      if index < 1:
+        index = 1
+      for i, site in enumerate(lattice):
+        if type not in site.type:
+          continue
+        index -= 1
+        if index == 0:
+          break
+      assert index == 0, ValueError("Could not find {0}.".format(type))
+      for index, atom in enumerate(structure):
+        if atom.site == i:
+          break
+      assert atom.site == i, ValueError('Could not find atomic-site.')
+      for result in non_interstitials(structure, index, subs):
+        yield result
+    # O, Mn ... but not O1: looking for symmetrically inequivalent sites.
+    elif specie_regex.match(type) is not None:
+      for result in inequiv_non_interstitials(structure, lattice, type, subs, False, tolerance):
+        yield result
+    elif coord_regex.match(type) is not None:
+      for result in inequiv_non_interstitials(structure, lattice, type, subs, True, tolerance):
+        yield result
+    else:
+      raise error.ValueError("Don't understand defect type {0}".format(type))
 
 
 def charged_states(species, A, B):

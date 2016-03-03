@@ -39,6 +39,7 @@ def poscar(path="POSCAR", types=None):
   from numpy.linalg import det
   from quantities import angstrom
   from . import Structure
+  from .. import error
 
   # if types is not none, converts to a list of strings.
   if types is not None:
@@ -83,7 +84,7 @@ def poscar(path="POSCAR", types=None):
     if is_vasp_5:
       text_types = deepcopy(line)
       if types is not None and not set(text_types).issubset(set(types)):
-        raise RuntimeError( "Unknown species in poscar: {0} not in {1}."\
+        raise error.ValueError( "Unknown species in poscar: {0} not in {1}."\
                             .format(text_types, types) )
       types = text_types
       line = poscar.readline().split()
@@ -119,9 +120,9 @@ def castep(file):
   """ Tries to read a castep structure file. """
   from numpy import array, dot
   from ..periodic_table import find as find_specie
-  from ..error import IOError, NotImplementedError, input as InputError
   from ..misc import RelativePath
   from . import Structure
+  from .. import error
   if isinstance(file, str):
     if file.find('\n') == -1:
       with open(RelativePath(file).path, 'r') as file: return castep(file)
@@ -145,14 +146,14 @@ def castep(file):
       elif line.split()[0].lower() == '%block':
         name = line.split()[1].lower().replace('.', '').replace('_', '')
         if name in result:
-          raise InputError('Found two {0} blocks in input.'.format(name))
+          raise error.ValueError('Found two {0} blocks in input.'.format(name))
         result[name] = ""
         current_block = name
       else:
         name = line.split()[0].lower().replace('.', '').replace('_', '')
         if name[-1] in ['=' or ':']: name = name[:-1]
         if name in result:
-          raise InputError('Found two {0} tags in input.'.format(name))
+          raise error.ValueError('Found two {0} tags in input.'.format(name))
         data = line.split()[1:]
         if len(data) == 0: result[name] = None; continue
         if data[0] in [':', '=']: data = data[1:]
@@ -194,9 +195,9 @@ def castep(file):
     else: units = 1
     cell = array([l.split() for l in data], dtype='float64')
   elif 'latticeabc' in input:
-    raise NotImplementedError('Cannot read lattice in ABC format yet.')
+    raise error.NotImplementedError('Cannot read lattice in ABC format yet.')
   else:
-    raise InputError('Could not find lattice block in input.')
+    raise error.ValueError('Could not find lattice block in input.')
 
   # create structure
   result = Structure(cell, scale=units)
@@ -210,13 +211,12 @@ def castep(file):
     try: units = parse_units(posdata[0])
     except: units = None
     else: posdata = posdata[1:]
-  else: raise InputError('Could not find position block in input.')
+  else: raise error.ValueError('Could not find position block in input.')
   # and parse it
   for line in posdata:
     line = line.split()
     if len(line) < 2:
-      raise IOError( 'Wrong file format: line with less '                      \
-                     'than two items in positions block.')
+      raise error.IOError('Wrong file format: line with less than two items in positions block.')
     pos = array(line[1:4], dtype='float64')
     if isfrac: pos = dot(result.cell, pos)
     try: dummy = int(line[0])
@@ -232,7 +232,7 @@ def crystal(file='fort.34'):
   from numpy.linalg import inv
   from ..crystal import which_site
   from ..misc import RelativePath
-  from ..error import IOError
+  from .. import error
   from ..periodic_table import find as find_specie
   from . import Structure
 
@@ -242,33 +242,33 @@ def crystal(file='fort.34'):
     else: file = file.splitlines().__iter__()
   # read first line
   try: line = file.next()
-  except StopIteration: raise IOError('Premature end of stream.')
+  except StopIteration: raise error.IOError('Premature end of stream.')
   else: dimensionality, centering, type = [int(u) for u in line.split()[:3]]
   # read cell
   try: cell = array( [file.next().split()[:3] for i in xrange(3)],
                      dtype='float64' ).T
-  except StopIteration: raise IOError('Premature end of stream.')
+  except StopIteration: raise error.IOError('Premature end of stream.')
   result = Structure( cell=cell, centering=centering,
                       dimensionality=dimensionality, type=type, scale=1e0 )
   # read symmetry operators
   result.spacegroup = []
   try: N = int(file.next())
-  except StopIteration: raise IOError('Premature end of stream.')
+  except StopIteration: raise error.IOError('Premature end of stream.')
   for i in xrange(N):
     try: op = array( [file.next().split()[:3] for j in xrange(4)],
                      dtype='float64' )
-    except StopIteration: raise IOError('Premature end of stream.')
+    except StopIteration: raise error.IOError('Premature end of stream.')
     else: op[:3] = op[:3].copy().T
     result.spacegroup.append(op)
   result.spacegroup = array(result.spacegroup)
 
   # read atoms.
   try: N = int(file.next())
-  except StopIteration: raise IOError('Premature end of stream.')
+  except StopIteration: raise error.IOError('Premature end of stream.')
 
   for i in xrange(N):
     try: line = file.next().split()
-    except StopIteration: raise IOError('Premature end of stream.')
+    except StopIteration: raise error.IOError('Premature end of stream.')
     else: type, pos = int(line[0]), array(line[1:4], dtype='float64')
     if type < 100: type = find_specie(atomic_number=type).symbol
     result.add_atom(pos=pos, type=type, asymmetric=True)

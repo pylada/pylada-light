@@ -65,9 +65,10 @@ def test_init():
 def test_fail_init():
     """ Test failures during initialization. """
     from pytest import raises
-    with raises(TypeError):
+    from pylada import error
+    with raises(error.TypeError):
       a = Atom(0.1, 0.1, 0.1, 'Au', type='Au')
-    with raises(TypeError):
+    with raises(error.TypeError):
       a = Atom(0.1, 0.1, 0.1, pos=[0.1, 0.1, 0.1])
 
 

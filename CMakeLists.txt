@@ -63,6 +63,7 @@ if(tests)
 endif()
 
 # required for (at least) crystal
+add_subdirectory(errors)
 add_subdirectory(crystal)
 add_subdirectory(python)
 # add_subdirectory(math)

@@ -48,9 +48,10 @@
 """
 __docformat__ = "restructuredtext en"
 __all__ = [
-    'physics', 'crystal', 'misc', 'ewald', @which_packages@
+    'error', 'physics', 'crystal', 'misc', 'ewald', @which_packages@
         # "load_ipython_extension", "unload_ipython_extension",
 ]
+import error
 import physics
 # from ipython import load_ipython_extension, unload_ipython_extension
 

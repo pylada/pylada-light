@@ -41,6 +41,7 @@ class HFTransform(object):
         from numpy import require, dot, floor, allclose, round, array
         from numpy.linalg import inv
         from . import smith_normal_form
+        from .. import error
         cell = require(getattr(lattice, 'cell', lattice), dtype='float64')
         supercell = require(getattr(supercell, 'cell', supercell), dtype='float64')
 
@@ -48,7 +49,7 @@ class HFTransform(object):
         invsupcell = dot(invcell, supercell)
         integer_cell = round(invsupcell).astype('intc')
         if not allclose(floor(invsupcell + 0.01), invsupcell, 1e-8):
-            raise ValueError("second argument is not a supercell of first argument")
+            raise error.ValueError("second argument is not a supercell of first argument")
 
         snf, left, right = smith_normal_form(integer_cell)
         self.transform = dot(left.astype('float64'), invcell)
@@ -96,12 +97,13 @@ class HFTransform(object):
                 The 3-d indices in the cyclic group
         """
         from numpy import dot, zeros, round, allclose
+        from .. import error
         if len(pos) != len(self.quotient):
-            raise ValueError("Incorrect vector size")
+            raise error.ValueError("Incorrect vector size")
         pos = dot(self.transform, pos)
         integer_pos = round(pos + 1e-8).astype('intc')
         if not allclose(integer_pos, pos, 1e-12):
-            raise ValueError("Position is not on the lattice")
+            raise error.ValueError("Position is not on the lattice")
         result = zeros(len(pos), dtype='intc')
         for i in range(len(pos)):
             result[i] = integer_pos[i] % self.quotient[i]

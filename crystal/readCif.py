@@ -40,18 +40,6 @@ import datetime, os, re, shlex, sys, traceback
 import numpy as np
 
 
-class CifException( Exception):
-
-  def __init__( self, val):
-    self.val = val
-
-  def __str__( self):
-    return repr( self.val)
-
-
-
-#====================================================================
-
 def badparms( msg):
   print '\nError: %s' % (msg,)
   print 'Parms:'
@@ -233,16 +221,18 @@ class CifReader:
     self.errorList = []       # list of tuples: [(errorCode, errorMsg, iline)]
 
   def throwerr( self, msg):
-    fullMsg = 'Error: %s  iline: %d' % (msg, self.iline)
-    if self.line != None:
-      fullMsg += '  line: %s' % ( repr( self.line),)
-    raise Exception( fullMsg)
+      from .. import error
+      fullMsg = 'Error: %s  iline: %d' % (msg, self.iline)
+      if self.line != None:
+        fullMsg += '  line: %s' % ( repr( self.line),)
+      raise error.root( fullMsg)
 
   def throwcif( self, msg):
-    fullMsg = 'Error: %s  iline: %d' % (msg, self.iline)
-    if self.line != None:
-      fullMsg += '  line: %s' % ( repr( self.line),)
-    raise CifException( fullMsg)
+      from .. import error
+      fullMsg = 'Error: %s  iline: %d' % (msg, self.iline)
+      if self.line != None:
+        fullMsg += '  line: %s' % ( repr( self.line),)
+      raise error.CifException( fullMsg)
 
   def noteError( self, errorCode, errorMsg):
     self.errorList.append( (errorCode, errorMsg, self.iline))
@@ -1364,109 +1354,3 @@ for tup in euroChars:
 
 
 if __name__ == '__main__': main()
-
-
-
-#====================================================================
-#====================================================================
-#====================================================================
-
-## OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD
-## OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD
-## OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD
-## OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD
-## OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD
-## OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD
-#
-## Parse a symmetry operation string like '-x+y-z+1/2'.
-#
-## OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD 
-#class Operator:
-#  def __init__(self, symbol, precedence):
-#    checkType( str, symbol)
-#    checkType( int, precedence)
-#    self.symbol = symbol
-#    self.precedence = precedence
-#  def __str__(self):
-#    res = 'symbol: %s  precedence: %d' % (self.symbol, self.precedence,)
-#    return res
-#
-#
-#
-## OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD 
-#def parseSymOp(
-#  buglev,
-#  stgParm,
-#  valueMap):
-#
-#  checkType( int, buglev)
-#  checkType( str, symStg)
-#  checkType( dict, valueMap)
-#
-#  operators = []
-#  operators.append( Operator('-', 10))
-#  operators.append( Operator('+', 10))
-#  operators.append( Operator('/', 20))
-#
-#  specNames = 'xyz'
-#  nspec = len( specNames)
-#  specValues = nspec * [-999.0]
-#
-#  opStk = []
-#  valStk = []
-#  stg = stgParm
-#  for istg in range(len(symStg)):
-#    (stg, token) = getToken( stg)
-#    if token != ' ':
-#      iop = -1
-#      for ii in range(len(operators)):
-#        if token == operators[ii].symbol:
-#          iop = ii
-#          break
-#      if iop >= 0:          # if an operator
-#        oper = operators[iop]
-#        if len(opStk) == 0 or opStk[0].prec < oper.prec:
-#          if istg == 0: valStk.insert( 0, 0.)    # convert prefix ops to binops
-#          opStk.insert( 0, oper)
-#        else:
-#          execOp( opStk, valStk)
-#
-#      else:                # else not an operator
-#        if specNames.haskey( token):
-#          ix = specNames.find( token)
-#          if istg == 0:                 # leading x, y, or z
-#            specValues[ix] = 1.0
-#          elif opStk[0] == opPlus:      # '... +x'
-#            specValues[ix] = 1.0
-#          elif opStk[0] == opMinus:     # '... -x'
-#            specValues[ix] = -1.0
-#          elif opStk[0] == opStar:      # '..a*b/c * x'
-#            specValues[ix] = -1.0
-#          else: throwerr('unknown syntax')
-#          valStk.insert( 0, valueMap[token])
-#
-#        else:              # not in specNames
-#          valStk.insert( 0, valueMap[token])
-#
-#
-#
-##====================================================================
-## OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD OLD 
-#def execOp(
-#  buglev,
-#  opStk,
-#  valStk):
-#
-#  checkType( int, buglev)
-#  checkType( list, opStk)
-#  checkType( list, valStk)
-#
-#  op = opStk[0]
-#  if   op == '-': valStk[1] -= valStk[0]
-#  elif op == '+': valStk[1] += valStk[0]
-#  elif op == '*': valStk[1] *= valStk[0]
-#  elif op == '/': valStk[1] /= valStk[0]
-#  else: throwerr('unknown op:  "%s"' % (op,))
-#  valStk.remove( 0)
-#  opStk.remove( 0)
-

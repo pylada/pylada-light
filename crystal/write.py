@@ -166,6 +166,7 @@ def crystal( structure, file='fort.34',
   from ..periodic_table import find as find_specie
   from .iterator import equivalence as equivalence_iterator
   from . import space_group
+  from .. import error
   # makes sure file is a stream.
   # return string when necessary
   if file is None:
@@ -230,8 +231,7 @@ def crystal( structure, file='fort.34',
     except: 
       try: n = find_specie(name=type)
       except:
-        raise ValueError( 'Could not transform {0} to atomic number.'          \
-                          .format(type) )
+        raise error.ValueError('Could not transform {0} to atomic number.'.format(type))
       else: type = n.atomic_number
     else: type = n
     pos = atom.pos * float(structure.scale.rescale(angstrom))
@@ -284,6 +284,7 @@ def gulp(structure, file='gulp.in', **kwargs):
        Furthermore, each atom can have a freeze parameter 
   """
   from quantities import angstrom
+  from .. import error
   from .iterator import equivalence as equivalence_iterator
   from . import space_group, _normalize_freeze_cell, _normalize_freeze_atom
 
@@ -337,8 +338,8 @@ def gulp(structure, file='gulp.in', **kwargs):
     if freeze is not None:
       freeze = _normalize_freeze_cell(freeze, 2)
       result += ' '.join(('0' if f else '1') for f in freeze) + '\n'
-  elif periodicity == 1: raise NotImplementedError('Cannot do 1d materials')
-  elif periodicity == 0: raise NotImplementedError('Cannot do 0d materials')
+  elif periodicity == 1: raise error.NotImplementedError('Cannot do 1d materials')
+  elif periodicity == 0: raise error.NotImplementedError('Cannot do 0d materials')
 
   if len(crystal) == 0: return result
   charges = getvalue('charges', {})
@@ -356,7 +357,7 @@ def gulp(structure, file='gulp.in', **kwargs):
     if symmops is None or not hasattr(symmops, '__iter__'):
       symmops = space_group(crystal)
     if symmops is None or not hasattr(symmops, '__iter__'): 
-      raise ValueError('Could not determine symmetry operations')
+      raise error.ValueError('Could not determine symmetry operations')
     asymatoms = [crystal[u[0]] for u in equivalence_iterator(crystal, symmops)]
 
   # now dumps atoms into seperate regions, if need be. 

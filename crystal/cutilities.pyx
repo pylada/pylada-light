@@ -16,10 +16,11 @@ def smith_normal_form(np.ndarray cell not None):
     """
     from numpy.linalg import det
     from numpy import asarray, transpose
+    from .. import error
     if cell.ndim == 2 and cell.shape[0] != 3 and cell.shape[1] != 3:
-        raise ValueError("Can only compute Smith normal form of 3x3 matrix")
+        raise error.ValueError("Can only compute Smith normal form of 3x3 matrix")
     if det(cell) == 0:
-        raise ValueError("Input cell is singular")
+        raise error.singular_matrix("Input cell is singular")
 
     left = np.identity(3, dtype='intc')
     right = np.identity(3, dtype='intc')
@@ -50,16 +51,17 @@ def gruber(np.ndarray cell not None, size_t itermax = 0, double tolerance = 1e-1
         :param float tolerance:
             Tolerance parameter when comparing real numbers. Defaults to Pylada internals.
         :returns: An equivalent standardized cell.
-        :raises ValueError: If the input matrix is singular.
+        :raises singular_matrix: If the input matrix is singular.
         :raises RuntimeError: If the maximum number of iterations is reached.
     """
     from numpy.linalg import det
     from numpy import require, zeros, abs, transpose
+    from .. import error
 
     if cell.ndim == 2 and cell.shape[0] != 3 and cell.shape[1] != 3:
-        raise ValueError("Can only compute Smith normal form of 3x3 matrix")
+        raise error.ValueError("Can only compute Smith normal form of 3x3 matrix")
     if abs(det(cell)) < 1e-12:
-        raise ValueError("Input cell is singular");
+        raise error.singular_matrix("Input cell is singular");
 
     cell = require(cell, dtype='float64', requirements=['F_CONTIGUOUS'])
 
@@ -89,9 +91,10 @@ def supercell(lattice, cell):
     from numpy.linalg import inv
     from numpy import array, require, dot
     from . import HFTransform, into_cell
+    from .. import error
 
     if len(lattice) == 0:
-        raise ValueError("Lattice is empty")
+        raise error.ValueError("Lattice is empty")
     cell = require(cell, dtype='float64')
 
     result = lattice.copy()

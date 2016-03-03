@@ -57,9 +57,10 @@ def primitive(structure, double tolerance=1e-8):
     from numpy.linalg import inv, det
     from numpy import all, abs, array, dot, allclose, round
     from . import gruber, into_cell, into_voronoi, into_cell
+    from .. import error
 
     if len(structure) == 0:
-        raise ValueError("Empty structure")
+        raise error.ValueError("Empty structure")
 
     result = structure.copy()
     cell = gruber(result.cell)
@@ -96,7 +97,7 @@ def primitive(structure, double tolerance=1e-8):
                     trial[:, 2] = second
                     trial[:, 1] = third
                     if det(trial) < 0e0:
-                        raise RuntimeError("Negative volume")
+                        raise error.RuntimeError("Negative volume")
                 integer_cell = dot(inv(trial), cell)
                 if allclose(integer_cell, round(integer_cell + 1e-7), 1e-8):
                     new_cell = trial
@@ -104,7 +105,7 @@ def primitive(structure, double tolerance=1e-8):
 
     # Found the new cell with smallest volume (e.g. primivite)
     if abs(structure.volume - volume) < tolerance:
-        raise RuntimeError("Found translation but no primitive cell.")
+        raise error.RuntimeError("Found translation but no primitive cell.")
 
     # now creates new lattice.
     result.clear()
@@ -120,10 +121,10 @@ def primitive(structure, double tolerance=1e-8):
             result[-1].pos = pos
 
     if len(structure) % len(result) != 0:
-        raise RuntimeError("Nb of atoms in output not multiple of input.")
+        raise error.RuntimeError("Nb of atoms in output not multiple of input.")
 
     if abs(len(structure) * result.volume - len(result) * structure.volume) > tolerance:
-        raise RuntimeError("Size and volumes do not match.")
+        raise error.RuntimeError("Size and volumes do not match.")
 
     return result;
 
@@ -137,10 +138,11 @@ def is_primitive(structure, double tolerance = 1e-12):
         :param tolerance:
             Tolerance when comparing positions
     """
-    from . import into_cell, gruber
     from numpy.linalg import inv
+    from . import into_cell, gruber
+    from .. import error
     if len(structure) == 0:
-        raise ValueError("Empty structure")
+        raise error.ValueError("Empty structure")
 
     result = structure.copy()
     cell = gruber(result.cell)

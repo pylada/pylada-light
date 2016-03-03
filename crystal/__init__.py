@@ -147,11 +147,11 @@ def _normalize_freeze_atom(freeze):
       same list of booleans as the output.
   """
   from numpy import array
-  from ..error import TypeError
+  from .. import error
   if hasattr(freeze, '__iter__') and len(freeze) == 3                          \
      and all(isinstance(u, bool) or isinstance(u, int) for u in freeze):
        return [u == True for u in freeze]
   elif not hasattr(freeze, 'lower'):
-    raise TypeError('Could not make sense of freeze parameter.')
+    raise error.TypeError('Could not make sense of freeze parameter.')
   freeze = freeze.lower()
   return array(['x' in freeze, 'y' in freeze, 'z' in freeze])

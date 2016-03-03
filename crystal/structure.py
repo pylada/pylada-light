@@ -30,6 +30,7 @@ class Structure(MutableSequence):
         """
         from quantities import angstrom
         from numpy import identity, array, all
+        from .. import error
 
         if len(args) == 9 or len(args) == 3:
             self._cell = array(args, dtype='float64').reshape(3, 3)
@@ -38,11 +39,11 @@ class Structure(MutableSequence):
         elif len(args) == 1:
             self._cell = array(args[0], dtype='float64')
         elif len(args) != 0:
-            raise TypeError(
+            raise error.TypeError(
                 "Incorrect number of arguments when creating structure")
 
         if '_cell' in self.__dict__ and 'cell' in kwargs:
-            raise TypeError("Cell given as argument and keyword argument")
+            raise error.TypeError("Cell given as argument and keyword argument")
         elif '_cell' not in self.__dict__:
             self._cell = array(kwargs.pop(
                 'cell', identity(3)), dtype='float64')
@@ -139,13 +140,14 @@ class Structure(MutableSequence):
         """ Adds atoms to structure """
         from collections import Sequence
         from .atom import Atom
+        from .. import error
         for arg in args:
             if isinstance(arg, Atom):
                 self._atoms.append(arg)
             elif isinstance(arg, Sequence):
                 self._atoms.append(Atom(*arg))
             else:
-                raise TypeError("Cannot convert argument to Atom")
+                raise error.TypeError("Cannot convert argument to Atom")
 
     def insert(self, index, *args, **kwargs):
         """ Insert atoms in given position """
@@ -159,13 +161,14 @@ class Structure(MutableSequence):
     def __setitem__(self, index, atom):
         from collections import Sequence
         from .atom import Atom
+        from .. import error
         if isinstance(atom, Sequence):
             for a in atom:
                 if not isinstance(a, Atom):
-                    raise ValueError("Input should be of type Atom")
+                    raise error.ValueError("Input should be of type Atom")
         else:
             if not isinstance(atom, Atom):
-                raise ValueError("Input should be of type Atom")
+                raise error.ValueError("Input should be of type Atom")
 
         return self._atoms.__setitem__(index, atom)
 
