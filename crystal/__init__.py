@@ -30,6 +30,7 @@ from .utilities import into_cell, into_voronoi, zero_centered, are_periodic_imag
 from .hart_forcade import HFTransform
 from ._primitive import primitive, is_primitive
 from ._coordination_shells import coordination_shells, neighbors
+from ._map_sites import map_sites
 
 
 def transform(structure, rotation, translation=None):
