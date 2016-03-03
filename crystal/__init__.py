@@ -31,6 +31,7 @@ from .hart_forcade import HFTransform
 from ._primitive import primitive, is_primitive
 from ._coordination_shells import coordination_shells, neighbors
 from ._map_sites import map_sites
+from . import iterator
 
 
 def transform(structure, rotation, translation=None):

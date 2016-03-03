@@ -27,6 +27,7 @@ __all__ = ['symmetrically_inequivalent_sites', 'coordination_inequivalent_sites'
            'band_filling', 'potential_alignment', 'charge_corrections',
            'magmom', 'low_spin_states', 'high_spin_states', 'magname']
 
+
 def symmetrically_inequivalent_sites(lattice, type):
   """ Yields sites occupied by type which are inequivalent according to symmetry operations. 
 
@@ -639,15 +640,33 @@ def potential_alignment(defect, host, maxdiff=None, first_shell=False, tolerance
                for e, a, ok in iterable if ok]) * eV
 
 
+def third_order(cell, n=100):
+  from numpy import array, arange, dot
+  from numpy.linalg import det
+  from itertools import product
+
+  factor = abs(det(cell)) * n**3
+
+  result = 0.0
+  for p in product(arange(n) / float(n), repeat=3):
+    dsqrd = []
+    for img in product([-1, 0, 1], repeat=3):
+        d = dot(cell, (array(p, dtype='float64') + array(img, dtype='float64') - 0.5))
+        dsqrd.append(dot(d, d))
+    result += min(dsqrd)
+
+  return result / factor
+
+
 def third_order_charge_correction(structure, charge=None, n=30, epsilon=1.0, **kwargs):
   """ Returns energy of third order charge correction. 
 
-      :Parameters: 
+      :Parameters:
         structure : `pylada.crystal.Structure`
           Defect supercell, with cartesian positions in angstrom.
-        n 
+        n
           precision. Higher better.
-        charge 
+        charge
           If no units are given, defaults to elementary charge. If None,
           defaults to 1 elementary charge.
         epsilon 
@@ -662,8 +681,8 @@ def third_order_charge_correction(structure, charge=None, n=30, epsilon=1.0, **k
       :return: third order correction  to the energy in eV. Should be *added* to total energy.
   """
   from quantities import elementary_charge, eV, pi, angstrom
-  from ..physics import a0, Ry
-  from ..crystal import third_order
+  from pylada.physics import a0, Ry
+  from .cutilities import third_order
 
   if charge is None:
     charge = 1e0
@@ -676,6 +695,7 @@ def third_order_charge_correction(structure, charge=None, n=30, epsilon=1.0, **k
   cell = (structure.cell * structure.scale).rescale(a0)
   return third_order(cell, n) * (4e0 * pi / 3e0) * Ry.rescale(eV) * charge * charge \
       * (1e0 - 1e0 / epsilon) / epsilon
+
 
 def first_order_charge_correction(structure, charge=None, epsilon=1e0, cutoff=20.0, **kwargs):
   """ First order charge correction of +1 charge in given supercell. 
@@ -1062,7 +1082,7 @@ def high_spin_states(structure, defect, species, extrae, do_integer=True, do_ave
 
 def reindex_sites(structure, lattice, tolerance=0.5):
   """ Reindexes atoms of structure according to lattice sites.
-  
+
       Expects that the structure is an exact supercell of the lattice, as far
       cell vectors are concerned. The atoms, however, may have moved around a
       bit. To get an index, an atom must be clearly closer to one ideal lattice
