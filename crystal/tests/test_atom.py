@@ -73,8 +73,8 @@ def test_fail_init():
 
 def test_repr():
     """ Test representability. """
-    actual = repr(Atom(type='Au', pos=[1, 1, 1], m=1))
-    assert actual == "{0.__name__}(1, 1, 1, 'Au', m=1)".format(Atom)
+    actual = repr(Atom(type='Au', pos=[1, 1, 1], m=1, dtype='int64'))
+    assert actual == "{0.__name__}(1, 1, 1, 'Au', dtype='int64', m=1)".format(Atom)
     actual = str(Atom(type='Au', pos=[1., 1, 1], site=1))
     assert actual == "{0.__name__}(1.0, 1.0, 1.0, 'Au', site=1)".format(Atom)
 

@@ -82,6 +82,8 @@ class Atom(object):
         """ Dumps atom to string """
         args = [repr(u) for u in self.pos]
         args.append(repr(self.type))
+        if self.pos.dtype != 'float64':
+            args.append("dtype='%s'" % self._pos.dtype)
         for k, v in self.__dict__.items():
             if k != '_pos' and k != 'type':
                 args.append(str(k) + "=" + repr(v))
