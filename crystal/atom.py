@@ -46,12 +46,13 @@ class Atom(object):
             raise TypeError(
                 "Type given through argument and keyword arguments both")
 
+        dtype = kwargs.pop('dtype', 'float64')
         if len(args) >= 3:
-            self._pos = array(args[:3])
+            self._pos = array(args[:3], dtype=dtype)
         elif len(args) == 2 or len(args) == 1:
-            self._pos = array(args[0])
+            self._pos = array(args[0], dtype=dtype)
         elif 'pos' in kwargs:
-            self._pos = array(kwargs.pop('pos'))
+            self._pos = array(kwargs.pop('pos'), dtype=dtype)
         else:
             self._pos = array([0., 0., 0.])
         if len(args) == 4:

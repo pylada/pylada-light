@@ -89,7 +89,7 @@ def test_coordination_shells():
     from pylada.crystal import supercell, Structure
 
     lattice = Structure([[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]]) \
-        .add_atom(0., 0, 0, "Si")                                      \
+        .add_atom(0, 0, 0, "Si")                                      \
         .add_atom(0.25, 0.25, 0.25, "Ge")
     for atom in lattice:
         check(lattice, atom)
