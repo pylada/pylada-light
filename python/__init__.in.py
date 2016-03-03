@@ -47,67 +47,70 @@
     pylada.config.
 """
 __docformat__ = "restructuredtext en"
-# __all__ = [
-#         "load_ipython_extension", "unload_ipython_extension",
-#         "error", @which_packages@
-# ]
-# import error
-# import physics
+__all__ = [
+    'physics', 'crystal', 'misc', 'ewald', @which_packages@
+        # "load_ipython_extension", "unload_ipython_extension",
+]
+import physics
 # from ipython import load_ipython_extension, unload_ipython_extension
-#
-# version_info = (@Pylada_VERSION_MAJOR@, @Pylada_VERSION_MINOR@)
-# """ Tuple containing version info. """
-# version = "{0[0]}.{0[1]}".format(version_info)
-# """ String containing version info. """
-#
-#
-# # reads stuff from global configuration files.
-# # doing it in a function makes it easier to keep the pylada namespace clean.
-# def _config_files(dointeractive=False):
-#   from os.path import exists, expanduser, expandvars, dirname, join
-#   from glob import iglob
-#   from os import environ
-#
-#   # pattern to distinguish files to run only in interactive mode.
-#   # these files are loaded by the pylada-ipython extension itself.
-#   pattern = "*.py" if not dointeractive else "ipy_*.py"
-#   # dictionary with stuff we want defined when reading config files.
-#   global_dict = {"pyladamodules": __all__}
-#   local_dict = {}
-#   # first configuration files installed with pylada.
-#   for filename in iglob(join(join(dirname(__file__), "config"), pattern)):
-#     if dointeractive == False and filename[:4] == 'ipy_': continue
-#     execfile(filename, global_dict, local_dict)
-#
-#   # then configuration files installed in a global config directory.
-#   if "PYLADA_CONFIG_DIR" in environ:
-#     for directory in environ["PYLADA_CONFIG_DIR"].split(':'):
-#       for filename in iglob(join(directory, pattern)):
-#         if dointeractive == False and filename[:4] == 'ipy_': continue
-#         execfile(filename, global_dict, local_dict)
-#
-#   # then user configuration file.
-#   if exists(expandvars(expanduser('~/.pylada'))):
-#     execfile(expandvars(expanduser('~/.pylada')), global_dict, local_dict)
-#   return local_dict
-#
-# # does actual config call.
-# locals().update((k, v) for k, v in _config_files().iteritems() if k[0] != '_')
-#
-# # Add a function to easily run the tests
-# try:
-#     from nose.tools import nottest
-# except ImportError: pass
-# else:
-#     # Make sure this function is not run by nosetest, to avoid infinit
-#     # recursion
-#     @nottest
-#     def test(**kwargs):
-#         """ Run all pylada nose tests
-#
-#             Does not include some C++ only tests, nor tests that require
-#             external programs such as vasp. Those should be run via ctest.
-#         """
-#         from os.path import dirname
-#         from nose import runmodule
-#         return runmodule(dirname(__file__), **kwargs)
+
+version_info = (@Pylada_VERSION_MAJOR@, @Pylada_VERSION_MINOR@)
+""" Tuple containing version info. """
+version = "{0[0]}.{0[1]}".format(version_info)
+""" String containing version info. """
+
+
+# reads stuff from global configuration files.
+# doing it in a function makes it easier to keep the pylada namespace clean.
+def _config_files(dointeractive=False):
+    from os.path import exists, expanduser, expandvars, dirname, join
+    from glob import iglob
+    from os import environ
+
+    # pattern to distinguish files to run only in interactive mode.
+    # these files are loaded by the pylada-ipython extension itself.
+    pattern = "*.py" if not dointeractive else "ipy_*.py"
+    # dictionary with stuff we want defined when reading config files.
+    global_dict = {"pyladamodules": __all__}
+    local_dict = {}
+    # first configuration files installed with pylada.
+    for filename in iglob(join(join(dirname(__file__), "config"), pattern)):
+        if dointeractive == False and filename[:4] == 'ipy_':
+            continue
+        execfile(filename, global_dict, local_dict)
+
+    # then configuration files installed in a global config directory.
+    if "PYLADA_CONFIG_DIR" in environ:
+        for directory in environ["PYLADA_CONFIG_DIR"].split(':'):
+            for filename in iglob(join(directory, pattern)):
+                if dointeractive == False and filename[:4] == 'ipy_':
+                    continue
+                execfile(filename, global_dict, local_dict)
+
+    # then user configuration file.
+    if exists(expandvars(expanduser('~/.pylada'))):
+        execfile(expandvars(expanduser('~/.pylada')), global_dict, local_dict)
+
+    return local_dict
+
+# does actual config call.
+locals().update((k, v) for k, v in _config_files().iteritems() if k[0] != '_')
+
+# Add a function to easily run the tests
+try:
+    from pytest import mark
+except ImportError:
+    pass
+else:
+    # Make sure this function is not run by nosetest, to avoid infinit
+    # recursion
+    @mark.skip()
+    def test(**kwargs):
+        """ Run all pylada python tests
+
+            Does not tests that require external programs such as vasp. Those should be run via
+            ctest.
+        """
+        from os.path import dirname
+        from pytest import main
+        return main(dirname(__file__), **kwargs)

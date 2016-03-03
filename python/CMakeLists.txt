@@ -25,4 +25,4 @@ configure_file (
     "${PROJECT_BINARY_DIR}/python/__init__.py"
 )
 
-add_python_module("pylada" GLOB PYFILES "*.py" "${PROJECT_BINARY_DIR}/python/__init__.py")
+add_python_module("pylada" record.py onexit.py "${PROJECT_BINARY_DIR}/python/__init__.py")

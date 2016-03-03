@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-project (Pylada C CXX)
+project (Pylada C CXX Fortran)
 set (Pylada_VERSION_MAJOR 0)
 set (Pylada_VERSION_MINOR 1)
 
@@ -30,11 +30,10 @@ set (Pylada_VERSION_MINOR 1)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 include(LookUp-GreatCMakeCookOff)
 
-# enable_language(Fortran)
-# include(FortranCInterface)
-# FortranCInterface_HEADER(${PROJECT_BINARY_DIR}/FCMangle.h
-#                          MACRO_NAMESPACE "FC_"
-#                          SYMBOL_NAMESPACE "FC_" )
+include(FortranCInterface)
+FortranCInterface_HEADER(${PROJECT_BINARY_DIR}/FCMangle.h
+                         MACRO_NAMESPACE "FC_"
+                         SYMBOL_NAMESPACE "FC_" )
 
 include(AddCPP11Flags)
 
@@ -68,10 +67,10 @@ add_subdirectory(crystal)
 add_subdirectory(python)
 # add_subdirectory(math)
 # add_subdirectory(errors)
-# add_subdirectory(physics)
-# add_subdirectory(misc)
-#
-# # additional requirements for (at least) vasp
+add_subdirectory(physics)
+add_subdirectory(misc)
+
+# additional requirements for (at least) vasp
 # add_subdirectory(vasp)
 # add_subdirectory(config)
 # add_subdirectory(tools)
@@ -82,8 +81,8 @@ add_subdirectory(python)
 #
 # # Add documentation target: make documentation
 # include(sphinx)
-# # with the above, ewald and jobfolder and ipython don't need anything else:
-# add_subdirectory(ewald)
+# with the above, ewald and jobfolder and ipython don't need anything else:
+add_subdirectory(ewald)
 # add_subdirectory(jobfolder)
 # add_subdirectory(ipython)
 #
