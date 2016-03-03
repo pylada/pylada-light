@@ -25,11 +25,7 @@ __docformat__ = "restructuredtext en"
 __all__ = ['symmetrically_inequivalent_sites', 'coordination_inequivalent_sites',
            'vacancy', 'substitution', 'charged_states',
            'band_filling', 'potential_alignment', 'charge_corrections',
-           'magmom', 'low_spin_states', 'high_spin_states', 'magname']  # , \
-#           'ExtractSingle', 'ExtractMaterial' ]
-
-#from extract import Single as ExtractSingle, Material as ExtractMaterial
-
+           'magmom', 'low_spin_states', 'high_spin_states', 'magname']
 
 def symmetrically_inequivalent_sites(lattice, type):
   """ Yields sites occupied by type which are inequivalent according to symmetry operations. 
@@ -645,7 +641,7 @@ def potential_alignment(defect, host, maxdiff=None, first_shell=False, tolerance
 
 def third_order_charge_correction(structure, charge=None, n=30, epsilon=1.0, **kwargs):
   """ Returns energy of third order charge correction. 
-  
+
       :Parameters: 
         structure : `pylada.crystal.Structure`
           Defect supercell, with cartesian positions in angstrom.
@@ -657,7 +653,7 @@ def third_order_charge_correction(structure, charge=None, n=30, epsilon=1.0, **k
         epsilon 
           Static dielectrict constant of the host. Most likely in atomic units
           (e.g. dimensionless), but I'm not sure.
-      
+
       Taken as is from `Lany and Zunger, PRB 78, 235104 (2008)`__.
       Always outputs as eV. Not sure what the units of some of these quantities are. 
 
@@ -666,10 +662,8 @@ def third_order_charge_correction(structure, charge=None, n=30, epsilon=1.0, **k
       :return: third order correction  to the energy in eV. Should be *added* to total energy.
   """
   from quantities import elementary_charge, eV, pi, angstrom
-  from pylada.physics import a0, Ry
-##  from . import third_order   ## this is now python only
-  # Pgraf's port of the old c-version.  could be much faster
-  from pylada.crystal import third_order_cc
+  from ..physics import a0, Ry
+  from ..crystal import third_order
 
   if charge is None:
     charge = 1e0
@@ -680,32 +674,12 @@ def third_order_charge_correction(structure, charge=None, n=30, epsilon=1.0, **k
   if hasattr(epsilon, "units"):
     epsilon = float(epsilon.simplified)
   cell = (structure.cell * structure.scale).rescale(a0)
-  return third_order_cc(cell, n) * (4e0 * pi / 3e0) * Ry.rescale(eV) * charge * charge \
+  return third_order(cell, n) * (4e0 * pi / 3e0) * Ry.rescale(eV) * charge * charge \
       * (1e0 - 1e0 / epsilon) / epsilon
-
-
-def third_order(cell, n=100):
-  from numpy import array, arange, dot
-  from numpy.linalg import det
-  from itertools import product
-
-  factor = abs(det(cell)) * n**3
-
-  pos = array([0.5, 0.5, 0.5], dtype=float)
-  result = 0.0
-  for p in product(arange(n) / float(n), repeat=3):
-    dsqrd = []
-    for img in product([-1, 0, 1], repeat=3):
-      d = dot(cell, (array(p) + array(img) - pos))
-      dsqrd.append(dot(d, d))
-    result += min(dsqrd)
-
-  return result / factor
-
 
 def first_order_charge_correction(structure, charge=None, epsilon=1e0, cutoff=20.0, **kwargs):
   """ First order charge correction of +1 charge in given supercell. 
-  
+
       Units in this function are either handled by the module Quantities, or
       defaults to Angstroems and elementary charges.
 

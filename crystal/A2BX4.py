@@ -2,1225 +2,1265 @@
 #  This file is part of PyLaDa.
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
-# 
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
-# 
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
-# 
+#
+#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to
+#  submit large numbers of jobs on supercomputers. It provides a python interface to physical input,
+#  such as crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential
+#  programs. It is able to organise and launch computational jobs on PBS and SLURM.
+#
+#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU
+#  General Public License as published by the Free Software Foundation, either version 3 of the
+#  License, or (at your option) any later version.
+#
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 #  Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
 """ Defines A2BX4 Lattices. """
 __docformat__ = "restructuredtext en"
-__all__ = [ 'b1', 'b10', 'b10I', 'b11', 'b12', 'b15', 'b16', 'b18', 'b19',
-            'b1I', 'b2', 'b20', 'b21', 'b2I', 'b33', 'b34', 'b35', 'b36',
-            'b37', 'b38', 'b4', 'b4I', 'b5', 'b5D', 'b5I', 'b6', 'b7', 'b8',
-            'b9', 'b9I', 'd1', 'd1I', 'd3', 'd3I', 'd9', 's1', 's1I', 's2',
-            's2I', 's3', 's3I' ]
+__all__ = ['b1', 'b10', 'b10I', 'b11', 'b12', 'b15', 'b16', 'b18', 'b19',
+           'b1I', 'b2', 'b20', 'b21', 'b2I', 'b33', 'b34', 'b35', 'b36',
+           'b37', 'b38', 'b4', 'b4I', 'b5', 'b5D', 'b5I', 'b6', 'b7', 'b8',
+           'b9', 'b9I', 'd1', 'd1I', 'd3', 'd3I', 'd9', 's1', 's1I', 's2',
+           's2I', 's3', 's3I']
+
 
 def d1I():
-  """ d1I lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 0.745,\
-                    scale=1, name='d1I' )\
-           .add_atom(0, 0.5, 0.18625, 'A')\
-           .add_atom(0.5, 0, 0.55875, 'A')\
-           .add_atom(0, 0.5, 0.55875, 'A')\
-           .add_atom(0.5, 0, 0.18625, 'A')\
-           .add_atom(0.14, 0.163, 0, 'A')\
-           .add_atom(0.86, 0.837, 0, 'A')\
-           .add_atom(0.837, 0.14, 0.3725, 'A')\
-           .add_atom(0.163, 0.86, 0.3725, 'A')\
-           .add_atom(0.36, 0.663, 0, 'B')\
-           .add_atom(0.64, 0.337, 0, 'B')\
-           .add_atom(0.663, 0.64, 0.3725, 'B')\
-           .add_atom(0.337, 0.36, 0.3725, 'B')\
-           .add_atom(0.671, 0.171, 0.18625, 'X')\
-           .add_atom(0.329, 0.829, 0.18625, 'X')\
-           .add_atom(0.829, 0.671, 0.55875, 'X')\
-           .add_atom(0.171, 0.329, 0.55875, 'X')\
-           .add_atom(0.329, 0.829, 0.55875, 'X')\
-           .add_atom(0.671, 0.171, 0.55875, 'X')\
-           .add_atom(0.171, 0.329, 0.18625, 'X')\
-           .add_atom(0.829, 0.671, 0.18625, 'X')\
-           .add_atom(0.096, 0.637, 0, 'X')\
-           .add_atom(0.904, 0.363, 0, 'X')\
-           .add_atom(0.363, 0.096, 0.3725, 'X')\
-           .add_atom(0.637, 0.904, 0.3725, 'X')\
-           .add_atom(0.404, 0.137, 0, 'X')\
-           .add_atom(0.596, 0.863, 0, 'X')\
-           .add_atom(0.137, 0.596, 0.3725, 'X')\
-           .add_atom(0.863, 0.404, 0.3725, 'X')
+    """ d1I lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 1, 0,
+                     0, 0, 0.745,
+                     scale=1, name='d1I' )\
+            .add_atom(0, 0.5, 0.18625, 'A')\
+            .add_atom(0.5, 0, 0.55875, 'A')\
+            .add_atom(0, 0.5, 0.55875, 'A')\
+            .add_atom(0.5, 0, 0.18625, 'A')\
+            .add_atom(0.14, 0.163, 0, 'A')\
+            .add_atom(0.86, 0.837, 0, 'A')\
+            .add_atom(0.837, 0.14, 0.3725, 'A')\
+            .add_atom(0.163, 0.86, 0.3725, 'A')\
+            .add_atom(0.36, 0.663, 0, 'B')\
+            .add_atom(0.64, 0.337, 0, 'B')\
+            .add_atom(0.663, 0.64, 0.3725, 'B')\
+            .add_atom(0.337, 0.36, 0.3725, 'B')\
+            .add_atom(0.671, 0.171, 0.18625, 'X')\
+            .add_atom(0.329, 0.829, 0.18625, 'X')\
+            .add_atom(0.829, 0.671, 0.55875, 'X')\
+            .add_atom(0.171, 0.329, 0.55875, 'X')\
+            .add_atom(0.329, 0.829, 0.55875, 'X')\
+            .add_atom(0.671, 0.171, 0.55875, 'X')\
+            .add_atom(0.171, 0.329, 0.18625, 'X')\
+            .add_atom(0.829, 0.671, 0.18625, 'X')\
+            .add_atom(0.096, 0.637, 0, 'X')\
+            .add_atom(0.904, 0.363, 0, 'X')\
+            .add_atom(0.363, 0.096, 0.3725, 'X')\
+            .add_atom(0.637, 0.904, 0.3725, 'X')\
+            .add_atom(0.404, 0.137, 0, 'X')\
+            .add_atom(0.596, 0.863, 0, 'X')\
+            .add_atom(0.137, 0.596, 0.3725, 'X')\
+            .add_atom(0.863, 0.404, 0.3725, 'X')
+
 
 def b21():
-  """ b21 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.384, 0.384, 0,\
-                    -0.664, 0.664, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b21' )\
-           .add_atom(0.384, 0.221776, 0.05, 'A')\
-           .add_atom(0.384, -0.221776, 0.95, 'A')\
-           .add_atom(0.384, -0.221776, 0.55, 'A')\
-           .add_atom(0.384, 0.221776, 0.45, 'A')\
-           .add_atom(0, 0, 0.25, 'B')\
-           .add_atom(0, 0, 0.75, 'B')\
-           .add_atom(0.384, 0.221776, 0.25, 'X')\
-           .add_atom(0.385536, -0.21912, 0.75, 'X')\
-           .add_atom(0.256128, -0.442888, 0, 'X')\
-           .add_atom(0.256128, 0.442888, 0, 'X')\
-           .add_atom(0.255744, 0, 0, 'X')\
-           .add_atom(0.127872, -0.221112, 0.5, 'X')\
-           .add_atom(0.127872, 0.221112, 0.5, 'X')\
-           .add_atom(0.512256, 0, 0.5, 'X')
+    """ b21 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.384, 0.384, 0,
+                     -0.664, 0.664, 0,
+                     0, 0, 1,
+                     scale=1, name='b21' )\
+            .add_atom(0.384, 0.221776, 0.05, 'A')\
+            .add_atom(0.384, -0.221776, 0.95, 'A')\
+            .add_atom(0.384, -0.221776, 0.55, 'A')\
+            .add_atom(0.384, 0.221776, 0.45, 'A')\
+            .add_atom(0, 0, 0.25, 'B')\
+            .add_atom(0, 0, 0.75, 'B')\
+            .add_atom(0.384, 0.221776, 0.25, 'X')\
+            .add_atom(0.385536, -0.21912, 0.75, 'X')\
+            .add_atom(0.256128, -0.442888, 0, 'X')\
+            .add_atom(0.256128, 0.442888, 0, 'X')\
+            .add_atom(0.255744, 0, 0, 'X')\
+            .add_atom(0.127872, -0.221112, 0.5, 'X')\
+            .add_atom(0.127872, 0.221112, 0.5, 'X')\
+            .add_atom(0.512256, 0, 0.5, 'X')
+
 
 def b1I():
-  """ b1I lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.288, 0, 0,\
-                    0, 0.288, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b1I' )\
-           .add_atom(0, 0, 0, 'A')\
-           .add_atom(0.144, 0.144, 0.5, 'A')\
-           .add_atom(0, 0, 0.35, 'A')\
-           .add_atom(0, 0, 0.65, 'A')\
-           .add_atom(0.144, 0.144, 0.85, 'B')\
-           .add_atom(0.144, 0.144, 0.15, 'B')\
-           .add_atom(0, 0.144, 0, 'X')\
-           .add_atom(0.144, 0, 0, 'X')\
-           .add_atom(0.144, 0, 0.5, 'X')\
-           .add_atom(0, 0.144, 0.5, 'X')\
-           .add_atom(0, 0, 0.15, 'X')\
-           .add_atom(0, 0, 0.85, 'X')\
-           .add_atom(0.144, 0.144, 0.65, 'X')\
-           .add_atom(0.144, 0.144, 0.35, 'X')
+    """ b1I lattice """
+    from pylada.crystal import Structure
+    return Structure(0.288, 0, 0,
+                     0, 0.288, 0,
+                     0, 0, 1,
+                     scale=1, name='b1I' )\
+            .add_atom(0, 0, 0, 'A')\
+            .add_atom(0.144, 0.144, 0.5, 'A')\
+            .add_atom(0, 0, 0.35, 'A')\
+            .add_atom(0, 0, 0.65, 'A')\
+            .add_atom(0.144, 0.144, 0.85, 'B')\
+            .add_atom(0.144, 0.144, 0.15, 'B')\
+            .add_atom(0, 0.144, 0, 'X')\
+            .add_atom(0.144, 0, 0, 'X')\
+            .add_atom(0.144, 0, 0.5, 'X')\
+            .add_atom(0, 0.144, 0.5, 'X')\
+            .add_atom(0, 0, 0.15, 'X')\
+            .add_atom(0, 0, 0.85, 'X')\
+            .add_atom(0.144, 0.144, 0.65, 'X')\
+            .add_atom(0.144, 0.144, 0.35, 'X')
+
 
 def b19():
-  """ b19 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.3165, 0, 0.633,\
-                    0.5, 0, 0,\
-                    0, 0.771, 0,\
-                    scale=1, name='b19' )\
-           .add_atom(0.633, 0.2, 0.19275, 'A')\
-           .add_atom(0.3165, 0.3, 0.57825, 'A')\
-           .add_atom(0.3165, 1.11022e-16, 0, 'A')\
-           .add_atom(0.3165, 1.11022e-16, 0.3855, 'A')\
-           .add_atom(0.3165, 0.35, 0.19275, 'B')\
-           .add_atom(0.633, 0.15, 0.57825, 'B')\
-           .add_atom(0.81024, 0.45, 0.19275, 'X')\
-           .add_atom(0.13926, 0.05, 0.57825, 'X')\
-           .add_atom(0.45576, 0.45, 0.19275, 'X')\
-           .add_atom(0.49374, 0.05, 0.57825, 'X')\
-           .add_atom(0.633, 0.25, 0.43947, 'X')\
-           .add_atom(0.3165, 0.25, 0.33153, 'X')\
-           .add_atom(0.3165, 0.25, 0.05397, 'X')\
-           .add_atom(0.633, 0.25, 0.71703, 'X')
+    """ b19 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.3165, 0, 0.633,
+                     0.5, 0, 0,
+                     0, 0.771, 0,
+                     scale=1, name='b19' )\
+            .add_atom(0.633, 0.2, 0.19275, 'A')\
+            .add_atom(0.3165, 0.3, 0.57825, 'A')\
+            .add_atom(0.3165, 1.11022e-16, 0, 'A')\
+            .add_atom(0.3165, 1.11022e-16, 0.3855, 'A')\
+            .add_atom(0.3165, 0.35, 0.19275, 'B')\
+            .add_atom(0.633, 0.15, 0.57825, 'B')\
+            .add_atom(0.81024, 0.45, 0.19275, 'X')\
+            .add_atom(0.13926, 0.05, 0.57825, 'X')\
+            .add_atom(0.45576, 0.45, 0.19275, 'X')\
+            .add_atom(0.49374, 0.05, 0.57825, 'X')\
+            .add_atom(0.633, 0.25, 0.43947, 'X')\
+            .add_atom(0.3165, 0.25, 0.33153, 'X')\
+            .add_atom(0.3165, 0.25, 0.05397, 'X')\
+            .add_atom(0.633, 0.25, 0.71703, 'X')
+
 
 def s1():
-  """ s1 lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 0.601, 0,\
-                    0, 0, 0.994,\
-                    scale=1, name='s1' )\
-           .add_atom(0.3802, 0.535611, 0.808122, 'A')\
-           .add_atom(0.6198, 0.0653888, 0.311122, 'A')\
-           .add_atom(0.8802, 0.0653888, 0.808122, 'A')\
-           .add_atom(0.1198, 0.535611, 0.311122, 'A')\
-           .add_atom(0.6335, 0.519144, 0.011431, 'A')\
-           .add_atom(0.3665, 0.0818562, 0.508431, 'A')\
-           .add_atom(0.1335, 0.0818562, 0.011431, 'A')\
-           .add_atom(0.8665, 0.519144, 0.508431, 'A')\
-           .add_atom(0.3815, 0.227959, 0.168881, 'A')\
-           .add_atom(0.6185, 0.373041, 0.665881, 'A')\
-           .add_atom(0.8815, 0.373041, 0.168881, 'A')\
-           .add_atom(0.1185, 0.227959, 0.665881, 'A')\
-           .add_atom(0.6391, 0.219365, 0.986147, 'A')\
-           .add_atom(0.3609, 0.381635, 0.489147, 'A')\
-           .add_atom(0.1391, 0.381635, 0.986147, 'A')\
-           .add_atom(0.8609, 0.219365, 0.489147, 'A')\
-           .add_atom(0.3798, 0.533688, 0.185182, 'B')\
-           .add_atom(0.6202, 0.067312, 0.682182, 'B')\
-           .add_atom(0.8798, 0.067312, 0.185182, 'B')\
-           .add_atom(0.1202, 0.533688, 0.682182, 'B')\
-           .add_atom(0.3966, 0.232587, 0.808221, 'B')\
-           .add_atom(0.6034, 0.368413, 0.311221, 'B')\
-           .add_atom(0.8966, 0.368413, 0.808221, 'B')\
-           .add_atom(0.1034, 0.232587, 0.311221, 'B')\
-           .add_atom(0.5386, 0.359398, 0.121467, 'X')\
-           .add_atom(0.4614, 0.241602, 0.618467, 'X')\
-           .add_atom(0.0386, 0.241602, 0.121467, 'X')\
-           .add_atom(0.9614, 0.359398, 0.618467, 'X')\
-           .add_atom(0.5201, 0.361802, 0.857226, 'X')\
-           .add_atom(0.4799, 0.239198, 0.360226, 'X')\
-           .add_atom(0.0201, 0.239198, 0.857226, 'X')\
-           .add_atom(0.9799, 0.361802, 0.360226, 'X')\
-           .add_atom(0.2863, 0.52888, 0.003479, 'X')\
-           .add_atom(0.7137, 0.07212, 0.500479, 'X')\
-           .add_atom(0.7863, 0.07212, 0.003479, 'X')\
-           .add_atom(0.2137, 0.52888, 0.500479, 'X')\
-           .add_atom(0.7693, 0.533628, 0.726713, 'X')\
-           .add_atom(0.2307, 0.0673721, 0.229713, 'X')\
-           .add_atom(0.2693, 0.0673721, 0.726713, 'X')\
-           .add_atom(0.7307, 0.533628, 0.229713, 'X')\
-           .add_atom(0.5111, 0.068514, 0.124548, 'X')\
-           .add_atom(0.4889, 0.532486, 0.621548, 'X')\
-           .add_atom(0.0111, 0.532486, 0.124548, 'X')\
-           .add_atom(0.9889, 0.068514, 0.621548, 'X')\
-           .add_atom(0.5427, 0.082337, 0.858915, 'X')\
-           .add_atom(0.4573, 0.518663, 0.361915, 'X')\
-           .add_atom(0.0427, 0.518663, 0.858915, 'X')\
-           .add_atom(0.9573, 0.082337, 0.361915, 'X')\
-           .add_atom(0.2964, 0.222971, 0.970045, 'X')\
-           .add_atom(0.7036, 0.378029, 0.473045, 'X')\
-           .add_atom(0.7964, 0.378029, 0.970045, 'X')\
-           .add_atom(0.2036, 0.222971, 0.473045, 'X')\
-           .add_atom(0.7433, 0.218764, 0.728204, 'X')\
-           .add_atom(0.2567, 0.382236, 0.231204, 'X')\
-           .add_atom(0.2433, 0.382236, 0.728204, 'X')\
-           .add_atom(0.7567, 0.218764, 0.231204, 'X')
+    """ s1 lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 0.601, 0,
+                     0, 0, 0.994,
+                     scale=1, name='s1' )\
+            .add_atom(0.3802, 0.535611, 0.808122, 'A')\
+            .add_atom(0.6198, 0.0653888, 0.311122, 'A')\
+            .add_atom(0.8802, 0.0653888, 0.808122, 'A')\
+            .add_atom(0.1198, 0.535611, 0.311122, 'A')\
+            .add_atom(0.6335, 0.519144, 0.011431, 'A')\
+            .add_atom(0.3665, 0.0818562, 0.508431, 'A')\
+            .add_atom(0.1335, 0.0818562, 0.011431, 'A')\
+            .add_atom(0.8665, 0.519144, 0.508431, 'A')\
+            .add_atom(0.3815, 0.227959, 0.168881, 'A')\
+            .add_atom(0.6185, 0.373041, 0.665881, 'A')\
+            .add_atom(0.8815, 0.373041, 0.168881, 'A')\
+            .add_atom(0.1185, 0.227959, 0.665881, 'A')\
+            .add_atom(0.6391, 0.219365, 0.986147, 'A')\
+            .add_atom(0.3609, 0.381635, 0.489147, 'A')\
+            .add_atom(0.1391, 0.381635, 0.986147, 'A')\
+            .add_atom(0.8609, 0.219365, 0.489147, 'A')\
+            .add_atom(0.3798, 0.533688, 0.185182, 'B')\
+            .add_atom(0.6202, 0.067312, 0.682182, 'B')\
+            .add_atom(0.8798, 0.067312, 0.185182, 'B')\
+            .add_atom(0.1202, 0.533688, 0.682182, 'B')\
+            .add_atom(0.3966, 0.232587, 0.808221, 'B')\
+            .add_atom(0.6034, 0.368413, 0.311221, 'B')\
+            .add_atom(0.8966, 0.368413, 0.808221, 'B')\
+            .add_atom(0.1034, 0.232587, 0.311221, 'B')\
+            .add_atom(0.5386, 0.359398, 0.121467, 'X')\
+            .add_atom(0.4614, 0.241602, 0.618467, 'X')\
+            .add_atom(0.0386, 0.241602, 0.121467, 'X')\
+            .add_atom(0.9614, 0.359398, 0.618467, 'X')\
+            .add_atom(0.5201, 0.361802, 0.857226, 'X')\
+            .add_atom(0.4799, 0.239198, 0.360226, 'X')\
+            .add_atom(0.0201, 0.239198, 0.857226, 'X')\
+            .add_atom(0.9799, 0.361802, 0.360226, 'X')\
+            .add_atom(0.2863, 0.52888, 0.003479, 'X')\
+            .add_atom(0.7137, 0.07212, 0.500479, 'X')\
+            .add_atom(0.7863, 0.07212, 0.003479, 'X')\
+            .add_atom(0.2137, 0.52888, 0.500479, 'X')\
+            .add_atom(0.7693, 0.533628, 0.726713, 'X')\
+            .add_atom(0.2307, 0.0673721, 0.229713, 'X')\
+            .add_atom(0.2693, 0.0673721, 0.726713, 'X')\
+            .add_atom(0.7307, 0.533628, 0.229713, 'X')\
+            .add_atom(0.5111, 0.068514, 0.124548, 'X')\
+            .add_atom(0.4889, 0.532486, 0.621548, 'X')\
+            .add_atom(0.0111, 0.532486, 0.124548, 'X')\
+            .add_atom(0.9889, 0.068514, 0.621548, 'X')\
+            .add_atom(0.5427, 0.082337, 0.858915, 'X')\
+            .add_atom(0.4573, 0.518663, 0.361915, 'X')\
+            .add_atom(0.0427, 0.518663, 0.858915, 'X')\
+            .add_atom(0.9573, 0.082337, 0.361915, 'X')\
+            .add_atom(0.2964, 0.222971, 0.970045, 'X')\
+            .add_atom(0.7036, 0.378029, 0.473045, 'X')\
+            .add_atom(0.7964, 0.378029, 0.970045, 'X')\
+            .add_atom(0.2036, 0.222971, 0.473045, 'X')\
+            .add_atom(0.7433, 0.218764, 0.728204, 'X')\
+            .add_atom(0.2567, 0.382236, 0.231204, 'X')\
+            .add_atom(0.2433, 0.382236, 0.728204, 'X')\
+            .add_atom(0.7567, 0.218764, 0.231204, 'X')
+
 
 def b36():
-  """ b36 lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 0.402, 0,\
-                    0, 0, 0.214,\
-                    scale=1, name='b36' )\
-           .add_atom(0.8723, 0.199392, 0.0535, 'A')\
-           .add_atom(0.3723, 0.001608, 0.1605, 'A')\
-           .add_atom(0.1277, 0.202608, 0.1605, 'A')\
-           .add_atom(0.6277, 0.400392, 0.0535, 'A')\
-           .add_atom(0.0046, 0.323329, 0.0535, 'A')\
-           .add_atom(0.5046, 0.279671, 0.1605, 'A')\
-           .add_atom(0.9954, 0.0786714, 0.1605, 'A')\
-           .add_atom(0.4954, 0.122329, 0.0535, 'A')\
-           .add_atom(0.1937, 0.0350544, 0.0535, 'B')\
-           .add_atom(0.6937, 0.165946, 0.1605, 'B')\
-           .add_atom(0.8063, 0.366946, 0.1605, 'B')\
-           .add_atom(0.3063, 0.236054, 0.0535, 'B')\
-           .add_atom(0.7788, 0.257803, 0.0535, 'X')\
-           .add_atom(0.2788, 0.345197, 0.1605, 'X')\
-           .add_atom(0.2212, 0.144197, 0.1605, 'X')\
-           .add_atom(0.7212, 0.0568026, 0.0535, 'X')\
-           .add_atom(0.1571, 0.271229, 0.0535, 'X')\
-           .add_atom(0.6571, 0.331771, 0.1605, 'X')\
-           .add_atom(0.8429, 0.130771, 0.1605, 'X')\
-           .add_atom(0.3429, 0.0702294, 0.0535, 'X')\
-           .add_atom(0.9221, 0.0088842, 0.0535, 'X')\
-           .add_atom(0.4221, 0.192116, 0.1605, 'X')\
-           .add_atom(0.0779, 0.393116, 0.1605, 'X')\
-           .add_atom(0.5779, 0.209884, 0.0535, 'X')\
-           .add_atom(0.0519, 0.136198, 0.0535, 'X')\
-           .add_atom(0.5519, 0.0648024, 0.1605, 'X')\
-           .add_atom(0.9481, 0.265802, 0.1605, 'X')\
-           .add_atom(0.4481, 0.337198, 0.0535, 'X')
+    """ b36 lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 0.402, 0,
+                     0, 0, 0.214,
+                     scale=1, name='b36' )\
+            .add_atom(0.8723, 0.199392, 0.0535, 'A')\
+            .add_atom(0.3723, 0.001608, 0.1605, 'A')\
+            .add_atom(0.1277, 0.202608, 0.1605, 'A')\
+            .add_atom(0.6277, 0.400392, 0.0535, 'A')\
+            .add_atom(0.0046, 0.323329, 0.0535, 'A')\
+            .add_atom(0.5046, 0.279671, 0.1605, 'A')\
+            .add_atom(0.9954, 0.0786714, 0.1605, 'A')\
+            .add_atom(0.4954, 0.122329, 0.0535, 'A')\
+            .add_atom(0.1937, 0.0350544, 0.0535, 'B')\
+            .add_atom(0.6937, 0.165946, 0.1605, 'B')\
+            .add_atom(0.8063, 0.366946, 0.1605, 'B')\
+            .add_atom(0.3063, 0.236054, 0.0535, 'B')\
+            .add_atom(0.7788, 0.257803, 0.0535, 'X')\
+            .add_atom(0.2788, 0.345197, 0.1605, 'X')\
+            .add_atom(0.2212, 0.144197, 0.1605, 'X')\
+            .add_atom(0.7212, 0.0568026, 0.0535, 'X')\
+            .add_atom(0.1571, 0.271229, 0.0535, 'X')\
+            .add_atom(0.6571, 0.331771, 0.1605, 'X')\
+            .add_atom(0.8429, 0.130771, 0.1605, 'X')\
+            .add_atom(0.3429, 0.0702294, 0.0535, 'X')\
+            .add_atom(0.9221, 0.0088842, 0.0535, 'X')\
+            .add_atom(0.4221, 0.192116, 0.1605, 'X')\
+            .add_atom(0.0779, 0.393116, 0.1605, 'X')\
+            .add_atom(0.5779, 0.209884, 0.0535, 'X')\
+            .add_atom(0.0519, 0.136198, 0.0535, 'X')\
+            .add_atom(0.5519, 0.0648024, 0.1605, 'X')\
+            .add_atom(0.9481, 0.265802, 0.1605, 'X')\
+            .add_atom(0.4481, 0.337198, 0.0535, 'X')
+
 
 def b5():
-  """ b5 (spinel) lattice """
-  from pylada.crystal import Structure
-  return Structure( 0, 0.5, 0.5,\
-                    0.5, 0, 0.5,\
-                    0.5, 0.5, 0,\
-                    scale=1, name='b5' )\
-           .add_atom(0.5, 0.5, 0.5, 'A')\
-           .add_atom(0.5, 0.25, 0.25, 'A')\
-           .add_atom(0.25, 0.5, 0.25, 'A')\
-           .add_atom(0.25, 0.25, 0.5, 'A')\
-           .add_atom(0.875, 0.875, 0.875, 'B')\
-           .add_atom(0.125, 0.125, 0.125, 'B')\
-           .add_atom(0.25, 0.25, 0.25, 'X')\
-           .add_atom(0.25, 0.5, 0.5, 'X')\
-           .add_atom(0.5, 0.25, 0.5, 'X')\
-           .add_atom(0.5, 0.5, 0.25, 'X')\
-           .add_atom(0.75, 0.75, 0.75, 'X')\
-           .add_atom(0.75, 0.5, 0.5, 'X')\
-           .add_atom(0.5, 0.75, 0.5, 'X')\
-           .add_atom(0.5, 0.5, 0.75, 'X')
+    """ b5 (spinel) lattice """
+    from pylada.crystal import Structure
+    return Structure(0, 0.5, 0.5,
+                     0.5, 0, 0.5,
+                     0.5, 0.5, 0,
+                     scale=1, name='b5' )\
+            .add_atom(0.5, 0.5, 0.5, 'A')\
+            .add_atom(0.5, 0.25, 0.25, 'A')\
+            .add_atom(0.25, 0.5, 0.25, 'A')\
+            .add_atom(0.25, 0.25, 0.5, 'A')\
+            .add_atom(0.875, 0.875, 0.875, 'B')\
+            .add_atom(0.125, 0.125, 0.125, 'B')\
+            .add_atom(0.25, 0.25, 0.25, 'X')\
+            .add_atom(0.25, 0.5, 0.5, 'X')\
+            .add_atom(0.5, 0.25, 0.5, 'X')\
+            .add_atom(0.5, 0.5, 0.25, 'X')\
+            .add_atom(0.75, 0.75, 0.75, 'X')\
+            .add_atom(0.75, 0.5, 0.5, 'X')\
+            .add_atom(0.5, 0.75, 0.5, 'X')\
+            .add_atom(0.5, 0.5, 0.75, 'X')
+
 
 def b35():
-  """ b35 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.81, 0, 0,\
-                    0, 0.266, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b35' )\
-           .add_atom(0.11745, 0.0665, 0.062, 'A')\
-           .add_atom(0.28755, 0.1995, 0.562, 'A')\
-           .add_atom(0.69255, 0.1995, 0.938, 'A')\
-           .add_atom(0.52245, 0.0665, 0.438, 'A')\
-           .add_atom(0.78003, 0.0665, 0.614, 'A')\
-           .add_atom(0.43497, 0.1995, 0.114, 'A')\
-           .add_atom(0.02997, 0.1995, 0.386, 'A')\
-           .add_atom(0.37503, 0.0665, 0.886, 'A')\
-           .add_atom(0.25596, 0.0665, 0.334, 'B')\
-           .add_atom(0.14904, 0.1995, 0.834, 'B')\
-           .add_atom(0.55404, 0.1995, 0.666, 'B')\
-           .add_atom(0.66096, 0.0665, 0.166, 'B')\
-           .add_atom(0.65205, 0.0665, 0.728, 'X')\
-           .add_atom(0.56295, 0.1995, 0.228, 'X')\
-           .add_atom(0.15795, 0.1995, 0.272, 'X')\
-           .add_atom(0.24705, 0.0665, 0.772, 'X')\
-           .add_atom(0.34344, 0.0665, 0.184, 'X')\
-           .add_atom(0.06156, 0.1995, 0.684, 'X')\
-           .add_atom(0.46656, 0.1995, 0.816, 'X')\
-           .add_atom(0.74844, 0.0665, 0.316, 'X')\
-           .add_atom(0.18306, 0.0665, 0.492, 'X')\
-           .add_atom(0.22194, 0.1995, 0.992, 'X')\
-           .add_atom(0.62694, 0.1995, 0.508, 'X')\
-           .add_atom(0.58806, 0.0665, 0.008, 'X')\
-           .add_atom(0.44469, 0.0665, 0.595, 'X')\
-           .add_atom(0.77031, 0.1995, 0.095, 'X')\
-           .add_atom(0.36531, 0.1995, 0.405, 'X')\
-           .add_atom(0.03969, 0.0665, 0.905, 'X')
+    """ b35 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.81, 0, 0,
+                     0, 0.266, 0,
+                     0, 0, 1,
+                     scale=1, name='b35' )\
+            .add_atom(0.11745, 0.0665, 0.062, 'A')\
+            .add_atom(0.28755, 0.1995, 0.562, 'A')\
+            .add_atom(0.69255, 0.1995, 0.938, 'A')\
+            .add_atom(0.52245, 0.0665, 0.438, 'A')\
+            .add_atom(0.78003, 0.0665, 0.614, 'A')\
+            .add_atom(0.43497, 0.1995, 0.114, 'A')\
+            .add_atom(0.02997, 0.1995, 0.386, 'A')\
+            .add_atom(0.37503, 0.0665, 0.886, 'A')\
+            .add_atom(0.25596, 0.0665, 0.334, 'B')\
+            .add_atom(0.14904, 0.1995, 0.834, 'B')\
+            .add_atom(0.55404, 0.1995, 0.666, 'B')\
+            .add_atom(0.66096, 0.0665, 0.166, 'B')\
+            .add_atom(0.65205, 0.0665, 0.728, 'X')\
+            .add_atom(0.56295, 0.1995, 0.228, 'X')\
+            .add_atom(0.15795, 0.1995, 0.272, 'X')\
+            .add_atom(0.24705, 0.0665, 0.772, 'X')\
+            .add_atom(0.34344, 0.0665, 0.184, 'X')\
+            .add_atom(0.06156, 0.1995, 0.684, 'X')\
+            .add_atom(0.46656, 0.1995, 0.816, 'X')\
+            .add_atom(0.74844, 0.0665, 0.316, 'X')\
+            .add_atom(0.18306, 0.0665, 0.492, 'X')\
+            .add_atom(0.22194, 0.1995, 0.992, 'X')\
+            .add_atom(0.62694, 0.1995, 0.508, 'X')\
+            .add_atom(0.58806, 0.0665, 0.008, 'X')\
+            .add_atom(0.44469, 0.0665, 0.595, 'X')\
+            .add_atom(0.77031, 0.1995, 0.095, 'X')\
+            .add_atom(0.36531, 0.1995, 0.405, 'X')\
+            .add_atom(0.03969, 0.0665, 0.905, 'X')
+
 
 def b6():
-  """ b6 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.305, 0.61, 0,\
-                    0.305, 0, 0.61,\
-                    0.5, 0, 0,\
-                    scale=1, name='b6' )\
-           .add_atom(0.305, 0.305, 0, 'A')\
-           .add_atom(0.305, 0, 0, 'A')\
-           .add_atom(0.4575, 0.1525, 0.25, 'A')\
-           .add_atom(0.1525, 0.1525, 0.25, 'A')\
-           .add_atom(0.61, 0.4575, 0.125, 'B')\
-           .add_atom(0.305, 0.4575, 0.375, 'B')\
-           .add_atom(0.61, 0.288042, 0.2589, 'X')\
-           .add_atom(0.61, 0.626958, 0.2589, 'X')\
-           .add_atom(0.169458, 0.1525, 0.0089, 'X')\
-           .add_atom(0.440542, 0.1525, 0.0089, 'X')\
-           .add_atom(0.305, 0.288042, 0.2411, 'X')\
-           .add_atom(0.305, 0.626958, 0.2411, 'X')\
-           .add_atom(0.745542, 0.7625, 0.4911, 'X')\
-           .add_atom(0.474458, 0.7625, 0.4911, 'X')
+    """ b6 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.305, 0.61, 0,
+                     0.305, 0, 0.61,
+                     0.5, 0, 0,
+                     scale=1, name='b6' )\
+            .add_atom(0.305, 0.305, 0, 'A')\
+            .add_atom(0.305, 0, 0, 'A')\
+            .add_atom(0.4575, 0.1525, 0.25, 'A')\
+            .add_atom(0.1525, 0.1525, 0.25, 'A')\
+            .add_atom(0.61, 0.4575, 0.125, 'B')\
+            .add_atom(0.305, 0.4575, 0.375, 'B')\
+            .add_atom(0.61, 0.288042, 0.2589, 'X')\
+            .add_atom(0.61, 0.626958, 0.2589, 'X')\
+            .add_atom(0.169458, 0.1525, 0.0089, 'X')\
+            .add_atom(0.440542, 0.1525, 0.0089, 'X')\
+            .add_atom(0.305, 0.288042, 0.2411, 'X')\
+            .add_atom(0.305, 0.626958, 0.2411, 'X')\
+            .add_atom(0.745542, 0.7625, 0.4911, 'X')\
+            .add_atom(0.474458, 0.7625, 0.4911, 'X')
+
 
 def s3I():
-  """ s3I lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.611, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 0.347,\
-                    scale=1, name='s3I' )\
-           .add_atom(0, 0, 0, 'A')\
-           .add_atom(0.3055, 0.5, 0, 'A')\
-           .add_atom(0.047047, 0.319, 0.1735, 'A')\
-           .add_atom(0.563953, 0.681, 0.1735, 'A')\
-           .add_atom(0.258453, 0.819, 0.1735, 'B')\
-           .add_atom(0.352547, 0.181, 0.1735, 'B')\
-           .add_atom(0.13442, 0.05, 0.1735, 'X')\
-           .add_atom(0.47658, 0.95, 0.1735, 'X')\
-           .add_atom(0.17108, 0.55, 0.1735, 'X')\
-           .add_atom(0.43992, 0.45, 0.1735, 'X')\
-           .add_atom(0.21996, 0.31, 0, 'X')\
-           .add_atom(0.39104, 0.69, 0, 'X')\
-           .add_atom(0.08554, 0.81, 0, 'X')\
-           .add_atom(0.52546, 0.19, 0, 'X')
+    """ s3I lattice """
+    from pylada.crystal import Structure
+    return Structure(0.611, 0, 0,
+                     0, 1, 0,
+                     0, 0, 0.347,
+                     scale=1, name='s3I' )\
+            .add_atom(0, 0, 0, 'A')\
+            .add_atom(0.3055, 0.5, 0, 'A')\
+            .add_atom(0.047047, 0.319, 0.1735, 'A')\
+            .add_atom(0.563953, 0.681, 0.1735, 'A')\
+            .add_atom(0.258453, 0.819, 0.1735, 'B')\
+            .add_atom(0.352547, 0.181, 0.1735, 'B')\
+            .add_atom(0.13442, 0.05, 0.1735, 'X')\
+            .add_atom(0.47658, 0.95, 0.1735, 'X')\
+            .add_atom(0.17108, 0.55, 0.1735, 'X')\
+            .add_atom(0.43992, 0.45, 0.1735, 'X')\
+            .add_atom(0.21996, 0.31, 0, 'X')\
+            .add_atom(0.39104, 0.69, 0, 'X')\
+            .add_atom(0.08554, 0.81, 0, 'X')\
+            .add_atom(0.52546, 0.19, 0, 'X')
+
 
 def b38():
-  """ b38 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.05194, 0.05194, 0,\
-                    -0.08997, 0.08997, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b38' )\
-           .add_atom(0, 0, 0.166, 'A')\
-           .add_atom(0.05194, -0.0299901, 0.499333, 'A')\
-           .add_atom(0.05194, 0.0299901, 0.832667, 'A')\
-           .add_atom(0, 0, 0.937, 'A')\
-           .add_atom(0.05194, -0.0299901, 0.270333, 'A')\
-           .add_atom(0.05194, 0.0299901, 0.603667, 'A')\
-           .add_atom(0, 0, 0.396, 'B')\
-           .add_atom(0.05194, -0.0299901, 0.729333, 'B')\
-           .add_atom(0.05194, 0.0299901, 0.062667, 'B')\
-           .add_atom(0, 0, 0.04, 'X')\
-           .add_atom(0.05194, -0.0299901, 0.373333, 'X')\
-           .add_atom(0.05194, 0.0299901, 0.706667, 'X')\
-           .add_atom(0, 0, 0.294, 'X')\
-           .add_atom(0.05194, -0.0299901, 0.627333, 'X')\
-           .add_atom(0.05194, 0.0299901, 0.960667, 'X')\
-           .add_atom(0, 0, 0.459, 'X')\
-           .add_atom(0.05194, -0.0299901, 0.792333, 'X')\
-           .add_atom(0.05194, 0.0299901, 0.125667, 'X')\
-           .add_atom(0, 0, 0.872, 'X')\
-           .add_atom(0.05194, -0.0299901, 0.205333, 'X')\
-           .add_atom(0.05194, 0.0299901, 0.538667, 'X')
+    """ b38 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.05194, 0.05194, 0,
+                     -0.08997, 0.08997, 0,
+                     0, 0, 1,
+                     scale=1, name='b38' )\
+            .add_atom(0, 0, 0.166, 'A')\
+            .add_atom(0.05194, -0.0299901, 0.499333, 'A')\
+            .add_atom(0.05194, 0.0299901, 0.832667, 'A')\
+            .add_atom(0, 0, 0.937, 'A')\
+            .add_atom(0.05194, -0.0299901, 0.270333, 'A')\
+            .add_atom(0.05194, 0.0299901, 0.603667, 'A')\
+            .add_atom(0, 0, 0.396, 'B')\
+            .add_atom(0.05194, -0.0299901, 0.729333, 'B')\
+            .add_atom(0.05194, 0.0299901, 0.062667, 'B')\
+            .add_atom(0, 0, 0.04, 'X')\
+            .add_atom(0.05194, -0.0299901, 0.373333, 'X')\
+            .add_atom(0.05194, 0.0299901, 0.706667, 'X')\
+            .add_atom(0, 0, 0.294, 'X')\
+            .add_atom(0.05194, -0.0299901, 0.627333, 'X')\
+            .add_atom(0.05194, 0.0299901, 0.960667, 'X')\
+            .add_atom(0, 0, 0.459, 'X')\
+            .add_atom(0.05194, -0.0299901, 0.792333, 'X')\
+            .add_atom(0.05194, 0.0299901, 0.125667, 'X')\
+            .add_atom(0, 0, 0.872, 'X')\
+            .add_atom(0.05194, -0.0299901, 0.205333, 'X')\
+            .add_atom(0.05194, 0.0299901, 0.538667, 'X')
+
 
 def b8():
-  """ b8 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.5, 1, 0,\
-                    0, 0, 1.026,\
-                    0.161, 0, 0,\
-                    scale=1, name='b8' )\
-           .add_atom(0.126, 0.06669, 0, 'A')\
-           .add_atom(0.874, 0.95931, 0, 'A')\
-           .add_atom(0.126, 0.44631, 0, 'A')\
-           .add_atom(0.874, 0.57969, 0, 'A')\
-           .add_atom(0.384, 0.2565, 0, 'B')\
-           .add_atom(0.616, 0.7695, 0, 'B')\
-           .add_atom(0.5, 0, 0, 'X')\
-           .add_atom(0.5, 0.513, 0, 'X')\
-           .add_atom(0.06, 0.2565, 0, 'X')\
-           .add_atom(0.94, 0.7695, 0, 'X')\
-           .add_atom(0.236, 0.9234, 0, 'X')\
-           .add_atom(0.764, 0.1026, 0, 'X')\
-           .add_atom(0.236, 0.6156, 0, 'X')\
-           .add_atom(0.764, 0.4104, 0, 'X')
+    """ b8 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.5, 1, 0,
+                     0, 0, 1.026,
+                     0.161, 0, 0,
+                     scale=1, name='b8' )\
+            .add_atom(0.126, 0.06669, 0, 'A')\
+            .add_atom(0.874, 0.95931, 0, 'A')\
+            .add_atom(0.126, 0.44631, 0, 'A')\
+            .add_atom(0.874, 0.57969, 0, 'A')\
+            .add_atom(0.384, 0.2565, 0, 'B')\
+            .add_atom(0.616, 0.7695, 0, 'B')\
+            .add_atom(0.5, 0, 0, 'X')\
+            .add_atom(0.5, 0.513, 0, 'X')\
+            .add_atom(0.06, 0.2565, 0, 'X')\
+            .add_atom(0.94, 0.7695, 0, 'X')\
+            .add_atom(0.236, 0.9234, 0, 'X')\
+            .add_atom(0.764, 0.1026, 0, 'X')\
+            .add_atom(0.236, 0.6156, 0, 'X')\
+            .add_atom(0.764, 0.4104, 0, 'X')
+
 
 def b12():
-  """ b12 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.584, 0, -0.055,\
-                    0, 0.734, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b12' )\
-           .add_atom(0.44258, 0.617294, 0.076, 'A')\
-           .add_atom(0.40592, 0.250294, 0.424, 'A')\
-           .add_atom(0.08642, 0.116706, 0.924, 'A')\
-           .add_atom(0.12308, 0.483706, 0.576, 'A')\
-           .add_atom(0.122626, 0.365532, 0.202, 'A')\
-           .add_atom(0.141874, 0.732532, 0.298, 'A')\
-           .add_atom(0.406374, 0.368468, 0.798, 'A')\
-           .add_atom(0.387126, 0.001468, 0.702, 'A')\
-           .add_atom(0.435991, 0.202584, 0.079, 'B')\
-           .add_atom(0.412509, 0.569584, 0.421, 'B')\
-           .add_atom(0.093009, 0.531416, 0.921, 'B')\
-           .add_atom(0.116491, 0.164416, 0.579, 'B')\
-           .add_atom(0.381062, 0.005872, 0.43, 'X')\
-           .add_atom(0.467438, 0.372872, 0.07, 'X')\
-           .add_atom(0.147938, 0.728128, 0.57, 'X')\
-           .add_atom(0.061562, 0.361128, 0.93, 'X')\
-           .add_atom(0.321228, 0.16882, 0.18, 'X')\
-           .add_atom(0.527272, 0.53582, 0.32, 'X')\
-           .add_atom(0.207772, 0.56518, 0.82, 'X')\
-           .add_atom(0.001728, 0.19818, 0.68, 'X')\
-           .add_atom(0.571497, 0.13946, 0.153, 'X')\
-           .add_atom(0.277003, 0.50646, 0.347, 'X')\
-           .add_atom(-0.042497, 0.59454, 0.847, 'X')\
-           .add_atom(0.251997, 0.22754, 0.653, 'X')\
-           .add_atom(0.32625, 0.10643, 0.97, 'X')\
-           .add_atom(0.46725, 0.47343, 0.53, 'X')\
-           .add_atom(0.20275, 0.62757, 0.03, 'X')\
-           .add_atom(0.06175, 0.26057, 0.47, 'X')
+    """ b12 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.584, 0, -0.055,
+                     0, 0.734, 0,
+                     0, 0, 1,
+                     scale=1, name='b12' )\
+            .add_atom(0.44258, 0.617294, 0.076, 'A')\
+            .add_atom(0.40592, 0.250294, 0.424, 'A')\
+            .add_atom(0.08642, 0.116706, 0.924, 'A')\
+            .add_atom(0.12308, 0.483706, 0.576, 'A')\
+            .add_atom(0.122626, 0.365532, 0.202, 'A')\
+            .add_atom(0.141874, 0.732532, 0.298, 'A')\
+            .add_atom(0.406374, 0.368468, 0.798, 'A')\
+            .add_atom(0.387126, 0.001468, 0.702, 'A')\
+            .add_atom(0.435991, 0.202584, 0.079, 'B')\
+            .add_atom(0.412509, 0.569584, 0.421, 'B')\
+            .add_atom(0.093009, 0.531416, 0.921, 'B')\
+            .add_atom(0.116491, 0.164416, 0.579, 'B')\
+            .add_atom(0.381062, 0.005872, 0.43, 'X')\
+            .add_atom(0.467438, 0.372872, 0.07, 'X')\
+            .add_atom(0.147938, 0.728128, 0.57, 'X')\
+            .add_atom(0.061562, 0.361128, 0.93, 'X')\
+            .add_atom(0.321228, 0.16882, 0.18, 'X')\
+            .add_atom(0.527272, 0.53582, 0.32, 'X')\
+            .add_atom(0.207772, 0.56518, 0.82, 'X')\
+            .add_atom(0.001728, 0.19818, 0.68, 'X')\
+            .add_atom(0.571497, 0.13946, 0.153, 'X')\
+            .add_atom(0.277003, 0.50646, 0.347, 'X')\
+            .add_atom(-0.042497, 0.59454, 0.847, 'X')\
+            .add_atom(0.251997, 0.22754, 0.653, 'X')\
+            .add_atom(0.32625, 0.10643, 0.97, 'X')\
+            .add_atom(0.46725, 0.47343, 0.53, 'X')\
+            .add_atom(0.20275, 0.62757, 0.03, 'X')\
+            .add_atom(0.06175, 0.26057, 0.47, 'X')
+
 
 def b5I():
-  """ b5I (inverse spinel) lattice """
-  from pylada.crystal import Structure
-  return Structure( 0, 0.5, 0.5,\
-                    0.5, 0, 0.5,\
-                    0.5, 0.5, 0,\
-                    scale=1, name='b5I' )\
-           .add_atom(0.25, 0.5, 0.25, 'A')\
-           .add_atom(0.25, 0.25, 0.5, 'A')\
-           .add_atom(0.875, 0.875, 0.875, 'A')\
-           .add_atom(0.125, 0.125, 0.125, 'A')\
-           .add_atom(0.5, 0.5, 0.5, 'B')\
-           .add_atom(0.5, 0.25, 0.25, 'B')\
-           .add_atom(0.25, 0.25, 0.25, 'X')\
-           .add_atom(0.25, 0.5, 0.5, 'X')\
-           .add_atom(0.5, 0.25, 0.5, 'X')\
-           .add_atom(0.5, 0.5, 0.25, 'X')\
-           .add_atom(0.75, 0.75, 0.75, 'X')\
-           .add_atom(0.75, 0.5, 0.5, 'X')\
-           .add_atom(0.5, 0.75, 0.5, 'X')\
-           .add_atom(0.5, 0.5, 0.75, 'X')
+    """ b5I (inverse spinel) lattice """
+    from pylada.crystal import Structure
+    return Structure(0, 0.5, 0.5,
+                     0.5, 0, 0.5,
+                     0.5, 0.5, 0,
+                     scale=1, name='b5I' )\
+            .add_atom(0.25, 0.5, 0.25, 'A')\
+            .add_atom(0.25, 0.25, 0.5, 'A')\
+            .add_atom(0.875, 0.875, 0.875, 'A')\
+            .add_atom(0.125, 0.125, 0.125, 'A')\
+            .add_atom(0.5, 0.5, 0.5, 'B')\
+            .add_atom(0.5, 0.25, 0.25, 'B')\
+            .add_atom(0.25, 0.25, 0.25, 'X')\
+            .add_atom(0.25, 0.5, 0.5, 'X')\
+            .add_atom(0.5, 0.25, 0.5, 'X')\
+            .add_atom(0.5, 0.5, 0.25, 'X')\
+            .add_atom(0.75, 0.75, 0.75, 'X')\
+            .add_atom(0.75, 0.5, 0.5, 'X')\
+            .add_atom(0.5, 0.75, 0.5, 'X')\
+            .add_atom(0.5, 0.5, 0.75, 'X')
+
 
 def b5D():
-  """ b5D lattice """
-  from pylada.crystal import Structure
-  return Structure( 0, 0.5, 0.5,\
-                    0.5, 0, 0.5,\
-                    0.5, 0.5, 0,\
-                    scale=1, name='b5D' )\
-           .add_atom(0.5, 0.5, 0.5, 'A')\
-           .add_atom(0.5, 0.25, 0.25, 'A')\
-           .add_atom(0.25, 0.5, 0.25, 'A')\
-           .add_atom(0.875, 0.875, 0.875, 'A')\
-           .add_atom(0.25, 0.25, 0.5, 'B')\
-           .add_atom(0.125, 0.125, 0.125, 'B')\
-           .add_atom(0.25, 0.25, 0.25, 'X')\
-           .add_atom(0.25, 0.5, 0.5, 'X')\
-           .add_atom(0.5, 0.25, 0.5, 'X')\
-           .add_atom(0.5, 0.5, 0.25, 'X')\
-           .add_atom(0.75, 0.75, 0.75, 'X')\
-           .add_atom(0.75, 0.5, 0.5, 'X')\
-           .add_atom(0.5, 0.75, 0.5, 'X')\
-           .add_atom(0.5, 0.5, 0.75, 'X')
+    """ b5D lattice """
+    from pylada.crystal import Structure
+    return Structure(0, 0.5, 0.5,
+                     0.5, 0, 0.5,
+                     0.5, 0.5, 0,
+                     scale=1, name='b5D' )\
+            .add_atom(0.5, 0.5, 0.5, 'A')\
+            .add_atom(0.5, 0.25, 0.25, 'A')\
+            .add_atom(0.25, 0.5, 0.25, 'A')\
+            .add_atom(0.875, 0.875, 0.875, 'A')\
+            .add_atom(0.25, 0.25, 0.5, 'B')\
+            .add_atom(0.125, 0.125, 0.125, 'B')\
+            .add_atom(0.25, 0.25, 0.25, 'X')\
+            .add_atom(0.25, 0.5, 0.5, 'X')\
+            .add_atom(0.5, 0.25, 0.5, 'X')\
+            .add_atom(0.5, 0.5, 0.25, 'X')\
+            .add_atom(0.75, 0.75, 0.75, 'X')\
+            .add_atom(0.75, 0.5, 0.5, 'X')\
+            .add_atom(0.5, 0.75, 0.5, 'X')\
+            .add_atom(0.5, 0.5, 0.75, 'X')
+
 
 def s2I():
-  """ s2I lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.987, 0, 0,\
-                    0, 0.295, 0,\
-                    0, 0, 1,\
-                    scale=1, name='s2I' )\
-           .add_atom(0.130284, 0.07375, 0.0842, 'A')\
-           .add_atom(0.363216, 0.22125, 0.5842, 'A')\
-           .add_atom(0.856716, 0.22125, 0.9158, 'A')\
-           .add_atom(0.623784, 0.07375, 0.4158, 'A')\
-           .add_atom(0.880897, 0.07375, 0.5834, 'A')\
-           .add_atom(0.599603, 0.22125, 0.0834, 'A')\
-           .add_atom(0.106103, 0.22125, 0.4166, 'A')\
-           .add_atom(0.387398, 0.07375, 0.9166, 'A')\
-           .add_atom(0.340614, 0.07375, 0.289, 'B')\
-           .add_atom(0.152886, 0.22125, 0.789, 'B')\
-           .add_atom(0.646386, 0.22125, 0.711, 'B')\
-           .add_atom(0.834114, 0.07375, 0.211, 'B')\
-           .add_atom(0.771834, 0.07375, 0.762, 'X')\
-           .add_atom(0.708666, 0.22125, 0.262, 'X')\
-           .add_atom(0.215166, 0.22125, 0.238, 'X')\
-           .add_atom(0.278334, 0.07375, 0.738, 'X')\
-           .add_atom(0.240828, 0.07375, 0.474, 'X')\
-           .add_atom(0.252672, 0.22125, 0.974, 'X')\
-           .add_atom(0.746172, 0.22125, 0.526, 'X')\
-           .add_atom(0.734328, 0.07375, 0.026, 'X')\
-           .add_atom(0.522123, 0.07375, 0.619, 'X')\
-           .add_atom(0.958377, 0.22125, 0.119, 'X')\
-           .add_atom(0.464877, 0.22125, 0.381, 'X')\
-           .add_atom(0.028623, 0.07375, 0.881, 'X')\
-           .add_atom(0.459942, 0.07375, 0.119, 'X')\
-           .add_atom(0.033558, 0.22125, 0.619, 'X')\
-           .add_atom(0.527058, 0.22125, 0.881, 'X')\
-           .add_atom(0.953442, 0.07375, 0.381, 'X')
+    """ s2I lattice """
+    from pylada.crystal import Structure
+    return Structure(0.987, 0, 0,
+                     0, 0.295, 0,
+                     0, 0, 1,
+                     scale=1, name='s2I' )\
+            .add_atom(0.130284, 0.07375, 0.0842, 'A')\
+            .add_atom(0.363216, 0.22125, 0.5842, 'A')\
+            .add_atom(0.856716, 0.22125, 0.9158, 'A')\
+            .add_atom(0.623784, 0.07375, 0.4158, 'A')\
+            .add_atom(0.880897, 0.07375, 0.5834, 'A')\
+            .add_atom(0.599603, 0.22125, 0.0834, 'A')\
+            .add_atom(0.106103, 0.22125, 0.4166, 'A')\
+            .add_atom(0.387398, 0.07375, 0.9166, 'A')\
+            .add_atom(0.340614, 0.07375, 0.289, 'B')\
+            .add_atom(0.152886, 0.22125, 0.789, 'B')\
+            .add_atom(0.646386, 0.22125, 0.711, 'B')\
+            .add_atom(0.834114, 0.07375, 0.211, 'B')\
+            .add_atom(0.771834, 0.07375, 0.762, 'X')\
+            .add_atom(0.708666, 0.22125, 0.262, 'X')\
+            .add_atom(0.215166, 0.22125, 0.238, 'X')\
+            .add_atom(0.278334, 0.07375, 0.738, 'X')\
+            .add_atom(0.240828, 0.07375, 0.474, 'X')\
+            .add_atom(0.252672, 0.22125, 0.974, 'X')\
+            .add_atom(0.746172, 0.22125, 0.526, 'X')\
+            .add_atom(0.734328, 0.07375, 0.026, 'X')\
+            .add_atom(0.522123, 0.07375, 0.619, 'X')\
+            .add_atom(0.958377, 0.22125, 0.119, 'X')\
+            .add_atom(0.464877, 0.22125, 0.381, 'X')\
+            .add_atom(0.028623, 0.07375, 0.881, 'X')\
+            .add_atom(0.459942, 0.07375, 0.119, 'X')\
+            .add_atom(0.033558, 0.22125, 0.619, 'X')\
+            .add_atom(0.527058, 0.22125, 0.881, 'X')\
+            .add_atom(0.953442, 0.07375, 0.381, 'X')
+
 
 def b15():
-  """ b15 lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 0.975471, 0,\
-                    0, 0, 0.550978,\
-                    scale=1, name='b15' )\
-           .add_atom(0.454, 0.467251, 0.302487, 'A')\
-           .add_atom(0.046, 0.50822, 0.0269979, 'A')\
-           .add_atom(0.546, 0.954986, 0.52398, 'A')\
-           .add_atom(0.954, 0.0204849, 0.248491, 'A')\
-           .add_atom(0.2223, 0.190217, 0.0110196, 'A')\
-           .add_atom(0.2777, 0.785254, 0.286509, 'A')\
-           .add_atom(0.7777, 0.677952, 0.264469, 'A')\
-           .add_atom(0.7223, 0.297519, 0.539958, 'A')\
-           .add_atom(0.367, 0.203873, 0.317914, 'B')\
-           .add_atom(0.133, 0.771598, 0.0424253, 'B')\
-           .add_atom(0.633, 0.691609, 0.508553, 'B')\
-           .add_atom(0.867, 0.283862, 0.233064, 'B')\
-           .add_atom(0.517, 0.127787, 0.3945, 'X')\
-           .add_atom(0.983, 0.847684, 0.119011, 'X')\
-           .add_atom(0.483, 0.615522, 0.431967, 'X')\
-           .add_atom(0.017, 0.359949, 0.156478, 'X')\
-           .add_atom(0.289, 0.108277, 0.168048, 'X')\
-           .add_atom(0.211, 0.867194, 0.443537, 'X')\
-           .add_atom(0.711, 0.596013, 0.107441, 'X')\
-           .add_atom(0.789, 0.379458, 0.38293, 'X')\
-           .add_atom(0.231, 0.259475, 0.444088, 'X')\
-           .add_atom(0.269, 0.715996, 0.168599, 'X')\
-           .add_atom(0.769, 0.747211, 0.382379, 'X')\
-           .add_atom(0.731, 0.22826, 0.10689, 'X')\
-           .add_atom(0.413, 0.380434, 0.225901, 'X')\
-           .add_atom(0.087, 0.595037, 0.50139, 'X')\
-           .add_atom(0.587, 0.868169, 0.049588, 'X')\
-           .add_atom(0.913, 0.107302, 0.325077, 'X')
+    """ b15 lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 0.975471, 0,
+                     0, 0, 0.550978,
+                     scale=1, name='b15' )\
+            .add_atom(0.454, 0.467251, 0.302487, 'A')\
+            .add_atom(0.046, 0.50822, 0.0269979, 'A')\
+            .add_atom(0.546, 0.954986, 0.52398, 'A')\
+            .add_atom(0.954, 0.0204849, 0.248491, 'A')\
+            .add_atom(0.2223, 0.190217, 0.0110196, 'A')\
+            .add_atom(0.2777, 0.785254, 0.286509, 'A')\
+            .add_atom(0.7777, 0.677952, 0.264469, 'A')\
+            .add_atom(0.7223, 0.297519, 0.539958, 'A')\
+            .add_atom(0.367, 0.203873, 0.317914, 'B')\
+            .add_atom(0.133, 0.771598, 0.0424253, 'B')\
+            .add_atom(0.633, 0.691609, 0.508553, 'B')\
+            .add_atom(0.867, 0.283862, 0.233064, 'B')\
+            .add_atom(0.517, 0.127787, 0.3945, 'X')\
+            .add_atom(0.983, 0.847684, 0.119011, 'X')\
+            .add_atom(0.483, 0.615522, 0.431967, 'X')\
+            .add_atom(0.017, 0.359949, 0.156478, 'X')\
+            .add_atom(0.289, 0.108277, 0.168048, 'X')\
+            .add_atom(0.211, 0.867194, 0.443537, 'X')\
+            .add_atom(0.711, 0.596013, 0.107441, 'X')\
+            .add_atom(0.789, 0.379458, 0.38293, 'X')\
+            .add_atom(0.231, 0.259475, 0.444088, 'X')\
+            .add_atom(0.269, 0.715996, 0.168599, 'X')\
+            .add_atom(0.769, 0.747211, 0.382379, 'X')\
+            .add_atom(0.731, 0.22826, 0.10689, 'X')\
+            .add_atom(0.413, 0.380434, 0.225901, 'X')\
+            .add_atom(0.087, 0.595037, 0.50139, 'X')\
+            .add_atom(0.587, 0.868169, 0.049588, 'X')\
+            .add_atom(0.913, 0.107302, 0.325077, 'X')
+
 
 def b7():
-  """ b7 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.388, 0.776, 0,\
-                    0.388, 0, 0.776,\
-                    0.5, 0, 0,\
-                    scale=1, name='b7' )\
-           .add_atom(0.4074, 0.194, 0.125, 'A')\
-           .add_atom(0.3686, 0.582, 0.125, 'A')\
-           .add_atom(0.582, 0.7566, 0.375, 'A')\
-           .add_atom(0.97, 0.7954, 0.375, 'A')\
-           .add_atom(0, 0, 0, 'B')\
-           .add_atom(0.776, 0.388, 0.25, 'B')\
-           .add_atom(0.21728, 0.797728, 0.12, 'X')\
-           .add_atom(0.55872, 0.754272, 0.12, 'X')\
-           .add_atom(0.409728, 0.94672, 0.38, 'X')\
-           .add_atom(0.366272, 0.60528, 0.38, 'X')\
-           .add_atom(0.55872, 0.409728, 0.13, 'X')\
-           .add_atom(0.21728, 0.366272, 0.13, 'X')\
-           .add_atom(0.754272, 0.94672, 0.37, 'X')\
-           .add_atom(0.797728, 0.60528, 0.37, 'X')
+    """ b7 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.388, 0.776, 0,
+                     0.388, 0, 0.776,
+                     0.5, 0, 0,
+                     scale=1, name='b7' )\
+            .add_atom(0.4074, 0.194, 0.125, 'A')\
+            .add_atom(0.3686, 0.582, 0.125, 'A')\
+            .add_atom(0.582, 0.7566, 0.375, 'A')\
+            .add_atom(0.97, 0.7954, 0.375, 'A')\
+            .add_atom(0, 0, 0, 'B')\
+            .add_atom(0.776, 0.388, 0.25, 'B')\
+            .add_atom(0.21728, 0.797728, 0.12, 'X')\
+            .add_atom(0.55872, 0.754272, 0.12, 'X')\
+            .add_atom(0.409728, 0.94672, 0.38, 'X')\
+            .add_atom(0.366272, 0.60528, 0.38, 'X')\
+            .add_atom(0.55872, 0.409728, 0.13, 'X')\
+            .add_atom(0.21728, 0.366272, 0.13, 'X')\
+            .add_atom(0.754272, 0.94672, 0.37, 'X')\
+            .add_atom(0.797728, 0.60528, 0.37, 'X')
+
 
 def b2():
-  """ b2 lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 0.59,\
-                    scale=1, name='b2' )\
-           .add_atom(0, 0.5, 0.295, 'A')\
-           .add_atom(0.5, 0, 0.295, 'A')\
-           .add_atom(0, 0, 0, 'B')\
-           .add_atom(0.23245, 0.23245, 0, 'X')\
-           .add_atom(0.76755, 0.76755, 0, 'X')\
-           .add_atom(0.76755, 0.23245, 0, 'X')\
-           .add_atom(0.23245, 0.76755, 0, 'X')
+    """ b2 lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 1, 0,
+                     0, 0, 0.59,
+                     scale=1, name='b2' )\
+            .add_atom(0, 0.5, 0.295, 'A')\
+            .add_atom(0.5, 0, 0.295, 'A')\
+            .add_atom(0, 0, 0, 'B')\
+            .add_atom(0.23245, 0.23245, 0, 'X')\
+            .add_atom(0.76755, 0.76755, 0, 'X')\
+            .add_atom(0.76755, 0.23245, 0, 'X')\
+            .add_atom(0.23245, 0.76755, 0, 'X')
+
 
 def b18():
-  """ b18 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0, 0.476, 0.476,\
-                    1, 0, 1,\
-                    0.798, 0.798, 0,\
-                    scale=1, name='b18' )\
-           .add_atom(0.595, 1.25, 0.698132, 'A')\
-           .add_atom(0.357, 0.75, 0.897868, 'A')\
-           .add_atom(0.595, 1.25, 1.29687, 'A')\
-           .add_atom(0.357, 0.75, 0.299132, 'A')\
-           .add_atom(0.119, 0.25, 0.1995, 'B')\
-           .add_atom(0.833, 1.75, 1.3965, 'B')\
-           .add_atom(0.409829, 1.06623, 0.392488, 'X')\
-           .add_atom(0.542171, 0.933774, 1.20351, 'X')\
-           .add_atom(0.409829, 0.433773, 0.804512, 'X')\
-           .add_atom(0.542171, 1.56623, 0.791488, 'X')\
-           .add_atom(0.304171, 1.06623, 0.804512, 'X')\
-           .add_atom(0.647829, 0.933774, 0.791488, 'X')\
-           .add_atom(0.304171, 0.433773, 0.392488, 'X')\
-           .add_atom(0.647829, 1.56623, 1.20351, 'X')
+    """ b18 lattice """
+    from pylada.crystal import Structure
+    return Structure(0, 0.476, 0.476,
+                     1, 0, 1,
+                     0.798, 0.798, 0,
+                     scale=1, name='b18' )\
+            .add_atom(0.595, 1.25, 0.698132, 'A')\
+            .add_atom(0.357, 0.75, 0.897868, 'A')\
+            .add_atom(0.595, 1.25, 1.29687, 'A')\
+            .add_atom(0.357, 0.75, 0.299132, 'A')\
+            .add_atom(0.119, 0.25, 0.1995, 'B')\
+            .add_atom(0.833, 1.75, 1.3965, 'B')\
+            .add_atom(0.409829, 1.06623, 0.392488, 'X')\
+            .add_atom(0.542171, 0.933774, 1.20351, 'X')\
+            .add_atom(0.409829, 0.433773, 0.804512, 'X')\
+            .add_atom(0.542171, 1.56623, 0.791488, 'X')\
+            .add_atom(0.304171, 1.06623, 0.804512, 'X')\
+            .add_atom(0.647829, 0.933774, 0.791488, 'X')\
+            .add_atom(0.304171, 0.433773, 0.392488, 'X')\
+            .add_atom(0.647829, 1.56623, 1.20351, 'X')
+
 
 def b37():
-  """ b37 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.05168, 0.05168, 0,\
-                    -0.08951, 0.08951, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b37' )\
-           .add_atom(0, 0, 0.432, 'A')\
-           .add_atom(0, 0, 0.568, 'A')\
-           .add_atom(0.05168, -0.0298367, 0.765333, 'A')\
-           .add_atom(0.05168, -0.0298367, 0.901333, 'A')\
-           .add_atom(0.05168, 0.0298367, 0.098667, 'A')\
-           .add_atom(0.05168, 0.0298367, 0.234667, 'A')\
-           .add_atom(0, 0, 0, 'B')\
-           .add_atom(0.05168, -0.0298367, 0.333333, 'B')\
-           .add_atom(0.05168, 0.0298367, 0.666667, 'B')\
-           .add_atom(0, 0, 0.146, 'X')\
-           .add_atom(0, 0, 0.854, 'X')\
-           .add_atom(0.05168, -0.0298367, 0.479333, 'X')\
-           .add_atom(0.05168, -0.0298367, 0.187333, 'X')\
-           .add_atom(0.05168, 0.0298367, 0.812667, 'X')\
-           .add_atom(0.05168, 0.0298367, 0.520667, 'X')\
-           .add_atom(0, 0, 0.284, 'X')\
-           .add_atom(0, 0, 0.716, 'X')\
-           .add_atom(0.05168, -0.0298367, 0.617333, 'X')\
-           .add_atom(0.05168, -0.0298367, 0.049333, 'X')\
-           .add_atom(0.05168, 0.0298367, 0.950667, 'X')\
-           .add_atom(0.05168, 0.0298367, 0.382667, 'X')
+    """ b37 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.05168, 0.05168, 0,
+                     -0.08951, 0.08951, 0,
+                     0, 0, 1,
+                     scale=1, name='b37' )\
+            .add_atom(0, 0, 0.432, 'A')\
+            .add_atom(0, 0, 0.568, 'A')\
+            .add_atom(0.05168, -0.0298367, 0.765333, 'A')\
+            .add_atom(0.05168, -0.0298367, 0.901333, 'A')\
+            .add_atom(0.05168, 0.0298367, 0.098667, 'A')\
+            .add_atom(0.05168, 0.0298367, 0.234667, 'A')\
+            .add_atom(0, 0, 0, 'B')\
+            .add_atom(0.05168, -0.0298367, 0.333333, 'B')\
+            .add_atom(0.05168, 0.0298367, 0.666667, 'B')\
+            .add_atom(0, 0, 0.146, 'X')\
+            .add_atom(0, 0, 0.854, 'X')\
+            .add_atom(0.05168, -0.0298367, 0.479333, 'X')\
+            .add_atom(0.05168, -0.0298367, 0.187333, 'X')\
+            .add_atom(0.05168, 0.0298367, 0.812667, 'X')\
+            .add_atom(0.05168, 0.0298367, 0.520667, 'X')\
+            .add_atom(0, 0, 0.284, 'X')\
+            .add_atom(0, 0, 0.716, 'X')\
+            .add_atom(0.05168, -0.0298367, 0.617333, 'X')\
+            .add_atom(0.05168, -0.0298367, 0.049333, 'X')\
+            .add_atom(0.05168, 0.0298367, 0.950667, 'X')\
+            .add_atom(0.05168, 0.0298367, 0.382667, 'X')
+
 
 def s1I():
-  """ s1I lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 0.601, 0,\
-                    0, 0, 0.994,\
-                    scale=1, name='s1I' )\
-           .add_atom(0.3798, 0.533688, 0.185182, 'A')\
-           .add_atom(0.6202, 0.067312, 0.682182, 'A')\
-           .add_atom(0.8798, 0.067312, 0.185182, 'A')\
-           .add_atom(0.1202, 0.533688, 0.682182, 'A')\
-           .add_atom(0.3966, 0.232587, 0.808221, 'A')\
-           .add_atom(0.6034, 0.368413, 0.311221, 'A')\
-           .add_atom(0.8966, 0.368413, 0.808221, 'A')\
-           .add_atom(0.1034, 0.232587, 0.311221, 'A')\
-           .add_atom(0.3802, 0.535611, 0.808122, 'A')\
-           .add_atom(0.6198, 0.0653888, 0.311122, 'A')\
-           .add_atom(0.8802, 0.0653888, 0.808122, 'A')\
-           .add_atom(0.1198, 0.535611, 0.311122, 'A')\
-           .add_atom(0.6335, 0.519144, 0.011431, 'A')\
-           .add_atom(0.3665, 0.0818562, 0.508431, 'A')\
-           .add_atom(0.1335, 0.0818562, 0.011431, 'A')\
-           .add_atom(0.8665, 0.519144, 0.508431, 'A')\
-           .add_atom(0.3815, 0.227959, 0.168881, 'B')\
-           .add_atom(0.6185, 0.373041, 0.665881, 'B')\
-           .add_atom(0.8815, 0.373041, 0.168881, 'B')\
-           .add_atom(0.1185, 0.227959, 0.665881, 'B')\
-           .add_atom(0.6391, 0.219365, 0.986147, 'B')\
-           .add_atom(0.3609, 0.381635, 0.489147, 'B')\
-           .add_atom(0.1391, 0.381635, 0.986147, 'B')\
-           .add_atom(0.8609, 0.219365, 0.489147, 'B')\
-           .add_atom(0.5386, 0.359398, 0.121467, 'X')\
-           .add_atom(0.4614, 0.241602, 0.618467, 'X')\
-           .add_atom(0.0386, 0.241602, 0.121467, 'X')\
-           .add_atom(0.9614, 0.359398, 0.618467, 'X')\
-           .add_atom(0.5201, 0.361802, 0.857226, 'X')\
-           .add_atom(0.4799, 0.239198, 0.360226, 'X')\
-           .add_atom(0.0201, 0.239198, 0.857226, 'X')\
-           .add_atom(0.9799, 0.361802, 0.360226, 'X')\
-           .add_atom(0.2863, 0.52888, 0.003479, 'X')\
-           .add_atom(0.7137, 0.07212, 0.500479, 'X')\
-           .add_atom(0.7863, 0.07212, 0.003479, 'X')\
-           .add_atom(0.2137, 0.52888, 0.500479, 'X')\
-           .add_atom(0.7693, 0.533628, 0.726713, 'X')\
-           .add_atom(0.2307, 0.0673721, 0.229713, 'X')\
-           .add_atom(0.2693, 0.0673721, 0.726713, 'X')\
-           .add_atom(0.7307, 0.533628, 0.229713, 'X')\
-           .add_atom(0.5111, 0.068514, 0.124548, 'X')\
-           .add_atom(0.4889, 0.532486, 0.621548, 'X')\
-           .add_atom(0.0111, 0.532486, 0.124548, 'X')\
-           .add_atom(0.9889, 0.068514, 0.621548, 'X')\
-           .add_atom(0.5427, 0.082337, 0.858915, 'X')\
-           .add_atom(0.4573, 0.518663, 0.361915, 'X')\
-           .add_atom(0.0427, 0.518663, 0.858915, 'X')\
-           .add_atom(0.9573, 0.082337, 0.361915, 'X')\
-           .add_atom(0.2964, 0.222971, 0.970045, 'X')\
-           .add_atom(0.7036, 0.378029, 0.473045, 'X')\
-           .add_atom(0.7964, 0.378029, 0.970045, 'X')\
-           .add_atom(0.2036, 0.222971, 0.473045, 'X')\
-           .add_atom(0.7433, 0.218764, 0.728204, 'X')\
-           .add_atom(0.2567, 0.382236, 0.231204, 'X')\
-           .add_atom(0.2433, 0.382236, 0.728204, 'X')\
-           .add_atom(0.7567, 0.218764, 0.231204, 'X')
+    """ s1I lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 0.601, 0,
+                     0, 0, 0.994,
+                     scale=1, name='s1I' )\
+            .add_atom(0.3798, 0.533688, 0.185182, 'A')\
+            .add_atom(0.6202, 0.067312, 0.682182, 'A')\
+            .add_atom(0.8798, 0.067312, 0.185182, 'A')\
+            .add_atom(0.1202, 0.533688, 0.682182, 'A')\
+            .add_atom(0.3966, 0.232587, 0.808221, 'A')\
+            .add_atom(0.6034, 0.368413, 0.311221, 'A')\
+            .add_atom(0.8966, 0.368413, 0.808221, 'A')\
+            .add_atom(0.1034, 0.232587, 0.311221, 'A')\
+            .add_atom(0.3802, 0.535611, 0.808122, 'A')\
+            .add_atom(0.6198, 0.0653888, 0.311122, 'A')\
+            .add_atom(0.8802, 0.0653888, 0.808122, 'A')\
+            .add_atom(0.1198, 0.535611, 0.311122, 'A')\
+            .add_atom(0.6335, 0.519144, 0.011431, 'A')\
+            .add_atom(0.3665, 0.0818562, 0.508431, 'A')\
+            .add_atom(0.1335, 0.0818562, 0.011431, 'A')\
+            .add_atom(0.8665, 0.519144, 0.508431, 'A')\
+            .add_atom(0.3815, 0.227959, 0.168881, 'B')\
+            .add_atom(0.6185, 0.373041, 0.665881, 'B')\
+            .add_atom(0.8815, 0.373041, 0.168881, 'B')\
+            .add_atom(0.1185, 0.227959, 0.665881, 'B')\
+            .add_atom(0.6391, 0.219365, 0.986147, 'B')\
+            .add_atom(0.3609, 0.381635, 0.489147, 'B')\
+            .add_atom(0.1391, 0.381635, 0.986147, 'B')\
+            .add_atom(0.8609, 0.219365, 0.489147, 'B')\
+            .add_atom(0.5386, 0.359398, 0.121467, 'X')\
+            .add_atom(0.4614, 0.241602, 0.618467, 'X')\
+            .add_atom(0.0386, 0.241602, 0.121467, 'X')\
+            .add_atom(0.9614, 0.359398, 0.618467, 'X')\
+            .add_atom(0.5201, 0.361802, 0.857226, 'X')\
+            .add_atom(0.4799, 0.239198, 0.360226, 'X')\
+            .add_atom(0.0201, 0.239198, 0.857226, 'X')\
+            .add_atom(0.9799, 0.361802, 0.360226, 'X')\
+            .add_atom(0.2863, 0.52888, 0.003479, 'X')\
+            .add_atom(0.7137, 0.07212, 0.500479, 'X')\
+            .add_atom(0.7863, 0.07212, 0.003479, 'X')\
+            .add_atom(0.2137, 0.52888, 0.500479, 'X')\
+            .add_atom(0.7693, 0.533628, 0.726713, 'X')\
+            .add_atom(0.2307, 0.0673721, 0.229713, 'X')\
+            .add_atom(0.2693, 0.0673721, 0.726713, 'X')\
+            .add_atom(0.7307, 0.533628, 0.229713, 'X')\
+            .add_atom(0.5111, 0.068514, 0.124548, 'X')\
+            .add_atom(0.4889, 0.532486, 0.621548, 'X')\
+            .add_atom(0.0111, 0.532486, 0.124548, 'X')\
+            .add_atom(0.9889, 0.068514, 0.621548, 'X')\
+            .add_atom(0.5427, 0.082337, 0.858915, 'X')\
+            .add_atom(0.4573, 0.518663, 0.361915, 'X')\
+            .add_atom(0.0427, 0.518663, 0.858915, 'X')\
+            .add_atom(0.9573, 0.082337, 0.361915, 'X')\
+            .add_atom(0.2964, 0.222971, 0.970045, 'X')\
+            .add_atom(0.7036, 0.378029, 0.473045, 'X')\
+            .add_atom(0.7964, 0.378029, 0.970045, 'X')\
+            .add_atom(0.2036, 0.222971, 0.473045, 'X')\
+            .add_atom(0.7433, 0.218764, 0.728204, 'X')\
+            .add_atom(0.2567, 0.382236, 0.231204, 'X')\
+            .add_atom(0.2433, 0.382236, 0.728204, 'X')\
+            .add_atom(0.7567, 0.218764, 0.231204, 'X')
+
 
 def b16():
-  """ b16 lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 0.6, 0,\
-                    -0.314435, 0, 0.97351,\
-                    scale=1, name='b16' )\
-           .add_atom(0.205, 0.3492, 0.300607, 'A')\
-           .add_atom(0.795, 0.2508, 0.358468, 'A')\
-           .add_atom(0.705, 0.5508, 0.14339, 'A')\
-           .add_atom(0.295, 0.0492, 0.515685, 'A')\
-           .add_atom(0.455, 0.3492, -0.0213793, 'A')\
-           .add_atom(0.545, 0.2508, 0.680454, 'A')\
-           .add_atom(0.955, 0.5508, -0.178597, 'A')\
-           .add_atom(0.045, 0.0492, 0.837671, 'A')\
-           .add_atom(0.319, 0.0366, 0.143073, 'B')\
-           .add_atom(0.681, 0.5634, 0.516002, 'B')\
-           .add_atom(0.819, 0.2634, -0.0141449, 'B')\
-           .add_atom(0.181, 0.3366, 0.67322, 'B')\
-           .add_atom(0.492, 0.5748, 0.0886754, 'X')\
-           .add_atom(0.508, 0.0252, 0.570399, 'X')\
-           .add_atom(0.992, 0.3252, -0.0685422, 'X')\
-           .add_atom(0.008, 0.2748, 0.727617, 'X')\
-           .add_atom(0.186, 0.5748, 0.0378925, 'X')\
-           .add_atom(0.814, 0.0252, 0.621182, 'X')\
-           .add_atom(0.686, 0.3252, -0.119325, 'X')\
-           .add_atom(0.314, 0.2748, 0.7784, 'X')\
-           .add_atom(0.28, 0.5748, 0.302336, 'X')\
-           .add_atom(0.72, 0.0252, 0.356739, 'X')\
-           .add_atom(0.78, 0.3252, 0.145118, 'X')\
-           .add_atom(0.22, 0.2748, 0.513957, 'X')\
-           .add_atom(0.319, 0.2202, 0.143073, 'X')\
-           .add_atom(0.681, 0.3798, 0.516002, 'X')\
-           .add_atom(0.819, 0.0798, -0.0141449, 'X')\
-           .add_atom(0.181, 0.5202, 0.67322, 'X')
+    """ b16 lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 0.6, 0,
+                     -0.314435, 0, 0.97351,
+                     scale=1, name='b16' )\
+            .add_atom(0.205, 0.3492, 0.300607, 'A')\
+            .add_atom(0.795, 0.2508, 0.358468, 'A')\
+            .add_atom(0.705, 0.5508, 0.14339, 'A')\
+            .add_atom(0.295, 0.0492, 0.515685, 'A')\
+            .add_atom(0.455, 0.3492, -0.0213793, 'A')\
+            .add_atom(0.545, 0.2508, 0.680454, 'A')\
+            .add_atom(0.955, 0.5508, -0.178597, 'A')\
+            .add_atom(0.045, 0.0492, 0.837671, 'A')\
+            .add_atom(0.319, 0.0366, 0.143073, 'B')\
+            .add_atom(0.681, 0.5634, 0.516002, 'B')\
+            .add_atom(0.819, 0.2634, -0.0141449, 'B')\
+            .add_atom(0.181, 0.3366, 0.67322, 'B')\
+            .add_atom(0.492, 0.5748, 0.0886754, 'X')\
+            .add_atom(0.508, 0.0252, 0.570399, 'X')\
+            .add_atom(0.992, 0.3252, -0.0685422, 'X')\
+            .add_atom(0.008, 0.2748, 0.727617, 'X')\
+            .add_atom(0.186, 0.5748, 0.0378925, 'X')\
+            .add_atom(0.814, 0.0252, 0.621182, 'X')\
+            .add_atom(0.686, 0.3252, -0.119325, 'X')\
+            .add_atom(0.314, 0.2748, 0.7784, 'X')\
+            .add_atom(0.28, 0.5748, 0.302336, 'X')\
+            .add_atom(0.72, 0.0252, 0.356739, 'X')\
+            .add_atom(0.78, 0.3252, 0.145118, 'X')\
+            .add_atom(0.22, 0.2748, 0.513957, 'X')\
+            .add_atom(0.319, 0.2202, 0.143073, 'X')\
+            .add_atom(0.681, 0.3798, 0.516002, 'X')\
+            .add_atom(0.819, 0.0798, -0.0141449, 'X')\
+            .add_atom(0.181, 0.5202, 0.67322, 'X')
+
 
 def b33():
-  """ b33 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.577, 0.577, 0.577,\
-                    -1, 1, -0.333,\
-                    0, 0, 0.257,\
-                    scale=1, name='b33' )\
-           .add_atom(0.679129, 0.538409, 0.058339, 'A')\
-           .add_atom(0.925508, -0.680591, 0.058339, 'A')\
-           .add_atom(0.703363, 0.142409, 0.058339, 'A')\
-           .add_atom(1.05187, -0.871409, 0.198661, 'A')\
-           .add_atom(0.805492, 0.347591, 0.198661, 'A')\
-           .add_atom(1.02764, -0.475409, 0.198661, 'A')\
-           .add_atom(0.66932, -0.785911, 0.068619, 'A')\
-           .add_atom(0.922623, -0.026911, 0.068619, 'A')\
-           .add_atom(0.716057, 0.813089, 0.068619, 'A')\
-           .add_atom(1.06168, 0.452911, 0.188381, 'A')\
-           .add_atom(0.808377, -0.306089, 0.188381, 'A')\
-           .add_atom(1.01494, -1.14609, 0.188381, 'A')\
-           .add_atom(1.05301, -0.215469, 0.193282, 'B')\
-           .add_atom(1.3912, 0.0206007, 0.193282, 'B')\
-           .add_atom(1.01779, 0.195621, 0.193282, 'B')\
-           .add_atom(0.677987, -0.117531, 0.063718, 'B')\
-           .add_atom(0.339801, -0.353601, 0.063718, 'B')\
-           .add_atom(0.713212, -0.528621, 0.063718, 'B')\
-           .add_atom(0.967687, -0.09925, 0.19275, 'X')\
-           .add_atom(1.33327, -0.11145, 0.19275, 'X')\
-           .add_atom(1.16104, 0.21145, 0.19275, 'X')\
-           .add_atom(0.763313, -0.23375, 0.06425, 'X')\
-           .add_atom(0.397726, -0.22155, 0.06425, 'X')\
-           .add_atom(0.569961, -0.54445, 0.06425, 'X')\
-           .add_atom(0.96561, -0.32825, 0.192904, 'X')\
-           .add_atom(0.955512, -0.99875, 0.192904, 'X')\
-           .add_atom(0.963879, 0.32775, 0.192904, 'X')\
-           .add_atom(0.76539, -0.0047502, 0.0640958, 'X')\
-           .add_atom(0.775488, 0.66575, 0.0640958, 'X')\
-           .add_atom(0.767121, -0.66075, 0.0640958, 'X')\
-           .add_atom(1.13502, -0.214601, 0.0765603, 'X')\
-           .add_atom(0.772315, -0.909001, 0.0765603, 'X')\
-           .add_atom(0.977669, 0.123899, 0.0765603, 'X')\
-           .add_atom(0.595983, -0.118399, 0.18044, 'X')\
-           .add_atom(0.958685, 0.576001, 0.18044, 'X')\
-           .add_atom(0.753331, -0.456899, 0.18044, 'X')\
-           .add_atom(1.16929, -0.445903, 0.203441, 'X')\
-           .add_atom(0.955512, -0.763403, 0.203441, 'X')\
-           .add_atom(0.760197, 0.210097, 0.203441, 'X')\
-           .add_atom(0.561709, 0.112903, 0.0535588, 'X')\
-           .add_atom(0.775488, 0.430403, 0.0535588, 'X')\
-           .add_atom(0.970802, -0.543097, 0.0535588, 'X')
+    """ b33 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.577, 0.577, 0.577,
+                     -1, 1, -0.333,
+                     0, 0, 0.257,
+                     scale=1, name='b33' )\
+            .add_atom(0.679129, 0.538409, 0.058339, 'A')\
+            .add_atom(0.925508, -0.680591, 0.058339, 'A')\
+            .add_atom(0.703363, 0.142409, 0.058339, 'A')\
+            .add_atom(1.05187, -0.871409, 0.198661, 'A')\
+            .add_atom(0.805492, 0.347591, 0.198661, 'A')\
+            .add_atom(1.02764, -0.475409, 0.198661, 'A')\
+            .add_atom(0.66932, -0.785911, 0.068619, 'A')\
+            .add_atom(0.922623, -0.026911, 0.068619, 'A')\
+            .add_atom(0.716057, 0.813089, 0.068619, 'A')\
+            .add_atom(1.06168, 0.452911, 0.188381, 'A')\
+            .add_atom(0.808377, -0.306089, 0.188381, 'A')\
+            .add_atom(1.01494, -1.14609, 0.188381, 'A')\
+            .add_atom(1.05301, -0.215469, 0.193282, 'B')\
+            .add_atom(1.3912, 0.0206007, 0.193282, 'B')\
+            .add_atom(1.01779, 0.195621, 0.193282, 'B')\
+            .add_atom(0.677987, -0.117531, 0.063718, 'B')\
+            .add_atom(0.339801, -0.353601, 0.063718, 'B')\
+            .add_atom(0.713212, -0.528621, 0.063718, 'B')\
+            .add_atom(0.967687, -0.09925, 0.19275, 'X')\
+            .add_atom(1.33327, -0.11145, 0.19275, 'X')\
+            .add_atom(1.16104, 0.21145, 0.19275, 'X')\
+            .add_atom(0.763313, -0.23375, 0.06425, 'X')\
+            .add_atom(0.397726, -0.22155, 0.06425, 'X')\
+            .add_atom(0.569961, -0.54445, 0.06425, 'X')\
+            .add_atom(0.96561, -0.32825, 0.192904, 'X')\
+            .add_atom(0.955512, -0.99875, 0.192904, 'X')\
+            .add_atom(0.963879, 0.32775, 0.192904, 'X')\
+            .add_atom(0.76539, -0.0047502, 0.0640958, 'X')\
+            .add_atom(0.775488, 0.66575, 0.0640958, 'X')\
+            .add_atom(0.767121, -0.66075, 0.0640958, 'X')\
+            .add_atom(1.13502, -0.214601, 0.0765603, 'X')\
+            .add_atom(0.772315, -0.909001, 0.0765603, 'X')\
+            .add_atom(0.977669, 0.123899, 0.0765603, 'X')\
+            .add_atom(0.595983, -0.118399, 0.18044, 'X')\
+            .add_atom(0.958685, 0.576001, 0.18044, 'X')\
+            .add_atom(0.753331, -0.456899, 0.18044, 'X')\
+            .add_atom(1.16929, -0.445903, 0.203441, 'X')\
+            .add_atom(0.955512, -0.763403, 0.203441, 'X')\
+            .add_atom(0.760197, 0.210097, 0.203441, 'X')\
+            .add_atom(0.561709, 0.112903, 0.0535588, 'X')\
+            .add_atom(0.775488, 0.430403, 0.0535588, 'X')\
+            .add_atom(0.970802, -0.543097, 0.0535588, 'X')
+
 
 def b4I():
-  """ b4I lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b4I' )\
-           .add_atom(0, 0, 0, 'A')\
-           .add_atom(0, 0.5, 0.5, 'A')\
-           .add_atom(0.5, 0, 0.5, 'B')\
-           .add_atom(0.27, 0.27, 0.225, 'X')\
-           .add_atom(0.73, 0.73, 0.225, 'X')\
-           .add_atom(0.73, 0.27, 0.775, 'X')\
-           .add_atom(0.27, 0.73, 0.775, 'X')
+    """ b4I lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 1, 0,
+                     0, 0, 1,
+                     scale=1, name='b4I' )\
+            .add_atom(0, 0, 0, 'A')\
+            .add_atom(0, 0.5, 0.5, 'A')\
+            .add_atom(0.5, 0, 0.5, 'B')\
+            .add_atom(0.27, 0.27, 0.225, 'X')\
+            .add_atom(0.73, 0.73, 0.225, 'X')\
+            .add_atom(0.73, 0.27, 0.775, 'X')\
+            .add_atom(0.27, 0.73, 0.775, 'X')
+
 
 def s3():
-  """ s3 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.611, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 0.347,\
-                    scale=1, name='s3' )\
-           .add_atom(0.047047, 0.319, 0.1735, 'A')\
-           .add_atom(0.563953, 0.681, 0.1735, 'A')\
-           .add_atom(0.258453, 0.819, 0.1735, 'A')\
-           .add_atom(0.352547, 0.181, 0.1735, 'A')\
-           .add_atom(0, 0, 0, 'B')\
-           .add_atom(0.3055, 0.5, 0, 'B')\
-           .add_atom(0.13442, 0.05, 0.1735, 'X')\
-           .add_atom(0.47658, 0.95, 0.1735, 'X')\
-           .add_atom(0.17108, 0.55, 0.1735, 'X')\
-           .add_atom(0.43992, 0.45, 0.1735, 'X')\
-           .add_atom(0.21996, 0.31, 0, 'X')\
-           .add_atom(0.39104, 0.69, 0, 'X')\
-           .add_atom(0.08554, 0.81, 0, 'X')\
-           .add_atom(0.52546, 0.19, 0, 'X')
+    """ s3 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.611, 0, 0,
+                     0, 1, 0,
+                     0, 0, 0.347,
+                     scale=1, name='s3' )\
+            .add_atom(0.047047, 0.319, 0.1735, 'A')\
+            .add_atom(0.563953, 0.681, 0.1735, 'A')\
+            .add_atom(0.258453, 0.819, 0.1735, 'A')\
+            .add_atom(0.352547, 0.181, 0.1735, 'A')\
+            .add_atom(0, 0, 0, 'B')\
+            .add_atom(0.3055, 0.5, 0, 'B')\
+            .add_atom(0.13442, 0.05, 0.1735, 'X')\
+            .add_atom(0.47658, 0.95, 0.1735, 'X')\
+            .add_atom(0.17108, 0.55, 0.1735, 'X')\
+            .add_atom(0.43992, 0.45, 0.1735, 'X')\
+            .add_atom(0.21996, 0.31, 0, 'X')\
+            .add_atom(0.39104, 0.69, 0, 'X')\
+            .add_atom(0.08554, 0.81, 0, 'X')\
+            .add_atom(0.52546, 0.19, 0, 'X')
+
 
 def b11():
-  """ b11 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.743, 0, 0,\
-                    0, 0.573, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b11' )\
-           .add_atom(0.502862, 0.14325, 0.4182, 'A')\
-           .add_atom(0.611638, 0.42975, 0.9182, 'A')\
-           .add_atom(0.240138, 0.42975, 0.5818, 'A')\
-           .add_atom(0.131362, 0.14325, 0.0818, 'A')\
-           .add_atom(0.734456, 0.14325, 0.7046, 'A')\
-           .add_atom(0.380044, 0.42975, 0.2046, 'A')\
-           .add_atom(0.0085445, 0.42975, 0.2954, 'A')\
-           .add_atom(0.362955, 0.14325, 0.7954, 'A')\
-           .add_atom(0.175199, 0.14325, 0.4155, 'B')\
-           .add_atom(0.196301, 0.42975, 0.9155, 'B')\
-           .add_atom(0.567801, 0.42975, 0.5845, 'B')\
-           .add_atom(0.546699, 0.14325, 0.0845, 'B')\
-           .add_atom(0.0234045, 0.14325, 0.4032, 'X')\
-           .add_atom(0.348096, 0.42975, 0.9032, 'X')\
-           .add_atom(0.719596, 0.42975, 0.5968, 'X')\
-           .add_atom(0.394904, 0.14325, 0.0968, 'X')\
-           .add_atom(0.220671, 0.14325, 0.5579, 'X')\
-           .add_atom(0.150829, 0.42975, 0.0579, 'X')\
-           .add_atom(0.522329, 0.42975, 0.4421, 'X')\
-           .add_atom(0.592171, 0.14325, 0.9421, 'X')\
-           .add_atom(0.222677, 0.023493, 0.3484, 'X')\
-           .add_atom(0.148823, 0.549507, 0.8484, 'X')\
-           .add_atom(0.520323, 0.309993, 0.6516, 'X')\
-           .add_atom(0.594177, 0.263007, 0.1516, 'X')\
-           .add_atom(0.520323, 0.549507, 0.6516, 'X')\
-           .add_atom(0.594177, 0.023493, 0.1516, 'X')\
-           .add_atom(0.222677, 0.263007, 0.3484, 'X')\
-           .add_atom(0.148823, 0.309993, 0.8484, 'X')
+    """ b11 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.743, 0, 0,
+                     0, 0.573, 0,
+                     0, 0, 1,
+                     scale=1, name='b11' )\
+            .add_atom(0.502862, 0.14325, 0.4182, 'A')\
+            .add_atom(0.611638, 0.42975, 0.9182, 'A')\
+            .add_atom(0.240138, 0.42975, 0.5818, 'A')\
+            .add_atom(0.131362, 0.14325, 0.0818, 'A')\
+            .add_atom(0.734456, 0.14325, 0.7046, 'A')\
+            .add_atom(0.380044, 0.42975, 0.2046, 'A')\
+            .add_atom(0.0085445, 0.42975, 0.2954, 'A')\
+            .add_atom(0.362955, 0.14325, 0.7954, 'A')\
+            .add_atom(0.175199, 0.14325, 0.4155, 'B')\
+            .add_atom(0.196301, 0.42975, 0.9155, 'B')\
+            .add_atom(0.567801, 0.42975, 0.5845, 'B')\
+            .add_atom(0.546699, 0.14325, 0.0845, 'B')\
+            .add_atom(0.0234045, 0.14325, 0.4032, 'X')\
+            .add_atom(0.348096, 0.42975, 0.9032, 'X')\
+            .add_atom(0.719596, 0.42975, 0.5968, 'X')\
+            .add_atom(0.394904, 0.14325, 0.0968, 'X')\
+            .add_atom(0.220671, 0.14325, 0.5579, 'X')\
+            .add_atom(0.150829, 0.42975, 0.0579, 'X')\
+            .add_atom(0.522329, 0.42975, 0.4421, 'X')\
+            .add_atom(0.592171, 0.14325, 0.9421, 'X')\
+            .add_atom(0.222677, 0.023493, 0.3484, 'X')\
+            .add_atom(0.148823, 0.549507, 0.8484, 'X')\
+            .add_atom(0.520323, 0.309993, 0.6516, 'X')\
+            .add_atom(0.594177, 0.263007, 0.1516, 'X')\
+            .add_atom(0.520323, 0.549507, 0.6516, 'X')\
+            .add_atom(0.594177, 0.023493, 0.1516, 'X')\
+            .add_atom(0.222677, 0.263007, 0.3484, 'X')\
+            .add_atom(0.148823, 0.309993, 0.8484, 'X')
+
 
 def b2I():
-  """ b2I lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 0.59,\
-                    scale=1, name='b2I' )\
-           .add_atom(0, 0, 0, 'A')\
-           .add_atom(0, 0.5, 0.295, 'A')\
-           .add_atom(0.5, 0, 0.295, 'B')\
-           .add_atom(0.23245, 0.23245, 0, 'X')\
-           .add_atom(0.76755, 0.76755, 0, 'X')\
-           .add_atom(0.76755, 0.23245, 0, 'X')\
-           .add_atom(0.23245, 0.76755, 0, 'X')
+    """ b2I lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 1, 0,
+                     0, 0, 0.59,
+                     scale=1, name='b2I' )\
+            .add_atom(0, 0, 0, 'A')\
+            .add_atom(0, 0.5, 0.295, 'A')\
+            .add_atom(0.5, 0, 0.295, 'B')\
+            .add_atom(0.23245, 0.23245, 0, 'X')\
+            .add_atom(0.76755, 0.76755, 0, 'X')\
+            .add_atom(0.76755, 0.23245, 0, 'X')\
+            .add_atom(0.23245, 0.76755, 0, 'X')
+
 
 def d1():
-  """ d1 lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 0.745,\
-                    scale=1, name='d1' )\
-           .add_atom(0.14, 0.163, 0, 'A')\
-           .add_atom(0.86, 0.837, 0, 'A')\
-           .add_atom(0.837, 0.14, 0.3725, 'A')\
-           .add_atom(0.163, 0.86, 0.3725, 'A')\
-           .add_atom(0.36, 0.663, 0, 'A')\
-           .add_atom(0.64, 0.337, 0, 'A')\
-           .add_atom(0.663, 0.64, 0.3725, 'A')\
-           .add_atom(0.337, 0.36, 0.3725, 'A')\
-           .add_atom(0, 0.5, 0.18625, 'B')\
-           .add_atom(0.5, 0, 0.55875, 'B')\
-           .add_atom(0, 0.5, 0.55875, 'B')\
-           .add_atom(0.5, 0, 0.18625, 'B')\
-           .add_atom(0.671, 0.171, 0.18625, 'X')\
-           .add_atom(0.329, 0.829, 0.18625, 'X')\
-           .add_atom(0.829, 0.671, 0.55875, 'X')\
-           .add_atom(0.171, 0.329, 0.55875, 'X')\
-           .add_atom(0.329, 0.829, 0.55875, 'X')\
-           .add_atom(0.671, 0.171, 0.55875, 'X')\
-           .add_atom(0.171, 0.329, 0.18625, 'X')\
-           .add_atom(0.829, 0.671, 0.18625, 'X')\
-           .add_atom(0.096, 0.637, 0, 'X')\
-           .add_atom(0.904, 0.363, 0, 'X')\
-           .add_atom(0.363, 0.096, 0.3725, 'X')\
-           .add_atom(0.637, 0.904, 0.3725, 'X')\
-           .add_atom(0.404, 0.137, 0, 'X')\
-           .add_atom(0.596, 0.863, 0, 'X')\
-           .add_atom(0.137, 0.596, 0.3725, 'X')\
-           .add_atom(0.863, 0.404, 0.3725, 'X')
+    """ d1 lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 1, 0,
+                     0, 0, 0.745,
+                     scale=1, name='d1' )\
+            .add_atom(0.14, 0.163, 0, 'A')\
+            .add_atom(0.86, 0.837, 0, 'A')\
+            .add_atom(0.837, 0.14, 0.3725, 'A')\
+            .add_atom(0.163, 0.86, 0.3725, 'A')\
+            .add_atom(0.36, 0.663, 0, 'A')\
+            .add_atom(0.64, 0.337, 0, 'A')\
+            .add_atom(0.663, 0.64, 0.3725, 'A')\
+            .add_atom(0.337, 0.36, 0.3725, 'A')\
+            .add_atom(0, 0.5, 0.18625, 'B')\
+            .add_atom(0.5, 0, 0.55875, 'B')\
+            .add_atom(0, 0.5, 0.55875, 'B')\
+            .add_atom(0.5, 0, 0.18625, 'B')\
+            .add_atom(0.671, 0.171, 0.18625, 'X')\
+            .add_atom(0.329, 0.829, 0.18625, 'X')\
+            .add_atom(0.829, 0.671, 0.55875, 'X')\
+            .add_atom(0.171, 0.329, 0.55875, 'X')\
+            .add_atom(0.329, 0.829, 0.55875, 'X')\
+            .add_atom(0.671, 0.171, 0.55875, 'X')\
+            .add_atom(0.171, 0.329, 0.18625, 'X')\
+            .add_atom(0.829, 0.671, 0.18625, 'X')\
+            .add_atom(0.096, 0.637, 0, 'X')\
+            .add_atom(0.904, 0.363, 0, 'X')\
+            .add_atom(0.363, 0.096, 0.3725, 'X')\
+            .add_atom(0.637, 0.904, 0.3725, 'X')\
+            .add_atom(0.404, 0.137, 0, 'X')\
+            .add_atom(0.596, 0.863, 0, 'X')\
+            .add_atom(0.137, 0.596, 0.3725, 'X')\
+            .add_atom(0.863, 0.404, 0.3725, 'X')
+
 
 def b34():
-  """ b34 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.808, 0, 0,\
-                    0, 0.281, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b34' )\
-           .add_atom(0.05454, 0.07025, 0.3901, 'A')\
-           .add_atom(0.34946, 0.21075, 0.8901, 'A')\
-           .add_atom(0.75346, 0.21075, 0.6099, 'A')\
-           .add_atom(0.45854, 0.07025, 0.1099, 'A')\
-           .add_atom(0.0842744, 0.07025, 0.9056, 'A')\
-           .add_atom(0.319726, 0.21075, 0.4056, 'A')\
-           .add_atom(0.723726, 0.21075, 0.0944, 'A')\
-           .add_atom(0.488274, 0.07025, 0.5944, 'A')\
-           .add_atom(0.200303, 0.07025, 0.6513, 'B')\
-           .add_atom(0.203697, 0.21075, 0.1513, 'B')\
-           .add_atom(0.607697, 0.21075, 0.3487, 'B')\
-           .add_atom(0.604303, 0.07025, 0.8487, 'B')\
-           .add_atom(0.267206, 0.07025, 0.0141, 'X')\
-           .add_atom(0.136794, 0.21075, 0.5141, 'X')\
-           .add_atom(0.540794, 0.21075, 0.9859, 'X')\
-           .add_atom(0.671206, 0.07025, 0.4859, 'X')\
-           .add_atom(0.210807, 0.07025, 0.2997, 'X')\
-           .add_atom(0.193193, 0.21075, 0.7997, 'X')\
-           .add_atom(0.597193, 0.21075, 0.7003, 'X')\
-           .add_atom(0.614807, 0.07025, 0.2003, 'X')\
-           .add_atom(0.04444, 0.07025, 0.0927, 'X')\
-           .add_atom(0.35956, 0.21075, 0.5927, 'X')\
-           .add_atom(0.76356, 0.21075, 0.9073, 'X')\
-           .add_atom(0.44844, 0.07025, 0.4073, 'X')\
-           .add_atom(0.0146248, 0.07025, 0.712, 'X')\
-           .add_atom(0.389375, 0.21075, 0.212, 'X')\
-           .add_atom(0.793375, 0.21075, 0.288, 'X')\
-           .add_atom(0.418625, 0.07025, 0.788, 'X')
+    """ b34 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.808, 0, 0,
+                     0, 0.281, 0,
+                     0, 0, 1,
+                     scale=1, name='b34' )\
+            .add_atom(0.05454, 0.07025, 0.3901, 'A')\
+            .add_atom(0.34946, 0.21075, 0.8901, 'A')\
+            .add_atom(0.75346, 0.21075, 0.6099, 'A')\
+            .add_atom(0.45854, 0.07025, 0.1099, 'A')\
+            .add_atom(0.0842744, 0.07025, 0.9056, 'A')\
+            .add_atom(0.319726, 0.21075, 0.4056, 'A')\
+            .add_atom(0.723726, 0.21075, 0.0944, 'A')\
+            .add_atom(0.488274, 0.07025, 0.5944, 'A')\
+            .add_atom(0.200303, 0.07025, 0.6513, 'B')\
+            .add_atom(0.203697, 0.21075, 0.1513, 'B')\
+            .add_atom(0.607697, 0.21075, 0.3487, 'B')\
+            .add_atom(0.604303, 0.07025, 0.8487, 'B')\
+            .add_atom(0.267206, 0.07025, 0.0141, 'X')\
+            .add_atom(0.136794, 0.21075, 0.5141, 'X')\
+            .add_atom(0.540794, 0.21075, 0.9859, 'X')\
+            .add_atom(0.671206, 0.07025, 0.4859, 'X')\
+            .add_atom(0.210807, 0.07025, 0.2997, 'X')\
+            .add_atom(0.193193, 0.21075, 0.7997, 'X')\
+            .add_atom(0.597193, 0.21075, 0.7003, 'X')\
+            .add_atom(0.614807, 0.07025, 0.2003, 'X')\
+            .add_atom(0.04444, 0.07025, 0.0927, 'X')\
+            .add_atom(0.35956, 0.21075, 0.5927, 'X')\
+            .add_atom(0.76356, 0.21075, 0.9073, 'X')\
+            .add_atom(0.44844, 0.07025, 0.4073, 'X')\
+            .add_atom(0.0146248, 0.07025, 0.712, 'X')\
+            .add_atom(0.389375, 0.21075, 0.212, 'X')\
+            .add_atom(0.793375, 0.21075, 0.288, 'X')\
+            .add_atom(0.418625, 0.07025, 0.788, 'X')
+
 
 def d3():
-  """ d3 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.5, -0.74, 1,\
-                    0.1495, 0, 0,\
-                    0, 0.438, 0,\
-                    scale=1, name='d3' )\
-           .add_atom(-0.185, 0, 0.1095, 'A')\
-           .add_atom(-0.555, 0, 0.3285, 'A')\
-           .add_atom(0, 0, 0, 'B')\
-           .add_atom(-0.00592, 0, 0.200604, 'X')\
-           .add_atom(0.26592, 0, 0.237396, 'X')\
-           .add_atom(-0.37592, 0, 0.419604, 'X')\
-           .add_atom(0.63592, 0, 0.018396, 'X')
+    """ d3 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.5, -0.74, 1,
+                     0.1495, 0, 0,
+                     0, 0.438, 0,
+                     scale=1, name='d3' )\
+            .add_atom(-0.185, 0, 0.1095, 'A')\
+            .add_atom(-0.555, 0, 0.3285, 'A')\
+            .add_atom(0, 0, 0, 'B')\
+            .add_atom(-0.00592, 0, 0.200604, 'X')\
+            .add_atom(0.26592, 0, 0.237396, 'X')\
+            .add_atom(-0.37592, 0, 0.419604, 'X')\
+            .add_atom(0.63592, 0, 0.018396, 'X')
+
 
 def b9I():
-  """ b9I lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.862, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 0.282,\
-                    scale=1, name='b9I' )\
-           .add_atom(0.651672, 0.654, 0.0705, 'A')\
-           .add_atom(0.210328, 0.346, 0.2115, 'A')\
-           .add_atom(0.220672, 0.846, 0.0705, 'A')\
-           .add_atom(0.641328, 0.154, 0.2115, 'A')\
-           .add_atom(0.373246, 0.61, 0.0705, 'A')\
-           .add_atom(0.488754, 0.39, 0.2115, 'A')\
-           .add_atom(0.804246, 0.89, 0.0705, 'A')\
-           .add_atom(0.057754, 0.11, 0.2115, 'A')\
-           .add_atom(0.36204, 0.108, 0.0705, 'B')\
-           .add_atom(0.49996, 0.892, 0.2115, 'B')\
-           .add_atom(0.79304, 0.392, 0.0705, 'B')\
-           .add_atom(0.06896, 0.608, 0.2115, 'B')\
-           .add_atom(0.179296, 0.162, 0.0705, 'X')\
-           .add_atom(0.682704, 0.838, 0.2115, 'X')\
-           .add_atom(0.610296, 0.338, 0.0705, 'X')\
-           .add_atom(0.251704, 0.662, 0.2115, 'X')\
-           .add_atom(0.09913, 0.477, 0.0705, 'X')\
-           .add_atom(0.76287, 0.523, 0.2115, 'X')\
-           .add_atom(0.53013, 0.023, 0.0705, 'X')\
-           .add_atom(0.33187, 0.977, 0.2115, 'X')\
-           .add_atom(0.449102, 0.784, 0.0705, 'X')\
-           .add_atom(0.412898, 0.216, 0.2115, 'X')\
-           .add_atom(0.018102, 0.716, 0.0705, 'X')\
-           .add_atom(0.843898, 0.284, 0.2115, 'X')\
-           .add_atom(0.361178, 0.424, 0.0705, 'X')\
-           .add_atom(0.500822, 0.576, 0.2115, 'X')\
-           .add_atom(0.792178, 0.076, 0.0705, 'X')\
-           .add_atom(0.069822, 0.924, 0.2115, 'X')
+    """ b9I lattice """
+    from pylada.crystal import Structure
+    return Structure(0.862, 0, 0,
+                     0, 1, 0,
+                     0, 0, 0.282,
+                     scale=1, name='b9I' )\
+            .add_atom(0.651672, 0.654, 0.0705, 'A')\
+            .add_atom(0.210328, 0.346, 0.2115, 'A')\
+            .add_atom(0.220672, 0.846, 0.0705, 'A')\
+            .add_atom(0.641328, 0.154, 0.2115, 'A')\
+            .add_atom(0.373246, 0.61, 0.0705, 'A')\
+            .add_atom(0.488754, 0.39, 0.2115, 'A')\
+            .add_atom(0.804246, 0.89, 0.0705, 'A')\
+            .add_atom(0.057754, 0.11, 0.2115, 'A')\
+            .add_atom(0.36204, 0.108, 0.0705, 'B')\
+            .add_atom(0.49996, 0.892, 0.2115, 'B')\
+            .add_atom(0.79304, 0.392, 0.0705, 'B')\
+            .add_atom(0.06896, 0.608, 0.2115, 'B')\
+            .add_atom(0.179296, 0.162, 0.0705, 'X')\
+            .add_atom(0.682704, 0.838, 0.2115, 'X')\
+            .add_atom(0.610296, 0.338, 0.0705, 'X')\
+            .add_atom(0.251704, 0.662, 0.2115, 'X')\
+            .add_atom(0.09913, 0.477, 0.0705, 'X')\
+            .add_atom(0.76287, 0.523, 0.2115, 'X')\
+            .add_atom(0.53013, 0.023, 0.0705, 'X')\
+            .add_atom(0.33187, 0.977, 0.2115, 'X')\
+            .add_atom(0.449102, 0.784, 0.0705, 'X')\
+            .add_atom(0.412898, 0.216, 0.2115, 'X')\
+            .add_atom(0.018102, 0.716, 0.0705, 'X')\
+            .add_atom(0.843898, 0.284, 0.2115, 'X')\
+            .add_atom(0.361178, 0.424, 0.0705, 'X')\
+            .add_atom(0.500822, 0.576, 0.2115, 'X')\
+            .add_atom(0.792178, 0.076, 0.0705, 'X')\
+            .add_atom(0.069822, 0.924, 0.2115, 'X')
+
 
 def d3I():
-  """ d3I lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, -0.74,\
-                    0, 0.299, 0,\
-                    0, 0, 0.438,\
-                    scale=1, name='d3I' )\
-           .add_atom(0, 0, 0, 'A')\
-           .add_atom(0.5, 0.1495, 0, 'A')\
-           .add_atom(-0.185, 0, 0.1095, 'A')\
-           .add_atom(-0.555, 0, 0.3285, 'A')\
-           .add_atom(0.315, 0.1495, 0.1095, 'B')\
-           .add_atom(-0.055, 0.1495, 0.3285, 'B')\
-           .add_atom(-0.00592, 0, 0.200604, 'X')\
-           .add_atom(0.26592, 0, 0.237396, 'X')\
-           .add_atom(0.49408, 0.1495, 0.200604, 'X')\
-           .add_atom(-0.23408, 0.1495, 0.237396, 'X')\
-           .add_atom(-0.37592, 0, 0.419604, 'X')\
-           .add_atom(0.63592, 0, 0.018396, 'X')\
-           .add_atom(0.12408, 0.1495, 0.419604, 'X')\
-           .add_atom(0.13592, 0.1495, 0.018396, 'X')
+    """ d3I lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, -0.74,
+                     0, 0.299, 0,
+                     0, 0, 0.438,
+                     scale=1, name='d3I' )\
+            .add_atom(0, 0, 0, 'A')\
+            .add_atom(0.5, 0.1495, 0, 'A')\
+            .add_atom(-0.185, 0, 0.1095, 'A')\
+            .add_atom(-0.555, 0, 0.3285, 'A')\
+            .add_atom(0.315, 0.1495, 0.1095, 'B')\
+            .add_atom(-0.055, 0.1495, 0.3285, 'B')\
+            .add_atom(-0.00592, 0, 0.200604, 'X')\
+            .add_atom(0.26592, 0, 0.237396, 'X')\
+            .add_atom(0.49408, 0.1495, 0.200604, 'X')\
+            .add_atom(-0.23408, 0.1495, 0.237396, 'X')\
+            .add_atom(-0.37592, 0, 0.419604, 'X')\
+            .add_atom(0.63592, 0, 0.018396, 'X')\
+            .add_atom(0.12408, 0.1495, 0.419604, 'X')\
+            .add_atom(0.13592, 0.1495, 0.018396, 'X')
+
 
 def s2():
-  """ s2 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.987, 0, 0,\
-                    0, 0.295, 0,\
-                    0, 0, 1,\
-                    scale=1, name='s2' )\
-           .add_atom(0.880897, 0.07375, 0.5834, 'A')\
-           .add_atom(0.599603, 0.22125, 0.0834, 'A')\
-           .add_atom(0.106103, 0.22125, 0.4166, 'A')\
-           .add_atom(0.387398, 0.07375, 0.9166, 'A')\
-           .add_atom(0.340614, 0.07375, 0.289, 'A')\
-           .add_atom(0.152886, 0.22125, 0.789, 'A')\
-           .add_atom(0.646386, 0.22125, 0.711, 'A')\
-           .add_atom(0.834114, 0.07375, 0.211, 'A')\
-           .add_atom(0.130284, 0.07375, 0.0842, 'B')\
-           .add_atom(0.363216, 0.22125, 0.5842, 'B')\
-           .add_atom(0.856716, 0.22125, 0.9158, 'B')\
-           .add_atom(0.623784, 0.07375, 0.4158, 'B')\
-           .add_atom(0.771834, 0.07375, 0.762, 'X')\
-           .add_atom(0.708666, 0.22125, 0.262, 'X')\
-           .add_atom(0.215166, 0.22125, 0.238, 'X')\
-           .add_atom(0.278334, 0.07375, 0.738, 'X')\
-           .add_atom(0.240828, 0.07375, 0.474, 'X')\
-           .add_atom(0.252672, 0.22125, 0.974, 'X')\
-           .add_atom(0.746172, 0.22125, 0.526, 'X')\
-           .add_atom(0.734328, 0.07375, 0.026, 'X')\
-           .add_atom(0.522123, 0.07375, 0.619, 'X')\
-           .add_atom(0.958377, 0.22125, 0.119, 'X')\
-           .add_atom(0.464877, 0.22125, 0.381, 'X')\
-           .add_atom(0.028623, 0.07375, 0.881, 'X')\
-           .add_atom(0.459942, 0.07375, 0.119, 'X')\
-           .add_atom(0.033558, 0.22125, 0.619, 'X')\
-           .add_atom(0.527058, 0.22125, 0.881, 'X')\
-           .add_atom(0.953442, 0.07375, 0.381, 'X')
+    """ s2 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.987, 0, 0,
+                     0, 0.295, 0,
+                     0, 0, 1,
+                     scale=1, name='s2' )\
+            .add_atom(0.880897, 0.07375, 0.5834, 'A')\
+            .add_atom(0.599603, 0.22125, 0.0834, 'A')\
+            .add_atom(0.106103, 0.22125, 0.4166, 'A')\
+            .add_atom(0.387398, 0.07375, 0.9166, 'A')\
+            .add_atom(0.340614, 0.07375, 0.289, 'A')\
+            .add_atom(0.152886, 0.22125, 0.789, 'A')\
+            .add_atom(0.646386, 0.22125, 0.711, 'A')\
+            .add_atom(0.834114, 0.07375, 0.211, 'A')\
+            .add_atom(0.130284, 0.07375, 0.0842, 'B')\
+            .add_atom(0.363216, 0.22125, 0.5842, 'B')\
+            .add_atom(0.856716, 0.22125, 0.9158, 'B')\
+            .add_atom(0.623784, 0.07375, 0.4158, 'B')\
+            .add_atom(0.771834, 0.07375, 0.762, 'X')\
+            .add_atom(0.708666, 0.22125, 0.262, 'X')\
+            .add_atom(0.215166, 0.22125, 0.238, 'X')\
+            .add_atom(0.278334, 0.07375, 0.738, 'X')\
+            .add_atom(0.240828, 0.07375, 0.474, 'X')\
+            .add_atom(0.252672, 0.22125, 0.974, 'X')\
+            .add_atom(0.746172, 0.22125, 0.526, 'X')\
+            .add_atom(0.734328, 0.07375, 0.026, 'X')\
+            .add_atom(0.522123, 0.07375, 0.619, 'X')\
+            .add_atom(0.958377, 0.22125, 0.119, 'X')\
+            .add_atom(0.464877, 0.22125, 0.381, 'X')\
+            .add_atom(0.028623, 0.07375, 0.881, 'X')\
+            .add_atom(0.459942, 0.07375, 0.119, 'X')\
+            .add_atom(0.033558, 0.22125, 0.619, 'X')\
+            .add_atom(0.527058, 0.22125, 0.881, 'X')\
+            .add_atom(0.953442, 0.07375, 0.381, 'X')
+
 
 def b1():
-  """ b1 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.144, 0.288, 0,\
-                    0.144, 0, 0.288,\
-                    0.5, 0, 0,\
-                    scale=1, name='b1' )\
-           .add_atom(0.288, 0.288, 0.35, 'A')\
-           .add_atom(0.144, 0.144, 0.15, 'A')\
-           .add_atom(0, 0, 0, 'B')\
-           .add_atom(0, 0.144, 0, 'X')\
-           .add_atom(0.144, 0, 0, 'X')\
-           .add_atom(0.288, 0.288, 0.15, 'X')\
-           .add_atom(0.144, 0.144, 0.35, 'X')
+    """ b1 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.144, 0.288, 0,
+                     0.144, 0, 0.288,
+                     0.5, 0, 0,
+                     scale=1, name='b1' )\
+            .add_atom(0.288, 0.288, 0.35, 'A')\
+            .add_atom(0.144, 0.144, 0.15, 'A')\
+            .add_atom(0, 0, 0, 'B')\
+            .add_atom(0, 0.144, 0, 'X')\
+            .add_atom(0.144, 0, 0, 'X')\
+            .add_atom(0.288, 0.288, 0.15, 'X')\
+            .add_atom(0.144, 0.144, 0.35, 'X')
+
 
 def b9():
-  """ b9 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.862, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 0.282,\
-                    scale=1, name='b9' )\
-           .add_atom(0.373246, 0.61, 0.0705, 'A')\
-           .add_atom(0.488754, 0.39, 0.2115, 'A')\
-           .add_atom(0.804246, 0.89, 0.0705, 'A')\
-           .add_atom(0.057754, 0.11, 0.2115, 'A')\
-           .add_atom(0.36204, 0.108, 0.0705, 'A')\
-           .add_atom(0.49996, 0.892, 0.2115, 'A')\
-           .add_atom(0.79304, 0.392, 0.0705, 'A')\
-           .add_atom(0.06896, 0.608, 0.2115, 'A')\
-           .add_atom(0.651672, 0.654, 0.0705, 'B')\
-           .add_atom(0.210328, 0.346, 0.2115, 'B')\
-           .add_atom(0.220672, 0.846, 0.0705, 'B')\
-           .add_atom(0.641328, 0.154, 0.2115, 'B')\
-           .add_atom(0.179296, 0.162, 0.0705, 'X')\
-           .add_atom(0.682704, 0.838, 0.2115, 'X')\
-           .add_atom(0.610296, 0.338, 0.0705, 'X')\
-           .add_atom(0.251704, 0.662, 0.2115, 'X')\
-           .add_atom(0.09913, 0.477, 0.0705, 'X')\
-           .add_atom(0.76287, 0.523, 0.2115, 'X')\
-           .add_atom(0.53013, 0.023, 0.0705, 'X')\
-           .add_atom(0.33187, 0.977, 0.2115, 'X')\
-           .add_atom(0.449102, 0.784, 0.0705, 'X')\
-           .add_atom(0.412898, 0.216, 0.2115, 'X')\
-           .add_atom(0.018102, 0.716, 0.0705, 'X')\
-           .add_atom(0.843898, 0.284, 0.2115, 'X')\
-           .add_atom(0.361178, 0.424, 0.0705, 'X')\
-           .add_atom(0.500822, 0.576, 0.2115, 'X')\
-           .add_atom(0.792178, 0.076, 0.0705, 'X')\
-           .add_atom(0.069822, 0.924, 0.2115, 'X')
+    """ b9 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.862, 0, 0,
+                     0, 1, 0,
+                     0, 0, 0.282,
+                     scale=1, name='b9' )\
+            .add_atom(0.373246, 0.61, 0.0705, 'A')\
+            .add_atom(0.488754, 0.39, 0.2115, 'A')\
+            .add_atom(0.804246, 0.89, 0.0705, 'A')\
+            .add_atom(0.057754, 0.11, 0.2115, 'A')\
+            .add_atom(0.36204, 0.108, 0.0705, 'A')\
+            .add_atom(0.49996, 0.892, 0.2115, 'A')\
+            .add_atom(0.79304, 0.392, 0.0705, 'A')\
+            .add_atom(0.06896, 0.608, 0.2115, 'A')\
+            .add_atom(0.651672, 0.654, 0.0705, 'B')\
+            .add_atom(0.210328, 0.346, 0.2115, 'B')\
+            .add_atom(0.220672, 0.846, 0.0705, 'B')\
+            .add_atom(0.641328, 0.154, 0.2115, 'B')\
+            .add_atom(0.179296, 0.162, 0.0705, 'X')\
+            .add_atom(0.682704, 0.838, 0.2115, 'X')\
+            .add_atom(0.610296, 0.338, 0.0705, 'X')\
+            .add_atom(0.251704, 0.662, 0.2115, 'X')\
+            .add_atom(0.09913, 0.477, 0.0705, 'X')\
+            .add_atom(0.76287, 0.523, 0.2115, 'X')\
+            .add_atom(0.53013, 0.023, 0.0705, 'X')\
+            .add_atom(0.33187, 0.977, 0.2115, 'X')\
+            .add_atom(0.449102, 0.784, 0.0705, 'X')\
+            .add_atom(0.412898, 0.216, 0.2115, 'X')\
+            .add_atom(0.018102, 0.716, 0.0705, 'X')\
+            .add_atom(0.843898, 0.284, 0.2115, 'X')\
+            .add_atom(0.361178, 0.424, 0.0705, 'X')\
+            .add_atom(0.500822, 0.576, 0.2115, 'X')\
+            .add_atom(0.792178, 0.076, 0.0705, 'X')\
+            .add_atom(0.069822, 0.924, 0.2115, 'X')
+
 
 def b10():
-  """ b10 lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 0.585098, 0,\
-                    0, 0, 0.522491,\
-                    scale=1, name='b10' )\
-           .add_atom(0, 0, 0, 'A')\
-           .add_atom(0.5, 0, 0.261246, 'A')\
-           .add_atom(0, 0.292549, 0, 'A')\
-           .add_atom(0.5, 0.292549, 0.261246, 'A')\
-           .add_atom(0.217735, 0.146275, 0.266647, 'A')\
-           .add_atom(0.282265, 0.438824, 0.00540126, 'A')\
-           .add_atom(0.782265, 0.438824, 0.255844, 'A')\
-           .add_atom(0.717735, 0.146275, 0.51709, 'A')\
-           .add_atom(0.395699, 0.146275, 0.0182875, 'B')\
-           .add_atom(0.104301, 0.438824, 0.279533, 'B')\
-           .add_atom(0.604301, 0.438824, 0.504204, 'B')\
-           .add_atom(0.895699, 0.146275, 0.242958, 'B')\
-           .add_atom(0.406416, 0.146275, 0.356683, 'X')\
-           .add_atom(0.0935839, 0.438824, 0.0954379, 'X')\
-           .add_atom(0.593584, 0.438824, 0.165808, 'X')\
-           .add_atom(0.906416, 0.146275, 0.427053, 'X')\
-           .add_atom(0.559808, 0.146275, 0.117305, 'X')\
-           .add_atom(0.940192, 0.438824, 0.37855, 'X')\
-           .add_atom(0.440192, 0.438824, 0.405186, 'X')\
-           .add_atom(0.0598078, 0.146275, 0.143941, 'X')\
-           .add_atom(0.332013, 0.0146768, 0.140126, 'X')\
-           .add_atom(0.167987, 0.570422, 0.401371, 'X')\
-           .add_atom(0.667987, 0.307226, 0.382365, 'X')\
-           .add_atom(0.832013, 0.277873, 0.12112, 'X')\
-           .add_atom(0.667987, 0.570422, 0.382365, 'X')\
-           .add_atom(0.832013, 0.0146768, 0.12112, 'X')\
-           .add_atom(0.332013, 0.277873, 0.140126, 'X')\
-           .add_atom(0.167987, 0.307226, 0.401371, 'X')
+    """ b10 lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 0.585098, 0,
+                     0, 0, 0.522491,
+                     scale=1, name='b10' )\
+            .add_atom(0, 0, 0, 'A')\
+            .add_atom(0.5, 0, 0.261246, 'A')\
+            .add_atom(0, 0.292549, 0, 'A')\
+            .add_atom(0.5, 0.292549, 0.261246, 'A')\
+            .add_atom(0.217735, 0.146275, 0.266647, 'A')\
+            .add_atom(0.282265, 0.438824, 0.00540126, 'A')\
+            .add_atom(0.782265, 0.438824, 0.255844, 'A')\
+            .add_atom(0.717735, 0.146275, 0.51709, 'A')\
+            .add_atom(0.395699, 0.146275, 0.0182875, 'B')\
+            .add_atom(0.104301, 0.438824, 0.279533, 'B')\
+            .add_atom(0.604301, 0.438824, 0.504204, 'B')\
+            .add_atom(0.895699, 0.146275, 0.242958, 'B')\
+            .add_atom(0.406416, 0.146275, 0.356683, 'X')\
+            .add_atom(0.0935839, 0.438824, 0.0954379, 'X')\
+            .add_atom(0.593584, 0.438824, 0.165808, 'X')\
+            .add_atom(0.906416, 0.146275, 0.427053, 'X')\
+            .add_atom(0.559808, 0.146275, 0.117305, 'X')\
+            .add_atom(0.940192, 0.438824, 0.37855, 'X')\
+            .add_atom(0.440192, 0.438824, 0.405186, 'X')\
+            .add_atom(0.0598078, 0.146275, 0.143941, 'X')\
+            .add_atom(0.332013, 0.0146768, 0.140126, 'X')\
+            .add_atom(0.167987, 0.570422, 0.401371, 'X')\
+            .add_atom(0.667987, 0.307226, 0.382365, 'X')\
+            .add_atom(0.832013, 0.277873, 0.12112, 'X')\
+            .add_atom(0.667987, 0.570422, 0.382365, 'X')\
+            .add_atom(0.832013, 0.0146768, 0.12112, 'X')\
+            .add_atom(0.332013, 0.277873, 0.140126, 'X')\
+            .add_atom(0.167987, 0.307226, 0.401371, 'X')
+
 
 def d9():
-  """ d9 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.5, 1, 0,\
-                    0.5, 0, 1,\
-                    0.5, 0, 0,\
-                    scale=1, name='d9' )\
-           .add_atom(0.25, 0.375, 0, 'A')\
-           .add_atom(0.75, 0.125, 0, 'A')\
-           .add_atom(1, 1.25, 0.375, 'A')\
-           .add_atom(1, 0.75, 0.125, 'A')\
-           .add_atom(0.375, 1, 0.25, 'B')\
-           .add_atom(0.625, 0.5, 0.25, 'B')\
-           .add_atom(0.083, 0.083, 0.083, 'X')\
-           .add_atom(0.917, 0.417, 0.083, 'X')\
-           .add_atom(0.917, 0.583, 0.417, 'X')\
-           .add_atom(1.083, 0.917, 0.417, 'X')\
-           .add_atom(0.333, 0.333, 0.333, 'X')\
-           .add_atom(0.667, 1.167, 0.333, 'X')\
-           .add_atom(0.333, 0.667, 0.167, 'X')\
-           .add_atom(0.667, 0.833, 0.167, 'X')
+    """ d9 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.5, 1, 0,
+                     0.5, 0, 1,
+                     0.5, 0, 0,
+                     scale=1, name='d9' )\
+            .add_atom(0.25, 0.375, 0, 'A')\
+            .add_atom(0.75, 0.125, 0, 'A')\
+            .add_atom(1, 1.25, 0.375, 'A')\
+            .add_atom(1, 0.75, 0.125, 'A')\
+            .add_atom(0.375, 1, 0.25, 'B')\
+            .add_atom(0.625, 0.5, 0.25, 'B')\
+            .add_atom(0.083, 0.083, 0.083, 'X')\
+            .add_atom(0.917, 0.417, 0.083, 'X')\
+            .add_atom(0.917, 0.583, 0.417, 'X')\
+            .add_atom(1.083, 0.917, 0.417, 'X')\
+            .add_atom(0.333, 0.333, 0.333, 'X')\
+            .add_atom(0.667, 1.167, 0.333, 'X')\
+            .add_atom(0.333, 0.667, 0.167, 'X')\
+            .add_atom(0.667, 0.833, 0.167, 'X')
+
 
 def b10I():
-  """ b10I lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 0.585, 0,\
-                    0, 0, 0.522,\
-                    scale=1, name='b10I' )\
-           .add_atom(0.09294, 0.14625, 0.226271, 'A')\
-           .add_atom(0.40706, 0.43875, 0.487271, 'A')\
-           .add_atom(0.90706, 0.43875, 0.295729, 'A')\
-           .add_atom(0.59294, 0.14625, 0.0347287, 'A')\
-           .add_atom(0, 0, 0, 'A')\
-           .add_atom(0.5, 0, 0.261, 'A')\
-           .add_atom(0, 0.2925, 0, 'A')\
-           .add_atom(0.5, 0.2925, 0.261, 'A')\
-           .add_atom(0.27319, 0.14625, 0.518894, 'B')\
-           .add_atom(0.22681, 0.43875, 0.257894, 'B')\
-           .add_atom(0.72681, 0.43875, 0.0031059, 'B')\
-           .add_atom(0.77319, 0.14625, 0.264106, 'B')\
-           .add_atom(0.09051, 0.14625, 0.412464, 'X')\
-           .add_atom(0.40949, 0.43875, 0.151464, 'X')\
-           .add_atom(0.90949, 0.43875, 0.109536, 'X')\
-           .add_atom(0.59051, 0.14625, 0.370536, 'X')\
-           .add_atom(0.43343, 0.14625, 0.125786, 'X')\
-           .add_atom(0.06657, 0.43875, 0.386786, 'X')\
-           .add_atom(0.56657, 0.43875, 0.396214, 'X')\
-           .add_atom(0.93343, 0.14625, 0.135214, 'X')\
-           .add_atom(0.16318, 0.0100503, 0.134937, 'X')\
-           .add_atom(0.33682, 0.57495, 0.395937, 'X')\
-           .add_atom(0.83682, 0.30255, 0.387063, 'X')\
-           .add_atom(0.66318, 0.28245, 0.126063, 'X')\
-           .add_atom(0.83682, 0.57495, 0.387063, 'X')\
-           .add_atom(0.66318, 0.0100503, 0.126063, 'X')\
-           .add_atom(0.16318, 0.28245, 0.134937, 'X')\
-           .add_atom(0.33682, 0.30255, 0.395937, 'X')
+    """ b10I lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 0.585, 0,
+                     0, 0, 0.522,
+                     scale=1, name='b10I' )\
+            .add_atom(0.09294, 0.14625, 0.226271, 'A')\
+            .add_atom(0.40706, 0.43875, 0.487271, 'A')\
+            .add_atom(0.90706, 0.43875, 0.295729, 'A')\
+            .add_atom(0.59294, 0.14625, 0.0347287, 'A')\
+            .add_atom(0, 0, 0, 'A')\
+            .add_atom(0.5, 0, 0.261, 'A')\
+            .add_atom(0, 0.2925, 0, 'A')\
+            .add_atom(0.5, 0.2925, 0.261, 'A')\
+            .add_atom(0.27319, 0.14625, 0.518894, 'B')\
+            .add_atom(0.22681, 0.43875, 0.257894, 'B')\
+            .add_atom(0.72681, 0.43875, 0.0031059, 'B')\
+            .add_atom(0.77319, 0.14625, 0.264106, 'B')\
+            .add_atom(0.09051, 0.14625, 0.412464, 'X')\
+            .add_atom(0.40949, 0.43875, 0.151464, 'X')\
+            .add_atom(0.90949, 0.43875, 0.109536, 'X')\
+            .add_atom(0.59051, 0.14625, 0.370536, 'X')\
+            .add_atom(0.43343, 0.14625, 0.125786, 'X')\
+            .add_atom(0.06657, 0.43875, 0.386786, 'X')\
+            .add_atom(0.56657, 0.43875, 0.396214, 'X')\
+            .add_atom(0.93343, 0.14625, 0.135214, 'X')\
+            .add_atom(0.16318, 0.0100503, 0.134937, 'X')\
+            .add_atom(0.33682, 0.57495, 0.395937, 'X')\
+            .add_atom(0.83682, 0.30255, 0.387063, 'X')\
+            .add_atom(0.66318, 0.28245, 0.126063, 'X')\
+            .add_atom(0.83682, 0.57495, 0.387063, 'X')\
+            .add_atom(0.66318, 0.0100503, 0.126063, 'X')\
+            .add_atom(0.16318, 0.28245, 0.134937, 'X')\
+            .add_atom(0.33682, 0.30255, 0.395937, 'X')
+
 
 def b20():
-  """ b20 lattice """
-  from pylada.crystal import Structure
-  return Structure( 0.298, 0.298, 0,\
-                    -0.516, 0.516, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b20' )\
-           .add_atom(0, 0, 0, 'A')\
-           .add_atom(0, 0, 0.5, 'A')\
-           .add_atom(0.298, 0.172003, 0.8, 'A')\
-           .add_atom(0.298, -0.172003, 0.2, 'A')\
-           .add_atom(0.298, 0.172003, 0.17, 'B')\
-           .add_atom(0.298, -0.172003, 0.67, 'B')\
-           .add_atom(0.298, 0.172003, 0, 'X')\
-           .add_atom(0.298, -0.172003, 0.5, 'X')\
-           .add_atom(0.37846, 0.31476, 0.25, 'X')\
-           .add_atom(0.1341, 0.17028, 0.25, 'X')\
-           .add_atom(0.38144, 0.03096, 0.25, 'X')\
-           .add_atom(0.21754, -0.31476, 0.75, 'X')\
-           .add_atom(0.4619, -0.17028, 0.75, 'X')\
-           .add_atom(0.21456, -0.03096, 0.75, 'X')
+    """ b20 lattice """
+    from pylada.crystal import Structure
+    return Structure(0.298, 0.298, 0,
+                     -0.516, 0.516, 0,
+                     0, 0, 1,
+                     scale=1, name='b20' )\
+            .add_atom(0, 0, 0, 'A')\
+            .add_atom(0, 0, 0.5, 'A')\
+            .add_atom(0.298, 0.172003, 0.8, 'A')\
+            .add_atom(0.298, -0.172003, 0.2, 'A')\
+            .add_atom(0.298, 0.172003, 0.17, 'B')\
+            .add_atom(0.298, -0.172003, 0.67, 'B')\
+            .add_atom(0.298, 0.172003, 0, 'X')\
+            .add_atom(0.298, -0.172003, 0.5, 'X')\
+            .add_atom(0.37846, 0.31476, 0.25, 'X')\
+            .add_atom(0.1341, 0.17028, 0.25, 'X')\
+            .add_atom(0.38144, 0.03096, 0.25, 'X')\
+            .add_atom(0.21754, -0.31476, 0.75, 'X')\
+            .add_atom(0.4619, -0.17028, 0.75, 'X')\
+            .add_atom(0.21456, -0.03096, 0.75, 'X')
+
 
 def b4():
-  """ b4 lattice """
-  from pylada.crystal import Structure
-  return Structure( 1, 0, 0,\
-                    0, 1, 0,\
-                    0, 0, 1,\
-                    scale=1, name='b4' )\
-           .add_atom(0, 0.5, 0.5, 'A')\
-           .add_atom(0.5, 0, 0.5, 'A')\
-           .add_atom(0, 0, 0, 'B')\
-           .add_atom(0.27, 0.27, 0.225, 'X')\
-           .add_atom(0.73, 0.73, 0.225, 'X')\
-           .add_atom(0.73, 0.27, 0.775, 'X')\
-           .add_atom(0.27, 0.73, 0.775, 'X')
-
+    """ b4 lattice """
+    from pylada.crystal import Structure
+    return Structure(1, 0, 0,
+                     0, 1, 0,
+                     0, 0, 1,
+                     scale=1, name='b4' )\
+            .add_atom(0, 0.5, 0.5, 'A')\
+            .add_atom(0.5, 0, 0.5, 'A')\
+            .add_atom(0, 0, 0, 'B')\
+            .add_atom(0.27, 0.27, 0.225, 'X')\
+            .add_atom(0.73, 0.73, 0.225, 'X')\
+            .add_atom(0.73, 0.27, 0.775, 'X')\
+            .add_atom(0.27, 0.73, 0.775, 'X')
