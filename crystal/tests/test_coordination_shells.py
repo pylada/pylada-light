@@ -60,28 +60,17 @@ def check(structure, center, tolerance=1e-8):
         assert len([0 for u in diff if abs(abs(u) - 0.25) < tolerance]) == 1
 
 
-# def check_against_neighbors(structure, tolerance=1e-8):
-#     from numpy import abs, sqrt, all
-#     from pylada.crystal import coordination_shells, neighbors
-#
-#     a = neighbors(structure, 150, [0, 0, 0], tolerance)
-#     result = []
-#     fn = a[0][2]
-#     i = 0
-#     for atom, trans, dist in a:
-#         if abs(fn - dist) < tolerance:
-#             i += 1
-#             continue
-#         result.append([i, fn])
-#         i = 1
-#         fn = dist
-#
-#     b = coordination_shells(structure, 150, [0, 0, 0], tolerance)
-#     for x, y in zip(result, b):
-#         assert len(y) == x[0]
-#         assert abs(y[0][2] - x[1]) < tolerance
-#
-#
+def check_against_neighbors(structure, tolerance=1e-8):
+    from bisect import bisect_right
+    from pylada.crystal import coordination_shells, neighbors
+
+    distances = [u[-1] for u in neighbors(structure, 150, [0, 0, 0], tolerance)]
+    shells = coordination_shells(structure, 10, [0, 0, 0], tolerance)
+    for j in range(8):
+        i = bisect_right(distances, max([u[-1] for u in shells[j]]))
+        assert i == sum([len(shell) for shell in shells[:j+1]])
+
+
 def test_coordination_shells():
     from random import random
     from numpy import array
@@ -108,11 +97,11 @@ def test_coordination_shells():
     for index in randint(len(structure), size=4):
         check(structure, structure[index], 1e-2)
 
-    # check_against_neighbors(structure, 1e-2)
-    #
-    # lattice = Structure([[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]]) \
-    #     .add_atom(0, 0, 0, "Si")
-    # check_against_neighbors(structure, 1e-8)
-    # lattice = Structure([[-0.5, 0.5, 0.5], [0.5, -0.5, 0.5], [0.5, 0.5, -0.5]]) \
-    #     .add_atom(0, 0, 0, "Si")
-    # check_against_neighbors(structure, 1e-8)
+    check_against_neighbors(structure, 1e-8)
+
+    lattice = Structure([[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]]) \
+        .add_atom(0, 0, 0, "Si")
+    check_against_neighbors(structure, 1e-8)
+    lattice = Structure([[-0.5, 0.5, 0.5], [0.5, -0.5, 0.5], [0.5, 0.5, -0.5]]) \
+        .add_atom(0, 0, 0, "Si")
+    check_against_neighbors(structure, 1e-8)
