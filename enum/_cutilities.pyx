@@ -22,6 +22,7 @@
 
 __docformat__ = "restructuredtext en"
 from libcpp cimport bool
+cimport numpy
 cimport cython
 
 
@@ -90,7 +91,7 @@ cdef class NDimIterator(object):
             1. :py:class:`NDimIterator` cannot be used  with zip_ and similar functions
     """
     cdef:
-        int __ndims
+        int __length
         int [::1] __limits
         int [::1] __current
         object limits
@@ -106,7 +107,7 @@ cdef class NDimIterator(object):
         self.current = ones(self.limits.shape, dtype='intc')
         self.current[-1] = 0
         self.__current = self.current
-        self.__ndims = len(self.limits)
+        self.__length = len(self.limits)
 
 
     def __iter__(self):
@@ -118,13 +119,70 @@ cdef class NDimIterator(object):
     @cython.initializedcheck(False)
     def __next__(self):
         cdef int i
-        for i in range(1, self.__ndims + 1):
-            if self.__current[self.__ndims - i] == self.__limits[self.__ndims - i]:
-                self.__current[self.__ndims - i] = 1
+        for i in range(1, self.__length + 1):
+            if self.__current[self.__length - i] == self.__limits[self.__length - i]:
+                self.__current[self.__length - i] = 1
             else:
-                self.__current[self.__ndims - i] += 1
+                self.__current[self.__length - i] += 1
                 break
         else:
             raise StopIteration("End of NdimIterator loop")
 
         return self.current
+
+cdef class FCIterator(NDimIterator):
+    """ Binary fixed concententration iterator
+
+        Iterates over all binary strings for a given length and fixed number of 1.
+    """
+    cdef:
+        bool __is_first
+        object yielded
+
+    def __init__(self, length, ones):
+        """ Constructs an iterator over binary strings with fixed concentration """
+        from numpy import zeros
+        from .. import error
+        if length < 0:
+            raise ValueError("Negative length")
+        if ones < 0:
+            raise ValueError("Negative number of 1s")
+        if length < ones:
+            raise ValueError("More one than bitstrings")
+        NDimIterator.__init__(self, *range(length - ones, length))
+
+        self.yielded = zeros(length, dtype='bool_')
+        self.reset()
+
+
+    def __next__(self):
+        if self.__is_first:
+            self.__is_first = False
+            return self.yielded
+
+        cdef int i
+        for i in range(self.__length - 1):
+            if self.__current[i] != i:
+                self.__current[i] -= 1
+                break
+            elif self.__current[i + 1] != i + 1:
+                self.__current[i] = self.__current[i + 1] - 2
+        else:
+            if self.__current[self.__length - 1] != self.__length - 1:
+                self.__current[self.__length - 1] -= 1
+            else:
+                raise StopIteration("End of FCIterator loop")
+
+
+        # setup current bitstring
+        self.yielded[:] = 0
+        for i in range(self.__length):
+            self.yielded[self.__current[i]] = 1
+        return self.yielded
+
+    def reset(self):
+        """ Resets iterator to starting point """
+        self.current[:] = self.limits[:]
+        self.yielded[len(self.yielded) - self.__length:] = 1
+        self.yielded[:len(self.yielded) - self.__length] = 0
+        self.__is_first = True
