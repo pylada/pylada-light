@@ -22,18 +22,52 @@
 
 __docformat__ = "restructuredtext en"
 from libcpp cimport bool
+cimport cython
+
 
 cdef extern from "cmath" namespace "std":
     float floor(float)
     double floor(double)
 
-cpdef bool _is_integer(double[:, ::1] vector, double tolerance=1e-8):
+
+cpdef bool _is_integer(cython.floating[:, ::1] vector, cython.floating tolerance):
     cdef:
         int ni = vector.shape[0]
         int nj = vector.shape[1]
         int i, j
+
     for i in range(ni):
         for j in range(nj):
             if abs(floor(vector[i, j] + 1e-3) - vector[i, j]) > tolerance:
                 return False
+
     return True
+
+
+cpdef int _lexcompare(cython.integral[::1] a, cython.integral[::1] b):
+    """ Lexicographic compare of two numpy arrays
+
+        Compares two arrays, returning 1 or -1 depending on the first element that is not equal, or
+        zero if the arrays are identical.
+
+        :returns:
+            - a > b: 1
+            - a == b: 0
+            - a < b: -1
+
+    """
+    from .. import error
+    if len(a) != len(b):
+        raise error.ValueError("Input arrays have different length")
+
+    cdef:
+        int na = len(a)
+        int i
+
+    for i in range(na):
+        if a[i] < b[i]:
+            return -1
+        elif a[i] > b[i]:
+            return 1
+
+    return 0

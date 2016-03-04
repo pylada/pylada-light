@@ -165,7 +165,7 @@ class Transforms(object):
         result = zeros(shape=(len(self.space_group) - 1), dtype='bool')
         for i, op in enumerate(self.space_group[1:]):
             matrix = dot(invcell, dot(op[:3], cell))
-            result[i] = _is_integer(matrix)
+            result[i] = _is_integer(matrix, 1e-10)
 
         return result
 
