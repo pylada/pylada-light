@@ -57,7 +57,7 @@ def ewald(structure, charges=None, cutoff=15, verbose=False, **kwargs):
             Cutoff energy when computing reciprocal space part. Defaults to :py:math:`15 Ry`.
 
     """
-    from .. import physics, error
+    from . import physics, error
     from numpy import array, dot, zeros, require
     from numpy.linalg import inv
     from quantities import elementary_charge as em, Ry, a0, angstrom

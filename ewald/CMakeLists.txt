@@ -20,6 +20,6 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 add_library(ewaldf90 STATIC ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
-add_python_module("pylada.ewald" CPP GLOB *.py __init__.pyx)
-target_link_libraries(pylada.ewald.__init__-cython ewaldf90)
+add_python_module("pylada" CPP GLOB *.py ewald.pyx)
+target_link_libraries(pylada.ewald-cython ewaldf90)
 add_subdirectory(tests)

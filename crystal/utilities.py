@@ -93,9 +93,10 @@ def are_periodic_images(pos0, pos1, invcell=None, cell=None, tolerance=1e-8):
     """
     from numpy import dot, floor
     from numpy.linalg import inv, norm
+    from .. import error
     if invcell is None:
         if cell is None:
-            raise ValueError("One of cell or invcell should be given")
+            raise error.ValueError("One of cell or invcell should be given")
         invcell = inv(cell)
 
     result = dot(invcell, pos0 - pos1)
