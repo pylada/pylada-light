@@ -19,6 +19,9 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from pylada.crystal import bravais
+lattice = bravais.fcc()
+lattice[0].type = ['Si', 'Ge', 'C']
 
 dummy = r"""1  0  1  0  0  1  0
            1  0  1  0  0  1  1
@@ -9828,9 +9831,10 @@ dummy = r"""1  0  1  0  0  1  0
            2  0  2  0  0  2  11122222
            2  0  2  0  0  2  11222212
            2  0  2  0  0  2  12222222 """
-ternarysets = {}
-for i in xrange(1, 13): ternarysets[i] = set()
+datasets = {}
 for line in dummy.split('\n'):
   data = line.split()
   n = int(data[0]) * int(data[2]) * int(data[5])
-  ternarysets[n].add(''.join(data[:6]) + ' ' + data[6])
+  if n not in datasets:
+      datasets[n] = set()
+  datasets[n].add(''.join(data[:6]) + ' ' + data[6])

@@ -20,6 +20,10 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
+from pylada.crystal import bravais
+lattice = bravais.fcc()
+lattice[0].type = ['Si', 'Ge']
+
 dummy = r""" 1  0  1  0  0  1    0
             1  0  1  0  0  1    1
             1  0  1  0  0  2    01
@@ -10870,9 +10874,11 @@ dummy = r""" 1  0  1  0  0  1    0
             1  1  2  1  4  6    010111111111
             1  1  2  1  4  6    011011011111
             1  1  2  1  4  6    011111111111 """
-fccsets = {}
-for i in xrange(1, 13): fccsets[i] = set()
+datasets = {}
 for line in dummy.split('\n'):
   data = line.split()
   n = int(data[0]) * int(data[2]) * int(data[5])
-  fccsets[n].add(''.join(data[:6]) + ' ' + data[6])
+  if n not in datasets:
+      datasets[n] = set()
+  datasets[n].add(''.join(data[:6]) + ' ' + data[6])
+fccsets = {}

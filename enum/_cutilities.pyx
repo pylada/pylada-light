@@ -71,3 +71,60 @@ cpdef int _lexcompare(cython.integral[::1] a, cython.integral[::1] b):
             return 1
 
     return 0
+
+
+cdef class NDimIterator(object):
+    """ Defines an N-dimensional iterator
+
+        The two following loop are mostly equivalent:
+
+            >>> for x in NDimIterator(1, 5, 6): print x
+            >>> from itertools import product
+            >>> for x in product(range(1, 2), range(1, 5), range(1, 7)): print x
+
+        The main differences are:
+
+            1. :py:class:`NDimIterator` yields a numpy array
+            1. :py:class:`NDimIterator` always yield the same numpy array, to avoid memory
+                reallocation
+            1. :py:class:`NDimIterator` cannot be used  with zip_ and similar functions
+    """
+    cdef:
+        int __ndims
+        int [::1] __limits
+        int [::1] __current
+        object limits
+        object current
+
+
+    def __init__(self, *args):
+        from numpy import array, ones
+        self.limits = array(args, dtype='intc').flatten()
+        if any(self.limits < 0):
+            raise ValueError("Can't use negative values in NdimIterator")
+        self.__limits = self.limits
+        self.current = ones(self.limits.shape, dtype='intc')
+        self.current[-1] = 0
+        self.__current = self.current
+        self.__ndims = len(self.limits)
+
+
+    def __iter__(self):
+        return self
+
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.initializedcheck(False)
+    def __next__(self):
+        cdef int i
+        for i in range(1, self.__ndims + 1):
+            if self.__current[self.__ndims - i] == self.__limits[self.__ndims - i]:
+                self.__current[self.__ndims - i] = 1
+            else:
+                self.__current[self.__ndims - i] += 1
+                break
+        else:
+            raise StopIteration("End of NdimIterator loop")
+
+        return self.current

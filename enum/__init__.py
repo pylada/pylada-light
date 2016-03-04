@@ -21,8 +21,9 @@
 ###############################
 
 __docformat__ = "restructuredtext en"
-# __all__ = ['Transforms', 'supercells', 'hf_groups']
+__all__ = ['Transforms', 'supercells', 'hf_groups', 'generate_bitstrings']
 from .transforms import Transforms
+
 
 def supercells(lattice, sizerange):
     """ Determines non-equivalent supercells in given size range.
@@ -62,7 +63,7 @@ def supercells(lattice, sizerange):
         isc = inv(sc)
         for op in spacegroup:
             op2 = dot(isc, op)
-            if any(_is_integer(dot(op2, u)) for u in l):
+            if any(_is_integer(dot(op2, u), 1e-10) for u in l):
                 return True
         return False
 
@@ -126,83 +127,85 @@ def hf_groups(lattice, sizerange):
         yield result.values()
 
 
-# def generate_bitstrings(lattice, sizerange):
-#   """ Generator over bitstrings """
-#   from numpy import dot, all
-#   from .cppwrappers import NDimIterator, _lexcompare, Manipulations
-#   transforms = Transforms(lattice)
-#   for hfgroups in hf_groups(lattice, sizerange):
-#     for hfgroup in hfgroups:
-#       # actual results
-#       ingroup = []
-#       # stuff we do not want to see again
-#       outgroup = set()
-#
-#       # translation operators
-#       translations = Manipulations(transforms.translations(hfgroup[0][0]))
-#
-#       # Creates argument to ndimensional iterator.
-#       args = []
-#       size = hfgroup[0][0].size
-#       for site in transforms.lattice:
-#         if site.nbflavors == 1:
-#           continue
-#         args += [site.nbflavors] * size
-#
-#       # loop over possible structures in this hfgroup
-#       for x in NDimIterator(*args):
-#         strx = ''.join(str(i) for i in x)
-#         if strx in outgroup:
-#           continue
-#
-#         # check for supercell independent transforms.
-#         # SHOULD INSERT LABEL EXCHANGE HERE
-#         # loop over translational symmetries.
-#         subperiodic = False
-#         for t in translations(x):
-#           a = _lexcompare(t, x)
-#           # if a == t, then smaller exists with this structure.
-#           # also add it to outgroup
-#           if a >= 0:
-#             outgroup.add(''.join(str(i) for i in t))
-#           if a == 0:
-#             subperiodic = True
-#             continue
-#           # SHOULD INSERT LABEL EXCHANGE HERE
-#         if not subperiodic:
-#           ingroup.append(x.copy())
-#
-#       # loop over cell specific transformations.
-#       for hft, hermite in hfgroup:
-#         # get transformations. Not the best way of doing this.
-#         invariants = transforms.invariant_ops(dot(lattice.cell, hermite))
-#         transformations = transforms.transformations(hft)
-#         for j, (t, i) in enumerate(zip(transformations, invariants)):
-#           if not i:
-#             continue
-#           if all(t == range(t.shape[0])):
-#             invariants[i] = False
-#         transformations = transformations[invariants]
-#
-#         outgroup = set()
-#         for x in ingroup:
-#           strx = ''.join(str(i) for i in x)
-#           if strx in outgroup:
-#             continue
-#           for transform in transformations:
-#             t = x[transform]
-#             a = _lexcompare(t, x)
-#             if a == 0:
-#               continue
-#             if a > 0:
-#               outgroup.add(''.join(str(i) for i in t))
-#
-#             # SHOULD INSERT LABEL EXCHANGE HERE
-#             # loop over translational symmetries.
-#             for tt in translations(t):
-#               a = _lexcompare(tt, x)
-#               if a > 0:
-#                 outgroup.add(''.join(str(i) for i in tt))
-#               # SHOULD INSERT LABEL EXCHANGE HERE
-#
-#           yield x, hft, hermite
+def generate_bitstrings(lattice, sizerange):
+    """ Generator over bitstrings """
+    from numpy import dot, all
+    from ._cutilities import _lexcompare, NDimIterator
+    transforms = Transforms(lattice)
+    for hfgroups in hf_groups(lattice, sizerange):
+        for hfgroup in hfgroups:
+            # actual results
+            ingroup = []
+            # stuff we do not want to see again
+            outgroup = set()
+
+            # translation operators
+            translations = transforms.translations(hfgroup[0][0])
+
+            # Creates argument to ndimensional iterator.
+            args = []
+            size = hfgroup[0][0].size
+            for site in transforms.lattice:
+                if site.nbflavors == 1:
+                    continue
+                args += [site.nbflavors] * size
+
+            # loop over possible structures in this hfgroup
+            for x in NDimIterator(*args):
+                strx = ''.join(str(i) for i in x)
+                if strx in outgroup:
+                    continue
+
+                # check for supercell independent transforms.
+                # SHOULD INSERT LABEL EXCHANGE HERE
+                # loop over translational symmetries.
+                subperiodic = False
+                for translation in translations:
+                    transmuted = x[translation]
+                    a = _lexcompare(transmuted, x)
+                    # if a == transmuted, then smaller exists with this structure.
+                    # also add it to outgroup
+                    if a >= 0:
+                        outgroup.add(''.join(str(i) for i in transmuted))
+                    if a == 0:
+                        subperiodic = True
+                        continue
+                    # SHOULD INSERT LABEL EXCHANGE HERE
+                if not subperiodic:
+                    ingroup.append(x.copy())
+
+            # loop over cell specific transformations.
+            for hft, hermite in hfgroup:
+                # get transformations. Not the best way of doing this.
+                invariants = transforms.invariant_ops(dot(lattice.cell, hermite))
+                transformations = transforms.transformations(hft)
+                for j, (t, i) in enumerate(zip(transformations, invariants)):
+                    if not i:
+                        continue
+                    if all(t == range(t.shape[0])):
+                        invariants[i] = False
+                transformations = transformations[invariants]
+
+                outgroup = set()
+                for x in ingroup:
+                    strx = ''.join(str(i) for i in x)
+                    if strx in outgroup:
+                        continue
+                    for transform in transformations:
+                        t = x[transform]
+                        a = _lexcompare(t, x)
+                        if a == 0:
+                            continue
+                        if a > 0:
+                            outgroup.add(''.join(str(i) for i in t))
+
+                        # SHOULD INSERT LABEL EXCHANGE HERE
+                        # loop over translational symmetries.
+                        for translation_symmetries in translations:
+                            symmuted = t[translation_symmetries]
+                            a = _lexcompare(symmuted, x)
+                            if a > 0:
+                                outgroup.add(''.join(str(i) for i in symmuted))
+                            # SHOULD INSERT LABEL EXCHANGE HERE
+
+                    yield x, hft, hermite

@@ -20,6 +20,11 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
+from pylada.crystal import binary
+lattice = binary.zinc_blende()
+lattice[0].type = ['Si', 'Ge']
+lattice[1].type = ['Si', 'Ge']
+
 dummy = r"""  1  0  1  0  0  1  00
   1  0  1  0  0  1  01
   1  0  1  0  0  1  11
@@ -9652,9 +9657,11 @@ dummy = r"""  1  0  1  0  0  1  00
   1  0  1  1  3  7  01111111101111
   1  0  1  1  3  7  01111111111110
   1  0  1  1  3  7  01111111111111 """
-diamondsets = {}
-for i in xrange(1, 13): diamondsets[i] = set()
+datasets = {}
 for line in dummy.split('\n'):
   data = line.split()
   n = int(data[0]) * int(data[2]) * int(data[5])
-  diamondsets[n].add(''.join(data[:6]) + ' ' + data[6])
+  if n not in datasets:
+      datasets[n] = set()
+  datasets[n].add(''.join(data[:6]) + ' ' + data[6])
+fccsets = {}
