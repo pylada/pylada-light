@@ -73,6 +73,9 @@ def gruber(np.ndarray cell not None, size_t itermax = 0, double tolerance = 1e-1
     c_gruber(<t_real*>c_result, <t_real*>c_cell, itermax, tolerance)
     return transpose(result)
 
+cpdef _flatten_indices(int[::1] quotient, int i, int j, int k, int site=0):
+    """ Flattens indices for hart-forcade transform """
+    return k  + quotient[2] * (j + quotient[1] * (i + site * quotient[0]))
 
 def supercell(lattice, cell):
     """ Creates a supercell of an input lattice

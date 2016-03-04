@@ -78,7 +78,7 @@ add_subdirectory(misc)
 # add_subdirectory(process)
 #
 # # enum is for defects
-# add_subdirectory(enum)
+add_subdirectory(enum)
 #
 # # Add documentation target: make documentation
 # include(sphinx)

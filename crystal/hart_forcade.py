@@ -19,6 +19,8 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+
+# cython: profile=True
 class HFTransform(object):
     """ The Hart-Forcade transform computes the cyclic group of supercell
 
@@ -72,7 +74,8 @@ class HFTransform(object):
 
             :returns: An integer which can serve as an index into a 1d array
         """
-        return k  + self.quotient[2] * (j + self.quotient[1] * (i + site * self.quotient[0]))
+        from .cutilities import _flatten_indices
+        return _flatten_indices(self.quotient, i, j, k, site)
 
     def index(self, pos, site=0):
         """ Flat index into cyclic Z-group
@@ -110,3 +113,10 @@ class HFTransform(object):
             if result[i] < 0:
                 result[i] += self.quotient[i]
         return result
+
+    @property
+    def size(self):
+        """ Number of unit cells in the supercell """
+        from numpy import prod
+        return prod(self.quotient)
+
