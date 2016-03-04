@@ -91,34 +91,39 @@ def supercells(lattice, sizerange):
 
     return results
 
-#
-# def hf_groups(lattice, sizerange):
-#   """ Generator over supercells for given size range.
-#   
-#       :params lattice: 
-#          Back-bone lattice
-#       :type lattice: py:attr:`~pylada.crystal.Structure`
-#       :param sizerange: 
-#          List of sizes for which to perform calculations, in number of
-#          unit-cells per supercell.
-#       :type sizerange: integer sequence
-#       :yields: 
-#           yields a list of 2-tuples where the first element is an hft and the
-#           second the hermite cell.
-#   """
-#   from numpy import dot
-#   from ..crystal import HFTransform
-#   result = {}
-#   for n, cells in supercells(lattice, sizerange).iteritems():
-#     result = {}
-#     for cell in cells:
-#       hft = HFTransform(lattice, dot(lattice.cell, cell))
-#       key = repr(hft.quotient.tolist())
-#       if key in result:
-#         result[key].append((hft, cell))
-#       else:
-#         result[key] = [(hft, cell)]
-#     yield result.values()
+
+def hf_groups(lattice, sizerange):
+    """ Generator over supercells for given size range.
+
+        :params lattice:
+            Back-bone lattice
+
+        :type lattice:
+            py:attr:`~pylada.crystal.Structure`
+
+        :param sizerange:
+            List of sizes for which to perform calculations, in number of unit-cells per supercell.
+
+        :type sizerange:
+            integer sequence
+
+        :yields:
+            yields a list of 2-tuples where the first element is an hft and the second the hermite
+            cell.
+    """
+    from numpy import dot
+    from ..crystal import HFTransform
+    result = {}
+    for n, cells in supercells(lattice, sizerange).iteritems():
+        result = {}
+        for cell in cells:
+            hft = HFTransform(lattice, dot(lattice.cell, cell))
+            key = repr(hft.quotient.tolist())
+            if key in result:
+                result[key].append((hft, cell))
+            else:
+                result[key] = [(hft, cell)]
+        yield result.values()
 
 
 # def generate_bitstrings(lattice, sizerange):
