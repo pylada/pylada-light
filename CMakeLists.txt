@@ -83,14 +83,13 @@ add_subdirectory(ewald)
 # add_subdirectory(jobfolder)
 # add_subdirectory(ipython)
 #
-# # after all that, turns out nrelmatdb uses this:
-# add_subdirectory(periodic_table)
+add_subdirectory(periodic_table)
 
-#add_custom_target(doc 
+#add_custom_target(doc
 #      COMMAND make html
 #      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx-doc)
 
-  
+
 message (STATUS ${PROJECT_SOURCE_DIR})
 message (STATUS ${PROJECT_BINARY_DIR})
 # Create general configuration file for C stuff
