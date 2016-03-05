@@ -70,7 +70,7 @@ add_subdirectory(misc)
 # additional requirements for (at least) vasp
 # add_subdirectory(vasp)
 # add_subdirectory(config)
-# add_subdirectory(tools)
+add_subdirectory(tools)
 # add_subdirectory(process)
 #
 # # enum is for defects
