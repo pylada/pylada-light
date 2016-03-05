@@ -135,9 +135,8 @@ cdef class FCIterator(NDimIterator):
 
         Iterates over all binary strings for a given length and fixed number of 1.
     """
-    cdef:
-        bool __is_first
-        object yielded
+    cdef bool __is_first
+    cdef public object yielded
 
     def __init__(self, length, ones):
         """ Constructs an iterator over binary strings with fixed concentration """

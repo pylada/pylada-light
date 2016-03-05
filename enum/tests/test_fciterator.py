@@ -21,23 +21,23 @@
 ###############################
 
 def test_fciterator():
-  from pylada.enum._cutilities import FCIterator
-  result = [False, False, False, True, True], \
-           [False, False, True, False, True], \
-           [False, True, False, False, True], \
-           [True, False, False, False, True], \
-           [False, False, True, True, False], \
-           [False, True, False, True, False], \
-           [True, False, False, True, False], \
-           [False, True, True, False, False], \
-           [True, False, True, False, False], \
-           [True, True, False, False, False]
-  iterator = FCIterator(5, 2)
-  for i, u in enumerate(iterator):
-    assert all(u == result[i])
-  iterator.reset()
-  reit = False
-  for i, u in enumerate(iterator):
-    assert all(u == result[i])
-    reit = True
-  assert reit
+    from pylada.enum._cutilities import FCIterator
+    result = [False, False, False, True, True], \
+             [False, False, True, False, True], \
+             [False, True, False, False, True], \
+             [True, False, False, False, True], \
+             [False, False, True, True, False], \
+             [False, True, False, True, False], \
+             [True, False, False, True, False], \
+             [False, True, True, False, False], \
+             [True, False, True, False, False], \
+             [True, True, False, False, False]
+    iterator = FCIterator(5, 2)
+    for i, u in enumerate(iterator):
+        assert all(u == result[i])
+    iterator.reset()
+    reit = False
+    for i, u in enumerate(iterator):
+        assert all(u == result[i])
+        reit = True
+    assert reit

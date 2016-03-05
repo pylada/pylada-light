@@ -20,5 +20,5 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-add_python_module("pylada.enum" CPP __init__.py transforms.py _cutilities.pyx )
+add_python_module("pylada.enum" CPP __init__.py transforms.py _cutilities.pyx defects.py)
 # add_subdirectory(tests)
