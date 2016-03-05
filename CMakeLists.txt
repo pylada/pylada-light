@@ -66,24 +66,24 @@ add_subdirectory(crystal)
 add_subdirectory(python)
 add_subdirectory(physics)
 add_subdirectory(misc)
+add_subdirectory(tools)
+add_subdirectory(ewald)
+add_subdirectory(enum)
+add_subdirectory(config)
 
 # additional requirements for (at least) vasp
 # add_subdirectory(vasp)
-add_subdirectory(config)
-add_subdirectory(tools)
 # add_subdirectory(process)
 #
 # # enum is for defects
-add_subdirectory(enum)
-#
+# #
 # # Add documentation target: make documentation
 # include(sphinx)
 # with the above, ewald and jobfolder and ipython don't need anything else:
-add_subdirectory(ewald)
 # add_subdirectory(jobfolder)
 # add_subdirectory(ipython)
 #
-add_subdirectory(periodic_table)
+# add_subdirectory(periodic_table)
 
 #add_custom_target(doc
 #      COMMAND make html

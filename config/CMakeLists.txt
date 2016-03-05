@@ -24,7 +24,4 @@
 #  with PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-add_python_module("pylada.config"
-    escan.py general.py  ladabase.py  mpi.py  vasp.py ipython.py
-    dftcrystal.py deepcopy_rig.py patch_ordered_dict.py gulp.py
-)
+add_python_module("pylada.config" general.py  mpi.py  vasp.py ipython.py)
