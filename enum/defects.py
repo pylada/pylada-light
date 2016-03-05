@@ -24,10 +24,10 @@
 class Iterator(object):
 
   def __init__(self, size, *args):
-    super(Iterator, self).__init__()
-    self.others = args
-    self.size = size
-    self.reset()
+      super(Iterator, self).__init__()
+      self.others = args
+      self.size = size
+      self.reset()
 
   def __iter__(self):
       return self
@@ -74,17 +74,17 @@ class Iterator(object):
           # incrementing subiterators.
           if donext:
               try:
-                bitstring = iter.next()
+                  bitstring = iter.next()
               except StopIteration:
                   iter.reset()
                   try:
-                    bitstring = iter.next()
+                      bitstring = iter.next()
                   except StopIteration:
-                    raise internal('Cannot iterate over type {0}'.format(color))
+                      raise internal('Cannot iterate over type {0}'.format(color))
               else:
-                donext = False
+                  donext = False
           else:
-              bitstring = iter.yielded
+                bitstring = iter.yielded
           # change_color is True for those sites the current bitstring can access
           logical_and(cmask, mask, change_color)
           # now only those sites which are on in the relevant bitstring are true
@@ -106,7 +106,7 @@ def defects(lattice, cellsize, defects):
     """ Generates defects on a lattice """
     from numpy import zeros, dot, all
     from .transforms import Transforms
-    from .cppwrappers import _lexcompare, Manipulations
+    from ._cutilities import _lexcompare
     from . import hf_groups
 
     # sanity check
@@ -162,7 +162,7 @@ def defects(lattice, cellsize, defects):
         outgroup = set()
 
         # translation operators
-        translations = Manipulations(transforms.translations(hfgroup[0][0]))
+        translations = transforms.translations(hfgroup[0][0])
         # reset iterator
         xiterator.reset()
         for x in xiterator:
@@ -172,7 +172,8 @@ def defects(lattice, cellsize, defects):
 
             # check for supercell independent transforms.
             # loop over translational symmetries.
-            for t in translations(x):
+            for perms in translations:
+                t = x[perms]
                 # Translation may move the first guy out of position (and not replace
                 # with another guy). We can safely ignore those.
                 if all(t[firstmask] != firstcolor):
@@ -210,7 +211,8 @@ def defects(lattice, cellsize, defects):
                         outgroup.add(''.join(str(i) for i in t))
 
                     # loop over translational symmetries.
-                    for tt in translations(t):
+                    for tperms in translations:
+                        tt = t[tperms]
                         # rotations + translations may move the first guy out of
                         # position. We can ignore those translations.
                         if all(t[firstmask] != firstcolor):
