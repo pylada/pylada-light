@@ -21,4 +21,4 @@
 ###############################
 
 add_python_module("pylada.enum" CPP __init__.py transforms.py _cutilities.pyx defects.py)
-# add_subdirectory(tests)
+add_subdirectory(tests)
