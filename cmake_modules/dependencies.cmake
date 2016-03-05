@@ -1,13 +1,6 @@
 include(PackageLookup)
-lookup_package(Boost 1.33 REQUIRED)
 set(PYLADA_WITH_EIGEN3 1)
-lookup_package(Eigen3 REQUIRED
-    ARGUMENTS
-        # Default use hg. This should be more portable.
-        URL http://bitbucket.org/eigen/eigen/get/3.2.1.tar.gz
-        MD5 a0e0a32d62028218b1c1848ad7121476
-        TIMEOUT 60
-)
+lookup_package(Eigen3 REQUIRED)
 
 find_package(CoherentPython REQUIRED)
 include(PythonPackage)
@@ -42,8 +35,7 @@ create_environment_script(
 if(tests)
     include(PythonPackageLookup)
     add_to_python_path("${EXTERNAL_ROOT}/python")
-    lookup_python_package(nose)
-    lookup_python_package(nose_parameterized)
+    lookup_python_package(pytest)
     # Not required per se but usefull for testing process
     find_python_package(mpi4py)
     find_program(MPIEXEC NAMES mpiexec mpirun)

@@ -48,11 +48,9 @@ endif(tests)
 include(dependencies)
 
 include_directories("${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
-foreach(name Boost EIGEN3)
-    if(NOT "${${name}_INCLUDE_DIR}" STREQUAL "" AND ${name}_INCLUDE_DIR)
-        include_directories(${${name}_INCLUDE_DIR})
-    endif()
-endforeach()
+if(EIGEN3_INCLUDE_DIR)
+  include_directories(${EIGEN3_INCLUDE_DIR})
+endif()
 
 # Easily add python modules
 include(PythonModule)
@@ -66,8 +64,6 @@ endif()
 add_subdirectory(errors)
 add_subdirectory(crystal)
 add_subdirectory(python)
-# add_subdirectory(math)
-# add_subdirectory(errors)
 add_subdirectory(physics)
 add_subdirectory(misc)
 
