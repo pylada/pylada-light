@@ -23,5 +23,5 @@
 #include "FCMangle.h"
 
 #include <cmath>
-extern "C" double FC_GLOBAL_(boost_erfc, BOOST_ERFC)( const double *const _in )
+extern "C" double FC_GLOBAL_(std_erfc, STD_ERFC)( const double *const _in )
   { return std::erfc( *_in ); }
