@@ -19,7 +19,6 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-add_library(ewaldf90 STATIC ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
-add_python_module("pylada" CPP GLOB *.py ewald.pyx)
-target_link_libraries(pylada.ewald-cython ewaldf90)
+add_library(ewaldf90 OBJECT ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
+add_python_module("pylada" CPP GLOB *.py ewald.pyx OBJECTS $<TARGET_OBJECTS:ewaldf90>)
 add_subdirectory(tests)
