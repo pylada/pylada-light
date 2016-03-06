@@ -5,14 +5,6 @@ lookup_package(Eigen3 REQUIRED)
 find_package(CoherentPython REQUIRED)
 include(PythonPackage)
 include(PythonPackageLookup)
-find_python_package(numpy)
-find_python_package(quantities)
-# only needed for build. So can install it locally in build dir.
-lookup_python_package(cython)
-# Finds additional info, like libraries, include dirs...
-# no need check numpy features, it's all handled by cython.
-set(no_numpy_feature_tests TRUE)
-find_package(Numpy REQUIRED)
 
 # Create local python environment
 # If it exists, most cookoff functions will use LOCAL_PYTHON_EXECUTABLE rather
@@ -34,3 +26,12 @@ if(tests)
     find_python_package(mpi4py)
     find_program(MPIEXEC NAMES mpiexec mpirun)
 endif()
+
+find_python_package(numpy)
+find_python_package(quantities)
+# only needed for build. So can install it locally in build dir.
+lookup_python_package(cython)
+# Finds additional info, like libraries, include dirs...
+# no need check numpy features, it's all handled by cython.
+set(no_numpy_feature_tests TRUE)
+find_package(Numpy REQUIRED)

@@ -25,7 +25,7 @@
 
 add_library(third_order STATIC third_order.cc)
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-  set_target_properties(cutilities PROPERTIES COMPILE_FLAGS "-fPIC")
+  set_target_properties(third_order PROPERTIES COMPILE_FLAGS "-fPIC")
 endif()
 add_python_module("pylada.crystal.defects" CPP GLOB "*.py" cutilities.pyx)
 target_link_libraries(pylada.crystal.defects.cutilities-cython third_order)
