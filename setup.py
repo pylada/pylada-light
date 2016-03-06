@@ -41,6 +41,7 @@ class Build(dBuild):
             cmake_cache_line('nobins', 'TRUE', 'BOOL'),
             cmake_cache_line('PYTHON_EXECUTABLE', executable, 'PATH'),
             cmake_cache_line('PYTHON_BINARY_DIR', package_dir, 'PATH'),
+            cmake_cache_line('CMAKE_BUILD_TYPE', 'Release', 'STRING'),
             '\n',
         ]
 
@@ -191,9 +192,7 @@ try:
         name = "pylada",
         version = "1.0",
 
-        install_requires = ['numpy', 'scipy', 'nose', 'quantities',
-            'nose_parameterized'
-        ],
+        install_requires = ['numpy', 'scipy', 'pytest', 'quantities', 'cython'],
         platforms = ['GNU/Linux','Unix','Mac OS-X'],
 
         zip_safe = False,
