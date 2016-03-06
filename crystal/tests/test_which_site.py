@@ -19,7 +19,7 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-from nose_parameterized import parameterized
+from pytest import mark
 
 def get_a_b5_lattice(u):
     from pylada.crystal import Structure
@@ -40,7 +40,7 @@ def get_a_b5_lattice(u):
         .add_atom(    -y,    -x,    -y, "X") \
         .add_atom(    -y,    -y,    -x, "X") 
 
-@parameterized([(0.25,), (0.36,)])
+@mark.parametrize('u', (0.25, 0.36))
 def test_position_to_atomic_site_correspondence(u):
     from numpy import dot
     from numpy.random import randint
