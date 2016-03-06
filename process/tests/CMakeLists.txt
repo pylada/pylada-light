@@ -33,14 +33,15 @@ if(tests AND mpi4py_FOUND)
 
     if(MPIEXEC)
         add_test(pifunctional ${MPIEXEC} -n 4 ${fake_exec} --order 4)
-        set_tests_properties(pifunctional
-            PROPERTIES LABELS "python;mpi;process")
+        set_tests_properties(pifunctional PROPERTIES LABELS "python;mpi;process")
     endif()
 
-    add_pytest(functional.py test_call.py
+    add_pytest(functional.py fixtures.py test_call.py test_iterator.py test_program.py
         INSTALL PREFIX "pylada.process"
         LABELS process
+        FAKE_INIT
     )
+
     # add_nose_tests(test_pool.py test_jobfolder.py
     #     INSTALL "pylada.process.tests"
     #     LABELS process;jobfolder

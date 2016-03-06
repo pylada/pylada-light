@@ -22,21 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from pytest import fixture
-
-
-@fixture
-def executable():
-    from os.path import join, dirname
-    from pylada.process.tests.pifunctional import __file__ as executable
-    return join(dirname(executable), "pifunctional.py")
-
-
-@fixture
-def comm():
-    from pylada import default_comm
-    return default_comm.copy()
-
+from fixtures import executable, comm
 
 def test_process_functional(executable, comm, tmpdir):
     """ Tests CallProcess. Includes failure modes.  """
@@ -95,18 +81,16 @@ def test_fail_midway(executable, tmpdir, comm):
     from pylada.process import Fail
     from pylada.process.tests.functional import Functional
 
+    functional = Functional(executable, [50], fail='midway')
+    program = CallProcess(functional, outdir=str(tmpdir),
+                          stderr=str(tmpdir.join('error')), dompi=False)
     with raises(Fail):
-        functional = Functional(executable, [50], fail='midway')
-        program = CallProcess(functional, outdir=str(tmpdir),
-                              stderr=str(tmpdir.join('error')), dompi=False)
         program.start(comm)
         program.wait()
 
 
 def test_full_execution(executable, tmpdir, comm):
-    from pytest import raises
     from pylada.process.call import CallProcess
-    from pylada.process import Fail
     from pylada.process.tests.functional import Functional
     functional = Functional(executable, [50])
     program = CallProcess(functional, outdir=str(tmpdir), dompi=False)
