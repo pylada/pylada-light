@@ -52,9 +52,8 @@ if(EIGEN3_INCLUDE_DIR)
   include_directories(${EIGEN3_INCLUDE_DIR})
 endif()
 
-# Easily add python modules
+# Adds cmake function to create python modules
 include(PythonModule)
-# Easily add node tests
 if(tests)
   include(AddPyTest)
   setup_pytest("${EXTERNAL_ROOT}/python" "${PROJECT_BINARY_DIR}/py.test.sh")
@@ -73,7 +72,7 @@ add_subdirectory(config)
 
 # additional requirements for (at least) vasp
 # add_subdirectory(vasp)
-# add_subdirectory(process)
+add_subdirectory(process)
 #
 # # enum is for defects
 # #

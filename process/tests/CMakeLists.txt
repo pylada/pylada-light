@@ -37,19 +37,13 @@ if(tests AND mpi4py_FOUND)
             PROPERTIES LABELS "python;mpi;process")
     endif()
 
-    add_python_module("pylada.process.tests"
-        PYFILES functional.py 
-        INSTALL 
-        FAKE_INIT
-    )
-    add_nose_tests(test_*.py
-        EXCLUDE test_pool.py test_jobfolder.py
-        INSTALL "pylada.process.tests"
+    add_pytest(functional.py test_call.py
+        INSTALL PREFIX "pylada.process"
         LABELS process
     )
-    add_nose_tests(test_pool.py test_jobfolder.py
-        INSTALL "pylada.process.tests"
-        LABELS process;jobfolder
-    )
+    # add_nose_tests(test_pool.py test_jobfolder.py
+    #     INSTALL "pylada.process.tests"
+    #     LABELS process;jobfolder
+    # )
 
 endif()
