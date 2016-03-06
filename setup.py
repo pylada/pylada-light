@@ -219,7 +219,7 @@ try:
             'pylada.physics',
             # 'pylada.jobfolder', 'pylada.jobfolder.tests',
             'pylada.crystal', 'pylada.crystal.tests',
-            'pylada.crystal.defects', 'pylada.crystal.defects.tests',
+            'pylada.crystal.defects',
             'pylada.enum', 'pylada.enum.tests',
             'pylada.misc',
             'pylada.config',
