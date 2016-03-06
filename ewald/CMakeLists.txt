@@ -21,7 +21,7 @@
 ###############################
 add_library(ewaldf90 STATIC ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-  set_target_properties(cutilities PROPERTIES COMPILE_FLAGS "-fPIC")
+  set_target_properties(ewaldf90 PROPERTIES COMPILE_FLAGS "-fPIC")
 endif()
 add_python_module("pylada" CPP GLOB *.py ewald.pyx)
 target_link_libraries(pylada.ewald-cython ewaldf90)
