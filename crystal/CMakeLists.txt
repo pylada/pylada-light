@@ -24,9 +24,13 @@
 #  with PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-add_library(cutilities OBJECT smith_normal_form.cc gruber.cc noopt.cc)
+add_library(cutilities STATIC smith_normal_form.cc gruber.cc noopt.cc)
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  set_target_properties(cutilities PROPERTIES COMPILE_FLAGS "-fPIC")
+endif()
 add_python_module("pylada.crystal" CPP GLOB *.py cutilities.pyx _space_group.pyx _primitive.pyx
-  _coordination_shells.pyx _map_sites.pyx OBJECTS $<TARGET_OBJECTS:cutilities>)
+  _coordination_shells.pyx _map_sites.pyx)
+target_link_libraries(pylada.crystal.cutilities-cython cutilities)
 
 add_subdirectory(defects)
 add_subdirectory(tests)
