@@ -23,7 +23,7 @@
 def test_nelect():
   from collections import namedtuple
   from pickle import loads, dumps
-  from pylada.crystal.cppwrappers import Structure
+  from pylada.crystal import Structure
   from pylada.vasp.incar._params import ExtraElectron
 
   u = 0.25

@@ -60,7 +60,7 @@ def test_choices():
 
 def test_ediff():
   from pickle import loads, dumps
-  from pylada.crystal.cppwrappers import Structure, supercell
+  from pylada.crystal import Structure, supercell
   from pylada.vasp.incar._params import Ediff, Ediffg
 
   structure = Structure([[0,0.5,0.5],[0.5,0,0.5],[0.5,0.5,0]])\
@@ -94,7 +94,7 @@ def test_ediff():
 def test_encut(EncutClass):
   from pickle import loads, dumps
   from collections import namedtuple
-  from pylada.crystal.cppwrappers import Structure, supercell
+  from pylada.crystal import Structure, supercell
   from quantities import eV, hartree
 
   Vasp = namedtuple('Vasp', ['species'])

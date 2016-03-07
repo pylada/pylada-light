@@ -23,7 +23,7 @@
 def test_uparams():
   from collections import namedtuple
   from pickle import loads, dumps
-  from pylada.crystal.cppwrappers import Structure
+  from pylada.crystal import Structure
   from pylada.vasp.incar._params import UParams
   from pylada.vasp.specie import U, nlep
 

@@ -21,15 +21,9 @@
 ###############################
 
 if(tests)
-  
-    add_python_module("pylada.vasp.incar.tests"
-        FAKE_INIT
-        PYFILES restart_class.py
+    add_pytest(
+        GLOB restart_class.py test_*.py
+        INSTALL PREFIX "pylada.vasp.incar"
+        LABELS vasp;incar
     )
-    add_nose_tests(
-        test_*.py
-        INSTALL "pylada.vasp.incar.tests"
-        LABELS "vasp;incar"
-    )
-
 endif()

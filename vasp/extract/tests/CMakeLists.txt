@@ -25,15 +25,15 @@
 ###############################
 
 if(tests)
-
-    add_python_module("pylada.vasp.extract.tests.data" PYFILES "data/COMMON")
-
-    add_python_module("pylada.vasp.extract.tests" FAKE_INIT)
-    add_nose_tests(
-        test_*.py
-        INSTALL "pylada.vasp.extract.tests"
+    file(COPY data/COMMON
+          DESTINATION "${PYTHON_BINARY_DIR}/pylada/vasp/extract/tests/data")
+    install(FILES data/COMMON
+          DESTINATION "${PYTHON_PKG_DIR}/pylada/vasp/extract/tests/data/COMMON")
+    add_pytest(
+        GLOB test_*.py
+        INSTALL PREFIX "pylada.vasp.extract"
+        FAKE_INIT
         LABELS vasp;extract
     )
-  
 endif(tests)
 

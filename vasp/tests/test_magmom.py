@@ -22,7 +22,7 @@
 
 def test_magmom():
   from pickle import loads, dumps
-  from pylada.crystal.cppwrappers import Structure
+  from pylada.crystal import Structure
   from pylada.vasp import Vasp
 
   u = 0.25

@@ -21,7 +21,7 @@
 ###############################
 
 def test_system():
-  from pylada.crystal.cppwrappers import Structure
+  from pylada.crystal import Structure
   from pylada.vasp import Vasp
   a = Vasp()
   b = Structure()
