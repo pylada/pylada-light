@@ -76,12 +76,12 @@ class Communicator(dict):
     result.parent = ref(self)
     if len(self.machines) != 0:
       while result['n'] != nprocs:
-        key, value = self.machines.iteritems().next()
+        key, value = self.machines.items().next()
         if result['n'] + value > nprocs:
           result.machines[key] = nprocs - result['n']
           self.machines[key] = value - result.machines[key]
-          result['n'] = sum(result.machines.itervalues())
-          self['n'] = sum(self.machines.itervalues())
+          result['n'] = sum(result.machines.values())
+          self['n'] = sum(self.machines.values())
         else:
           result.machines[key] = value
           result['n'] += value
@@ -127,7 +127,7 @@ class Communicator(dict):
       comm = other.lend(n)
       self.acquire(comm)
       return
-    for key, value in other.machines.iteritems():
+    for key, value in other.machines.items():
       if key in self.machines: self.machines[key] += value
       else: self.machines[key] = value
     self['n'] += other['n']
@@ -158,7 +158,7 @@ class Communicator(dict):
     with NamedTemporaryFile(dir=RelativePath(dir).path, delete=False, prefix='pylada_comm') as file:
       if bugLev >= 5:
         print 'process/mpi.py: new nodefile: ', file.name
-      for machine, slots in self.machines.iteritems():
+      for machine, slots in self.machines.items():
         if slots == 0: continue
         ##file.write('{0} slots={1}\n'.format(machine, slots))
         file.write( machine)
@@ -181,7 +181,7 @@ class Communicator(dict):
     # return nodes to parent.
     parent = None if self.parent is None else self.parent()
     if parent is not None:
-      for key, value in self.machines.iteritems(): 
+      for key, value in self.machines.items(): 
         if key in parent.machines: parent.machines[key] += value
         else: parent.machines[key] = value
       parent['n'] += self['n']
@@ -277,7 +277,7 @@ def create_global_comm(nprocs, dir=None):
   # sanity check.
   if nprocs != len(processes):
     envstring = ''
-    for key, value in environ.iteritems():
+    for key, value in environ.items():
       envstring += '  {0} = {1!r}\n'.format(key, value)
     raise ConfigError( 'Pylada could not determine host machines.\n'             \
                        'Standard output reads as follows:\n{0}\n'              \

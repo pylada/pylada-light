@@ -186,7 +186,7 @@ class PoolProcess(JobFolderProcess):
     N = self._comm['n']
 
     # creates list of possible jobs.
-    availables = sorted( [(key, u) for key, u in self._alloc.iteritems() if u <= N],
+    availables = sorted( [(key, u) for key, u in self._alloc.items() if u <= N],
                          key=itemgetter(1) )
     if len(availables) == 0: return []
 
@@ -247,7 +247,7 @@ class PoolProcess(JobFolderProcess):
     if Process.start(self, comm): return True
 
     # check max job size.
-    toolarge = [key for key, u in self._alloc.iteritems() if u > comm['n']]
+    toolarge = [key for key, u in self._alloc.items() if u > comm['n']]
     if len(toolarge):
       raise MPISizeError( "The following jobs require too many processors:\n"\
                                 "{0}\n".format(toolarge) )
@@ -267,13 +267,13 @@ class PoolProcess(JobFolderProcess):
         Processes jobfolder from root, even if passed a child folder.
     """
     running = set([n for n in self.process])
-    for name, value in jobfolder.root.iteritems():
+    for name, value in jobfolder.root.items():
       if name in running: continue
       elif name not in self.jobfolder.root:
         newjob = self.jobfolder.root / name
         newjob.functional = value.functional
         newjob.params.update(value.params)
-        for key, value in value.__dict__.iteritems():
+        for key, value in value.__dict__.items():
           if key in ['children', 'params', '_functional', 'parent']: continue
           setattr(self, key, value)
         self._torun.add(name)
@@ -281,7 +281,7 @@ class PoolProcess(JobFolderProcess):
       elif name not in self._finished:
         self.jobfolder.root[name] = value
         self._alloc[name] = self.processalloc(self.jobfolder.root[name])
-    for name in self.jobfolder.root.iterkeys():
+    for name in self.jobfolder.root.keys():
       if name in self._finished and deleteold:
         del self.jobfolder.root[name]
         self._alloc.pop(name)

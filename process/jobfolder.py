@@ -103,7 +103,7 @@ class JobFolderProcess(Process):
     """ Set of finished runs. """
     self._torun = set()
     """ List of jobs to run. """
-    for name, job in self.jobfolder.iteritems():
+    for name, job in self.jobfolder.items():
       if not job.is_tagged: self._torun.add(name)
 
     self.errors = {}
@@ -296,18 +296,18 @@ class JobFolderProcess(Process):
         If ``deleteold`` is True, then removed finished jobs from job-folder.
     """
     running = set([n for n in self.process])
-    for name, value in jobfolder.root.iteritems():
+    for name, value in jobfolder.root.items():
       if value.is_tagged: continue
       if name in running: continue
       elif name not in self.jobfolder.root:
         newjob = self.jobfolder.root / name
         newjob.functional = value.functional
         newjob.params.update(value.params)
-        for key, value in value.__dict__.iteritems():
+        for key, value in value.__dict__.items():
           if key in ['children', 'params', '_functional', 'parent']: continue
           setattr(self, key, value)
         self._torun.add(name)
       elif name not in self._finished:
         self.jobfolder.root[name] = value
-    for name in self.jobfolder.root.iterkeys():
+    for name in self.jobfolder.root.keys():
       if name in self._finished and deleteold: del self.jobfolder.root[name]
