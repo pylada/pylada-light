@@ -210,7 +210,7 @@ try:
         ext_modules = [Extension(u, []) for u in [
             'pylada.crystal.cutilities',
             'pylada.crystal.defects.cutilities',
-            'pylada.enum._cutilities',
+            'pylada.decorations._cutilities',
             'pylada.ewald',
         ]],
         ext_package = 'pylada',
@@ -220,7 +220,7 @@ try:
             'pylada.jobfolder', 'pylada.jobfolder.tests',
             'pylada.crystal', 'pylada.crystal.tests',
             'pylada.crystal.defects',
-            'pylada.enum', 'pylada.enum.tests',
+            'pylada.decorations', 'pylada.decorations.tests',
             'pylada.misc',
             'pylada.config',
             'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',

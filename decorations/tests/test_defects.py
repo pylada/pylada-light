@@ -25,7 +25,7 @@ from pytest import mark
 def test_iterator():
     """ Test defect iterator. """
     from numpy import ones, logical_not
-    from pylada.enum.defects import Iterator
+    from pylada.decorations.defects import Iterator
 
     size = 8
     mask = ones(size, dtype='bool')
@@ -70,7 +70,7 @@ def test_iterator():
 @mark.skipif(True, reason="Not really a test")
 def test_defects():
     from pylada.crystal.bravais import fcc
-    from pylada.enum.defects import defects
+    from pylada.decorations.defects import defects
     lattice = fcc()
     lattice[0].type = 'Zr', 'Ti'
     lattice.add_atom(0.25, 0.25, 0.25, 'O', 'A')

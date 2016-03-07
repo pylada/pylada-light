@@ -22,7 +22,7 @@
 
 
 def test_nosyms_supercells():
-    from pylada.enum import supercells
+    from pylada.decorations import supercells
     from pylada.crystal import Structure
 
     lattice = Structure([[1.0, 0.2, 0], [0, 0.9, -0.1], [0, 0, 0.8]]) \
@@ -36,7 +36,7 @@ def test_nosyms_supercells():
 
 def test_fcc_supercells():
     from pylada.crystal.bravais import fcc
-    from pylada.enum import supercells
+    from pylada.decorations import supercells
 
     lattice = fcc()
     scs = supercells(lattice, range(11))
@@ -46,7 +46,7 @@ def test_fcc_supercells():
 
 def test_hfgroups():
     from pylada.crystal.bravais import fcc
-    from pylada.enum import hf_groups
+    from pylada.decorations import hf_groups
 
     # First, a lattice without symmetry
     lattice = fcc()

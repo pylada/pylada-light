@@ -46,7 +46,7 @@ def get_many_cells(n):
 def test_translations(cell):
     from numpy import abs, all
     from pylada.crystal import binary, supercell, HFTransform
-    from pylada.enum import Transforms
+    from pylada.decorations import Transforms
 
     lattice = binary.zinc_blende()
     lattice[0].type = ['Si', 'Ge']
@@ -102,7 +102,7 @@ def test_rotations(cell):
     from numpy.linalg import inv
     from pylada.crystal import binary, supercell, HFTransform, space_group,        \
         which_site
-    from pylada.enum import Transforms
+    from pylada.decorations import Transforms
 
     lattice = binary.zinc_blende()
     lattice[0].type = ['Si', 'Ge']
@@ -141,7 +141,7 @@ def test_multilattice(cell):
     from numpy import all, dot, zeros
     from numpy.linalg import inv
     from pylada.crystal import binary, supercell, HFTransform, space_group, which_site
-    from pylada.enum import Transforms
+    from pylada.decorations import Transforms
 
     lattice = binary.zinc_blende()
     lattice[0].type = ['Si', 'Ge']
@@ -178,7 +178,7 @@ def test_multilattice(cell):
 def test_zinc_blende_lattice():
     from numpy import all
     from pylada.crystal import binary
-    from pylada.enum import Transforms
+    from pylada.decorations import Transforms
 
     lattice = binary.zinc_blende()
     lattice[0].type = ['Si', 'Ge']
@@ -200,7 +200,7 @@ def test_zinc_blende_lattice():
 def test_zinc_blende_lattice_diff_occupations():
     from numpy import all
     from pylada.crystal import binary
-    from pylada.enum import Transforms
+    from pylada.decorations import Transforms
 
     lattice = binary.zinc_blende()
     lattice[0].type = ['Si', 'Ge']
@@ -221,7 +221,7 @@ def test_zinc_blende_lattice_diff_occupations():
 def test_spinel():
     from numpy import all
     from pylada.crystal import A2BX4
-    from pylada.enum import Transforms
+    from pylada.decorations import Transforms
     lattice = A2BX4.b5()
     for atom in lattice:
         if atom.type in ['A', 'B']:
@@ -243,7 +243,7 @@ def test_spinel():
 def test_inverse_spinel():
     from numpy import all
     from pylada.crystal import A2BX4
-    from pylada.enum import Transforms
+    from pylada.decorations import Transforms
     lattice = A2BX4.b5()
     for atom in lattice:
         if atom.type in ['A', 'B']:
@@ -273,7 +273,7 @@ def test_toarray():
     from random import choice
     from numpy import all, zeros
     from pylada.crystal import binary, supercell, HFTransform
-    from pylada.enum import Transforms
+    from pylada.decorations import Transforms
 
     lattice = binary.zinc_blende()
     lattice[0].type = ['Si', 'Ge']
@@ -297,7 +297,7 @@ def test_toarray():
 def test_labelexchange():
     """ Tests label exchange """
     from pylada.crystal import binary, supercell, HFTransform
-    from pylada.enum import Transforms
+    from pylada.decorations import Transforms
 
     lattice = binary.zinc_blende()
     lattice[0].type = ['Si', 'Ge']
