@@ -23,7 +23,13 @@
 if(tests AND mpi4py_FOUND)
 
     # Add fake executable to tests
-    configure_file(pifunctional.in.py "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py")
+    # In order to setup the right permission, we configure to one place then copy it to the next.
+    configure_file(pifunctional.in.py
+        "${CMAKE_CURRENT_BINARY_DIR}/pifunctional.py")
+    file(COPY  "${CMAKE_CURRENT_BINARY_DIR}/pifunctional.py"
+        DESTINATION "${PYTHON_BINARY_DIR}/pylada/process/tests"
+        FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+    )
     install(FILES "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py"
       PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
       DESTINATION "${PYTHON_PKG_DIR}/pylada/process/tests"
