@@ -3,14 +3,14 @@
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
 #
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
+#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to
+#  submit large numbers of jobs on supercomputers. It provides a python interface to physical input,
+#  such as crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential
+#  programs. It is able to organise and launch computational jobs on PBS and SLURM.
 #
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
+#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU
+#  General Public License as published by the Free Software Foundation, either version 3 of the
+#  License, or (at your option) any later version.
 #
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
@@ -88,7 +88,7 @@ class JobParams(AbstractMassExtract):
         both. Effectively checks wether a folder is tagged or not. Calculations which 
     """
     result = {}
-    for name, job in self.iteritems():
+    for name, job in self.items():
       result[name] = "off" if job.is_tagged else "on"
     if self.naked_end and len(result) == 1:
       return result[result.keys()[0]]
@@ -101,8 +101,8 @@ class JobParams(AbstractMassExtract):
         Whereas other properties only report untagged jobs, this will report
         both.
     """
-    if hasattr(value, 'iteritems'):
-      for key, value in value.iteritems():
+    if hasattr(value, 'items'):
+      for key, value in value.items():
         try:
           job = self[key]
         except:
@@ -110,10 +110,10 @@ class JobParams(AbstractMassExtract):
         else:
           job.onoff = value
     elif value == "on" or value == True:
-      for name, job in self.iteritems():
+      for name, job in self.items():
         job.untag()
     elif value == "off" or value == False:
-      for name, job in self.iteritems():
+      for name, job in self.items():
         job.tag()
 
   @property
@@ -121,7 +121,7 @@ class JobParams(AbstractMassExtract):
     """ Returns dictionary of extrators. """
     from .forwarding_dict import ForwardingDict
     result = self.dicttype()
-    for k, j in self.iteritems():
+    for k, j in self.items():
       result[k] = j
     if self.naked_end and len(result) == 1:
       return result[result.keys()[0]]
@@ -130,14 +130,14 @@ class JobParams(AbstractMassExtract):
 
   def __iter_alljobs__(self):
     """ Loops through all executable folders. """
-    for name, job in self.jobfolder.iteritems():
+    for name, job in self.jobfolder.items():
       yield job.name, job
 
   def __getattr__(self, name):
     """ Returns extracted values. """
     from .forwarding_dict import ForwardingDict
     result = self.dicttype()
-    for key, value in self.iteritems():
+    for key, value in self.items():
       if value.is_tagged:
         continue
       try:
@@ -171,7 +171,7 @@ class JobParams(AbstractMassExtract):
       return
 
     found = False
-    for jobname, job in self.iteritems():
+    for jobname, job in self.items():
       if job.is_tagged:
         continue
       if hasattr(job, name):
@@ -194,7 +194,7 @@ class JobParams(AbstractMassExtract):
       return
 
     found = False
-    for jobname, job in self.iteritems():
+    for jobname, job in self.items():
       if job.is_tagged:
         continue
       if hasattr(job, name):
@@ -208,7 +208,7 @@ class JobParams(AbstractMassExtract):
   def _attributes(self):
     """ Attributes which already exist. """
     result = set()
-    for name, job in self.iteritems():
+    for name, job in self.items():
       if not job.is_tagged:
         result |= set([u for u in dir(job) if u[0] != '_'])
     return result

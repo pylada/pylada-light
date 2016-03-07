@@ -101,9 +101,6 @@ except ImportError:
       pop = DictMixin.pop
       values = DictMixin.values
       items = DictMixin.items
-      iterkeys = DictMixin.iterkeys
-      itervalues = DictMixin.itervalues
-      iteritems = DictMixin.iteritems
 
       def __repr__(self):
           if not self:

@@ -90,7 +90,7 @@ class ForwardingDict(MutableMapping):
 
     result = set()
     attrs = len(self._attr_list) > 0
-    for value in self.dictionary.itervalues():
+    for value in self.dictionary.values():
       if attrs:
         value = reduce(getattr, chain([value], self._attr_list))
       result |= set(dir(value))
@@ -107,7 +107,7 @@ class ForwardingDict(MutableMapping):
                            .format(name, self.__class__.__name__))
     attrs = len(self._attr_list) > 0
     result = self.copy(append=name)
-    for key, value in self.dictionary.iteritems():
+    for key, value in self.dictionary.items():
       if attrs:
         value = reduce(getattr, chain([value], self._attr_list))
       if not hasattr(value, name):
@@ -264,7 +264,7 @@ class ForwardingDict(MutableMapping):
                        "a keyword and as ``append`` simultaneously.")
     if 'dictionary' in kwargs:
       result.dictionary = kwargs.pop('dictionary').copy()
-    for key, value in kwargs.iteritems():
+    for key, value in kwargs.items():
       super(ForwardingDict, result).__setattr__(key, value)
 
     if append is not None:
@@ -281,7 +281,7 @@ class ForwardingDict(MutableMapping):
       return "{{'{0}': {1}}}".format(self.keys()[0], repr(self.values()[0]))
     string = "{\n"
     m = max(len(k) for k in self.keys())
-    for k, v in self.iteritems():
+    for k, v in self.items():
       string += "  '{0}': {2}{1},\n".format(k, repr(v), "".join(" " for i in range(m - len(k))))
     return string + "}"
 

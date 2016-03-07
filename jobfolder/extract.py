@@ -29,7 +29,7 @@ from abc import ABCMeta, abstractmethod
 
 class AbstractMassExtract(object):
   """ Collects extraction methods from different job-folders. 
-  
+
       Wraps around a root job folder and provides means to access it (or
       something related to it). In practice, a derived class will hold a list
       of *somethings* which does something good for a particular folder. This
@@ -39,7 +39,7 @@ class AbstractMassExtract(object):
       folders. The attributes of the wrapped *somethings* of the current view
       are retrieved into a :py:class:`forwarding dict
       <pylada.jobfolder.forwardingdict.ForwardingDict`. 
-      
+
       The :py:meth:`__iter_alljobs__` method should be implemented within
       derived classes. It should yield for each executable folder a tuple
       consisting of the name of that folder and the relevant *something*.
@@ -159,37 +159,25 @@ class AbstractMassExtract(object):
       result.excludes.extend(self.excludes)
     return result
 
-  def iteritems(self):
-    """ Iterates through all extraction objects and names. """
-    for name, job in self._regex_extractors():
-      yield name, job
-
   def items(self):
     """ Iterates through all extraction objects and names. """
-    return [(name, job) for name, job in self.iteritems()]
-
-  def itervalues(self):
-    """ Iterates through all extraction objects. """
     for name, job in self._regex_extractors():
-      yield job
+        yield name, job
 
   def values(self):
     """ Iterates through all extraction objects. """
-    return [job for job in self.itervalues()]
-
-  def iterkeys(self):
-    """ Iterates through all extraction objects. """
     for name, job in self._regex_extractors():
-      yield name
+        yield job
 
   def keys(self):
     """ Iterates through all extraction objects. """
-    return [name for name in self.iterkeys()]
+    for name, job in self._regex_extractors():
+        yield name
 
   def __iter__(self):
     """ Iterates through all job names. """
-    for name, job in self.iteritems():
-      yield name
+    for name, job in self.items():
+        yield name
 
   def __len__(self):
     """ Returns length of output dictionary. """
@@ -199,7 +187,7 @@ class AbstractMassExtract(object):
     """ Returns True if key is valid and not empty. """
     from re import compile
     rekey = compile(key)
-    for key in self.iterkeys():
+    for key in self.keys():
       if rekey.match(key):
         return True
     return False
@@ -219,7 +207,7 @@ class AbstractMassExtract(object):
   @abstractmethod
   def __iter_alljobs__(self):
     """ Generator to go through all relevant jobs. 
-    
+
         :return: (name, extractor), where name is the name of the job, and
           extractor an extraction object.
     """
@@ -251,7 +239,7 @@ class AbstractMassExtract(object):
     if self.excludes is not None:
       excludes = [self._regex_pattern(u) for u in self.excludes]
     if self.view == "/":
-      for key, value in self._extractors.iteritems():
+      for key, value in self._extractors.items():
         if self.excludes is not None                                           \
            and any(u.match(key) is not None for u in excludes):
           continue
@@ -259,7 +247,7 @@ class AbstractMassExtract(object):
       return
 
     regex = self._regex_pattern(self.view)
-    for key, value in self._extractors.iteritems():
+    for key, value in self._extractors.items():
       if regex.match(key) is None:
         continue
       if self.excludes is not None                                             \
@@ -271,7 +259,7 @@ class AbstractMassExtract(object):
   def _attributes(self):
     """ Returns __dir__ special to the extraction itself. """
     results = set([])
-    for key, value in self.iteritems():
+    for key, value in self.items():
       results |= set([u for u in dir(value) if u[0] != '_'])
     return results
 
@@ -289,7 +277,7 @@ class AbstractMassExtract(object):
         raise AttributeError("Unknown attribute {0}.".format(name))
 
     result = self.dicttype()
-    for key, value in self.iteritems():
+    for key, value in self.items():
       try:
         result[key] = getattr(value, name)
       except:
@@ -300,7 +288,7 @@ class AbstractMassExtract(object):
 
   def __getitem__(self, name):
     """ Returns a view of the current job-dictionary.
-    
+
         .. note:: normpath_ returns a valid path when descending below
            root, e.g.``normpath('/../../other') == '/other'), so there won't be
            any errors on that account.
@@ -333,25 +321,28 @@ class AbstractMassExtract(object):
 
   def shallow_copy(self, **kwargs):
     """ Returns a shallow copy. 
-    
+
         :param kwargs:  Any keyword attribute will modify the corresponding
           attribute of the copy.
     """
     from copy import copy
     result = copy(self)
-    for key, value in kwargs.iteritems():
+    for key, value in kwargs.items():
       setattr(result, key, value)
     return result
 
-  def iterfiles(self, **kwargs):
-    """ Iterates over output/input files. 
+  def files(self, **kwargs):
+      """ Iterates over output/input files. 
 
-        This is rerouted to all extraction objects.
-    """
-    for job in self.itervalues():
-      if hasattr(job, 'iterfiles'):
-        for file in job.iterfiles(**kwargs):
-          yield file
+          This is rerouted to all extraction objects.
+      """
+      for job in self.values():
+        if hasattr(job, 'files'):
+            for file in job.files(**kwargs):
+                yield file
+        elif hasattr(job, 'iterfiles'):
+            for file in job.files(**kwargs):
+                yield file
 
   def __getstate__(self):
     d = self.__dict__.copy()

@@ -102,7 +102,7 @@ class JobFolder(object):
      if self.parent is None:
        return "/"
      string = None
-     for key, item in self.parent.children.iteritems():
+     for key, item in self.parent.children.items():
        if id(item) == id(self):
          string = self.parent.name + key
          break
@@ -119,7 +119,7 @@ class JobFolder(object):
   def untagged_folders(self):
     """ Returns a string with only untagged folders. """
     result = "Folders: \n"
-    for name, folder in self.iteritems():
+    for name, folder in self.items():
       if not folder.is_tagged:
         result += "  " + name + "\n"
     return result
@@ -137,7 +137,7 @@ class JobFolder(object):
   @property
   def nbfolders(self):
     """ Returns the number of folders in sub-tree. """
-    return len([0 for j, o in self.iteritems()])
+    return len([0 for j, o in self.items()])
 
   @property
   def root(self):
@@ -269,7 +269,7 @@ class JobFolder(object):
 
   def subfolders(self):
     """ Sorted keys of the folders directly under this one. """
-    return sorted(self.children.iterkeys())
+    return sorted(self.children.keys())
 
   def compute(self, **kwargs):
     """ Executes the functional in this particular folder.
@@ -328,7 +328,7 @@ class JobFolder(object):
         ``self``.  if items in ``other`` are found in ``self``, unless merge is
         set to true. This function is recurrent: subfolders are also updated.
     """
-    for key, value in other.children.iteritems():
+    for key, value in other.children.items():
       if key in self:
         self[key].update(value)
       else:
@@ -348,7 +348,7 @@ class JobFolder(object):
 
   def __str__(self):
     result = "Folders: \n"
-    for name in self.iterkeys():
+    for name in self.keys():
       result += "  " + name + "\n"
     return result
 
@@ -401,7 +401,7 @@ class JobFolder(object):
     from itertools import chain
     result = chain([u for u in self.__dict__ if u[0] != '_'],
                    [u for u in dir(self.__class__) if u[0] != '_'],
-                   [u for u in self.params.iterkeys() if u[0] != '_'])
+                   [u for u in self.params.keys() if u[0] != '_'])
     return list(set(result))
 
   def __getstate__(self):
@@ -413,7 +413,7 @@ class JobFolder(object):
     super(JobFolder, self).__setattr__("params", args[1])
     d = self.__dict__.update(args[0])
 
-  def iteritems(self, prefix=''):
+  def items(self, prefix=''):
     """ Iterates over executable sub-folders.
 
         Iterates over all executable subfolders. A subfolder is executable if it
@@ -435,7 +435,7 @@ class JobFolder(object):
       yield prefix, self
     # Walk throught children folderdict.
     for name in self.subfolders():
-      for u in self[name].iteritems(join(prefix, name)):
+      for u in self[name].items(join(prefix, name)):
         yield u
 
   def iterleaves(self):
@@ -448,28 +448,17 @@ class JobFolder(object):
       for u in self[name].iterleaves():
         yield u
 
-  def itervalues(self):
+  def values(self):
     """ Iterates over all executable sub-folders. """
-    for name, folder in self.iteritems():
+    for name, folder in self.items():
       yield folder
 
-  def iterkeys(self):
+  def keys(self):
     """ Iterates over names of all executable subfolders. """
-    for name, folder in self.iteritems():
+    for name, folder in self.items():
       yield name
 
-  def values(self):
-    """ List of all executable sub-folders. """
-    return [u for u in self.itervalues()]
-
-  def keys(self):
-    """ List of names of all executable sub-folders. """
-    return [u for u in self.iterkeys()]
-
-  def items(self):
-    """ List of all folders. """
-    return [u for u in self.iteritems()]
-  __iter__ = iterkeys
+  __iter__ = keys
   """ Iterator over keys. """
 
   def __contains__(self, index):

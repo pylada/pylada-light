@@ -91,7 +91,7 @@ class MassExtract(AbstractMassExtract):
     """
     from os.path import join, dirname
     
-    for name, job in self.jobfolder.iteritems():
+    for name, job in self.jobfolder.items():
       if job.is_tagged: continue
       try: extract = job.functional.Extract(join(dirname(self.rootpath), name))
       except: pass 
