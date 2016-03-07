@@ -23,5 +23,5 @@
 #  You should have received a copy of the GNU General Public License along
 #  with PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-add_python_module("pylada.periodic_table" GLOB "*.py")
+add_python_module("pylada.periodic_table" GLOB *.py)
 

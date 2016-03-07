@@ -26,7 +26,7 @@
 
 if(tests)
 
-  add_pytest(GLOB dummy.py test_*.py
+  add_pytest(dummy.py test_*.py
       INSTALL PREFIX "pylada.jobfolder"
       LABELS jobfolder
       FAKE_INIT
