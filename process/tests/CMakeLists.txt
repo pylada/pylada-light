@@ -48,9 +48,9 @@ if(tests AND mpi4py_FOUND)
         FAKE_INIT
     )
 
-    # add_nose_tests(test_pool.py test_jobfolder.py
-    #     INSTALL "pylada.process.tests"
-    #     LABELS process;jobfolder
-    # )
+    add_pytest(test_pool.py test_jobfolder.py
+        INSTALL PREFIX "pylada.process"
+        LABELS process;jobfolder
+    )
 
 endif()

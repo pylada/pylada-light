@@ -461,6 +461,13 @@ class JobFolder(object):
   __iter__ = keys
   """ Iterator over keys. """
 
+  def __len__(self):
+      """ Number of executable jobs in jobfolder """
+      for i, u in enumerate(self.items()):
+          pass
+      return i + 1
+
+
   def __contains__(self, index):
     """ Returns true if index a branch in the folder folders. """
     from re import split

@@ -239,7 +239,7 @@ class AbstractMassExtract(object):
     if self.excludes is not None:
       excludes = [self._regex_pattern(u) for u in self.excludes]
     if self.view == "/":
-      for key, value in self._extractors.items():
+      for key, value in AbstractMassExtract._extractors.__get__(self).items():
         if self.excludes is not None                                           \
            and any(u.match(key) is not None for u in excludes):
           continue
@@ -273,7 +273,7 @@ class AbstractMassExtract(object):
   def __getattr__(self, name):
     """ Returns extracted values. """
     from .forwarding_dict import ForwardingDict
-    if name not in self._attributes:
+    if name not in AbstractMassExtract._attributes.__get__(self):
         raise AttributeError("Unknown attribute {0}.".format(name))
 
     result = self.dicttype()

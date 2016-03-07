@@ -36,6 +36,18 @@ def executable():
 @fixture
 def comm():
     from pylada import default_comm
-    return default_comm.copy()
+    result = default_comm.copy()
+    result['n'] = 4
+    return result
 
 
+def jobfolders(executable, start=0, end=8):
+    from pylada.process.tests.functional import Functional
+    from pylada.jobfolder.jobfolder import JobFolder
+    root = JobFolder()
+    for n in range(start, end):
+        job = root / str(n)
+        job.functional = Functional(executable, [n])
+        job.params['sleep'] = 0.01
+
+    return root

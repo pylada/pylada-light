@@ -137,4 +137,4 @@ def test_deepcopy(root):
     from copy import deepcopy
     jobfolder = deepcopy(root)
     for subfolder in root.values():
-         assert subfolder.name in jobfolder
+        assert subfolder.name in jobfolder
