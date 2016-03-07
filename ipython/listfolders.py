@@ -28,14 +28,14 @@ def listfolders(self, arg):
   if interactive.jobfolder is None: return
   if len(arg) == 0:
     string = ''
-    for i, name in enumerate(interactive.jobfolder.children.iterkeys()):
+    for i, name in enumerate(interactive.jobfolder.children.keys()):
       string += name + '  '
       if (i+1) % 6 == 0: string += '\n'
     print string if len(string) != 0 else "No sub-folders."
     return
   elif 'all' in arg.split():
     current = JobParams(jobfolder=interactive.jobfolder)[interactive.jobfolder.name]
-    for job in current.jobfolder.root.itervalues():
+    for job in current.jobfolder.root.values():
       if job.is_tagged: continue
       print job.name
     return

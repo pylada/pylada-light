@@ -122,7 +122,7 @@ def explore(self, cmdl):
       print "No known path/file for current job-folder.\n"\
             "Please save to file first."
       return
-    for name, job in interactive.jobfolder.iteritems():
+    for name, job in interactive.jobfolder.items():
       if job.is_tagged: continue
       directory = join(dirname(interactive.jobfolder_path), name)
       extract = job.functional.Extract(directory)
@@ -151,7 +151,7 @@ def explore(self, cmdl):
             "Please save to file first."
       return
     directory = dirname(interactive.jobfolder_path)
-    for name, job in interactive.jobfolder.iteritems():
+    for name, job in interactive.jobfolder.items():
       if not job.functional.Extract(join(directory,name)).success: job.tag()
       else: job.untag()
 
@@ -161,7 +161,7 @@ def explore(self, cmdl):
       print "No known path/file for current job-folder.\n"\
             "Please save to file first."
       return
-    for name, job in interactive.jobfolder.iteritems():
+    for name, job in interactive.jobfolder.items():
       directory = join(dirname(interactive.jobfolder_path), name)
       extract = job.functional.Extract(directory)
       is_run = getattr(extract, 'is_running', False)
@@ -190,7 +190,7 @@ def explore(self, cmdl):
   # All jobs without restriction.
   elif args.type == "all": 
     if interactive.jobfolder_path is None: return
-    for job in interactive.jobfolder.itervalues(): job.untag()
+    for job in interactive.jobfolder.values(): job.untag()
 
 def _explore_impl(self, args):
   """ Tries to open job-dictionary. """
@@ -278,7 +278,7 @@ def completer(self, event):
   if len(data) == 0: data = [''] 
   elif event.line[-1] == ' ': data.append('')
   if not has_file:
-    results.extend( name for name, u in self.user_ns.iteritems()               \
+    results.extend( name for name, u in self.user_ns.items()                   \
                     if isinstance(u, JobFolder)                                \
                        and name[0] != '_'                                      \
                        and name not in data )

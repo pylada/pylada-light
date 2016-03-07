@@ -213,6 +213,6 @@ def completer(self, event):
         if len(known) > index + 1: known.pop(index+1)
       result.extend(keys - set(known))
   else:
-    result.extend([u for u in self.api.user_ns.iterkeys() if u[0] != '_'])
+    result.extend([u for u in self.api.user_ns.keys() if u[0] != '_'])
   return result
 

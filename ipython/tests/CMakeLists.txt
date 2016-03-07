@@ -25,7 +25,7 @@ if(tests)
     add_python_module("pylada.ipython.tests"
         INSTALL
         FAKE_INIT
-        PYFILES *.py
+        GLOB *.py
     )
     foreach(testname explore goto)
         add_test(NAME ${testname}

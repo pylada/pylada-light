@@ -223,7 +223,7 @@ try:
             'pylada.enum', 'pylada.enum.tests',
             'pylada.misc',
             'pylada.config',
-            # 'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
+            'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
             'pylada.ewald.tests',
             'pylada.process', 'pylada.process.tests',
             # 'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',

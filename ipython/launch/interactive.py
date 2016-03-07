@@ -54,7 +54,7 @@ def launch(self, event, jobfolders):
 
   for current, path in jobfolders:
     # start computations.
-    for job in current.itervalues(): 
+    for job in current.values(): 
       name = str(job.name)
       if name[0] == '/': name = name[1:]
       if hasattr(job.functional, 'Extract') and not event.force: 

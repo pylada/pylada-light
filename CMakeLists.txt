@@ -74,7 +74,7 @@ add_subdirectory(config)
 # add_subdirectory(vasp)
 add_subdirectory(process)
 add_subdirectory(jobfolder)
-# add_subdirectory(ipython)
+add_subdirectory(ipython)
 #
 # # Add documentation target: make documentation
 # include(sphinx)

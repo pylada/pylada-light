@@ -96,7 +96,7 @@ def test(shell):
 
     shell.magic("explore results".format(directory))
     assert set(['/this/0/', '/that/1/', '/that/2/']) \
-            == set(shell.user_ns['collect'].iterkeys())
+            == set(shell.user_ns['collect'].keys())
     shell.magic("explore errors".format(directory))
     assert len(shell.user_ns['collect']) == 0
     shell.magic("explore all".format(directory))
