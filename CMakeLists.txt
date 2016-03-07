@@ -83,14 +83,3 @@ add_subdirectory(ipython)
 #add_custom_target(doc
 #      COMMAND make html
 #      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx-doc)
-
-
-message (STATUS ${PROJECT_SOURCE_DIR})
-message (STATUS ${PROJECT_BINARY_DIR})
-# Create general configuration file for C stuff
-configure_file (
- "${PROJECT_SOURCE_DIR}/PyladaConfig.h.in"
- "${PROJECT_BINARY_DIR}/PyladaConfig.h"
-)
-
-
