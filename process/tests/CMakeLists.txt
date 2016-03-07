@@ -23,14 +23,11 @@
 if(tests AND mpi4py_FOUND)
 
     # Add fake executable to tests
-    configure_file(pifunctional.in.py
-        "${CMAKE_CURRENT_BINARY_DIR}/pifunctional.py")
-    file(COPY  "${CMAKE_CURRENT_BINARY_DIR}/pifunctional.py"
-        DESTINATION "${PYTHON_BINARY_DIR}/pylada/process/tests"
-        FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+    configure_file(pifunctional.in.py "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py")
+    install(FILES "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py"
+      PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+      DESTINATION "${PYTHON_PKG_DIR}/pylada/process/tests/pifunctional.py"
     )
-    install_python(FILES "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py"
-      DESTINATION pylada/process/tests)
     set(fake_exec "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py")
 
     if(MPIEXEC)
@@ -38,7 +35,8 @@ if(tests AND mpi4py_FOUND)
         set_tests_properties(pifunctional PROPERTIES LABELS "python;mpi;process")
     endif()
 
-    add_pytest(functional.py fixtures.py test_call.py test_iterator.py test_program.py
+    add_pytest(
+        functional.py fixtures.py test_call.py test_iterator.py test_program.py
         LABELS process
         INSTALL PREFIX "pylada.process"
         FAKE_INIT
