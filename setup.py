@@ -217,7 +217,7 @@ try:
         packages = [
             'pylada',
             'pylada.physics',
-            # 'pylada.jobfolder', 'pylada.jobfolder.tests',
+            'pylada.jobfolder', 'pylada.jobfolder.tests',
             'pylada.crystal', 'pylada.crystal.tests',
             'pylada.crystal.defects',
             'pylada.enum', 'pylada.enum.tests',
