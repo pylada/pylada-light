@@ -40,9 +40,9 @@ if(tests AND mpi4py_FOUND)
 
     add_pytest(functional.py fixtures.py test_call.py test_iterator.py test_program.py
         LABELS process
+        INSTALL PREFIX "pylada.process"
+        FAKE_INIT
     )
-    install_python(FILES functional.py fixtures.py test_call.py test_iterator.py test_program.py
-      DESTINATION pylada/process/tests)
 
     # add_nose_tests(test_pool.py test_jobfolder.py
     #     INSTALL "pylada.process.tests"
