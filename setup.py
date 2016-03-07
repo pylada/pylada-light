@@ -192,7 +192,7 @@ try:
         name = "pylada",
         version = "1.0",
 
-        install_requires = ['numpy', 'scipy', 'pytest', 'quantities', 'cython'],
+        install_requires = ['numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py'],
         platforms = ['GNU/Linux','Unix','Mac OS-X'],
 
         zip_safe = False,
