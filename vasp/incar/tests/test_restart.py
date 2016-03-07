@@ -20,9 +20,9 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 from pylada.vasp.incar._params import Restart, PartialRestart
-from nose_parameterized import parameterized
+from pytest import mark
 
-@parameterized([(PartialRestart, False), (Restart, True)])
+@mark.parametrize('Class, withposcar', [(PartialRestart, False), (Restart, True)])
 def test(Class, withposcar):
   from pickle import loads, dumps
   from os import chdir, getcwd, remove

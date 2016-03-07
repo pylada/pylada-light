@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 from pylada.vasp.incar._params import Encut, EncutGW
-from nose_parameterized import parameterized
+from pytest import mark
 
 def test_choices():
   from pickle import loads, dumps
@@ -90,7 +90,7 @@ def test_ediff():
   assert a[0] == 'EDIFFG' and a[1] == '=' and abs(float(a[2]) + 1e-4) < 1e-8
 
 
-@parameterized([(Encut,), (EncutGW,)])
+@mark.parametrize('EncutClass', (Encut, EncutGW))
 def test_encut(EncutClass):
   from pickle import loads, dumps
   from collections import namedtuple
