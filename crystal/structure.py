@@ -80,7 +80,7 @@ class Structure(MutableSequence):
             self._cell = cell
 
     @property
-    def scale(self, scale):
+    def scale(self):
         """ Scale factor of this structure
 
             Should be a number or unit given by the python package `quantities
@@ -88,6 +88,10 @@ class Structure(MutableSequence):
             number, then the current units are kept. Otherwise, it changes the
             units.
         """
+        return self._scale
+
+    @scale.setter
+    def scale(self, scale):
         if hasattr(scale, 'units'):
             self._scale = scale
         elif hasattr(self._scale, 'units'):
@@ -95,9 +99,6 @@ class Structure(MutableSequence):
         else:
             self._scale = scale
 
-    @scale.getter
-    def scale(self):
-        return self._scale
 
     def __iter__(self):
         """ Iterates over atoms """
