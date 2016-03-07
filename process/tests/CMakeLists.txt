@@ -26,7 +26,7 @@ if(tests AND mpi4py_FOUND)
     configure_file(pifunctional.in.py "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py")
     install(FILES "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py"
       PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-      DESTINATION "${PYTHON_PKG_DIR}/pylada/process/tests/pifunctional.py"
+      DESTINATION "${PYTHON_PKG_DIR}/pylada/process/tests"
     )
     set(fake_exec "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py")
 
