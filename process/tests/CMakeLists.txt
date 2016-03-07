@@ -42,6 +42,7 @@ if(tests AND mpi4py_FOUND)
     endif()
 
     add_pytest(
+        globalcomm.py mpi.py placement.py
         functional.py fixtures.py test_call.py test_iterator.py test_program.py
         LABELS process
         INSTALL PREFIX "pylada.process"

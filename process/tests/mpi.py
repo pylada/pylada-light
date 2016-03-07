@@ -37,11 +37,11 @@ def test():
   assert newcomm['n'] == 0
   assert len(newcomm.machines) == 0
   assert root['n'] == 32
-  assert all(u == 8 for u in root.machines.itervalues())
+  assert all(u == 8 for u in root.machines.values())
 
   newcomm = root.lend(8)
   assert newcomm['n'] == 8
-  assert sum(newcomm.machines.itervalues()) == newcomm['n']
+  assert sum(newcomm.machines.values()) == newcomm['n']
   assert newcomm.parent() is root
   assert len(newcomm.machines) == 1
   key = newcomm.machines.keys()[0]
@@ -52,11 +52,11 @@ def test():
   assert newcomm['n'] == 0
   assert len(newcomm.machines) == 0
   assert root['n'] == 32
-  assert all(u == 8 for u in root.machines.itervalues())
+  assert all(u == 8 for u in root.machines.values())
 
   newcomm = root.lend(12)
   assert newcomm['n'] == 12
-  assert sum(newcomm.machines.itervalues()) == newcomm['n']
+  assert sum(newcomm.machines.values()) == newcomm['n']
   assert newcomm.parent() is root
   assert len(newcomm.machines) == 2
   key0, key1 = newcomm.machines.keys()
@@ -70,7 +70,7 @@ def test():
   assert newcomm['n'] == 0
   assert len(newcomm.machines) == 0
   assert root['n'] == 32
-  assert all(u == 8 for u in root.machines.itervalues())
+  assert all(u == 8 for u in root.machines.values())
 
   comms = root.split(4)
   assert root['n'] == 0
@@ -78,13 +78,13 @@ def test():
   machines = []
   for comm in comms: 
     assert comm['n'] == 8
-    assert sum(comm.machines.itervalues()) == comm['n']
+    assert sum(comm.machines.values()) == comm['n']
     assert len(comm.machines) == 1
     assert comm.machines.keys()[0] not in machines
     machines.append(comm.machines.keys()[0])
   for comm in comms: comm.cleanup()
   assert root['n'] == 32
-  assert all(u == 8 for u in root.machines.itervalues())
+  assert all(u == 8 for u in root.machines.values())
   
   comms = root.split(5)
   assert root['n'] == 0
@@ -92,15 +92,15 @@ def test():
   machines = {}
   for comm in comms: 
     assert comm['n'] in [6, 7]
-    assert sum(comm.machines.itervalues()) == comm['n']
-    for key, value in comm.machines.iteritems():
+    assert sum(comm.machines.values()) == comm['n']
+    for key, value in comm.machines.items():
       if key not in machines: machines[key] = value
       else: machines[key] += value
-  assert sum(machines.itervalues()) == 32
-  assert all(u == 8 for u in machines.itervalues())
+  assert sum(machines.values()) == 32
+  assert all(u == 8 for u in machines.values())
   for comm in comms: comm.cleanup()
   assert root['n'] == 32
-  assert all(u == 8 for u in root.machines.itervalues())
+  assert all(u == 8 for u in root.machines.values())
 
   comms = root.split(3)
   assert root['n'] == 0
@@ -109,15 +109,15 @@ def test():
   for comm in comms: 
     assert comm.parent() is root
     assert comm['n'] in [10, 11]
-    assert sum(comm.machines.itervalues()) == comm['n']
-    for key, value in comm.machines.iteritems():
+    assert sum(comm.machines.values()) == comm['n']
+    for key, value in comm.machines.items():
       if key not in machines: machines[key] = value
       else: machines[key] += value
-  assert sum(machines.itervalues()) == 32
-  assert all(u == 8 for u in machines.itervalues())
+  assert sum(machines.values()) == 32
+  assert all(u == 8 for u in machines.values())
 
   machines = comms[0].machines.copy()
-  for key, value in comms[1].machines.iteritems():
+  for key, value in comms[1].machines.items():
     if key in machines: machines[key] += value
     else: machines[key] = value
   comm = comms.pop(0)
@@ -126,15 +126,15 @@ def test():
   assert comm['n'] == 0
   assert len(comm.machines) == 0
   assert comms[0].parent() is root
-  assert comms[0]['n'] == sum(machines.itervalues())
-  assert comms[0]['n'] == sum(comms[0].machines.itervalues())
+  assert comms[0]['n'] == sum(machines.values())
+  assert comms[0]['n'] == sum(comms[0].machines.values())
   for key in machines:
     assert machines[key] == comms[0].machines[key]
   for key in comms[0].machines:
     assert machines[key] == comms[0].machines[key]
   for comm in comms: comm.cleanup()
   assert root['n'] == 32
-  assert all(u == 8 for u in root.machines.itervalues())
+  assert all(u == 8 for u in root.machines.values())
 
   try: comm.lend(33)
   except MPISizeError: pass
