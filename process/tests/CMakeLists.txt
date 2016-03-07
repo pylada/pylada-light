@@ -29,6 +29,8 @@ if(tests AND mpi4py_FOUND)
         DESTINATION "${PYTHON_BINARY_DIR}/pylada/process/tests"
         FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
     )
+    install_python(FILES "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py"
+      DESTINATION pylada.process.tests)
     set(fake_exec "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py")
 
     if(MPIEXEC)
