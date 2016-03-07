@@ -30,7 +30,7 @@ if(tests AND mpi4py_FOUND)
         FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
     )
     install_python(FILES "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py"
-      DESTINATION pylada.process.tests)
+      DESTINATION pylada/process/tests)
     set(fake_exec "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py")
 
     if(MPIEXEC)
@@ -39,10 +39,10 @@ if(tests AND mpi4py_FOUND)
     endif()
 
     add_pytest(functional.py fixtures.py test_call.py test_iterator.py test_program.py
-        INSTALL PREFIX "pylada.process"
         LABELS process
-        FAKE_INIT
     )
+    install_python(FILES functional.py fixtures.py test_call.py test_iterator.py test_program.py
+      DESTINATION pylada/process/tests)
 
     # add_nose_tests(test_pool.py test_jobfolder.py
     #     INSTALL "pylada.process.tests"
