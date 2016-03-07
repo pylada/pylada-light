@@ -73,14 +73,12 @@ add_subdirectory(config)
 # additional requirements for (at least) vasp
 # add_subdirectory(vasp)
 add_subdirectory(process)
+add_subdirectory(jobfolder)
+# add_subdirectory(ipython)
 #
-# # enum is for defects
-# #
 # # Add documentation target: make documentation
 # include(sphinx)
 # with the above, ewald and jobfolder and ipython don't need anything else:
-# add_subdirectory(jobfolder)
-# add_subdirectory(ipython)
 #
 # add_subdirectory(periodic_table)
 

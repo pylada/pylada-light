@@ -2,20 +2,20 @@
 #  This file is part of PyLaDa.
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
-# 
+#
 #  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
 #  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
 #  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
 #  is able to organise and launch computational jobs on PBS and SLURM.
-# 
+#
 #  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
 #  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
 #  your option) any later version.
-# 
+#
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 #  Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
@@ -26,7 +26,8 @@ __all__ = ['AbstractMassExtract']
 
 from abc import ABCMeta, abstractmethod
 
-class AbstractMassExtract(object): 
+
+class AbstractMassExtract(object):
   """ Collects extraction methods from different job-folders. 
   
       Wraps around a root job folder and provides means to access it (or
@@ -45,7 +46,7 @@ class AbstractMassExtract(object):
   """
   __metaclass__ = ABCMeta
 
-  def __init__(self, path=None, view=None, excludes=None, dynamic=False, ordered=True, 
+  def __init__(self, path=None, view=None, excludes=None, dynamic=False, ordered=True,
                naked_end=None, unix_re=True):
     """ Initializes extraction object. 
 
@@ -76,8 +77,8 @@ class AbstractMassExtract(object):
 
     # this fools the derived classes' __setattr__
     self.__dict__.update({'dicttype': dict, 'view': '/', 'naked_end': naked_end,
-                          'unix_re': unix_re, '_excludes': excludes, 
-                          '_cached_extractors': None, 'dynamic': dynamic })
+                          'unix_re': unix_re, '_excludes': excludes,
+                          '_cached_extractors': None, 'dynamic': dynamic})
     self.naked_end = jobparams_naked_end if naked_end is None else naked_end
     """ If True and dict to return contains only one item, returns value itself. """
     self.unix_re = unix_re
@@ -90,37 +91,46 @@ class AbstractMassExtract(object):
     """ If True chooses a slower but more dynamic caching method. """
     self.dicttype = OrderedDict if ordered else dict
     """ Type of dictionary to use. """
-    if path is None: self.__dict__['_rootpath'] = None
-    else: self.__dict__['_rootpath']= RelativePath(path, hook=self.uncache)
+    if path is None:
+      self.__dict__['_rootpath'] = None
+    else:
+      self.__dict__['_rootpath'] = RelativePath(path, hook=self.uncache)
 
   @property
-  def rootpath(self): 
+  def rootpath(self):
     """ Root of the directory-tree to trawl for OUTCARs. """
     return self._rootpath.path if self._rootpath is not None else None
+
   @rootpath.setter
   def rootpath(self, value):
     from ..misc import RelativePath
     if self._rootpath is None:
       self._rootpath = RelativePath(path=value, hook=self.uncache)
-    else: self._rootpath.path = value
+    else:
+      self._rootpath.path = value
 
-  def uncache(self): 
+  def uncache(self):
     """ Uncache values. """
     self._cached_extractors = None
 
-  @property 
+  @property
   def excludes(self):
     """ Pattern or List of patterns to ignore. or None.
 
         :py:attr:`unix_re` determines whether these are unix-command-line like
         patterns or true python regex.
-    """ 
-    try: return self._excludes 
-    except AttributeError: return None
+    """
+    try:
+      return self._excludes
+    except AttributeError:
+      return None
+
   @excludes.setter
   def excludes(self, value):
-    if isinstance(value, str): self._excludes = [value]
-    else: self._excludes = value
+    if isinstance(value, str):
+      self._excludes = [value]
+    else:
+      self._excludes = value
 
   def avoid(self, excludes):
     """ Returns a new object with further exclusions. 
@@ -141,37 +151,47 @@ class AbstractMassExtract(object):
 
         If the ``excludes`` argument is None or an empty list, then the
         returned object will not exlude anything.
-    """ 
-    if excludes is None or len(excludes) == 0: return self.shallow_copy(excludes=None)
+    """
+    if excludes is None or len(excludes) == 0:
+      return self.shallow_copy(excludes=None)
     result = self.shallow_copy(excludes=excludes)
-    if self.excludes is not None: result.excludes.extend(self.excludes)
+    if self.excludes is not None:
+      result.excludes.extend(self.excludes)
     return result
 
   def iteritems(self):
     """ Iterates through all extraction objects and names. """
-    for name, job in self._regex_extractors(): yield name, job
+    for name, job in self._regex_extractors():
+      yield name, job
+
   def items(self):
     """ Iterates through all extraction objects and names. """
     return [(name, job) for name, job in self.iteritems()]
-    
+
   def itervalues(self):
     """ Iterates through all extraction objects. """
-    for name, job in self._regex_extractors(): yield job
+    for name, job in self._regex_extractors():
+      yield job
+
   def values(self):
     """ Iterates through all extraction objects. """
     return [job for job in self.itervalues()]
 
   def iterkeys(self):
     """ Iterates through all extraction objects. """
-    for name, job in self._regex_extractors(): yield name
+    for name, job in self._regex_extractors():
+      yield name
+
   def keys(self):
     """ Iterates through all extraction objects. """
     return [name for name in self.iterkeys()]
-  
+
   def __iter__(self):
     """ Iterates through all job names. """
-    for name, job in self.iteritems(): yield name
-  def __len__(self): 
+    for name, job in self.iteritems():
+      yield name
+
+  def __len__(self):
     """ Returns length of output dictionary. """
     return len(self.keys())
 
@@ -179,17 +199,21 @@ class AbstractMassExtract(object):
     """ Returns True if key is valid and not empty. """
     from re import compile
     rekey = compile(key)
-    for key in self.iterkeys(): 
-      if rekey.match(key): return True
+    for key in self.iterkeys():
+      if rekey.match(key):
+        return True
     return False
 
   def _regex_pattern(self, pattern, flags=0):
     """ Returns a regular expression. """
     from re import compile
     from ..misc import translate_to_regex
-    if self.unix_re: pattern = translate_to_regex(pattern)
-    if len(pattern) == 0: return compile("", flags)
-    if pattern[-1] in ('/', '\Z', '$'): return compile(pattern, flags)
+    if self.unix_re:
+      pattern = translate_to_regex(pattern)
+    if len(pattern) == 0:
+      return compile("", flags)
+    if pattern[-1] in ('/', '\Z', '$'):
+      return compile(pattern, flags)
     return compile(pattern + r"(?=/|\Z)(?ms)", flags)
 
   @abstractmethod
@@ -205,16 +229,20 @@ class AbstractMassExtract(object):
   def _extractors(self):
     """ Goes through all jobs and collects Extract if available. """
     if self.dynamic:
-      if self._cached_extractors is None: self._cached_extractors = self.dicttype()
+      if self._cached_extractors is None:
+        self._cached_extractors = self.dicttype()
       result = self.dicttype()
       for name, extract in self.__iter_alljobs__():
-        if name not in self._cached_extractors: self._cached_extractors[name] = extract
+        if name not in self._cached_extractors:
+          self._cached_extractors[name] = extract
         result[name] = self._cached_extractors[name]
       return result
     else:
-      if self._cached_extractors is not None: return self._cached_extractors
+      if self._cached_extractors is not None:
+        return self._cached_extractors
       result = self.dicttype()
-      for name, extract in self.__iter_alljobs__(): result[name] = extract
+      for name, extract in self.__iter_alljobs__():
+        result[name] = extract
       self._cached_extractors = result
       return result
 
@@ -222,7 +250,7 @@ class AbstractMassExtract(object):
     """ Loops through jobs in this view. """
     if self.excludes is not None:
       excludes = [self._regex_pattern(u) for u in self.excludes]
-    if self.view == "/": 
+    if self.view == "/":
       for key, value in self._extractors.iteritems():
         if self.excludes is not None                                           \
            and any(u.match(key) is not None for u in excludes):
@@ -232,37 +260,42 @@ class AbstractMassExtract(object):
 
     regex = self._regex_pattern(self.view)
     for key, value in self._extractors.iteritems():
-      if regex.match(key) is None: continue
+      if regex.match(key) is None:
+        continue
       if self.excludes is not None                                             \
          and any(u.match(key) is not None for u in excludes):
         continue
       yield key, value
 
   @property
-  def _attributes(self): 
+  def _attributes(self):
     """ Returns __dir__ special to the extraction itself. """
     results = set([])
     for key, value in self.iteritems():
       results |= set([u for u in dir(value) if u[0] != '_'])
     return results
 
-  def __dir__(self): 
+  def __dir__(self):
     from itertools import chain
-    results = chain( [u for u in self.__dict__ if u[0] != '_'], \
-                     [u for u in dir(self.__class__) if u[0] != '_'], \
-                     self._attributes )
+    results = chain([u for u in self.__dict__ if u[0] != '_'],
+                    [u for u in dir(self.__class__) if u[0] != '_'],
+                    self._attributes)
     return list(set(results))
 
-  def __getattr__(self, name): 
+  def __getattr__(self, name):
     """ Returns extracted values. """
     from .forwarding_dict import ForwardingDict
-    assert name in self._attributes, AttributeError("Unknown attribute {0}.".format(name))
+    if name not in self._attributes:
+        raise AttributeError("Unknown attribute {0}.".format(name))
 
     result = self.dicttype()
     for key, value in self.iteritems():
-      try: result[key] = getattr(value, name)
-      except: result.pop(key, None)
-    if self.naked_end and len(result) == 1: return result[result.keys()[0]]
+      try:
+        result[key] = getattr(value, name)
+      except:
+        result.pop(key, None)
+    if self.naked_end and len(result) == 1:
+      return result[result.keys()[0]]
     return ForwardingDict(dictionary=result, naked_end=self.naked_end)
 
   def __getitem__(self, name):
@@ -275,25 +308,29 @@ class AbstractMassExtract(object):
            .. _normpath: http://docs.python.org/library/os.path.html#os.path.normpath
     """
     from os.path import normpath, join
-    if name[0] != '/': name = join(self.view, name)
-    if self.unix_re: name = normpath(name)
+    if name[0] != '/':
+      name = join(self.view, name)
+    if self.unix_re:
+      name = normpath(name)
     return self.shallow_copy(view=name)
 
   def __delitem__(self, name):
     """ Removes items from the collection path. 
 
         This basically adds to the excludes attributes.
-    """ 
-    if self.excludes is None: self._excludes = [name]
-    elif name not in self.excludes: self.excludes.append(name)
+    """
+    if self.excludes is None:
+      self._excludes = [name]
+    elif name not in self.excludes:
+      self.excludes.append(name)
 
-  def __getstate__(self): 
+  def __getstate__(self):
     d = self.__dict__.copy()
     return d
 
   def __setstate__(self, arg):
     self.__dict__.update(arg)
-       
+
   def shallow_copy(self, **kwargs):
     """ Returns a shallow copy. 
     
@@ -302,7 +339,8 @@ class AbstractMassExtract(object):
     """
     from copy import copy
     result = copy(self)
-    for key, value in kwargs.iteritems(): setattr(result, key, value)
+    for key, value in kwargs.iteritems():
+      setattr(result, key, value)
     return result
 
   def iterfiles(self, **kwargs):
@@ -310,15 +348,18 @@ class AbstractMassExtract(object):
 
         This is rerouted to all extraction objects.
     """
-    for job in self.itervalues(): 
-      if hasattr(job, 'iterfiles'): 
-        for file in job.iterfiles(**kwargs): yield file 
+    for job in self.itervalues():
+      if hasattr(job, 'iterfiles'):
+        for file in job.iterfiles(**kwargs):
+          yield file
 
   def __getstate__(self):
     d = self.__dict__.copy()
-    if d["_rootpath"] is not None: d["_rootpath"].hook = None
+    if d["_rootpath"] is not None:
+      d["_rootpath"].hook = None
     return d
 
   def __setstate__(self, arg):
     self.__dict__.update(arg)
-    if self._rootpath is not None: self._rootpath.hook = self.uncache
+    if self._rootpath is not None:
+      self._rootpath.hook = self.uncache
