@@ -49,7 +49,7 @@ def test(shell):
       shell.user_ns['jobfolder'] = root
       shell.magic("explore jobfolder")
       shell.magic("savefolders {0}/dict".format(directory))
-      for name, job in root.iteritems():
+      for name, job in root.items():
         result = job.compute(outdir=join(directory, name))
         assert result.success
         assert {'this/0': 10, 'this/1': 15, 'that/1': 20, \

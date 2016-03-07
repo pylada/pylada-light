@@ -76,8 +76,8 @@ class AttrBlock(BaseKeyword):
     else: super(AttrBlock, self).__delattr__(name)
   def __dir__(self):
     """ List of attributes and members. """
-    return list( set(self._input.iterkeys())                                   \
-                 | set(self.__dict__.iterkeys())                               \
+    return list( set(self._input.keys())                                   \
+                 | set(self.__dict__.keys())                               \
                  | set(dir(self.__class__)) )
 
   def add_keyword(self, name, value=None):
@@ -135,7 +135,7 @@ class AttrBlock(BaseKeyword):
     if name is None:
       name = getattr(self, '__ui_name__', self.__class__.__name__.lower())
 
-    for key, value in self._input.iteritems():
+    for key, value in self._input.items():
       if exclude is not None and key in exclude: continue
       if hasattr(value, '__ui_repr__'): 
         default = None if defaults is None                                     \
@@ -211,7 +211,7 @@ class AttrBlock(BaseKeyword):
     root = Tree()
     result = root if getattr(self, 'keyword', None) is None \
              else root.descend(self.keyword)
-    for key, value in self._input.iteritems():
+    for key, value in self._input.items():
       self._output_map(result, key, value, **kwargs)
     if len(result) == 0: return None
     return root
@@ -237,7 +237,7 @@ class AttrBlock(BaseKeyword):
     """ Sets object from input tree. """
     from ...error import internal, IndexError
     from .tree import Tree
-    for key, value in tree.iteritems():
+    for key, value in tree.items():
       key = key.lower()
       try: 
         if isinstance(value, Tree) and key not in self._input:

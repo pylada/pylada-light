@@ -30,7 +30,7 @@ def test_nosyms_supercells():
 
     scs = supercells(lattice, range(17))
     results = [1, 7, 13, 35, 31, 91, 57, 155, 130, 217, 133, 455, 183, 399, 403, 651]
-    for r, s in zip(results, scs.itervalues()):
+    for r, s in zip(results, scs.values()):
         assert r == len(s)
 
 
@@ -41,7 +41,7 @@ def test_fcc_supercells():
     lattice = fcc()
     scs = supercells(lattice, range(11))
     results = [1, 2, 3, 7, 5, 10, 7, 20, 14, 18]
-    for r, s in zip(results, scs.itervalues()):
+    for r, s in zip(results, scs.values()):
         assert r, len(s)
 
 def test_hfgroups():

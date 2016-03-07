@@ -70,7 +70,7 @@ def machine_dependent_call_modifier(formatter=None, comm=None, env=None):
   # modify nodefile
   nodefile = comm.nodefile()
   with open(nodefile, 'w') as file:
-    for key, value in comm.machines.iteritems():
+    for key, value in comm.machines.items():
       stg = '\n'.join([key]*value) + '\n'
       if bugLev >= 5:
         print "config/cx1: nodefile: key: \"%s\"  value: \"%s\"  stg: \"%s\"" \

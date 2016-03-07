@@ -390,7 +390,7 @@ def gulp(structure, file='gulp.in', **kwargs):
 
   # now dump regions to result
   region_keys = getvalue('regions', {})
-  for key, value in regions.iteritems():
+  for key, value in regions.items():
     keyword = getvalue('region{0}'.format(key), region_keys.get(region, ''))
 
     if key != 0: index = 'region {0}'.format(key)

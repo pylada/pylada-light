@@ -156,7 +156,7 @@ def showme_params(self):
       filename = file.name
       # get header info.
       mods = {}
-      for arg, value in interactive.jobfolder.params.iteritems():
+      for arg, value in interactive.jobfolder.params.items():
         mods = import_dictionary(value, mods)
         string = repr(value)
         if len(string) > 1 and string[0] == '<' and string[-1] == '>':
@@ -170,7 +170,7 @@ def showme_params(self):
       file.write('params = {}\n')
 
       # now write each parameter in turn
-      for arg, value in interactive.jobfolder.params.iteritems():
+      for arg, value in interactive.jobfolder.params.items():
         string = repr(value)
         if interactive.jobfolder.params[arg].__class__.__module__ != '__builtin__':
           obre = search( '\s*(\S+)\s*=\s*{0.__class__.__name__}\s*\('\

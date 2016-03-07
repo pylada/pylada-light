@@ -23,16 +23,13 @@ Extract base classes
    .. automethod:: __contains__
 
    .. automethod:: __iter__
-   .. automethod:: iteritems
-   .. automethod:: itervalues
-   .. automethod:: iterkeys
    .. automethod:: items
    .. automethod:: values
    .. automethod:: keys
 
    .. automethod:: avoid
    .. automethod:: uncache
-   .. automethod:: iterfiles
+   .. automethod:: files
 
    .. automethod:: shallow_copy
 

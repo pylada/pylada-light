@@ -134,7 +134,7 @@ def copy_folder(self, event):
         print jobdest.name, 'not overwritten.'
         continue
     # now copies folder items.
-    for key, value in jobdest.__dict__.iteritems(): 
+    for key, value in jobdest.__dict__.items(): 
       if key not in ['children', 'parent', 'param']:
         jobdest.__dict__[key] = value
     jobdest._functional = jobsource._functional

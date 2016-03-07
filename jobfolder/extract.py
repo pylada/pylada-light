@@ -340,9 +340,6 @@ class AbstractMassExtract(object):
         if hasattr(job, 'files'):
             for file in job.files(**kwargs):
                 yield file
-        elif hasattr(job, 'iterfiles'):
-            for file in job.files(**kwargs):
-                yield file
 
   def __getstate__(self):
     d = self.__dict__.copy()

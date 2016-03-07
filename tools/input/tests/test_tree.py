@@ -30,9 +30,9 @@ def test_tree():
     assert len(a) == 1
     assert a[0] == ('key', 5)
     assert a['key'] == 5
-    for key in a.iterkeys(): assert key == 'key'
-    for value in a.itervalues(): assert value == 5
-    for key, value in a.iteritems(): assert key == 'key' and value == 5
+    for key in a.keys(): assert key == 'key'
+    for value in a.values(): assert value == 5
+    for key, value in a.items(): assert key == 'key' and value == 5
  
     a = Tree(('key', 5), ('other', 'a'))
     assert len(a) == 2
@@ -40,7 +40,7 @@ def test_tree():
     assert a['key'] == 5
     assert a[1] == ('other', 'a')
     assert a['other'] == 'a'
-    iterator = a.iterkeys()
+    iterator = a.keys()
     assert iterator.next() == 'key'
     assert iterator.next() == 'other'
     try: iterator.next()

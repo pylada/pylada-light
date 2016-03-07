@@ -95,7 +95,7 @@ def _config_files(dointeractive=False):
     return local_dict
 
 # does actual config call.
-locals().update((k, v) for k, v in _config_files().iteritems() if k[0] != '_')
+locals().update((k, v) for k, v in _config_files().items() if k[0] != '_')
 
 # Add a function to easily run the tests
 try:
@@ -103,9 +103,9 @@ try:
 except ImportError:
     pass
 else:
-    # Make sure this function is not run by nosetest, to avoid infinit
+    # Make sure this function is not run by pytest, to avoid infinit
     # recursion
-    @mark.skip()
+    @mark.skipif(True, "Helper function to aggregate tests")
     def test(**kwargs):
         """ Run all pylada python tests
 

@@ -66,11 +66,11 @@ class RelaxExtract(Extract):
       """ List of intermediate calculation extractors. """
     return self._details
   
-  def iterfiles(self, **kwargs):
+  def files(self, **kwargs):
     """ Iterates over input/output files. """
     from itertools import chain
-    for file in chain( super(RelaxExtract, self).iterfiles(**kwargs),
-                       self.details.iterfiles(**kwargs) ): yield file
+    for file in chain( super(RelaxExtract, self).files(**kwargs),
+                       self.details.files(**kwargs) ): yield file
   @property
   def is_running(self):
     """ True if program is running on this functional. 
@@ -87,7 +87,7 @@ class RelaxExtract(Extract):
       print 'vasp/relax: is_running A: dir: %s  is_run: %s' \
         % (self.directory, is_run,)
     if not is_run:
-      for value in self.details.itervalues():
+      for value in self.details.values():
         if value.is_running: is_run = True
         if bugLev >= 5:
           print 'vasp/relax: is_running B: value: %s  val.is_running: %s' \

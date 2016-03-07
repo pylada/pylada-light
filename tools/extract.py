@@ -96,7 +96,7 @@ class AbstractExtractBase(object):
     """
     from ..error import KeyError
     result = self.__copy__()
-    for k, v in kwargs.iteritems():
+    for k, v in kwargs.items():
       if not hasattr(self, k):
         raise KeyError('Attribute {0} does not exist.'.format(k))
       setattr(result, k, v)

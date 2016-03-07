@@ -59,7 +59,7 @@ def test_incar_algo():
   vasp5 = 'Subrot', 'chi', 'GW', 'GW0', 'scGW', 'scGW0', 'Conjugate', 'Eigenval', 'Exact', 'Nothing'
   for isvasp4 in [True, False]:
     pylada.is_vasp_4 = isvasp4
-    for key, items in d.iteritems():
+    for key, items in d.items():
       for value in items:
         if key in vasp5 and isvasp4:
           try: a.value = value

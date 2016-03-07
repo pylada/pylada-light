@@ -698,7 +698,7 @@ class Choices(SpecialVaspParam):
     """ VASP key corresponding to this input. """
     self.choices = {}
     """ Allowable set of choices. """
-    for key, items in choices.iteritems():
+    for key, items in choices.items():
       self.choices[key] = [u.lower() if hasattr(u, 'lower') else u for u in items]
       self.choices[key].append(key.lower() if hasattr(key, 'lower') else key)
     super(Choices, self).__init__(default)
@@ -709,7 +709,7 @@ class Choices(SpecialVaspParam):
   def value(self, value):
     if value is None: self._value = None; return
     if hasattr(value, 'lower'): value = value.lower()
-    for key, items in self.choices.iteritems():
+    for key, items in self.choices.items():
       if value in items: self._value = key; return
     raise ValueError("{0} is not an acceptable choice for {1.key}: {1.choices}.".format(value, self))
   def incar_string(self, **kwargs):

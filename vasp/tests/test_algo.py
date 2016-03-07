@@ -62,7 +62,7 @@ def test_algo_keyword():
   dictionary = {'Algo': a._input['algo'].__class__}
   for isvasp4 in [True, False]:
     pylada.is_vasp_4 = isvasp4
-    for key, items in d.iteritems():
+    for key, items in d.items():
       for value in items:
         if key in vasp5 and isvasp4:
           try: a.algo = value

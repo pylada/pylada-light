@@ -827,14 +827,14 @@ class Vasp(AttrBlock):
     # copies values from other functional.
     if copy is not None: 
       self._input.update(copy._input)
-      for key, value in copy.__dict__.iteritems():
+      for key, value in copy.__dict__.items():
         if key in kwargs: continue
         elif key == '_input': continue
         elif hasattr(self, key): setattr(self, key, value)
 
 
     # sets all known keywords as attributes.
-    for key, value in kwargs.iteritems():
+    for key, value in kwargs.items():
       if hasattr(self, key): setattr(self, key, value)
 
   def __call__( self, structure, outdir=None, comm=None, overwrite=False, 
@@ -1162,7 +1162,7 @@ class Vasp(AttrBlock):
     # The values may be primitives or callables.
 
     length = max(len(u) for u in map)
-    for key, value in map.iteritems():
+    for key, value in map.items():
       outLine = '{0: >{length}} = {1}\n'.format(
         key.upper(), value, length=length)
       path.write( outLine)
@@ -1234,7 +1234,7 @@ class Vasp(AttrBlock):
         Takes care of older pickle versions.
     """
     super(Vasp, self).__setstate__(args)
-    for key, value in self.__class__().__dict__.iteritems():
+    for key, value in self.__class__().__dict__.items():
        if not hasattr(self, key): setattr(self, key, value)
 
   class OnFail(object):

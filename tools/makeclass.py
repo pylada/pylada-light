@@ -90,7 +90,7 @@ def create_initstring(classname, base, method, excludes):
   avoid = set(initargs.args[:ninitargs]) | set(args.args[nargs:]) | set(excludes)
   result += "  if copy is not None:\n"                                  \
                 "    avoid = {0!r}\n"                                   \
-                "    for key, value in copy.__dict__.iteritems():\n"    \
+                "    for key, value in copy.__dict__.items():\n"        \
                 "      if key not in avoid and key not in kwargs:\n"    \
                 "         setattr(self, key, deepcopy(value))\n"        \
                 .format(avoid)

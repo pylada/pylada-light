@@ -121,7 +121,7 @@ def defects(lattice, cellsize, defects):
 
     # creates arguments
     args = []
-    iterator = enumerate(defects.iteritems())
+    iterator = enumerate(defects.items())
     # first guy is special cos he will be locked in place to avoid unecessary
     # translations
     i, (specie, n) = iterator.next()

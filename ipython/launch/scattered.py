@@ -85,7 +85,7 @@ def launch(self, event, jobfolders):
     directory = dirname(path)
     with Changedir(directory) as pwd: pass
     # loop over executable folders in current jobfolder
-    for name, job in current.root.iteritems():
+    for name, job in current.root.items():
       if bugLev >= 1:
 #      if True:
         print 'launch/scattered: current: %s' % (current,)

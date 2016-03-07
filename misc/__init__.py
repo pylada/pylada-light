@@ -183,7 +183,7 @@ class Input(ModuleType):
       super(Input, self).__setattr__(key, value)
   @property
   def __all__(self):
-    return list([u for u in self.__dict__.iterkeys() if u[0] != '_'])
+    return list([u for u in self.__dict__.keys() if u[0] != '_'])
   def __contains__(self, name):
     return name in self.__dict__
 
@@ -213,7 +213,7 @@ def exec_input( script, global_dict=None, local_dict=None,
   global_dict.update( { "environ": environ, "pi": pi, "array": array, "matrix": matrix, "dot": dot,
                         "norm": norm, "sqrt": sqrt, "ceil": ceil, "abs": abs,  "det": det,
                         "expanduser": expanduser, "load": load })
-  for key, value in quantities.__dict__.iteritems():
+  for key, value in quantities.__dict__.items():
     if key[0] != '_' and key not in global_dict:
       global_dict[key] = value
   for key in crystal.__all__: global_dict[key] = getattr(crystal, key)
@@ -278,7 +278,7 @@ def import_dictionary(self, modules=None):
     else:
       modules[self.__class__.__module__].add(self.__class__.__name__)
   if not hasattr(self, '__dict__'): return modules
-  for value in self.__dict__.itervalues():
+  for value in self.__dict__.values():
     class_, module_ = value.__class__.__name__, value.__class__.__module__
     if module_ in avoids: continue
     if module_ in modules: modules[module_].add(class_)
@@ -288,7 +288,7 @@ def import_dictionary(self, modules=None):
 def import_header_string(modules):
   """ Creates string from dictionary of import modules. """
   result = ''
-  for key, values in modules.iteritems():
+  for key, values in modules.items():
     result += "from {0} import {1}\n".format(key, ", ".join(values))
   return result
 

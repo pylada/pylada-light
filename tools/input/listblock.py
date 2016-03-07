@@ -24,7 +24,7 @@ from .keywords import BaseKeyword
 
 class ListBlock(BaseKeyword, list):
   """ Defines block input acting as a list.
-  
+
       This type of group input can contain subitems arranged in a list (rather
       than accessible as attributes, as in
       :py:class:`pylada.tools.input.block.AttrBlock`)
@@ -88,7 +88,7 @@ class ListBlock(BaseKeyword, list):
     """ Sets object from input tree. """
     from ...error import IndexError
     from .tree import Tree
-    for key, value in tree.iteritems():
+    for key, value in tree.items():
       key = key.lower()
       try: 
         if isinstance(value, Tree) and key not in self:
@@ -127,6 +127,10 @@ class ListBlock(BaseKeyword, list):
       name = getattr(self, '__ui_name__', self.__class__.__name__.lower())
     return {name: result.rstrip()}
 
-  def __repr__(self, indent=''): 
+  def __repr__(self, indent=''):
     """ Dumps representation to string. """
-    return self.__ui_repr__({}).itervalues().next()
+    uirepr = self.__ui_repr__({})
+    # special case for python 2
+    if hasattr(uirepr, 'itervalues'):
+        return uirepr.itervalues().next()
+    return self.__ui_repr__({}).values().next()

@@ -173,7 +173,7 @@ def completer(self, event):
      or (len(event.symbol) > 0  and len(data) > 1 and data[-2] == "--n") \
      or (len(event.symbol) == 0 and len(data) > 0 and data[-1] == "--namespace") \
      or (len(event.symbol) > 0  and len(data) > 1 and data[-2] == "--namespace"):
-   return [ key for key, value in self.api.user_ns.iteritems() \
+   return [ key for key, value in self.api.user_ns.items() \
             if key[0] != '_' and hasattr(value, '__dict__') ]
 
   if    (len(event.symbol) == 0 and len(data) > 0 and data[-1] == "--file") \

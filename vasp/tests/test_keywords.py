@@ -116,7 +116,7 @@ def test_alias():
   assert a._input['ismear'].output_map() is None
   map = a._input['ismear'].aliases
   assert len(map) != 0
-  for i, items in map.iteritems():
+  for i, items in map.items():
     for item in items:
       a.ismear = item
       assert a.ismear == items[0]

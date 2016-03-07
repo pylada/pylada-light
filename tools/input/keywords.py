@@ -582,7 +582,7 @@ class AliasKeyword(ValueKeyword):
     if value is None: 
       self._value = None
       return
-    for key, items in self.aliases.iteritems():
+    for key, items in self.aliases.items():
       for item in chain(items, [key]):
         try: 
           if item.__class__(value) == item:

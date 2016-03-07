@@ -62,7 +62,7 @@ def launch(self, event, jobfolders):
   for current, path in jobfolders:
     # Check number of jobs
     directory, nbjobs = dirname(path), 0
-    for name, job in current.root.iteritems():
+    for name, job in current.root.items():
       # avoid jobfolder which are off
       if job.is_tagged: continue
       # avoid successful jobs.unless specifically requested

@@ -105,7 +105,7 @@ def export(self, event):
   directories = set()
   # set of files to tar
   allfiles = set()
-  for file in collect.iterfiles(**kwargs):
+  for file in collect.files(**kwargs):
     allfiles.add(file)
     directories.add(dirname(file))
   # adds files from "with" argument.

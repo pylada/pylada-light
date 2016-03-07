@@ -219,7 +219,7 @@ def shell(structure, center, direction, thickness=0.05):
       else:
           result[index] = [i]
 
-    for key, layer in sorted(result.iteritems(), key=itemgetter(0)):
+    for key, layer in sorted(result.items(), key=itemgetter(0)):
       def inner_layer_iterator():
         """ Iterates over atoms in a single layer. """
         for index in layer:

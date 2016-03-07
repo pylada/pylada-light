@@ -317,10 +317,10 @@ class ExtractBase(object):
     try: initial = self.initial_structure
     except: pass
     else:
-      for key, value in initial.__dict__.iteritems():
+      for key, value in initial.__dict__.items():
         if not hasattr(result, key): setattr(result, key, value)
       for a, b in zip(result, initial):
-        for key, value in b.__dict__.iteritems():
+        for key, value in b.__dict__.items():
           if not hasattr(a, key): setattr(a, key, value)
     if bugLev >= 5:
       print 'vasp/extract/base: structure: initial: %s' % (initial,)
@@ -1053,7 +1053,7 @@ class ExtractBase(object):
     return int(result.group(1))
 
 
-  def iterfiles(self, **kwargs):
+  def files(self, **kwargs):
     """ iterates over input/output files.
 
         :param bool stout: Include standard output files
@@ -1088,7 +1088,8 @@ class ExtractBase(object):
                       iglob(join(self.directory, "relax_ions/[0-9]/")),
                       iglob(join(self.directory, "relax_ions/[0-9][0-9]/")) ):
       a = self.__class__(dir)
-      for file in a.iterfiles(**kwargs): yield file
+      for file in a.files(**kwargs):
+          yield file
 
   @property
   @make_cached
@@ -1673,7 +1674,7 @@ class ExtractBase(object):
         Removes dft and gw attributes if this is not a dft or gw calculation.
     """
     result = set([u for u in dir(self.__class__) if u[0] != '_'])              \
-             | set([u for u in self.__dict__.iterkeys() if u[0] != '_' ])
+             | set([u for u in self.__dict__.keys() if u[0] != '_' ])
     if not self.is_gw:
       result -= set(['qp_eigenvalues', 'self_energies'])
     if not self.is_dft:

@@ -65,7 +65,7 @@ def launch_single(self, event, jobfolder):
   # Check number of jobs
   directory, nbjobs = dirname(path), 0
   lines = []
-  for name, job in current.root.iteritems():
+  for name, job in current.root.items():
     # avoid jobfolder which are off
     if job.is_tagged: continue
     # avoid successful jobs.unless specifically requested

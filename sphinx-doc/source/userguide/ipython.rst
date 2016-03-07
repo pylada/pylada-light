@@ -254,15 +254,14 @@ In most cases (see below) the return from using ``jobparams.something`` is a
 :py:class:`kind of dictionary <pylada.jobfolder.forwarding_dict.ForwardingDict>`.
 It can be iterated over like any other dictionary:
 
->>> for key, value in jobparams['diamond/*'].structure.name.iteritems():
+>>> for key, value in jobparams['diamond/*'].structure.name.items():
 ...   print key, value
 /diamond/ hello
 /diamond/alloy/ hello
 
 .. currentmodule:: pylada.jobfolder.manipulator
 
-The other available iteration methods are :py:meth:`~JobParams.iterkeys`,
-:py:meth:`~JobParams.keys`, :py:meth:`~JobParams.itervalues`,
+The other available iteration methods are :py:meth:`~JobParams.keys`,
 :py:meth:`~JobParams.values`, :py:meth:`~JobParams.items`.
 
 .. currentmodule:: pylada

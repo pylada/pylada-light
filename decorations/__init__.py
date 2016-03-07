@@ -115,7 +115,7 @@ def hf_groups(lattice, sizerange):
     from numpy import dot
     from ..crystal import HFTransform
     result = {}
-    for n, cells in supercells(lattice, sizerange).iteritems():
+    for n, cells in supercells(lattice, sizerange).items():
         result = {}
         for cell in cells:
             hft = HFTransform(lattice, dot(lattice.cell, cell))

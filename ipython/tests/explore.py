@@ -90,7 +90,7 @@ def test(shell):
     assert jobfolder is shell.user_ns['jobparams'].jobfolder
     assert jobfolder is shell.user_ns['collect'].jobfolder
 
-    for name, job in root.iteritems():
+    for name, job in root.items():
       if name == 'this/1': continue
       job.compute(outdir=join(directory, name))
 

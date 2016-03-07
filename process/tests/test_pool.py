@@ -24,7 +24,6 @@
 ###############################
 from fixtures import executable, jobfolders
 from pytest import mark, fixture
-from nose_parameterized import parameterized
 from pylada.process.pool import PoolProcess
 
 

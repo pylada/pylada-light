@@ -74,10 +74,10 @@ def machine_dependent_call_modifier(formatter=None, comm=None, env=None):
   from pylada import default_comm
   if formatter is None: return
   if len(getattr(comm, 'machines', [])) == 0: placement = ""
-  elif sum(comm.machines.itervalues()) == sum(default_comm.machines.itervalues()):
+  elif sum(comm.machines.values()) == sum(default_comm.machines.values()):
     placement = ""
   else:
-    l = [m for m, v in comm.machines.iteritems() if v > 0]
+    l = [m for m, v in comm.machines.items() if v > 0]
     placement = "-L{0}".format(','.join(l))
   formatter['placement'] = placement
 

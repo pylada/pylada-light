@@ -168,11 +168,11 @@ class Extract(ExtractDFT):
 
     return results
 
-  def iterfiles(self, **kwargs):
+  def files(self, **kwargs):
     """ Exports files from both calculations. """
     from itertools import chain
-    for file in chain( super(Extract, self).iterfiles(**kwargs),
-                       self.input.iterfiles(**kwargs) ):
+    for file in chain( super(Extract, self).files(**kwargs),
+                       self.input.files(**kwargs) ):
       yield file
 
 class _OnFinish(object):

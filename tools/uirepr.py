@@ -28,7 +28,7 @@ def uirepr(object, name=None, defaults=None, exclude=None):
   collected = object.__ui_repr__(imports, name, defaults, exclude)
 
   result = ''
-  for key in sorted(imports.iterkeys()):
+  for key in sorted(imports.keys()):
     values = list(imports[key])
     result += 'from {0} import {1}\n'.format(key, ', '.join(values))
 
@@ -36,7 +36,7 @@ def uirepr(object, name=None, defaults=None, exclude=None):
   result += '\n{0}'.format(collected[None])
   del collected[None]
   if len(collected) == 0: return result
-  notnone = [key for key, v in collected.iteritems() if v is not None]
+  notnone = [key for key, v in collected.items() if v is not None]
   if len(notnone): 
     length = max(len(key) for key in notnone)
     for key in sorted(collected.keys()):
@@ -76,7 +76,7 @@ def template_ui_repr(self, imports, name=None, defaults=None, exclude=None):
     add_to_imports(self, imports)
 
   # loop through dictionary attributes first.
-  for key, value in self.__dict__.iteritems():
+  for key, value in self.__dict__.items():
     if key[0] == '_': continue
     if exclude is not None and key in exclude: continue
     if hasattr(value, '__ui_repr__'): 
