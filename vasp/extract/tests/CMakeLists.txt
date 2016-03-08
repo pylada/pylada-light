@@ -28,7 +28,7 @@ if(tests)
     file(COPY data/COMMON
           DESTINATION "${PYTHON_BINARY_DIR}/pylada/vasp/extract/tests/data")
     install(FILES data/COMMON
-          DESTINATION "${PYTHON_PKG_DIR}/pylada/vasp/extract/tests/data/COMMON")
+          DESTINATION "${PYTHON_PKG_DIR}/pylada/vasp/extract/tests/data")
     add_pytest(
         GLOB test_*.py
         INSTALL PREFIX "pylada.vasp.extract"
