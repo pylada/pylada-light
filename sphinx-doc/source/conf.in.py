@@ -64,8 +64,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Pylada-light'
-copyright = u'2012, Mayeul d\'Avezac'
+project = 'Pylada-light'
+copyright = '2012, Mayeul d\'Avezac'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -203,8 +203,8 @@ htmlhelp_basename = 'Pyladadoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'Pylada.tex', u'Pylada Documentation',
-     u'Mayeul d\'Avezac', 'manual'),
+    ('index', 'Pylada.tex', 'Pylada Documentation',
+     'Mayeul d\'Avezac', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -236,8 +236,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pylada', u'Pylada Documentation',
-     [u'Mayeul d\'Avezac'], 1)
+    ('index', 'pylada', 'Pylada Documentation',
+     ['Mayeul d\'Avezac'], 1)
 ]
 
 rst_epilog = """
