@@ -27,20 +27,20 @@ def get_some_lattice(u):
 
     x, y = u, 0.25 - u
     return Structure([[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]])  \
-            .add_atom(5.000000e-01, 5.000000e-01, 5.000000e-01, "A") \
-            .add_atom(5.000000e-01, 2.500000e-01, 2.500000e-01, "A") \
-            .add_atom(2.500000e-01, 5.000000e-01, 2.500000e-01, "A") \
-            .add_atom(2.500000e-01, 2.500000e-01, 5.000000e-01, "A") \
-            .add_atom(8.750000e-01, 8.750000e-01, 8.750000e-01, "B") \
-            .add_atom(1.250000e-01, 1.250000e-01, 1.250000e-01, "B") \
-            .add_atom(     x,     x,     x, "X") \
-            .add_atom(     x,     y,     y, "X") \
-            .add_atom(     y,     x,     y, "X") \
-            .add_atom(     y,     y,     x, "X") \
-            .add_atom(    -x,    -x,    -x, "X") \
-            .add_atom(    -x,    -y,    -y, "X") \
-            .add_atom(    -y,    -x,    -y, "X") \
-            .add_atom(-y,    -y,    -x, "X")
+        .add_atom(5.000000e-01, 5.000000e-01, 5.000000e-01, "A") \
+        .add_atom(5.000000e-01, 2.500000e-01, 2.500000e-01, "A") \
+        .add_atom(2.500000e-01, 5.000000e-01, 2.500000e-01, "A") \
+        .add_atom(2.500000e-01, 2.500000e-01, 5.000000e-01, "A") \
+        .add_atom(8.750000e-01, 8.750000e-01, 8.750000e-01, "B") \
+        .add_atom(1.250000e-01, 1.250000e-01, 1.250000e-01, "B") \
+        .add_atom(     x,     x,     x, "X") \
+        .add_atom(     x,     y,     y, "X") \
+        .add_atom(     y,     x,     y, "X") \
+        .add_atom(     y,     y,     x, "X") \
+        .add_atom(    -x,    -x,    -x, "X") \
+        .add_atom(    -x,    -y,    -y, "X") \
+        .add_atom(    -y,    -x,    -y, "X") \
+        .add_atom(-y,    -y,    -x, "X")
 
 
 def get_a_supercell(u):

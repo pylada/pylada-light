@@ -24,6 +24,7 @@
 ###############################
 from fixtures import executable, comm
 
+
 def test_process_functional(executable, comm, tmpdir):
     """ Tests CallProcess. Includes failure modes.  """
     from pytest import raises

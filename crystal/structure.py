@@ -99,7 +99,6 @@ class Structure(MutableSequence):
         else:
             self._scale = scale
 
-
     def __iter__(self):
         """ Iterates over atoms """
         return self._atoms.__iter__()

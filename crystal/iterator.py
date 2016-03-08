@@ -59,10 +59,10 @@ def layer(structure, direction, tolerance=1e-12):
     # creates classes of positions.
     result = [[projs[0]]]
     for i, proj in projs[1:]:
-      if abs(proj - result[-1][-1][-1]) < tolerance:
-          result[-1].append((i, proj))
-      else:
-          result.append([(i, proj)])
+        if abs(proj - result[-1][-1][-1]) < tolerance:
+            result[-1].append((i, proj))
+        else:
+            result.append([(i, proj)])
 
     # only one layer.
     if len(result) == 1:
@@ -74,10 +74,10 @@ def layer(structure, direction, tolerance=1e-12):
         = into_voronoi(positions[[i for i, d in last]] - positions[first[0][0]],
                        structure.cell)
     for j, pos in enumerate(centered[::-1]):
-      a0 = dot(pos, direction)
-      if any(abs(u[1] - a0) >= tolerance for u in first):
-          continue
-      first.append(last.pop(len(centered) - j - 1))
+        a0 = dot(pos, direction)
+        if any(abs(u[1] - a0) >= tolerance for u in first):
+            continue
+        first.append(last.pop(len(centered) - j - 1))
 
     # last layer got depleted.
     if len(last) == 0:
@@ -88,11 +88,11 @@ def layer(structure, direction, tolerance=1e-12):
         return
     # yield layer iterators.
     for layer in result:
-      def inner_layer_iterator():
-          """ Iterates over atoms in a single layer. """
-          for index, norm in layer:
-              yield structure[index]
-      yield inner_layer_iterator()
+        def inner_layer_iterator():
+            """ Iterates over atoms in a single layer. """
+            for index, norm in layer:
+                yield structure[index]
+        yield inner_layer_iterator()
 
 
 def equivalence(structure, operations=None, tolerance=1e-6, splitocc=None):
@@ -140,40 +140,40 @@ def equivalence(structure, operations=None, tolerance=1e-6, splitocc=None):
     invcell = inv(structure.cell)
 
     while len(atoms):
-      i, atom = atoms.pop()
-      equivs = [i]
-      if len(atoms):
-        # check symmetrically equivalent
-        others = [u[1] for u in atoms]
-        for op in operations:
-          newpos = dot(op[:3], atom.pos) + op[3]
-          index = which_site(newpos, others, invcell)
-          if index != -1:
-            others.pop(index)
-            other = atoms.pop(index)[0]
-            equivs.append(other)
-      # if no further splitting, returns.
-      if splitocc == None:
-          yield equivs
-      # otherwise, apply splitting.
-      else:
-        # split according to callable.
-        # callable should be transitive.
-        # This can be order N^2 in worst case scenario.
-        # Using an indexing function would be order N always?
-        results = [[equivs[0]]]
-        for u in equivs[1:]:
-          found = False
-          for group in results:
-            if splitocc(group[0], u):
-              group.append(u)
-              found = True
-              break
-          if not found:
-              results.append([u])
-        # now yield each inequivalent group
-        for group in results:
-            yield group
+        i, atom = atoms.pop()
+        equivs = [i]
+        if len(atoms):
+            # check symmetrically equivalent
+            others = [u[1] for u in atoms]
+            for op in operations:
+                newpos = dot(op[:3], atom.pos) + op[3]
+                index = which_site(newpos, others, invcell)
+                if index != -1:
+                    others.pop(index)
+                    other = atoms.pop(index)[0]
+                    equivs.append(other)
+        # if no further splitting, returns.
+        if splitocc == None:
+            yield equivs
+        # otherwise, apply splitting.
+        else:
+            # split according to callable.
+            # callable should be transitive.
+            # This can be order N^2 in worst case scenario.
+            # Using an indexing function would be order N always?
+            results = [[equivs[0]]]
+            for u in equivs[1:]:
+                found = False
+                for group in results:
+                    if splitocc(group[0], u):
+                        group.append(u)
+                        found = True
+                        break
+                if not found:
+                    results.append([u])
+            # now yield each inequivalent group
+            for group in results:
+                yield group
 
 
 def shell(structure, center, direction, thickness=0.05):
@@ -213,15 +213,15 @@ def shell(structure, center, direction, thickness=0.05):
     # creates classes of positions.
     result = {}
     for i, r in projs:
-      index = int(r / thickness + 1e-12)
-      if index in result:
-          result[index].append(i)
-      else:
-          result[index] = [i]
+        index = int(r / thickness + 1e-12)
+        if index in result:
+            result[index].append(i)
+        else:
+            result[index] = [i]
 
     for key, layer in sorted(result.items(), key=itemgetter(0)):
-      def inner_layer_iterator():
-        """ Iterates over atoms in a single layer. """
-        for index in layer:
-            yield structure[index]
-      yield inner_layer_iterator()
+        def inner_layer_iterator():
+            """ Iterates over atoms in a single layer. """
+            for index in layer:
+                yield structure[index]
+        yield inner_layer_iterator()

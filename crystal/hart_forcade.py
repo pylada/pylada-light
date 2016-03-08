@@ -21,12 +21,15 @@
 ###############################
 
 # cython: profile=True
+
+
 class HFTransform(object):
     """ The Hart-Forcade transform computes the cyclic group of supercell
 
         with respect to its backbone lattice. It can then be used to index atoms in the supercell,
         irrespective of which periodic image is given [HF]_.
     """
+
     def __init__(self, lattice, supercell):
         """ Creates a Hart-Forcard transform
 
@@ -119,4 +122,3 @@ class HFTransform(object):
         """ Number of unit cells in the supercell """
         from numpy import prod
         return prod(self.quotient)
-

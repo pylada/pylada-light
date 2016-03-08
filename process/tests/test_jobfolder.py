@@ -30,14 +30,17 @@ from fixtures import comm, executable, jobfolders
 def root(executable):
     return jobfolders(executable, 0, 8)
 
+
 def processalloc(job):
     """ returns a random number between 1 and 4 included. """
     from random import randint
     return randint(1, 4)
 
+
 def jobfolder_process(tmpdir, root, **kwargs):
     from pylada.process.jobfolder import JobFolderProcess
     return JobFolderProcess(root, nbpools=2, outdir=str(tmpdir), **kwargs)
+
 
 def pool_process(tmpdir, root, pal=processalloc, **kwargs):
     from pylada.process.pool import PoolProcess

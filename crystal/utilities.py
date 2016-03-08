@@ -16,6 +16,7 @@ def into_cell(position, cell, inverse=None):
     result = dot(inverse, position)
     return dot(cell, result - floor(result + 1e-12))
 
+
 def zero_centered(position, cell, inverse=None):
     """ Folds vector back to origin
 
@@ -43,6 +44,7 @@ def zero_centered(position, cell, inverse=None):
             result[i] += 1e0
     return dot(cell, result)
 
+
 def into_voronoi(position, cell, inverse=None):
     """ Folds vector into first Brillouin zone of the input cell
 
@@ -64,7 +66,7 @@ def into_voronoi(position, cell, inverse=None):
     center -= floor(center)
 
     result = center
-    n = norm(center);
+    n = norm(center)
     for i in range(-1, 2, 1):
         for j in range(-1, 2, 1):
             for k in range(-1, 2, 1):
@@ -74,6 +76,7 @@ def into_voronoi(position, cell, inverse=None):
                     n = n2
                     result = translated
     return dot(cell, result)
+
 
 def are_periodic_images(pos0, pos1, invcell=None, cell=None, tolerance=1e-8):
     """ True if two vector are periodic images of one another

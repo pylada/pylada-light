@@ -67,9 +67,9 @@ def test_fail_init():
     from pytest import raises
     from pylada import error
     with raises(error.TypeError):
-      a = Atom(0.1, 0.1, 0.1, 'Au', type='Au')
+        a = Atom(0.1, 0.1, 0.1, 'Au', type='Au')
     with raises(error.TypeError):
-      a = Atom(0.1, 0.1, 0.1, pos=[0.1, 0.1, 0.1])
+        a = Atom(0.1, 0.1, 0.1, pos=[0.1, 0.1, 0.1])
 
 
 def test_repr():
@@ -81,21 +81,21 @@ def test_repr():
 
 
 def test_copy():
-   """ Test copy and deep copy. """
-   from copy import copy, deepcopy
-   b = Atom(0, 0, 0, 'Au', m=0)
-   a = copy(b)
-   b.type = 'Pd'
-   assert a.pos is b.pos
-   assert a.type == 'Au'
-   a = deepcopy(b)
-   b.type = 'Au'
-   b.pos += 1
-   del b.m
-   assert a.type == "Pd"
-   assert all(abs(a.pos - 0.0) < 1e-8)
-   assert len(a.__dict__) == 3
-   assert getattr(a, 'm', 1) == 0
+    """ Test copy and deep copy. """
+    from copy import copy, deepcopy
+    b = Atom(0, 0, 0, 'Au', m=0)
+    a = copy(b)
+    b.type = 'Pd'
+    assert a.pos is b.pos
+    assert a.type == 'Au'
+    a = deepcopy(b)
+    b.type = 'Au'
+    b.pos += 1
+    del b.m
+    assert a.type == "Pd"
+    assert all(abs(a.pos - 0.0) < 1e-8)
+    assert len(a.__dict__) == 3
+    assert getattr(a, 'm', 1) == 0
 
 
 def test_todict():

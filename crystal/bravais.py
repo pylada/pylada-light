@@ -32,7 +32,7 @@ def bcc():
                      0.5, -0.5, 0.5,
                      0.5, 0.5, -0.5,
                      scale=1, name='bcc' )\
-            .add_atom(0, 0, 0, 'A')
+        .add_atom(0, 0, 0, 'A')
 
 
 def fcc():
@@ -42,4 +42,4 @@ def fcc():
                      0.5, 0, 0.5,
                      0.5, 0.5, 0,
                      scale=1, name='fcc' )\
-            .add_atom(0, 0, 0, 'A')
+        .add_atom(0, 0, 0, 'A')

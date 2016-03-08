@@ -44,6 +44,7 @@ def test_fcc_supercells():
     for r, s in zip(results, scs.values()):
         assert r, len(s)
 
+
 def test_hfgroups():
     from pylada.crystal.bravais import fcc
     from pylada.decorations import hf_groups

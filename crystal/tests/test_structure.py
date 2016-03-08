@@ -183,21 +183,21 @@ def test_sequence_of_atoms():
 
 def test_slicing():
     def create_al():
-      types = 'ABCDEFGHIJKLMN'
-      result = Structure(identity(3) * 2.5, scale=5.45,
-                         m=True), list(range(10))
-      for i in range(10):
-        result[0].add_atom(Atom(i, i, i, types[i]))
-      return result
+        types = 'ABCDEFGHIJKLMN'
+        result = Structure(identity(3) * 2.5, scale=5.45,
+                           m=True), list(range(10))
+        for i in range(10):
+            result[0].add_atom(Atom(i, i, i, types[i]))
+        return result
 
     def check_al(*args):
-      types = 'ABCDEFGHIJKLMN'
-      for i, j in zip(*args):
-        if not(all(abs(i.pos - j) < 1e-8) and i.type == types[j]):
-          return False
-        if i.__class__ is not Atom:
-          return False
-      return True
+        types = 'ABCDEFGHIJKLMN'
+        for i, j in zip(*args):
+            if not(all(abs(i.pos - j) < 1e-8) and i.type == types[j]):
+                return False
+            if i.__class__ is not Atom:
+                return False
+        return True
     # checks getting slices.
     a, l = create_al()
     assert check_al(a[::2], l[::2])
@@ -239,51 +239,51 @@ def test_slicing():
 
 
 def test_copy():
-  """ Checks structure copy. """
-  from numpy import all, abs, array, identity
-  from copy import deepcopy
-  a = Structure(identity(3) * 2.5, scale=5.45, m=True)\
-      .add_atom(Atom(0, 0, 0, "Au"))\
-      .add_atom(Atom(0.25, 0.5, 0.25, "Au", "Pd", m=True))\
-      .add_atom(Atom(0.1, 0.1, 0.1, 6, m=True))
-  b = deepcopy(a)
-  assert a is not b
-  assert b.__class__ is Structure
-  assert all(abs(a.cell - b.cell) < 1e-8)
-  assert abs(a.scale - b.scale) < 1e-8
-  assert getattr(b, 'm', False) == True
-  assert len(b) == 3
+    """ Checks structure copy. """
+    from numpy import all, abs, array, identity
+    from copy import deepcopy
+    a = Structure(identity(3) * 2.5, scale=5.45, m=True)\
+        .add_atom(Atom(0, 0, 0, "Au"))\
+        .add_atom(Atom(0.25, 0.5, 0.25, "Au", "Pd", m=True))\
+        .add_atom(Atom(0.1, 0.1, 0.1, 6, m=True))
+    b = deepcopy(a)
+    assert a is not b
+    assert b.__class__ is Structure
+    assert all(abs(a.cell - b.cell) < 1e-8)
+    assert abs(a.scale - b.scale) < 1e-8
+    assert getattr(b, 'm', False) == True
+    assert len(b) == 3
 
-  for i, j in zip(a, b):
-      assert i is not j
-      assert i.__class__ is j.__class__
-      assert all(abs(i.pos - j.pos) < 1e-8)
-      assert i.type == j.type
-      assert getattr(i, 'm', False) == getattr(j, 'm', False)
+    for i, j in zip(a, b):
+        assert i is not j
+        assert i.__class__ is j.__class__
+        assert all(abs(i.pos - j.pos) < 1e-8)
+        assert i.type == j.type
+        assert getattr(i, 'm', False) == getattr(j, 'm', False)
 
 
 def test_pickle():
-  """ Check pickling. """
-  from numpy import all, abs, array, identity
-  from pickle import loads, dumps
-  a = Structure(identity(3) * 2.5, scale=5.45, m=True)\
-      .add_atom(Atom(0, 0, 0, "Au"))\
-      .add_atom(Atom(0.25, 0.5, 0.25, "Au", "Pd", m=True))\
-      .add_atom(Atom(0.1, 0.1, 0.1, 6, m=True))
-  b = loads(dumps(a))
-  assert a is not b
-  assert b.__class__ is Structure
-  assert all(abs(a.cell - b.cell) < 1e-8)
-  assert abs(a.scale - b.scale) < 1e-8
-  assert getattr(b, 'm', False) == True
-  assert len(b) == 3
+    """ Check pickling. """
+    from numpy import all, abs, array, identity
+    from pickle import loads, dumps
+    a = Structure(identity(3) * 2.5, scale=5.45, m=True)\
+        .add_atom(Atom(0, 0, 0, "Au"))\
+        .add_atom(Atom(0.25, 0.5, 0.25, "Au", "Pd", m=True))\
+        .add_atom(Atom(0.1, 0.1, 0.1, 6, m=True))
+    b = loads(dumps(a))
+    assert a is not b
+    assert b.__class__ is Structure
+    assert all(abs(a.cell - b.cell) < 1e-8)
+    assert abs(a.scale - b.scale) < 1e-8
+    assert getattr(b, 'm', False) == True
+    assert len(b) == 3
 
-  for i, j in zip(a, b):
-      assert i is not j
-      assert i.__class__ is j.__class__
-      assert all(abs(i.pos - j.pos) < 1e-8)
-      assert i.type == j.type
-      assert getattr(i, 'm', False) == getattr(j, 'm', False)
+    for i, j in zip(a, b):
+        assert i is not j
+        assert i.__class__ is j.__class__
+        assert all(abs(i.pos - j.pos) < 1e-8)
+        assert i.type == j.type
+        assert getattr(i, 'm', False) == getattr(j, 'm', False)
 
 
 def test_transform():

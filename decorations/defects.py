@@ -23,83 +23,83 @@
 
 class Iterator(object):
 
-  def __init__(self, size, *args):
-      super(Iterator, self).__init__()
-      self.others = args
-      self.size = size
-      self.reset()
+    def __init__(self, size, *args):
+        super(Iterator, self).__init__()
+        self.others = args
+        self.size = size
+        self.reset()
 
-  def __iter__(self):
-      return self
+    def __iter__(self):
+        return self
 
-  def reset(self):
-      from numpy import count_nonzero, ones, logical_and
-      from ..error import ValueError
-      from ._cutilities import FCIterator
+    def reset(self):
+        from numpy import count_nonzero, ones, logical_and
+        from ..error import ValueError
+        from ._cutilities import FCIterator
 
-      # creates list of color iterators, as per Hart, Nelson, Forcade.
-      self.iterators = []
-      current_allowed = ones(self.size, dtype='bool')
-      for n, color, mask in self.others:
-          allowed = logical_and(current_allowed, mask)
-          length = count_nonzero(allowed)
-          if length < n:
-              raise ValueError('Could not create iterator, concentrations do not add up.')
-          self.iterators.append(FCIterator(length, n))
-          current_allowed[allowed] = [False] * n + [True] * (length - n)
-      # necessary cos we bypass calling next for the first time in this
-      # instance's next.
-      for iter in self.iterators[1:]:
-          iter.next()
+        # creates list of color iterators, as per Hart, Nelson, Forcade.
+        self.iterators = []
+        current_allowed = ones(self.size, dtype='bool')
+        for n, color, mask in self.others:
+            allowed = logical_and(current_allowed, mask)
+            length = count_nonzero(allowed)
+            if length < n:
+                raise ValueError('Could not create iterator, concentrations do not add up.')
+            self.iterators.append(FCIterator(length, n))
+            current_allowed[allowed] = [False] * n + [True] * (length - n)
+        # necessary cos we bypass calling next for the first time in this
+        # instance's next.
+        for iter in self.iterators[1:]:
+            iter.next()
 
-      # allocate memory now so we don't have to do it everytime next is called.
-      self.x = ones(self.size, dtype='int16')
-      self._masks = ones((2, len(self.x)), dtype='bool')
+        # allocate memory now so we don't have to do it everytime next is called.
+        self.x = ones(self.size, dtype='int16')
+        self._masks = ones((2, len(self.x)), dtype='bool')
 
-  def next(self):
-      from numpy import logical_and
-      from ..error import internal
+    def next(self):
+        from numpy import logical_and
+        from ..error import internal
 
-      # reset x and mask to default values.
-      self.x[:] = 0
-      self._masks[:] = True
-      mask = self._masks[0]
-      change_color = self._masks[1]
-      # do next determines which sub-iterators to call next on.
-      donext = True
-      # we loop over each color in turn
-      for iter, (n, color, cmask) in zip(self.iterators, self.others):
-          # as long as donext is True, we call next.
-          # once it is false (eg StopIteration was not raised) we are done
-          # incrementing subiterators.
-          if donext:
-              try:
-                  bitstring = iter.next()
-              except StopIteration:
-                  iter.reset()
-                  try:
-                      bitstring = iter.next()
-                  except StopIteration:
-                      raise internal('Cannot iterate over type {0}'.format(color))
-              else:
-                  donext = False
-          else:
+        # reset x and mask to default values.
+        self.x[:] = 0
+        self._masks[:] = True
+        mask = self._masks[0]
+        change_color = self._masks[1]
+        # do next determines which sub-iterators to call next on.
+        donext = True
+        # we loop over each color in turn
+        for iter, (n, color, cmask) in zip(self.iterators, self.others):
+            # as long as donext is True, we call next.
+            # once it is false (eg StopIteration was not raised) we are done
+            # incrementing subiterators.
+            if donext:
+                try:
+                    bitstring = iter.next()
+                except StopIteration:
+                    iter.reset()
+                    try:
+                        bitstring = iter.next()
+                    except StopIteration:
+                        raise internal('Cannot iterate over type {0}'.format(color))
+                else:
+                    donext = False
+            else:
                 bitstring = iter.yielded
-          # change_color is True for those sites the current bitstring can access
-          logical_and(cmask, mask, change_color)
-          # now only those sites which are on in the relevant bitstring are true
-          change_color[change_color] = bitstring
-          # we can set x to the relevant color
-          self.x[change_color] = color
-          # and turn off the bits which have just changed color
-          mask[change_color] = False
+            # change_color is True for those sites the current bitstring can access
+            logical_and(cmask, mask, change_color)
+            # now only those sites which are on in the relevant bitstring are true
+            change_color[change_color] = bitstring
+            # we can set x to the relevant color
+            self.x[change_color] = color
+            # and turn off the bits which have just changed color
+            mask[change_color] = False
 
-      # if do next is true, then we have reached the end of the loop
-      if donext:
-          raise StopIteration
+        # if do next is true, then we have reached the end of the loop
+        if donext:
+            raise StopIteration
 
-      # otherwise, return a reference to the current x
-      return self.x
+        # otherwise, return a reference to the current x
+        return self.x
 
 
 def defects(lattice, cellsize, defects):
@@ -168,7 +168,7 @@ def defects(lattice, cellsize, defects):
         for x in xiterator:
             strx = ''.join(str(i) for i in x)
             if strx in outgroup:
-              continue
+                continue
 
             # check for supercell independent transforms.
             # loop over translational symmetries.

@@ -21,6 +21,7 @@
 ###############################
 from pytest import mark
 
+
 def random_matrix(n=10):
     """ Yields random invertible 3x3 matrices """
     from numpy.random import random
@@ -31,6 +32,7 @@ def random_matrix(n=10):
         while abs(det(matrix)) < 1e-4:
             matrix = 10 * (random((3, 3)) - 0.5)
         yield matrix
+
 
 @mark.parametrize('cell', random_matrix(10))
 def test_third_order_regression(cell):

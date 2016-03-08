@@ -111,9 +111,11 @@ class GrepError(AttributeError):
 class ConfigError(ValueError):
     """ Some sort of Pylada configuration error. """
 
+
 class CifReader(ValueError):
     """ Happens in Cif reader... """
     pass
+
 
 class ExternalRunFailed(root):
     """ Thrown when an external run has failed. """

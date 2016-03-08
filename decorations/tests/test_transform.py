@@ -27,7 +27,7 @@ def get_cell(n=5):
     from numpy.linalg import det
     cell = randint(2 * n, size=(3, 3)) - n
     while abs(det(cell)) < 1e-8:
-      cell = randint(2 * n, size=(3, 3)) - n
+        cell = randint(2 * n, size=(3, 3)) - n
     return cell
 
 
@@ -261,11 +261,11 @@ def test_inverse_spinel():
     assert all([transforms.lattice[i].nbflavors == 2 for i in [4, 5]])
     index = 0
     for i, atom in enumerate(transforms.lattice):
-      if atom.nbflavors == 1:
-          assert not hasattr(atom, 'index')
-      else:
-        assert atom.index == index
-        index += 1
+        if atom.nbflavors == 1:
+            assert not hasattr(atom, 'index')
+        else:
+            assert atom.index == index
+            index += 1
 
 
 def test_toarray():

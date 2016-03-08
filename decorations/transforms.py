@@ -133,14 +133,15 @@ class Transforms(object):
             rotation = dot(hft.transform, dot(op[:3], invtransform))
             for s, (siteperm, translation) in enumerate(dnt):
                 trans = hft.indices(translation)
-                iterpos = [xrange(hft.quotient[0]), xrange(hft.quotient[1]), xrange(hft.quotient[2])]
+                iterpos = [xrange(hft.quotient[0]), xrange(
+                    hft.quotient[1]), xrange(hft.quotient[2])]
                 for i, j, k in product(*iterpos):
                     newpos = dot(rotation, [i, j, k])
                     l = (int(round(newpos[0])) + trans[0]) % hft.quotient[0]
                     m = (int(round(newpos[1])) + trans[1]) % hft.quotient[1]
                     n = (int(round(newpos[2])) + trans[2]) % hft.quotient[2]
                     result[nop, hft.flatten_indices(i, j, k, s)]                         \
-                            = hft.flatten_indices(l, m, n, siteperm)
+                        = hft.flatten_indices(l, m, n, siteperm)
         return result
 
     def invariant_ops(self, cell):

@@ -78,5 +78,5 @@ def test_defects():
 
     i = 0
     for i, (x, hft, hermite) in enumerate(defects(lattice, 32, {'A': 2, 'Ti': 2})):
-      print x
+        print x
     print i

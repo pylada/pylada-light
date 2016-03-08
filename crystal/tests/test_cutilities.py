@@ -50,23 +50,23 @@ def is_integer(o, tolerance=1e-8):
 
 
 def test_gruber():
-  from numpy import dot
-  from numpy.linalg import inv
-  from pylada.crystal.cutilities import gruber
+    from numpy import dot
+    from numpy.linalg import inv
+    from pylada.crystal.cutilities import gruber
 
-  cell = [[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]]
-  lim = 5
+    cell = [[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]]
+    lim = 5
 
-  for a00 in [-1, 1]:
-    for a10 in xrange(-lim, lim + 1):
-      for a11 in [-1, 1]:
-        for a20 in xrange(-lim, lim + 1):
-          for a21 in xrange(-lim, lim + 1):
-            for a22 in [-1, 1]:
-              a = [[a00, 0, 0], [a10, a11, 0], [a20, a21, a22]]
-              g = gruber(dot(cell, a))
-              assert is_integer(dot(inv(cell), g))
-              assert is_integer(dot(inv(g), cell))
+    for a00 in [-1, 1]:
+        for a10 in xrange(-lim, lim + 1):
+            for a11 in [-1, 1]:
+                for a20 in xrange(-lim, lim + 1):
+                    for a21 in xrange(-lim, lim + 1):
+                        for a22 in [-1, 1]:
+                            a = [[a00, 0, 0], [a10, a11, 0], [a20, a21, a22]]
+                            g = gruber(dot(cell, a))
+                            assert is_integer(dot(inv(cell), g))
+                            assert is_integer(dot(inv(g), cell))
 
 
 def test_gruber_fails_on_singular_matrix():

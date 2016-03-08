@@ -57,30 +57,30 @@ def transform(structure, rotation, translation=None):
 # import iterator
 #
 def specieset(structure):
-  """ Returns ordered set of species.
+    """ Returns ordered set of species.
 
-      Especially usefull with VASP since we are sure what the list of species
-      is always ordered the same way.
-  """
-  return set([a.type for a in structure])
+        Especially usefull with VASP since we are sure what the list of species
+        is always ordered the same way.
+    """
+    return set([a.type for a in structure])
 
 
 def vasp_ordered(structure, site=False):
-  """ Returns a structure with correct VASP order of ions.
+    """ Returns a structure with correct VASP order of ions.
 
-      :param structure:
-          :class:`Structure` for which to reorder atoms.
-  """
+        :param structure:
+            :class:`Structure` for which to reorder atoms.
+    """
 
-  from copy import deepcopy
-  result = deepcopy(structure)
-  has_site = sum([0 if hasattr(x, 'site') else 1 for x in structure])
-  if site and has_site == 0:
-    def sortme(self): return self.site
-  else:
-    def sortme(self): return self.type.lower()
-  result[:] = sorted(structure, key=sortme)
-  return result
+    from copy import deepcopy
+    result = deepcopy(structure)
+    has_site = sum([0 if hasattr(x, 'site') else 1 for x in structure])
+    if site and has_site == 0:
+        def sortme(self): return self.site
+    else:
+        def sortme(self): return self.type.lower()
+    result[:] = sorted(structure, key=sortme)
+    return result
 
 
 def which_site(atom, lattice, invcell=None, tolerance=1e-8):
@@ -103,55 +103,55 @@ def which_site(atom, lattice, invcell=None, tolerance=1e-8):
     lattice = [getattr(site, 'pos', site) for site in lattice]
     pos = getattr(atom, 'pos', atom)
     for i, site in enumerate(lattice):
-      if are_periodic_images(pos, site, invcell, tolerance):
-          return i
+        if are_periodic_images(pos, site, invcell, tolerance):
+            return i
     return -1
 
 
 def _normalize_freeze_cell(freeze, periodicity=3):
-  """ Transforms freeze parameters into a normalized form. 
+    """ Transforms freeze parameters into a normalized form. 
 
-      The normalized form is a list of six boolean where, if True, each of xx,
-      yy, zz, yz, xy, xz is *frozen*. The other forms allow strings, list of
-      strings, or the same list of booleans as the output.
+        The normalized form is a list of six boolean where, if True, each of xx,
+        yy, zz, yz, xy, xz is *frozen*. The other forms allow strings, list of
+        strings, or the same list of booleans as the output.
 
-      If periodicity is 2, then the degrees of freedom are xx, yy.
-  """
-  from numpy import array
-  if isinstance(freeze, str):
-      freeze = freeze.split()
-  if periodicity == 3:
-    if len(freeze) == 6                                                          \
-       and all(isinstance(u, bool) or isinstance(u, int) for u in freeze):
-         return [u == True for u in freeze]
-    freeze = set([u.lower() for u in freeze])
-    return array(['xx' in freeze,
-                  'yy' in freeze,
-                  'zz' in freeze,
-                  ('yz' in freeze or 'zy' in freeze),
-                  ('xy' in freeze or 'yx' in freeze),
-                  ('xz' in freeze or 'zx' in freeze)])
-  elif periodicity == 2:
-    if len(freeze) == 2                                                          \
-       and all(isinstance(u, bool) or isinstance(u, int) for u in freeze):
-         return [u == True for u in freeze]
-    freeze = set([u.lower() for u in freeze])
-    return array(['xx' in freeze, 'yy' in freeze])
+        If periodicity is 2, then the degrees of freedom are xx, yy.
+    """
+    from numpy import array
+    if isinstance(freeze, str):
+        freeze = freeze.split()
+    if periodicity == 3:
+        if len(freeze) == 6                                                          \
+           and all(isinstance(u, bool) or isinstance(u, int) for u in freeze):
+            return [u == True for u in freeze]
+        freeze = set([u.lower() for u in freeze])
+        return array(['xx' in freeze,
+                      'yy' in freeze,
+                      'zz' in freeze,
+                      ('yz' in freeze or 'zy' in freeze),
+                      ('xy' in freeze or 'yx' in freeze),
+                      ('xz' in freeze or 'zx' in freeze)])
+    elif periodicity == 2:
+        if len(freeze) == 2                                                          \
+           and all(isinstance(u, bool) or isinstance(u, int) for u in freeze):
+            return [u == True for u in freeze]
+        freeze = set([u.lower() for u in freeze])
+        return array(['xx' in freeze, 'yy' in freeze])
 
 
 def _normalize_freeze_atom(freeze):
-  """ Transforms freeze parameters into a normalized form. 
+    """ Transforms freeze parameters into a normalized form. 
 
-      The normalized form is a list of 3 boolean where, if True, each of x, y,
-      z is *frozen*. The other forms allow strings, list of strings, or the
-      same list of booleans as the output.
-  """
-  from numpy import array
-  from .. import error
-  if hasattr(freeze, '__iter__') and len(freeze) == 3                          \
-     and all(isinstance(u, bool) or isinstance(u, int) for u in freeze):
-       return [u == True for u in freeze]
-  elif not hasattr(freeze, 'lower'):
-    raise error.TypeError('Could not make sense of freeze parameter.')
-  freeze = freeze.lower()
-  return array(['x' in freeze, 'y' in freeze, 'z' in freeze])
+        The normalized form is a list of 3 boolean where, if True, each of x, y,
+        z is *frozen*. The other forms allow strings, list of strings, or the
+        same list of booleans as the output.
+    """
+    from numpy import array
+    from .. import error
+    if hasattr(freeze, '__iter__') and len(freeze) == 3                          \
+       and all(isinstance(u, bool) or isinstance(u, int) for u in freeze):
+        return [u == True for u in freeze]
+    elif not hasattr(freeze, 'lower'):
+        raise error.TypeError('Could not make sense of freeze parameter.')
+    freeze = freeze.lower()
+    return array(['x' in freeze, 'y' in freeze, 'z' in freeze])

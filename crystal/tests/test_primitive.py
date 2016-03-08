@@ -55,9 +55,11 @@ def itercells(nmax, prune=-1):
                 if random() > prune:
                     yield cell
 
+
 def is_integer(o, tolerance=1e-8):
     from numpy import allclose, floor
     return allclose(o, floor(o + 0.1), tolerance)
+
 
 def test_lattice_is_primitive():
     from pylada.crystal import Structure, is_primitive
@@ -69,6 +71,7 @@ def test_lattice_is_primitive():
         .add_atom(0.25, 0.25, 0.25, ['In', 'Ga'], m=True)
 
     assert is_primitive(lattice)
+
 
 @mark.parametrize('cell', itercells(10, prune=0.95))
 def test_primitive(cell):

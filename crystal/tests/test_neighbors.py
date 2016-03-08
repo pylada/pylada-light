@@ -39,35 +39,35 @@ def check(structure, center, tolerance=1e-8):
     neighs = neighbors(structure, 46, center, tolerance)
     assert len(neighs) == 46
     for atom, diff, dist in neighs[:4]:
-      assert abs(dist - sqrt(3.0) * 0.25) < tolerance
-      assert all(abs(abs(diff) - 0.25) < tolerance)
+        assert abs(dist - sqrt(3.0) * 0.25) < tolerance
+        assert all(abs(abs(diff) - 0.25) < tolerance)
 
     for atom, diff, dist in neighs[4: 16]:
-      assert abs(dist - sqrt(2.0) * 0.5) < tolerance
-      assert len([0 for u in diff if abs(u) < tolerance]) == 1
-      assert len([0 for u in diff if abs(abs(u) - 0.5) < tolerance]) == 2
+        assert abs(dist - sqrt(2.0) * 0.5) < tolerance
+        assert len([0 for u in diff if abs(u) < tolerance]) == 1
+        assert len([0 for u in diff if abs(abs(u) - 0.5) < tolerance]) == 2
 
     for atom, diff, dist in neighs[16: 28]:
-      assert abs(dist - sqrt(0.75 * 0.75 + 2. * 0.25 * 0.25)) < tolerance
-      assert len([0 for u in diff if abs(abs(u) - 0.25) < tolerance]) == 2
-      assert len([0 for u in diff if abs(abs(u) - 0.75) < tolerance]) == 1
+        assert abs(dist - sqrt(0.75 * 0.75 + 2. * 0.25 * 0.25)) < tolerance
+        assert len([0 for u in diff if abs(abs(u) - 0.25) < tolerance]) == 2
+        assert len([0 for u in diff if abs(abs(u) - 0.75) < tolerance]) == 1
 
     for atom, diff, dist in neighs[28:34]:
-      assert abs(dist - 1.) < tolerance
-      assert len([0 for u in diff if abs(u) < tolerance]) == 2
-      assert len([0 for u in diff if abs(abs(u) - 1.) < tolerance]) == 1
+        assert abs(dist - 1.) < tolerance
+        assert len([0 for u in diff if abs(u) < tolerance]) == 2
+        assert len([0 for u in diff if abs(abs(u) - 1.) < tolerance]) == 1
 
     for atom, diff, dist in neighs[34:]:
-      assert abs(dist - sqrt(2 * 0.75 * 0.75 + 0.25 * 0.25)) < tolerance
-      assert len([0 for u in diff if abs(abs(u) - 0.75) < tolerance]) == 2
-      assert len([0 for u in diff if abs(abs(u) - 0.25) < tolerance]) == 1
+        assert abs(dist - sqrt(2 * 0.75 * 0.75 + 0.25 * 0.25)) < tolerance
+        assert len([0 for u in diff if abs(abs(u) - 0.75) < tolerance]) == 2
+        assert len([0 for u in diff if abs(abs(u) - 0.25) < tolerance]) == 1
 
     # check input using position rather than atom.
     neighs2 = neighbors(structure, 36, center.pos, tolerance)
     for (a, b, c), (d, e, f) in zip(neighs, neighs2):
-      assert a is d
-      assert all(abs(b - e)) < tolerance
-      assert abs(c - f) < tolerance
+        assert a is d
+        assert all(abs(b - e)) < tolerance
+        assert abs(c - f) < tolerance
 
     # check neighbor completeness.
     assert len(neighbors(structure, 2, center, tolerance)) == 4

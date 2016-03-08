@@ -68,7 +68,7 @@ def check_against_neighbors(structure, tolerance=1e-8):
     shells = coordination_shells(structure, 10, [0, 0, 0], tolerance)
     for j in range(8):
         i = bisect_right(distances, max([u[-1] for u in shells[j]]))
-        assert i == sum([len(shell) for shell in shells[:j+1]])
+        assert i == sum([len(shell) for shell in shells[:j + 1]])
 
 
 def test_coordination_shells():

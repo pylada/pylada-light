@@ -28,326 +28,326 @@ from abc import ABCMeta, abstractmethod
 
 
 class AbstractMassExtract(object):
-  """ Collects extraction methods from different job-folders. 
+    """ Collects extraction methods from different job-folders. 
 
-      Wraps around a root job folder and provides means to access it (or
-      something related to it). In practice, a derived class will hold a list
-      of *somethings* which does something good for a particular folder. This
-      is a base class, concerned mostly with providing a rich mapping and
-      attribute access interface. It allows the user to focus on a small set of
-      executable folders `via` the mapping (``[]``) methods, e.g. a view of the
-      folders. The attributes of the wrapped *somethings* of the current view
-      are retrieved into a :py:class:`forwarding dict
-      <pylada.jobfolder.forwardingdict.ForwardingDict`. 
+        Wraps around a root job folder and provides means to access it (or
+        something related to it). In practice, a derived class will hold a list
+        of *somethings* which does something good for a particular folder. This
+        is a base class, concerned mostly with providing a rich mapping and
+        attribute access interface. It allows the user to focus on a small set of
+        executable folders `via` the mapping (``[]``) methods, e.g. a view of the
+        folders. The attributes of the wrapped *somethings* of the current view
+        are retrieved into a :py:class:`forwarding dict
+        <pylada.jobfolder.forwardingdict.ForwardingDict`. 
 
-      The :py:meth:`__iter_alljobs__` method should be implemented within
-      derived classes. It should yield for each executable folder a tuple
-      consisting of the name of that folder and the relevant *something*.
-  """
-  __metaclass__ = ABCMeta
-
-  def __init__(self, path=None, view=None, excludes=None, dynamic=False, ordered=True,
-               naked_end=None, unix_re=True):
-    """ Initializes extraction object. 
-
-        :param str path:
-            Root directory for which to investigate all subdirectories.
-            If None, uses current working directory.
-        :param str view:
-            Pattern which the job names must match to be included in the
-            extraction. Ignored if None.
-        :para excludes:
-            List of patterns which the job names must *not* match to be
-            included in the extraction. Ignored if None.
-        :param bool dynamic:
-            If true, chooses a slower but more dynamic caching method. Only
-            usefull for ipython shell. 
-        :param bool ordered: 
-            If true, uses OrderedDict rather than conventional dict.
-        :param bool naked_end:
-            True if should return value rather than dict when only one item.
-        :param bool unix_re: 
-            Converts regex patterns from unix-like expression.
+        The :py:meth:`__iter_alljobs__` method should be implemented within
+        derived classes. It should yield for each executable folder a tuple
+        consisting of the name of that folder and the relevant *something*.
     """
-    from .. import jobparams_naked_end, unix_re
-    from ..misc import RelativePath
-    from .ordered_dict import OrderedDict
+    __metaclass__ = ABCMeta
 
-    super(AbstractMassExtract, self).__init__()
+    def __init__(self, path=None, view=None, excludes=None, dynamic=False, ordered=True,
+                 naked_end=None, unix_re=True):
+        """ Initializes extraction object. 
 
-    # this fools the derived classes' __setattr__
-    self.__dict__.update({'dicttype': dict, 'view': '/', 'naked_end': naked_end,
-                          'unix_re': unix_re, '_excludes': excludes,
-                          '_cached_extractors': None, 'dynamic': dynamic})
-    self.naked_end = jobparams_naked_end if naked_end is None else naked_end
-    """ If True and dict to return contains only one item, returns value itself. """
-    self.unix_re = unix_re
-    """ If True, then all regex matching is done using unix-command-line patterns. """
-    self.excludes = excludes
-    """ Patterns to exclude. """
-    self._cached_extractors = None
-    """ List of extration objects. """
-    self.dynamic = dynamic
-    """ If True chooses a slower but more dynamic caching method. """
-    self.dicttype = OrderedDict if ordered else dict
-    """ Type of dictionary to use. """
-    if path is None:
-      self.__dict__['_rootpath'] = None
-    else:
-      self.__dict__['_rootpath'] = RelativePath(path, hook=self.uncache)
+            :param str path:
+                Root directory for which to investigate all subdirectories.
+                If None, uses current working directory.
+            :param str view:
+                Pattern which the job names must match to be included in the
+                extraction. Ignored if None.
+            :para excludes:
+                List of patterns which the job names must *not* match to be
+                included in the extraction. Ignored if None.
+            :param bool dynamic:
+                If true, chooses a slower but more dynamic caching method. Only
+                usefull for ipython shell. 
+            :param bool ordered: 
+                If true, uses OrderedDict rather than conventional dict.
+            :param bool naked_end:
+                True if should return value rather than dict when only one item.
+            :param bool unix_re: 
+                Converts regex patterns from unix-like expression.
+        """
+        from .. import jobparams_naked_end, unix_re
+        from ..misc import RelativePath
+        from .ordered_dict import OrderedDict
 
-  @property
-  def rootpath(self):
-    """ Root of the directory-tree to trawl for OUTCARs. """
-    return self._rootpath.path if self._rootpath is not None else None
+        super(AbstractMassExtract, self).__init__()
 
-  @rootpath.setter
-  def rootpath(self, value):
-    from ..misc import RelativePath
-    if self._rootpath is None:
-      self._rootpath = RelativePath(path=value, hook=self.uncache)
-    else:
-      self._rootpath.path = value
+        # this fools the derived classes' __setattr__
+        self.__dict__.update({'dicttype': dict, 'view': '/', 'naked_end': naked_end,
+                              'unix_re': unix_re, '_excludes': excludes,
+                              '_cached_extractors': None, 'dynamic': dynamic})
+        self.naked_end = jobparams_naked_end if naked_end is None else naked_end
+        """ If True and dict to return contains only one item, returns value itself. """
+        self.unix_re = unix_re
+        """ If True, then all regex matching is done using unix-command-line patterns. """
+        self.excludes = excludes
+        """ Patterns to exclude. """
+        self._cached_extractors = None
+        """ List of extration objects. """
+        self.dynamic = dynamic
+        """ If True chooses a slower but more dynamic caching method. """
+        self.dicttype = OrderedDict if ordered else dict
+        """ Type of dictionary to use. """
+        if path is None:
+            self.__dict__['_rootpath'] = None
+        else:
+            self.__dict__['_rootpath'] = RelativePath(path, hook=self.uncache)
 
-  def uncache(self):
-    """ Uncache values. """
-    self._cached_extractors = None
+    @property
+    def rootpath(self):
+        """ Root of the directory-tree to trawl for OUTCARs. """
+        return self._rootpath.path if self._rootpath is not None else None
 
-  @property
-  def excludes(self):
-    """ Pattern or List of patterns to ignore. or None.
+    @rootpath.setter
+    def rootpath(self, value):
+        from ..misc import RelativePath
+        if self._rootpath is None:
+            self._rootpath = RelativePath(path=value, hook=self.uncache)
+        else:
+            self._rootpath.path = value
 
-        :py:attr:`unix_re` determines whether these are unix-command-line like
-        patterns or true python regex.
-    """
-    try:
-      return self._excludes
-    except AttributeError:
-      return None
+    def uncache(self):
+        """ Uncache values. """
+        self._cached_extractors = None
 
-  @excludes.setter
-  def excludes(self, value):
-    if isinstance(value, str):
-      self._excludes = [value]
-    else:
-      self._excludes = value
+    @property
+    def excludes(self):
+        """ Pattern or List of patterns to ignore. or None.
 
-  def avoid(self, excludes):
-    """ Returns a new object with further exclusions. 
+            :py:attr:`unix_re` determines whether these are unix-command-line like
+            patterns or true python regex.
+        """
+        try:
+            return self._excludes
+        except AttributeError:
+            return None
 
-        :param excludes: Pattern or patterns to exclude from output.
-        :type excludes: str or list of str or None 
-          
-        The goal of this function is to work as an *anti* operator [], i.e. by
-        excluding from the output anything that matches the patterns, rather
-        including only those which match the pattern.
-        This is strickly equivalent to:
+    @excludes.setter
+    def excludes(self, value):
+        if isinstance(value, str):
+            self._excludes = [value]
+        else:
+            self._excludes = value
 
-        >>> other = massextract.copy(excludes=excludes)
-        >>> other.excludes.extend(massextract.excludes)
+    def avoid(self, excludes):
+        """ Returns a new object with further exclusions. 
 
-        and then doing calculations with ``other``. The advantage is that it
-        can all be done on one line.
+            :param excludes: Pattern or patterns to exclude from output.
+            :type excludes: str or list of str or None 
 
-        If the ``excludes`` argument is None or an empty list, then the
-        returned object will not exlude anything.
-    """
-    if excludes is None or len(excludes) == 0:
-      return self.shallow_copy(excludes=None)
-    result = self.shallow_copy(excludes=excludes)
-    if self.excludes is not None:
-      result.excludes.extend(self.excludes)
-    return result
+            The goal of this function is to work as an *anti* operator [], i.e. by
+            excluding from the output anything that matches the patterns, rather
+            including only those which match the pattern.
+            This is strickly equivalent to:
 
-  def items(self):
-    """ Iterates through all extraction objects and names. """
-    for name, job in self._regex_extractors():
-        yield name, job
+            >>> other = massextract.copy(excludes=excludes)
+            >>> other.excludes.extend(massextract.excludes)
 
-  def values(self):
-    """ Iterates through all extraction objects. """
-    for name, job in self._regex_extractors():
-        yield job
+            and then doing calculations with ``other``. The advantage is that it
+            can all be done on one line.
 
-  def keys(self):
-    """ Iterates through all extraction objects. """
-    for name, job in self._regex_extractors():
-        yield name
+            If the ``excludes`` argument is None or an empty list, then the
+            returned object will not exlude anything.
+        """
+        if excludes is None or len(excludes) == 0:
+            return self.shallow_copy(excludes=None)
+        result = self.shallow_copy(excludes=excludes)
+        if self.excludes is not None:
+            result.excludes.extend(self.excludes)
+        return result
 
-  def __iter__(self):
-    """ Iterates through all job names. """
-    for name, job in self.items():
-        yield name
+    def items(self):
+        """ Iterates through all extraction objects and names. """
+        for name, job in self._regex_extractors():
+            yield name, job
 
-  def __len__(self):
-    """ Returns length of output dictionary. """
-    return len(self.keys())
+    def values(self):
+        """ Iterates through all extraction objects. """
+        for name, job in self._regex_extractors():
+            yield job
 
-  def __contains__(self, key):
-    """ Returns True if key is valid and not empty. """
-    from re import compile
-    rekey = compile(key)
-    for key in self.keys():
-      if rekey.match(key):
-        return True
-    return False
+    def keys(self):
+        """ Iterates through all extraction objects. """
+        for name, job in self._regex_extractors():
+            yield name
 
-  def _regex_pattern(self, pattern, flags=0):
-    """ Returns a regular expression. """
-    from re import compile
-    from ..misc import translate_to_regex
-    if self.unix_re:
-      pattern = translate_to_regex(pattern)
-    if len(pattern) == 0:
-      return compile("", flags)
-    if pattern[-1] in ('/', '\Z', '$'):
-      return compile(pattern, flags)
-    return compile(pattern + r"(?=/|\Z)(?ms)", flags)
+    def __iter__(self):
+        """ Iterates through all job names. """
+        for name, job in self.items():
+            yield name
 
-  @abstractmethod
-  def __iter_alljobs__(self):
-    """ Generator to go through all relevant jobs. 
+    def __len__(self):
+        """ Returns length of output dictionary. """
+        return len(self.keys())
 
-        :return: (name, extractor), where name is the name of the job, and
-          extractor an extraction object.
-    """
-    pass
+    def __contains__(self, key):
+        """ Returns True if key is valid and not empty. """
+        from re import compile
+        rekey = compile(key)
+        for key in self.keys():
+            if rekey.match(key):
+                return True
+        return False
 
-  @property
-  def _extractors(self):
-    """ Goes through all jobs and collects Extract if available. """
-    if self.dynamic:
-      if self._cached_extractors is None:
-        self._cached_extractors = self.dicttype()
-      result = self.dicttype()
-      for name, extract in self.__iter_alljobs__():
-        if name not in self._cached_extractors:
-          self._cached_extractors[name] = extract
-        result[name] = self._cached_extractors[name]
-      return result
-    else:
-      if self._cached_extractors is not None:
-        return self._cached_extractors
-      result = self.dicttype()
-      for name, extract in self.__iter_alljobs__():
-        result[name] = extract
-      self._cached_extractors = result
-      return result
+    def _regex_pattern(self, pattern, flags=0):
+        """ Returns a regular expression. """
+        from re import compile
+        from ..misc import translate_to_regex
+        if self.unix_re:
+            pattern = translate_to_regex(pattern)
+        if len(pattern) == 0:
+            return compile("", flags)
+        if pattern[-1] in ('/', '\Z', '$'):
+            return compile(pattern, flags)
+        return compile(pattern + r"(?=/|\Z)(?ms)", flags)
 
-  def _regex_extractors(self):
-    """ Loops through jobs in this view. """
-    if self.excludes is not None:
-      excludes = [self._regex_pattern(u) for u in self.excludes]
-    if self.view == "/":
-      for key, value in AbstractMassExtract._extractors.__get__(self).items():
-        if self.excludes is not None                                           \
-           and any(u.match(key) is not None for u in excludes):
-          continue
-        yield key, value
-      return
+    @abstractmethod
+    def __iter_alljobs__(self):
+        """ Generator to go through all relevant jobs. 
 
-    regex = self._regex_pattern(self.view)
-    for key, value in self._extractors.items():
-      if regex.match(key) is None:
-        continue
-      if self.excludes is not None                                             \
-         and any(u.match(key) is not None for u in excludes):
-        continue
-      yield key, value
+            :return: (name, extractor), where name is the name of the job, and
+              extractor an extraction object.
+        """
+        pass
 
-  @property
-  def _attributes(self):
-    """ Returns __dir__ special to the extraction itself. """
-    results = set([])
-    for key, value in self.items():
-      results |= set([u for u in dir(value) if u[0] != '_'])
-    return results
+    @property
+    def _extractors(self):
+        """ Goes through all jobs and collects Extract if available. """
+        if self.dynamic:
+            if self._cached_extractors is None:
+                self._cached_extractors = self.dicttype()
+            result = self.dicttype()
+            for name, extract in self.__iter_alljobs__():
+                if name not in self._cached_extractors:
+                    self._cached_extractors[name] = extract
+                result[name] = self._cached_extractors[name]
+            return result
+        else:
+            if self._cached_extractors is not None:
+                return self._cached_extractors
+            result = self.dicttype()
+            for name, extract in self.__iter_alljobs__():
+                result[name] = extract
+            self._cached_extractors = result
+            return result
 
-  def __dir__(self):
-    from itertools import chain
-    results = chain([u for u in self.__dict__ if u[0] != '_'],
-                    [u for u in dir(self.__class__) if u[0] != '_'],
-                    self._attributes)
-    return list(set(results))
+    def _regex_extractors(self):
+        """ Loops through jobs in this view. """
+        if self.excludes is not None:
+            excludes = [self._regex_pattern(u) for u in self.excludes]
+        if self.view == "/":
+            for key, value in AbstractMassExtract._extractors.__get__(self).items():
+                if self.excludes is not None                                           \
+                   and any(u.match(key) is not None for u in excludes):
+                    continue
+                yield key, value
+            return
 
-  def __getattr__(self, name):
-    """ Returns extracted values. """
-    from .forwarding_dict import ForwardingDict
-    if name not in AbstractMassExtract._attributes.__get__(self):
-        raise AttributeError("Unknown attribute {0}.".format(name))
+        regex = self._regex_pattern(self.view)
+        for key, value in self._extractors.items():
+            if regex.match(key) is None:
+                continue
+            if self.excludes is not None                                             \
+               and any(u.match(key) is not None for u in excludes):
+                continue
+            yield key, value
 
-    result = self.dicttype()
-    for key, value in self.items():
-      try:
-        result[key] = getattr(value, name)
-      except:
-        result.pop(key, None)
-    if self.naked_end and len(result) == 1:
-      return result[result.keys()[0]]
-    return ForwardingDict(dictionary=result, naked_end=self.naked_end)
+    @property
+    def _attributes(self):
+        """ Returns __dir__ special to the extraction itself. """
+        results = set([])
+        for key, value in self.items():
+            results |= set([u for u in dir(value) if u[0] != '_'])
+        return results
 
-  def __getitem__(self, name):
-    """ Returns a view of the current job-dictionary.
+    def __dir__(self):
+        from itertools import chain
+        results = chain([u for u in self.__dict__ if u[0] != '_'],
+                        [u for u in dir(self.__class__) if u[0] != '_'],
+                        self._attributes)
+        return list(set(results))
 
-        .. note:: normpath_ returns a valid path when descending below
-           root, e.g.``normpath('/../../other') == '/other'), so there won't be
-           any errors on that account.
+    def __getattr__(self, name):
+        """ Returns extracted values. """
+        from .forwarding_dict import ForwardingDict
+        if name not in AbstractMassExtract._attributes.__get__(self):
+            raise AttributeError("Unknown attribute {0}.".format(name))
 
-           .. _normpath: http://docs.python.org/library/os.path.html#os.path.normpath
-    """
-    from os.path import normpath, join
-    if name[0] != '/':
-      name = join(self.view, name)
-    if self.unix_re:
-      name = normpath(name)
-    return self.shallow_copy(view=name)
+        result = self.dicttype()
+        for key, value in self.items():
+            try:
+                result[key] = getattr(value, name)
+            except:
+                result.pop(key, None)
+        if self.naked_end and len(result) == 1:
+            return result[result.keys()[0]]
+        return ForwardingDict(dictionary=result, naked_end=self.naked_end)
 
-  def __delitem__(self, name):
-    """ Removes items from the collection path. 
+    def __getitem__(self, name):
+        """ Returns a view of the current job-dictionary.
 
-        This basically adds to the excludes attributes.
-    """
-    if self.excludes is None:
-      self._excludes = [name]
-    elif name not in self.excludes:
-      self.excludes.append(name)
+            .. note:: normpath_ returns a valid path when descending below
+               root, e.g.``normpath('/../../other') == '/other'), so there won't be
+               any errors on that account.
 
-  def __getstate__(self):
-    d = self.__dict__.copy()
-    return d
+               .. _normpath: http://docs.python.org/library/os.path.html#os.path.normpath
+        """
+        from os.path import normpath, join
+        if name[0] != '/':
+            name = join(self.view, name)
+        if self.unix_re:
+            name = normpath(name)
+        return self.shallow_copy(view=name)
 
-  def __setstate__(self, arg):
-    self.__dict__.update(arg)
+    def __delitem__(self, name):
+        """ Removes items from the collection path. 
 
-  def shallow_copy(self, **kwargs):
-    """ Returns a shallow copy. 
+            This basically adds to the excludes attributes.
+        """
+        if self.excludes is None:
+            self._excludes = [name]
+        elif name not in self.excludes:
+            self.excludes.append(name)
 
-        :param kwargs:  Any keyword attribute will modify the corresponding
-          attribute of the copy.
-    """
-    from copy import copy
-    result = copy(self)
-    for key, value in kwargs.items():
-      setattr(result, key, value)
-    return result
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        return d
 
-  def files(self, **kwargs):
-      """ Iterates over output/input files. 
+    def __setstate__(self, arg):
+        self.__dict__.update(arg)
 
-          This is rerouted to all extraction objects.
-      """
-      for job in self.values():
-        if hasattr(job, 'files'):
-            for file in job.files(**kwargs):
-                yield file
+    def shallow_copy(self, **kwargs):
+        """ Returns a shallow copy. 
 
-  def __getstate__(self):
-    d = self.__dict__.copy()
-    if d["_rootpath"] is not None:
-      d["_rootpath"].hook = None
-    return d
+            :param kwargs:  Any keyword attribute will modify the corresponding
+              attribute of the copy.
+        """
+        from copy import copy
+        result = copy(self)
+        for key, value in kwargs.items():
+            setattr(result, key, value)
+        return result
 
-  def __setstate__(self, arg):
-    self.__dict__.update(arg)
-    if self._rootpath is not None:
-      self._rootpath.hook = self.uncache
+    def files(self, **kwargs):
+        """ Iterates over output/input files. 
+
+            This is rerouted to all extraction objects.
+        """
+        for job in self.values():
+            if hasattr(job, 'files'):
+                for file in job.files(**kwargs):
+                    yield file
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        if d["_rootpath"] is not None:
+            d["_rootpath"].hook = None
+        return d
+
+    def __setstate__(self, arg):
+        self.__dict__.update(arg)
+        if self._rootpath is not None:
+            self._rootpath.hook = self.uncache

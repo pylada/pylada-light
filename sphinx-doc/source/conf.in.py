@@ -2,20 +2,20 @@
 #  This file is part of PyLaDa.
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
-# 
+#
 #  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
 #  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
 #  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
 #  is able to organise and launch computational jobs on PBS and SLURM.
-# 
+#
 #  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
 #  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
 #  your option) any later version.
-# 
+#
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 #  Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
@@ -33,7 +33,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys
+import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -47,7 +48,8 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sphinx.ext.mathjax' , 'sphinx.ext.graphviz']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage',
+              'sphinx.ext.viewcode', 'sphinx.ext.mathjax', 'sphinx.ext.graphviz']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -86,7 +88,7 @@ release = '1.0'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = [ 'pyapi/vasp/incar-attr.rst']
+exclude_patterns = ['pyapi/vasp/incar-attr.rst']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -121,7 +123,8 @@ html_theme = "@SPHINX_THEME@"
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-if len("@SPHINX_THEME_DIR@"): html_theme_path = ["@SPHINX_THEME_DIR@"]
+if len("@SPHINX_THEME_DIR@"):
+    html_theme_path = ["@SPHINX_THEME_DIR@"]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -200,8 +203,8 @@ htmlhelp_basename = 'Pyladadoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Pylada.tex', u'Pylada Documentation',
-   u'Mayeul d\'Avezac', 'manual'),
+    ('index', 'Pylada.tex', u'Pylada Documentation',
+     u'Mayeul d\'Avezac', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

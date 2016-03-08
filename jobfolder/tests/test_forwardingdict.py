@@ -25,11 +25,11 @@ from pytest import fixture
 class A(object):
 
     def __init__(self, this, that):
-      self.this = this
-      self.that = that
+        self.this = this
+        self.that = that
 
     def __eq__(self, b):
-      return b.__class__ is self.__class__ and b.this == self.this and b.that == self.that
+        return b.__class__ is self.__class__ and b.this == self.this and b.that == self.that
 
     def __neq__(self, b): return not self.__eq__(b)
 

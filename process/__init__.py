@@ -2,20 +2,20 @@
 #  This file is part of PyLaDa.
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
-# 
+#
 #  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
 #  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
 #  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
 #  is able to organise and launch computational jobs on PBS and SLURM.
-# 
+#
 #  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
 #  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
 #  your option) any later version.
-# 
+#
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 #  Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
@@ -77,8 +77,8 @@
     .. _openmpi: http://www.open-mpi.org/
 """
 __docformat__ = "restructuredtext en"
-__all__  = [ 'Process', 'ProgramProcess', 'CallProcess', 'IteratorProcess',
-             'JobFolderProcess', 'PoolProcess', 'Fail', 'which', 'DummyProcess' ]
+__all__ = ['Process', 'ProgramProcess', 'CallProcess', 'IteratorProcess',
+           'JobFolderProcess', 'PoolProcess', 'Fail', 'which', 'DummyProcess']
 
 from ..error import root
 from pool import PoolProcess
@@ -89,44 +89,53 @@ from iterator import IteratorProcess
 from jobfolder import JobFolderProcess
 from dummy import DummyProcess
 
+
 class ProcessError(root):
-  """ Root of special exceptions issued by process module. """
+    """ Root of special exceptions issued by process module. """
+
+
 class Fail(ProcessError):
-  """ Process failed to run successfully. """
-  pass
+    """ Process failed to run successfully. """
+    pass
+
+
 class AlreadyStarted(ProcessError):
-  """ Process already started.
-      
-      Thrown when :py:meth:`~process.Process.start` or its overloaded friend is
-      called for a second time.
-  """
+    """ Process already started.
+
+        Thrown when :py:meth:`~process.Process.start` or its overloaded friend is
+        called for a second time.
+    """
+
+
 class NotStarted(ProcessError):
-  """ Process was never started.
-      
-      Thrown when :py:meth:`~process.Process.poll` or its overloaded friend is
-      called before the process is started.
-  """
+    """ Process was never started.
+
+        Thrown when :py:meth:`~process.Process.poll` or its overloaded friend is
+        called before the process is started.
+    """
+
 
 def which(program):
-  """ Gets location of program by mimicking bash which command. """
-  from os import environ, getcwd
-  from os.path import split, expanduser, expandvars, join
-  from itertools import chain
-  from ..misc import RelativePath
-  from ..error import IOError
+    """ Gets location of program by mimicking bash which command. """
+    from os import environ, getcwd
+    from os.path import split, expanduser, expandvars, join
+    from itertools import chain
+    from ..misc import RelativePath
+    from ..error import IOError
 
-  def is_exe(path):
-    from os import access, X_OK
-    from os.path import isfile
-    return isfile(path) and access(path, X_OK)
+    def is_exe(path):
+        from os import access, X_OK
+        from os.path import isfile
+        return isfile(path) and access(path, X_OK)
 
-  exprog = expanduser(expandvars(program))
-  fpath, fname = split(exprog)
-  if fpath:
-    if is_exe(exprog): return RelativePath(exprog).path
-  else:
-    for dir in chain([getcwd()], environ["PATH"].split(':')):
-      if is_exe(join(dir, exprog)): return RelativePath(join(dir, exprog)).path
+    exprog = expanduser(expandvars(program))
+    fpath, fname = split(exprog)
+    if fpath:
+        if is_exe(exprog):
+            return RelativePath(exprog).path
+    else:
+        for dir in chain([getcwd()], environ["PATH"].split(':')):
+            if is_exe(join(dir, exprog)):
+                return RelativePath(join(dir, exprog)).path
 
-  raise IOError('Could not find executable {0}.'.format(program))
-
+    raise IOError('Could not find executable {0}.'.format(program))

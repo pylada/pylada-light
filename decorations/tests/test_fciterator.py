@@ -20,6 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
+
 def test_fciterator():
     from pylada.decorations._cutilities import FCIterator
     result = [False, False, False, True, True], \
