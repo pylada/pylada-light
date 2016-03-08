@@ -112,7 +112,7 @@ def iterate(self, event):
         if "_pylada_subjob_iterator" in interactive.__dict__:
             iterator = interactive._pylada_subjob_iterator
         else:
-            iterator = interactive.jobfolder.root.itervalues()
+            iterator = interactive.jobfolder.root.values()
         while True:
             try:
                 job = iterator.next()
