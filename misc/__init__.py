@@ -28,9 +28,9 @@ __all__ = ['bugLev', 'testValidProgram', 'copyfile', 'Changedir',
 
 from types import ModuleType
 
-from changedir import Changedir
-from relativepath import RelativePath
-from lockfile import LockFile, open_exclusive
+from .changedir import Changedir
+from .relativepath import RelativePath
+from .lockfile import LockFile, open_exclusive
 
 bugLev = 0
 """

@@ -36,8 +36,8 @@
 __docformat__ = "restructuredtext en"
 
 
-from _create_data import *
-from _element import Element
+from ._create_data import *
+from ._element import Element
 
 from numpy import array
 from quantities import cm, m, g, J, pm, K as Kelvin, mol, angstrom,\

@@ -493,7 +493,7 @@ def main(system_params=None):
     from pylada.vasp import Vasp
     import os
     from os import path
-    from nlep import Objective
+    from .nlep import Objective
     from pylada.vasp.nlep.postprocessing import find_best, load_test, prepare_analog_fit
 
     print "mpi rank %d of %d" % (world.rank, world.size)
@@ -507,7 +507,7 @@ def main(system_params=None):
 
     load_from_analogs = run_input.load_from_analogs
     # create systems
-    from systems import setup_systems
+    from .systems import setup_systems
     systems = setup_systems(run_input, system_params)
 
     if (run_input.nbjobs == -1):

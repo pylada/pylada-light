@@ -26,7 +26,7 @@ from shutil import rmtree
 import numpy as np
 import os
 
-from system_params import SystemParams
+from .system_params import SystemParams
 
 
 class System():
@@ -139,7 +139,7 @@ class MultiSystem():
         self.result_size = self.get_result_size(run_input)
 
     def get_nlep_params_x(self):
-        from nlep import getx_from_specie, set_nlep_fromx
+        from .nlep import getx_from_specie, set_nlep_fromx
         x = []
         for symbol, specie in self.species.items():
             x += getx_from_specie(specie)
@@ -155,7 +155,7 @@ class MultiSystem():
         return np.array(x)
 
     def get_ranges(self):
-        from nlep import get_range_from_specie
+        from .nlep import get_range_from_specie
         x = []
         for symbol, specie in self.species.items():
             x += get_range_from_specie(specie)
@@ -163,14 +163,14 @@ class MultiSystem():
         return np.array(x)
 
     def setx(self, x):
-        from nlep import getx_from_specie, set_nlep_fromx
+        from .nlep import getx_from_specie, set_nlep_fromx
         i = 0
         for symbol, specie in self.species.items():
             i = set_nlep_fromx(x, i, specie)
 
     def setup_species(self):
         """extract species from vasp objects to make one list for whole set of systems"""
-        from nlep import getx_from_specie, set_nlep_fromx
+        from .nlep import getx_from_specie, set_nlep_fromx
         self.species = {}
         for s in self.systems:
             for symbol, specie in s.objective.vasp.species.items():
@@ -186,7 +186,7 @@ class MultiSystem():
             self.species_dict[symbol] = spec
 
     def get_result_size(self, run_input):
-        from mpopt import get_result_size
+        from .mpopt import get_result_size
         size = 0
         for s in self.systems:
             size += get_result_size(s.input, run_input)

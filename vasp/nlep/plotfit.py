@@ -29,7 +29,7 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import sys
 
-import plotbs
+from . import plotbs
 from run_input import cations, anions
 
 
