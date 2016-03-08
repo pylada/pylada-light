@@ -48,14 +48,14 @@
 """
 __docformat__ = "restructuredtext en"
 __all__ = [
-    'error', 'physics', 'crystal', 'misc', 'ewald', @which_packages@
-    # "load_ipython_extension", "unload_ipython_extension",
-]
+    "load_ipython_extension", "unload_ipython_extension",
+    "error", "crystal", "physics", "misc", "tools", "ewald", "decorations", "config",
+    "periodic_table", "vasp", "process", "jobfolder" ]
 import error
 import physics
-# from ipython import load_ipython_extension, unload_ipython_extension
+from ipython import load_ipython_extension, unload_ipython_extension
 
-version_info = (@Pylada_VERSION_MAJOR@, @Pylada_VERSION_MINOR@)
+version_info = (int("@Pylada_VERSION_MAJOR@"), int("@Pylada_VERSION_MINOR@"))
 """ Tuple containing version info. """
 version = "{0[0]}.{0[1]}".format(version_info)
 """ String containing version info. """
