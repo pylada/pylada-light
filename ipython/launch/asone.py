@@ -29,6 +29,7 @@ __docformat__ = 'restructuredtext en'
 
 def launch(self, event, jobfolders):
     """ Launches each jobfolder in single pbs job """
+    import six
     import subprocess
     from copy import deepcopy
     from os.path import dirname, join, basename, exists
@@ -99,9 +100,9 @@ def launch(self, event, jobfolders):
         if exists(pbsscripts[-1]):
             a = ''
             while a not in ['n', 'y']:
-                a = raw_input("PBS script {0} already exists.\n"
-                              "Are you sure this job is not currently running [y/n]? "
-                              .format(pbsscripts[-1]))
+                a = six.raw_input("PBS script {0} already exists.\n"
+                                  "Are you sure this job is not currently running [y/n]? "
+                                  .format(pbsscripts[-1]))
             if a == 'n':
                 print "Aborting."
                 return

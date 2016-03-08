@@ -151,6 +151,7 @@ def qdel(self, arg):
 
         >>> %qdel "anti-ferro"
     """
+    import six
     from pylada import qdel_exe
     arg = arg.lstrip().rstrip()
     if '--help' in arg.split() or '-h' in arg.split():
@@ -168,7 +169,7 @@ def qdel(self, arg):
         message = "Cancel all jobs? [y/n] "
     a = ''
     while a not in ['n', 'y']:
-        a = raw_input(message)
+        a = six.raw_input(message)
     if a == 'n':
         return
 

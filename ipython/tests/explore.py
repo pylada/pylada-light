@@ -24,9 +24,6 @@
 ###############################
 
 
-def raw_input(*args): return 'y'
-
-
 def test(shell):
     from tempfile import mkdtemp
     from shutil import rmtree
@@ -116,12 +113,16 @@ def test(shell):
 
 if __name__ == "__main__":
     from IPython.core.interactiveshell import InteractiveShell
-    import builtins
+    import six
+
+    def raw_input(*args):
+        return 'y'
+
     try:
-        saveri = builtins.raw_input
-        builtins.raw_input = raw_input
+        saveri = six.raw_input
+        six.raw_input = raw_input
         shell = InteractiveShell.instance()
         shell.magic("load_ext pylada")
         test(shell)
     finally:
-        builtins.raw_input = saveri
+        six.raw_input = saveri

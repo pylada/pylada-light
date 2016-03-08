@@ -241,6 +241,7 @@ class JobParams(AbstractMassExtract):
             .. warning:: The right-hand-side is *always* deep-copied_.
               .. _deep-copied:: http://docs.python.org/library/copy.html
         """
+        import six
         from .. import is_interactive
         from copy import deepcopy
 
@@ -252,7 +253,7 @@ class JobParams(AbstractMassExtract):
         if name in self.jobfolder and is_interactive:
             a = ''
             while a not in ['n', 'y']:
-                a = raw_input(
+                a = six.raw_input(
                     "Modifying existing folder parameters {0}.\nIs this OK? [y/n] ".format(name))
             if a == 'n':
                 print "Aborting."
@@ -261,6 +262,7 @@ class JobParams(AbstractMassExtract):
 
     def __delitem__(self, name):
         """ Deletes items from job-folder. """
+        import six
         from .. import is_interactive
         if is_interactive:
             print "Deleting the following jobs:"
@@ -268,7 +270,7 @@ class JobParams(AbstractMassExtract):
                 print key
             a = ''
             while a != 'n' and a != 'y':
-                a = raw_input('Ok? [y/n] ')
+                a = six.raw_input('Ok? [y/n] ')
             if a == 'n':
                 print "Aborting."
                 return
@@ -291,6 +293,7 @@ class JobParams(AbstractMassExtract):
             .. warning: New jobs are always added at the root of the job-folder.
               Make sure the jobs bear the names you want.
         """
+        import six
         from .jobfolder import JobFolder
         from .. import is_interactive
         keys = jobfolder.keys()
@@ -310,7 +313,7 @@ class JobParams(AbstractMassExtract):
                     print key
             a = ''
             while a != 'n' and a != 'y':
-                a = raw_input("Is the above OK? [n/y] ")
+                a = six.raw_input("Is the above OK? [n/y] ")
             if a == 'n':
                 print "Aborting."
                 return

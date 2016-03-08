@@ -26,6 +26,7 @@ __docformat__ = "restructuredtext en"
 
 def export(self, event):
     """ Tars files from a calculation.  """
+    import six
     import argparse
     import tarfile
     from os import getcwd
@@ -138,8 +139,8 @@ def export(self, event):
                 return
             a = ''
             while a not in ['n', 'y']:
-                a = raw_input("File {0} already exists.\nOverwrite? [y/n] "
-                              .format(args.filename))
+                a = six.raw_input("File {0} already exists.\nOverwrite? [y/n] "
+                                  .format(args.filename))
             if a == 'n':
                 print "Aborted."
                 return

@@ -35,6 +35,7 @@ def launch(self, event, jobfolders):
 
 def launch_single(self, event, jobfolder):
     """ Launches a single jobfolder as a pbs array job """
+    import six
     import subprocess
     from copy import deepcopy
     from os.path import dirname, join, basename, exists
@@ -109,10 +110,10 @@ def launch_single(self, event, jobfolder):
     if exists(pbsscript):
         a = ''
         while a not in ['n', 'y']:
-            a = raw_input("PBS script {0} already exists.\n"
-                          "Only one array job per jobfolder can be launched at"
-                          "a time.\nAre you sure this job is not currently running"
-                          "[y/n]? ".format(pbsscript))
+            a = six.raw_input("PBS script {0} already exists.\n"
+                              "Only one array job per jobfolder can be launched at"
+                              "a time.\nAre you sure this job is not currently running"
+                              "[y/n]? ".format(pbsscript))
         if a == 'n':
             print "Aborting."
             return

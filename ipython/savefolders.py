@@ -43,6 +43,7 @@ def savefolders(self, event):
         Saves the current job-folder to the current job-folder path. Fails if
         either are unknown.
     """
+    import six
     from os.path import exists, isfile
     from ..jobfolder import JobParams, MassExtract as Collect, save
     from .. import interactive
@@ -88,8 +89,7 @@ def savefolders(self, event):
             return
         a = 'y'       # testValidProgram: force yes to allow automated testing
         while a not in ['n', 'y']:
-            a = raw_input("File {0} already exists.\nOverwrite? [y/n] "
-                          .format(jobfolder_path))
+            a = six.raw_input("File %s already exists.\nOverwrite? [y/n] " % jobfolder_path)
         if a == 'n':
             print "Aborting."
             return
