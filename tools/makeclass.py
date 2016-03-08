@@ -402,13 +402,13 @@ def makeclass(classname, base, iter=None, call=None,
     funcs = {}
 
     # creates __init__
-    exec create_initstring(classname, base, basemethod, excludes) in funcs
+    exec(create_initstring(classname, base, basemethod, excludes), funcs)
     if iter is not None:
-        exec create_iter(iter, excludes) in funcs
+        exec(create_iter(iter, excludes), funcs)
     if call is not None:
-        exec create_call(call, excludes) in funcs
+        exec(create_call(call, excludes), funcs)
     elif iter is not None:
-        exec create_call_from_iter(iter, excludes) in funcs
+        exec(create_call_from_iter(iter, excludes), funcs)
 
     d = {'__init__': funcs['__init__']}
     if call is not None or iter is not None:
@@ -504,7 +504,7 @@ def makefunc(name, iter, module=None):
         print 'tools/makeclass: makefunc: ===== funcstring end ====='
 
     funcs = {}
-    exec funcstring in funcs
+    exec(funcstring, funcs)
     if bugLev >= 1:
         print 'tools/makeclass: makefunc: after call funcstring'
         print 'tools/makeclass: makefunc: funcs: ', funcs

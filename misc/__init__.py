@@ -304,7 +304,7 @@ def load(data, *args, **kwargs):
         if exists(join(directory, data)):
             kwargs["directory"] = dirname(join(directory, data))
             result = {}
-            execfile(join(directory, data), {}, result)
+            exec(compile(open(join(directory, data)).read(), join(directory, data), 'exec'), {}, result)
             return result["init"](*args, **kwargs)
     raise IOError("Could not find data ({0}).".format(data))
 
