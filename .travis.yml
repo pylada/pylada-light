@@ -3,13 +3,13 @@ compiler:
   - gcc
 before_install:
   - sudo apt-get install build-essential
-  - sudo apt-get install gfortran
+  - sudo apt-get install -q gfortran openmpi-bin openmpi-common libopenmpi-dev
   - sudo apt-get install python-scipy python-numpy
-  - sudo apt-get install libboost-all-dev
   - sudo pip install --upgrade numpy
   - sudo pip install --no-cache ipython
   - sudo pip install --no-cache quantities
   - sudo pip install --no-cache mpi4py
+  - sudo pip install -q Cython
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update -qq
   - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
@@ -17,8 +17,8 @@ before_install:
 script:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -Dexternal_program_tests=OFF ..
-  - make lookup_dependencies # eigen and/or boost
+  - cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+  - make lookup_dependencies # eigen
   - make
   - ctest .. -V
   - pip install --user git+git://github.com/$TRAVIS_REPO_SLUG@$TRAVIS_COMMIT
