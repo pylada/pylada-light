@@ -50,12 +50,14 @@ __docformat__ = "restructuredtext en"
 __all__ = [
     "load_ipython_extension", "unload_ipython_extension",
     "error", "crystal", "physics", "misc", "tools", "ewald", "decorations", "config",
-    "periodic_table", "vasp", "process", "jobfolder" ]
+    "periodic_table", "vasp", "process", "jobfolder"]
 import error
 import physics
+from collections import namedtuple
 from ipython import load_ipython_extension, unload_ipython_extension
 
-version_info = (int("@Pylada_VERSION_MAJOR@"), int("@Pylada_VERSION_MINOR@"))
+version_info = namedtuple('version_info', ['major', 'minor'])\
+    (int("@Pylada_VERSION_MAJOR@"), int("@Pylada_VERSION_MINOR@"))
 """ Tuple containing version info. """
 version = "{0[0]}.{0[1]}".format(version_info)
 """ String containing version info. """
