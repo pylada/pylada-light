@@ -213,8 +213,8 @@ class RelativePath(object):
             TypeError("hook is not a function or bound method.")
         N = len(getargspec(value)[0])
         if ismethod(value):
-            assert value.im_self is not None,\
-                TypeError("hook callable cannot be an unbound method.")
+            if getattr(value, '__self__', getattr(value, 'im_self', None)) is None:
+                raise TypeError("hook callable cannot be an unbound method.")
             N -= 1
         assert N < 2, TypeError("hook callable cannot have more than one argument.")
         self._hook = value
