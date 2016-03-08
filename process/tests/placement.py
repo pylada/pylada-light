@@ -45,41 +45,41 @@ def test(nbprocs, ppn, executable):
 
     print 'CREATING FUNCTIONALS AND PROCESSES'
     lfunc = Functional(executable, range(ppn * 10, ppn * 10 + 8))
-    long = IteratorProcess(lfunc, outdir='long')
+    long_job = IteratorProcess(lfunc, outdir='long_job')
 
     sfunc = Functional(executable, [10])
     short0 = IteratorProcess(sfunc, outdir='short0')
     short1 = IteratorProcess(sfunc, outdir='short1')
 
     print 'CREATING COMMUNICATORS'
-    long_comm = pylada.default_comm.lend(3 * (nbprocs // 4))
-    assert len(long_comm.machines) == 2
+    long_job = pylada.default_comm.lend(3 * (nbprocs // 4))
+    assert len(long_job.machines) == 2
     short_comm0 = pylada.default_comm.lend(pylada.default_comm['n'] // 2)
     assert len(short_comm0.machines) == 1
     short_comm1 = pylada.default_comm.lend('all')
     assert len(short_comm1.machines) == 1
 
-    print 'STARTING LONG PROCESS'
-    long.start(long_comm)
-    assert not long.poll()
+    print 'STARTING long_job PROCESS'
+    long_job.start(long_job)
+    assert not long_job.poll()
     print 'STARTING SHORT PROCESSES'
     short0.start(short_comm0)
     short1.start(short_comm1)
     print 'TESTING PROCESS OVERLAP'
-    assert not long.poll()
+    assert not long_job.poll()
     print 'TESTED PROCESS OVERLAP'
     short0.wait()
     print 'FIRST SHORT PROCESS FINISHED'
-    assert not long.poll()
+    assert not long_job.poll()
     print 'TESTED PROCESS OVERLAP'
     short1.wait()
     print 'SECOND SHORT PROCESS FINISHED'
-    assert not long.poll()
+    assert not long_job.poll()
     print 'TESTED PROCESS OVERLAP'
-    long.wait()
-    print 'LONG PROCESS FINISHED'
+    long_job.wait()
+    print 'long_job PROCESS FINISHED'
 
-    assert lfunc.Extract('long').success
+    assert lfunc.Extract('long_job').success
     assert sfunc.Extract('short0').success
     assert sfunc.Extract('short1').success
     print 'END'
