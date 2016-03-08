@@ -213,7 +213,7 @@ class PoolProcess(JobFolderProcess):
             """ Loops over possible combinations. """
             from random import choice
             key = choice(list(bins.keys()))
-            for u in xrange(min(bins[key], n // key), -1, -1):
+            for u in range(min(bins[key], n // key), -1, -1):
                 newbins = bins.copy()
                 del newbins[key]
                 newn = n - u * key

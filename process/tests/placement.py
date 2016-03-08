@@ -44,7 +44,7 @@ def test(nbprocs, ppn, executable):
     create_global_comm(nbprocs)
 
     print 'CREATING FUNCTIONALS AND PROCESSES'
-    lfunc = Functional(executable, range(ppn * 10, ppn * 10 + 8))
+    lfunc = Functional(executable, list(range(ppn * 10, ppn * 10 + 8)))
     long_job = IteratorProcess(lfunc, outdir='long_job')
 
     sfunc = Functional(executable, [10])

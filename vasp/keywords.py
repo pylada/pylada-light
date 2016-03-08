@@ -1183,7 +1183,7 @@ class Nsw(TypedKeyword):
 
 class Isif(ChoiceKeyword):
     keyword = 'isif'
-    values = range(8)
+    values = list(range(8))
 
 
 class IBrion(BaseKeyword):

@@ -54,7 +54,7 @@ def supercells(lattice, sizerange):
     cell = lattice.cell
     invcell = inv(cell)
     spacegroup = space_group(lattice)
-    for i in xrange(len(spacegroup)):
+    for i in range(len(spacegroup)):
         spacegroup[i] = dot(invcell, dot(spacegroup[i][:3], cell))
 
     def isthere(sc, l):
@@ -73,17 +73,17 @@ def supercells(lattice, sizerange):
         if maxb % a != 0:
             maxb += 1
         supercell[0, 0] = a
-        for b in xrange(1, maxb + 1):
+        for b in range(1, maxb + 1):
             maxc = maxk // (a * b)
             if maxk % (a * b) != 0:
                 maxc += 1
             supercell[1, 1] = b
-            for c in xrange(max(mink // (a * b), 1), maxc + 1):
+            for c in range(max(mink // (a * b), 1), maxc + 1):
                 n = a * b * c
                 if n not in sizerange:
                     continue
                 supercell[2, 2] = c
-                for d, e, f in product(xrange(b), xrange(c), xrange(c)):
+                for d, e, f in product(list(range(b)), list(range(c)), list(range(c))):
                     supercell[1, 0] = d
                     supercell[2, 0] = e
                     supercell[2, 1] = f
@@ -182,7 +182,7 @@ def generate_bitstrings(lattice, sizerange):
                 for j, (t, i) in enumerate(zip(transformations, invariants)):
                     if not i:
                         continue
-                    if all(t == range(t.shape[0])):
+                    if all(t == list(range(t.shape[0]))):
                         invariants[i] = False
                 transformations = transformations[invariants]
 

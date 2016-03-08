@@ -130,13 +130,13 @@ def test_b5(u):
 
     # try random rotation, translations, atom swap
     structure[0], structure[-1] = structure[-1], structure[0]
-    for u in xrange(10):
+    for u in range(10):
         axis = random_sample((3,))
         axis /= norm(axis)
         rotation = rotation_matrix(pi * random(), axis)
         translation = random_sample((3,))
         other = transform(structure, rotation, translation)
-        for u in xrange(10):
+        for u in range(10):
             l, m = randint(0, len(structure) - 1), randint(0, len(structure) - 1)
             a, b = other[l], other[m]
             other[l], other[m] = b, a

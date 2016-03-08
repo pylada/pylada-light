@@ -228,7 +228,7 @@ def test_variablelistkeyword():
     assert isinstance(a.value, list) and len(a.value) == 6
     assert all(isinstance(v, int) for v in a.value)
     assert all(array(a.value) - arange(6)[::-1] == 0)
-    assert all(array(a.raw.split(), dtype='int32') - ([6] + range(6)[::-1]) == 0)
+    assert all(array(a.raw.split(), dtype='int32') - ([6] + list(range(6))[::-1]) == 0)
     assert len(a.raw.split('\n')) == 2
     assert a.raw.split('\n')[0] == '6'
 

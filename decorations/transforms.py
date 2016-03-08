@@ -51,7 +51,7 @@ class Transforms(object):
         self._enhance_lattice()
         self.equivmap = [u.equivto for u in self.lattice]
         """ Site map for label exchange. """
-        self.flavors = [range(1, site.nbflavors + 1) for site in self.lattice
+        self.flavors = [list(range(1, site.nbflavors + 1)) for site in self.lattice
                         if site.nbflavors != 1 and site.asymmetric]
         """ List of possible flavors for each asymmetric site. """
         invcell = inv(lattice.cell)
@@ -100,23 +100,23 @@ class Transforms(object):
         from itertools import product
         from numpy import zeros
         nsites = len(self.dnt[0])
-        itertrans = [xrange(hft.quotient[0]),
-                     xrange(hft.quotient[1]),
-                     xrange(hft.quotient[2])]
+        itertrans = [list(range(hft.quotient[0])),
+                     list(range(hft.quotient[1])),
+                     list(range(hft.quotient[2]))]
         size = hft.size
         result = zeros((size - 1, nsites * size), dtype='int16') - 1
         iterable = product(*itertrans)
         a = next(iterable)  # avoid null translation
         assert a == (0, 0, 0)  # check that it is null
         for t, (i, j, k) in enumerate(iterable):
-            iterpos = [xrange(hft.quotient[0]),
-                       xrange(hft.quotient[1]),
-                       xrange(hft.quotient[2])]
+            iterpos = [list(range(hft.quotient[0])),
+                       list(range(hft.quotient[1])),
+                       list(range(hft.quotient[2]))]
             for l, m, n in product(*iterpos):
                 u = (i + l) % hft.quotient[0]
                 v = (j + m) % hft.quotient[1]
                 w = (k + n) % hft.quotient[2]
-                for s in xrange(nsites):
+                for s in range(nsites):
                     result[t, hft.flatten_indices(l, m, n, s)] = hft.flatten_indices(u, v, w, s)
 
         return result
@@ -133,8 +133,8 @@ class Transforms(object):
             rotation = dot(hft.transform, dot(op[:3], invtransform))
             for s, (siteperm, translation) in enumerate(dnt):
                 trans = hft.indices(translation)
-                iterpos = [xrange(hft.quotient[0]), xrange(
-                    hft.quotient[1]), xrange(hft.quotient[2])]
+                iterpos = [list(range(hft.quotient[0])), list(range(
+                    hft.quotient[1])), list(range(hft.quotient[2]))]
                 for i, j, k in product(*iterpos):
                     newpos = dot(rotation, [i, j, k])
                     l = (int(round(newpos[0])) + trans[0]) % hft.quotient[0]
@@ -183,7 +183,7 @@ class Transforms(object):
         def permutations(x):
             """ Iterator over label exchange """
             for perms in iterables:
-                yield array([perms[self.equivmap[i // size]][x[i] - 1] for i in xrange(len(x))])
+                yield array([perms[self.equivmap[i // size]][x[i] - 1] for i in range(len(x))])
 
         return permutations
 

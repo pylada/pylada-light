@@ -230,7 +230,7 @@ class ExtractBase(object):
                 if atom_re.search(line) is not None:
                     break
             for specie, n in zip(self.species, self.stoichiometry):
-                for i, line in zip(range(n), file):
+                for i, line in zip(list(range(n)), file):
                     data = line.split()
                     result.add_atom(pos=dot(result.cell, array(data, dtype='float64')), type=specie)
         return result
@@ -285,7 +285,7 @@ class ExtractBase(object):
                 result.cell[i,:] = array(lines[-cell_index + i].split()[-3:], dtype="float64")
             result.cell = inv(result.cell)
         # Get list like ['S', 'S', 'S', 'S', 'S', 'S', 'Fe', 'Fe']
-        species = [type for type, n in zip(self.species, self.stoichiometry) for i in xrange(n)]
+        species = [type for type, n in zip(self.species, self.stoichiometry) for i in range(n)]
         while atom_index > 0 and len(lines[-atom_index].split()) == 6:
             result.add_atom(pos=array(lines[-atom_index].split()[:3], dtype="float64"),
                             type=species.pop(-1))
@@ -1564,14 +1564,14 @@ class ExtractBase(object):
         with self.__outcar__() as file:
             lines = file.readlines()
         found = re.compile(grep)
-        for index in xrange(1, len(lines) + 1):
+        for index in range(1, len(lines) + 1):
             if found.search(lines[-index]) is not None:
                 break
         if index == len(lines):
             return None
         index -= 4
         line_re = re.compile(r"""^\s*\d+((\s+\S+)+)\s*$""")
-        for i in xrange(0, index):
+        for i in range(0, index):
             match = line_re.match(lines[-index + i])
             if match is None:
                 break
@@ -1772,8 +1772,8 @@ class ExtractBase(object):
         with self.__outcar__() as file:
             for regex in finditer(pattern, file.read(), M):
                 stress = zeros((3, 3), dtype="float64"), zeros((3, 3), dtype="float64")
-                for i in xrange(2):
-                    for j in xrange(3):
+                for i in range(2):
+                    for j in range(3):
                         stress[i][j, j] += float(regex.group(i * 6 + 1 + j))
                     stress[i][0, 1] += float(regex.group(i * 6 + 4))
                     stress[i][1, 0] += float(regex.group(i * 6 + 4))

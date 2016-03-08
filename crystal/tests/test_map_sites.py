@@ -50,7 +50,7 @@ def get_a_supercell(u):
     from pylada.crystal import supercell
     lattice = get_some_lattice(u)
     while True:
-        cell = [[randint(-2, 3) for j in xrange(3)] for k in xrange(3)]
+        cell = [[randint(-2, 3) for j in range(3)] for k in range(3)]
         if det(cell) != 0:
             break
     structure = supercell(lattice, cell)

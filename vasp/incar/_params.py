@@ -999,7 +999,7 @@ class Relaxation(SpecialVaspParam):
             result[0] = result[0].lstrip()
             if self.nsw == 50 and self.ibrion is None and self.potim is None:
                 result[1] = None
-        for i in xrange(4):
+        for i in range(4):
             if result[-1] is None:
                 result = result[:-1]
         if len(result) == 1:

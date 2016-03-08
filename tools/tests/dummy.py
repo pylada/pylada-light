@@ -46,7 +46,7 @@ class DummyProcess:
 def iter_func(self, structure, outdir=None, other=True):
     assert other == False
     global iterator
-    for iterator in xrange(1, 5):
+    for iterator in range(1, 5):
         self.a *= iterator
         self(structure, outdir)
         yield DummyProcess(self)

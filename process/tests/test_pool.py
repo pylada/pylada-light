@@ -54,7 +54,7 @@ def test_failures(tmpdir, executable, comm):
     program = PoolProcess(root, processalloc=processalloc_test1,
                           outdir=str(tmpdir))
     program._comm = comm
-    for i in xrange(10000):
+    for i in range(10000):
         jobs = program._getjobs()
         assert sum(program._alloc[u] for u in jobs) <= program._comm['n'],\
             (jobs, [program._alloc[u] for u in jobs])
@@ -70,10 +70,10 @@ def test_getjobs(comm, tmpdir, executable, nprocs, njobs):
         from random import randint
         return randint(1, comm['n'])
 
-    for j in xrange(100):
+    for j in range(100):
         program = PoolProcess(root, processalloc=processalloc, outdir=str(tmpdir))
         program._comm = comm
-        for i in xrange(1000):
+        for i in range(1000):
             jobs = program._getjobs()
             assert sum(program._alloc[u] for u in jobs) <= program._comm['n'],\
                 (jobs, [program._alloc[u] for u in jobs])

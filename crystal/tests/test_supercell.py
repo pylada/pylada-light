@@ -93,7 +93,7 @@ def test_manysupercell():
     from pylada.crystal import supercell, binary, are_periodic_images as api
     lattice = binary.zinc_blende()
     invlat = inv(lattice.cell)
-    for i in xrange(10):
+    for i in range(10):
         cell = get_cell()
         struc = supercell(lattice, dot(lattice.cell, cell))
         assert len(struc) == len(lattice) * int(abs(det(cell)) + 0.01)

@@ -113,7 +113,7 @@ class ListBlock(BaseKeyword, list):
         from ..uirepr import add_to_imports
 
         result = super(ListBlock, self).__repr__()
-        indent = ' '.join('' for i in xrange(result.find('(') + 1))
+        indent = ' '.join('' for i in range(result.find('(') + 1))
         add_to_imports(self, imports)
 
         for item in self:

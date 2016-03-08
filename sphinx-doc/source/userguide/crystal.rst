@@ -262,7 +262,7 @@ respect to the group of periodic images it belongs to [HF]_.
 >>> # create smith transform.
 >>> st = SmithTransform(conventional)
 >>> # loop over random periodic images
->>> for i in xrange(10):
+>>> for i in range(10):
 >>>   #
 >>>   # create a vector with respect to its corresponding lattice site.
 >>>   pos  = conventional[2].pos - lattice[ conventional[2].site ].pos

@@ -307,7 +307,7 @@ class Vasp(AttrBlock):
 
             .. _CONTCAR: http://cms.mpi.univie.ac.at/vasp/guide/node60.html
         """
-        self.isym = ChoiceKeyword(values=range(-1, 3))
+        self.isym = ChoiceKeyword(values=list(range(-1, 3)))
         """ Symmetry scheme.
 
             .. seealso:: ISYM_

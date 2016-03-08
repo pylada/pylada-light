@@ -284,7 +284,7 @@ def crystal(file='fort.34'):
         dimensionality, centering, type = [int(u) for u in line.split()[:3]]
     # read cell
     try:
-        cell = array([file.next().split()[:3] for i in xrange(3)],
+        cell = array([file.next().split()[:3] for i in range(3)],
                      dtype='float64').T
     except StopIteration:
         raise error.IOError('Premature end of stream.')
@@ -296,9 +296,9 @@ def crystal(file='fort.34'):
         N = int(next(file))
     except StopIteration:
         raise error.IOError('Premature end of stream.')
-    for i in xrange(N):
+    for i in range(N):
         try:
-            op = array([file.next().split()[:3] for j in xrange(4)],
+            op = array([file.next().split()[:3] for j in range(4)],
                        dtype='float64')
         except StopIteration:
             raise error.IOError('Premature end of stream.')
@@ -313,7 +313,7 @@ def crystal(file='fort.34'):
     except StopIteration:
         raise error.IOError('Premature end of stream.')
 
-    for i in xrange(N):
+    for i in range(N):
         try:
             line = file.next().split()
         except StopIteration:
@@ -326,7 +326,7 @@ def crystal(file='fort.34'):
 
     # Adds symmetrically equivalent structures.
     identity = zeros((4, 3), dtype='float64')
-    for i in xrange(3):
+    for i in range(3):
         identity[i, i] == 1
     symops = [u for u in result.spacegroup if any(abs(u - identity) > 1e-8)]
     invcell = inv(result.cell)

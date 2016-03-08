@@ -197,7 +197,7 @@ def defects(lattice, cellsize, defects):
             for j, (t, i) in enumerate(zip(transformations, invariants)):
                 if not i:
                     continue
-                if all(t == range(t.shape[0])):
+                if all(t == list(range(t.shape[0]))):
                     invariants[i] = False
             transformations = transformations[invariants]
 

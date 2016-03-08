@@ -33,7 +33,7 @@ def test_process_functional(executable, comm, tmpdir):
     from pylada.process import NotStarted
     from pylada.process.tests.functional import Functional
 
-    functional = Functional(executable, range(8))
+    functional = Functional(executable, list(range(8)))
     program = CallProcess(functional, outdir=str(tmpdir), dompi=False)
     # program not started. should fail.
     with raises(NotStarted):

@@ -97,8 +97,8 @@ def split1(fn, ax, col, skipln, gwk,  first_vband_idx, my_vband_idx, bstart, ben
         g2x_idx = gw_g2x
         g2l_idx = gw_g2l
     else:
-        g2x_idx = range(0, 10)
-        g2l_idx = range(10, 20)
+        g2x_idx = list(range(0, 10))
+        g2l_idx = list(range(10, 20))
 
     for b in range(0, nband):
         g2x.append([])

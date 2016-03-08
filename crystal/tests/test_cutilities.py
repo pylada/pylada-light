@@ -27,7 +27,7 @@ def test_smith_normal_form():
     from numpy.linalg import det
     from pylada.crystal.cutilities import smith_normal_form
 
-    for i in xrange(50):
+    for i in range(50):
         cell = randint(-5, 5, size=(3, 3))
         while abs(det(cell)) < 1e-2:
             cell = randint(-5, 5, size=(3, 3))
@@ -58,10 +58,10 @@ def test_gruber():
     lim = 5
 
     for a00 in [-1, 1]:
-        for a10 in xrange(-lim, lim + 1):
+        for a10 in range(-lim, lim + 1):
             for a11 in [-1, 1]:
-                for a20 in xrange(-lim, lim + 1):
-                    for a21 in xrange(-lim, lim + 1):
+                for a20 in range(-lim, lim + 1):
+                    for a21 in range(-lim, lim + 1):
                         for a22 in [-1, 1]:
                             a = [[a00, 0, 0], [a10, a11, 0], [a20, a21, a22]]
                             g = gruber(dot(cell, a))

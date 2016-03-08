@@ -809,7 +809,7 @@ def equiv_bins(n, N):
         return
     if n == 0:
         yield [0 for x in range(N)]
-    for u in xrange(n, 0, -1):
+    for u in range(n, 0, -1):
         for f in equiv_bins(n - u, N - 1):
             result = array([x for x in chain([u], f)])
             if all(result[0:-1] - result[1:] >= 0):

@@ -117,7 +117,7 @@ class Communicator(dict):
             raise MPISizeError("Cannot split {0} processes "
                                "into {0} communicators.".format(self['n'], n))
         N = self['n']
-        return [self.lend(N // n + (1 if i < N % n else 0)) for i in xrange(n)]
+        return [self.lend(N // n + (1 if i < N % n else 0)) for i in range(n)]
 
     def acquire(self, other, n=None):
         """ Acquires the processes from another communicator. 

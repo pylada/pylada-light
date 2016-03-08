@@ -33,7 +33,7 @@ def test_iterator(executable, tmpdir, comm):
     from pylada.process import Fail, NotStarted
     from pylada.process.tests.functional import Functional
 
-    functional = Functional(executable, range(8))
+    functional = Functional(executable, list(range(8)))
     program = IteratorProcess(functional, outdir=str(tmpdir))
     # program not started. should fail.
     with raises(NotStarted):

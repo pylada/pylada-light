@@ -12649,7 +12649,7 @@ space_group = \
               'TESTGEOM\n'                                                           \
               'END\n'
       result = {}
-      for i in xrange(1, 231):
+      for i in range(1, 231):
         print i
         with open('input', 'w') as file: file.write(input.format(group=i))
         program = 'crystal'
