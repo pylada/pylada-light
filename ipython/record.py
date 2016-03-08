@@ -210,7 +210,7 @@ def completer(self, event):
 
     if '--file' not in data:
         result.append('--file')
-    options = set(['--list', '--view', '--load', '--remove', '--update'])
+    options = {'--list', '--view', '--load', '--remove', '--update'}
     if '-n' in data or '--namespace' in data and '--load' not in data:
         result.append('--load')
     elif '--load' in data and '-n' not in data and '--namespace' not in data:

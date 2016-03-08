@@ -98,13 +98,13 @@ def test(shell):
             job.compute(outdir=join(directory, name))
 
         shell.magic("explore results".format(directory))
-        assert set(['/this/0/', '/that/1/', '/that/2/']) \
+        assert {'/this/0/', '/that/1/', '/that/2/'} \
             == set(shell.user_ns['collect'].keys())
         shell.magic("explore errors".format(directory))
         assert len(shell.user_ns['collect']) == 0
         shell.magic("explore all".format(directory))
         shell.magic("explore errors".format(directory))
-        assert set(shell.user_ns['collect'].keys()) == set(['/this/1/'])
+        assert set(shell.user_ns['collect'].keys()) == {'/this/1/'}
 
     finally:
         if directory != '/tmp/test':

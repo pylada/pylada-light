@@ -73,7 +73,7 @@ def add_to_imports(object, imports):
     if key in imports:
         imports[key].add(value)
     else:
-        imports[key] = set([value])
+        imports[key] = {value}
 
 
 def template_ui_repr(self, imports, name=None, defaults=None, exclude=None):

@@ -34,9 +34,9 @@ def test_relax():
     assert Relaxation("cellshape").value == "cellshape"
     assert Relaxation("ionic").value == "ionic"
     assert Relaxation("volume").value == "volume"
-    assert set(Relaxation("ionic cellshape").value.split()) == set(["cellshape", 'ionic'])
+    assert set(Relaxation("ionic cellshape").value.split()) == {"cellshape", 'ionic'}
     assert set(Relaxation("ionic cellshape volume").value.split()
-               ) == set(["cellshape", 'ionic', 'volume'])
+               ) == {"cellshape", 'ionic', 'volume'}
     try:
         set(Relaxation("ionic volume").value.split())
     except:

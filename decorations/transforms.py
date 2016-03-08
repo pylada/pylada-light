@@ -70,7 +70,7 @@ class Transforms(object):
         from ..crystal import which_site
         index = 0
         for i, site in enumerate(self.lattice):
-            site.equivto = set([i])
+            site.equivto = {i}
             for op in self.space_group[1:]:
                 j = which_site(dot(op[:3], site.pos) + op[3], self.lattice)
                 assert j != -1

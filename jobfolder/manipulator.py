@@ -210,7 +210,7 @@ class JobParams(AbstractMassExtract):
         result = set()
         for name, job in self.items():
             if not job.is_tagged:
-                result |= set([u for u in dir(job) if u[0] != '_'])
+                result |= {u for u in dir(job) if u[0] != '_'}
         return result
 
     def __setitem__(self, name, jobfolder):

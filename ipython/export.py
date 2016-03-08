@@ -179,10 +179,10 @@ def completer(self, event):
        or (len(event.symbol) > 0 and len(data) > 1 and data[-2] == "--with"):
         return []
 
-    data = set(data) - set(["export", "%export"])
-    result = set(['--incar', '--doscar', '--poscar', '--chgcar', '--contcar',
+    data = set(data) - {"export", "%export"}
+    result = {'--incar', '--doscar', '--poscar', '--chgcar', '--contcar',
                   '--potcar', '--wavecar', '--procar', '--list', '--down',
-                  '--from', '--with'])
+                  '--from', '--with'}
 
     if '--list' not in data:
         other = event.line.split()
@@ -190,15 +190,15 @@ def completer(self, event):
             i = other.index('--from')
             if i + 1 < len(other):
                 other.pop(i + 1)
-        other = [u for u in (set(other) - result - set(['export', '%export']))
+        other = [u for u in (set(other) - result - {'export', '%export'})
                  if u[0] != '-']
         if len(other) == 0:
             for file in chain(iglob('*.tar'), iglob('*.tar.gz'),
                               iglob('*.tgz'), iglob('*.bz'), iglob('*.bz2')):
                 result.add(file)
             relpath, tilde_expand, tilde_val = expand_user(data[-1])
-            result |= set([f.replace('\\', '/') + "/" for f in iglob(relpath + '*')
-                           if isdir(f)])
+            result |= {f.replace('\\', '/') + "/" for f in iglob(relpath + '*')
+                           if isdir(f)}
         elif len(other) == 1 and len(event.symbol) != 0:
             result.discard('--list')
             other = event.symbol
@@ -206,11 +206,11 @@ def completer(self, event):
                 other = other[:other.find('.')]
             string = "{0}*.tar {0}*.tar.gz {0}*.tgz {0}*.tar.bz"                     \
                      "{0}*.tar.bz2 {0}*/".format(other)
-            result |= set([u for u in iglob(string)])
+            result |= {u for u in iglob(string)}
             if isdir(other) and other[-1] != '/':
                 string = "{0}/*.tar {0}/*.tar.gz {0}/*.tgz {0}/*.tar.bz "              \
                          "{0}/*.tar.bz2 {0}*/".format(other)
-                result |= set([u for u in iglob(string)])
+                result |= {u for u in iglob(string)}
 
     result = result - data
     if '--down' in data:

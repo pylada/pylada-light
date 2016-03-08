@@ -1849,17 +1849,17 @@ class ExtractBase(object):
 
             Removes dft and gw attributes if this is not a dft or gw calculation.
         """
-        result = set([u for u in dir(self.__class__) if u[0] != '_'])              \
-            | set([u for u in self.__dict__.keys() if u[0] != '_'])
+        result = {u for u in dir(self.__class__) if u[0] != '_'}              \
+            | {u for u in self.__dict__.keys() if u[0] != '_'}
         if not self.is_gw:
-            result -= set(['qp_eigenvalues', 'self_energies'])
+            result -= {'qp_eigenvalues', 'self_energies'}
         if not self.is_dft:
-            result -= set(['energy_sigma0', 'energies_sigma0',
+            result -= {'energy_sigma0', 'energies_sigma0',
                            'all_total_energies', 'fermi0K', 'halfmetallic', 'cbm',
                            'vbm', 'total_energies', 'total_energy', 'fermi_energy',
                            'moment', 'pressures', 'pressure', 'forces', 'stresses',
                            'stress', 'alphabet', 'xc_g0', 'pulay_pressure', 'fft',
                            'recommended_fft', 'partial_charges', 'magnetization',
                            'electropot', 'electronic_dielectric_constant',
-                           'ionic_dielectric_constant', 'dielectric_constant'])
+                           'ionic_dielectric_constant', 'dielectric_constant'}
         return list(result)

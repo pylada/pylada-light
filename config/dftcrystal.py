@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-CRYSTAL_geom_blocks = set(['CRYSTAL', 'SLAB', 'POLYMER', 'HELIX', 'MOLECULE', 'EXTERNAL'])
+CRYSTAL_geom_blocks = {'CRYSTAL', 'SLAB', 'POLYMER', 'HELIX', 'MOLECULE', 'EXTERNAL'}
 """ List of starting blocks in CRYSTAL input.
 
     CRYSTAL input does not differentiate between its block and keyword inputs.
@@ -29,11 +29,11 @@ CRYSTAL_geom_blocks = set(['CRYSTAL', 'SLAB', 'POLYMER', 'HELIX', 'MOLECULE', 'E
     This particular set is used to figure out where the input starts in an
     output file.
 """
-CRYSTAL_input_blocks = set(['MARGINS', 'BIDIERD', 'CPHF', 'ELASTCON', 'EOS',
+CRYSTAL_input_blocks = {'MARGINS', 'BIDIERD', 'CPHF', 'ELASTCON', 'EOS',
                             'SYMMWF', 'LOCALWF', 'ANISOTRO', 'ECH3', 'EDFT',
                             'EIGSHROT', 'OPTGEOM', 'FIXINDEX', 'GRID3D',
                             'MAPNET', 'POT3', 'DFT', 'PRINTOUT',
-                            'REFLECTANCE', 'ROTCRY' ])                        \
+                            'REFLECTANCE', 'ROTCRY' }                        \
     | CRYSTAL_geom_blocks
 """ List of blocks in CRYSTAL input.
 

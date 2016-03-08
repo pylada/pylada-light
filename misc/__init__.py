@@ -325,7 +325,7 @@ def import_dictionary(self, modules=None):
     avoids = ['__builtin__', 'quantities.quantity']
     if self.__class__.__module__ not in avoids:
         if self.__class__.__module__ not in modules:
-            modules[self.__class__.__module__] = set([self.__class__.__name__])
+            modules[self.__class__.__module__] = {self.__class__.__name__}
         else:
             modules[self.__class__.__module__].add(self.__class__.__name__)
     if not hasattr(self, '__dict__'):
@@ -337,7 +337,7 @@ def import_dictionary(self, modules=None):
         if module_ in modules:
             modules[module_].add(class_)
         else:
-            modules[module_] = set([class_])
+            modules[module_] = {class_}
     return modules
 
 
@@ -475,8 +475,8 @@ class Redirect:
         """ Creates a redirection context. """
         from collections import Sequence
         from ..error import input as InputError
-        units = set(units) if isinstance(units, Sequence) else set([units])
-        if len(units - set(['in', 'out', 'err'])) != 0:
+        units = set(units) if isinstance(units, Sequence) else {units}
+        if len(units - {'in', 'out', 'err'}) != 0:
             raise InputError('Redirect: input should be one of "in", "out", "err".')
         self.units = units
         self.filename = filename

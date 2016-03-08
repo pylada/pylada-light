@@ -322,7 +322,7 @@ class JobFolderProcess(Process):
             running.  Does nothing if are job is currently running.
             If ``deleteold`` is True, then removed finished jobs from job-folder.
         """
-        running = set([n for n in self.process])
+        running = {n for n in self.process}
         for name, value in jobfolder.root.items():
             if value.is_tagged or name in running:
                 continue

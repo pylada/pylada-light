@@ -260,7 +260,7 @@ class AbstractMassExtract(object):
         """ Returns __dir__ special to the extraction itself. """
         results = set([])
         for key, value in self.items():
-            results |= set([u for u in dir(value) if u[0] != '_'])
+            results |= {u for u in dir(value) if u[0] != '_'}
         return results
 
     def __dir__(self):

@@ -500,7 +500,7 @@ def icsd_cif_a(filename):
     ##########################################
 
     # List of unique symbols ["Mo", "S"]
-    symbols = list(set([w[0] for w in wyckoff]))
+    symbols = list({w[0] for w in wyckoff})
     if bugLev >= 5:
         print "  crystal/read: icsd_cif_a: symbols: ", symbols
 

@@ -241,7 +241,7 @@ def interstitials(structure, lattice, interstitials):
 
 def _cationic_species(structure):
     """ Returns list of cationic species. """
-    return list(set([a.type for a in structure if a.type not in ['O', 'S', 'Se', 'Te']]))
+    return list({a.type for a in structure if a.type not in ['O', 'S', 'Se', 'Te']})
 
 
 def iterdefects(structure, lattice, defects, tolerance=0.25):

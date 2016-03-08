@@ -38,8 +38,8 @@ def test_common():
     assert a.LDAUType is None
     assert len(a.HubbardU_NLEP) == 0
     assert a.pseudopotential == 'PAW_PBE'
-    assert set(a.stoichiometry) == set([2])
-    assert set(a.species) == set(['Si'])
+    assert set(a.stoichiometry) == {2}
+    assert set(a.species) == {'Si'}
     assert a.isif == 7
     assert abs(a.sigma - 0.2 * eV) < 1e-8
     assert a.nsw == 50

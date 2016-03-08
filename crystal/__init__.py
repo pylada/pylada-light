@@ -62,7 +62,7 @@ def specieset(structure):
         Especially usefull with VASP since we are sure what the list of species
         is always ordered the same way.
     """
-    return set([a.type for a in structure])
+    return {a.type for a in structure}
 
 
 def vasp_ordered(structure, site=False):
@@ -124,7 +124,7 @@ def _normalize_freeze_cell(freeze, periodicity=3):
         if len(freeze) == 6                                                          \
            and all(isinstance(u, bool) or isinstance(u, int) for u in freeze):
             return [u == True for u in freeze]
-        freeze = set([u.lower() for u in freeze])
+        freeze = {u.lower() for u in freeze}
         return array(['xx' in freeze,
                       'yy' in freeze,
                       'zz' in freeze,
@@ -135,7 +135,7 @@ def _normalize_freeze_cell(freeze, periodicity=3):
         if len(freeze) == 2                                                          \
            and all(isinstance(u, bool) or isinstance(u, int) for u in freeze):
             return [u == True for u in freeze]
-        freeze = set([u.lower() for u in freeze])
+        freeze = {u.lower() for u in freeze}
         return array(['xx' in freeze, 'yy' in freeze])
 
 
