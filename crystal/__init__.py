@@ -38,8 +38,8 @@ def transform(structure, rotation, translation=None):
     """ Returns a copy of the structure transformed according to affine operation """
     from copy import deepcopy
     if translation is None and rotation.shape[0] == rotation.shape[1] + 1:
-        translation = rotation[-1, :]
-        rotation = rotation[:-1, :]
+        translation = rotation[-1,:]
+        rotation = rotation[:-1,:]
     result = deepcopy(structure)
     result.transform(rotation, translation)
     return result

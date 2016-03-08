@@ -53,7 +53,7 @@ def test_fcc():
     assert len(ops) == 48
     for op in ops:
         assert op.shape == (4, 3)
-        assert all(abs(op[3, :]) < 1e-8)
+        assert all(abs(op[3,:]) < 1e-8)
 
         other = transform(structure, op)
         assert all(abs(dot(op[:3], structure.cell) - other.cell) < 1e-8)

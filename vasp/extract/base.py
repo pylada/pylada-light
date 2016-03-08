@@ -224,7 +224,7 @@ class ExtractBase(object):
                     result.cell[:, i] = array(data[i][:3], dtype='float64')
             except:
                 for i in range(3):
-                    result.cell[i, :] = array(data[i][-3:], dtype='float64')
+                    result.cell[i,:] = array(data[i][-3:], dtype='float64')
                 result.cell = inv(result.cell)
             for line in file:
                 if atom_re.search(line) is not None:
@@ -282,7 +282,7 @@ class ExtractBase(object):
                 result.cell[:, i] = array(lines[-cell_index + i].split()[:3], dtype="float64")
         except:
             for i in range(3):
-                result.cell[i, :] = array(lines[-cell_index + i].split()[-3:], dtype="float64")
+                result.cell[i,:] = array(lines[-cell_index + i].split()[-3:], dtype="float64")
             result.cell = inv(result.cell)
         # Get list like ['S', 'S', 'S', 'S', 'S', 'S', 'Fe', 'Fe']
         species = [type for type, n in zip(self.species, self.stoichiometry) for i in xrange(n)]

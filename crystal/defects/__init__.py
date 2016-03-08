@@ -471,7 +471,7 @@ def band_filling(defect, host, vbm=None, cbm=None, potal=None, ntype=None, **kwa
 
     if defect.eigenvalues.ndim == 3:
         dummy = multiply(defect.eigenvalues - cbm,
-                         defect.multiplicity[newaxis, :, newaxis])
+                         defect.multiplicity[newaxis,:, newaxis])
         dummy = multiply(dummy, defect.occupations)
     elif defect.eigenvalues.ndim == 2:
         dummy = multiply(defect.eigenvalues - cbm, defect.multiplicity[:, newaxis])
@@ -482,7 +482,7 @@ def band_filling(defect, host, vbm=None, cbm=None, potal=None, ntype=None, **kwa
 
     if defect.eigenvalues.ndim == 3:
         dummy = multiply(vbm - defect.eigenvalues,
-                         defect.multiplicity[newaxis, :, newaxis])
+                         defect.multiplicity[newaxis,:, newaxis])
         dummy = multiply(dummy, 1e0 - defect.occupations)
     elif defect.eigenvalues.ndim == 2:
         dummy = multiply(vbm - defect.eigenvalues, defect.multiplicity[:, newaxis])
