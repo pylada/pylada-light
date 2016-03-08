@@ -33,13 +33,13 @@ def test_boolkeyword():
     assert a.value is None
     assert a.output_map() is None
     b = eval(repr(a), {'Dummy': Dummy})
-    assert type(b) is type(a)
+    assert isinstance(b, type(a))
     assert b.value == a.value
     a.value = 1
     assert a.value is True
     assert a.output_map() == {'whatever': 'True'}
     b = eval(repr(a), {'Dummy': Dummy})
-    assert type(b) is type(a)
+    assert isinstance(b, type(a))
     assert b.value == a.value
 
 
@@ -58,20 +58,20 @@ def test_valuekeyword():
     assert loads(dumps(a)).value is None
 
     a.raw = '5'
-    assert type(a.value) is int and a.value == 5 and a.raw == '5'
+    assert isinstance(a.value, int) and a.value == 5 and a.raw == '5'
     assert eval(repr(a), d).value == 5
     assert loads(dumps(a)).value == 5
     a.raw = '5.0'
-    assert type(a.value) is float and abs(a.value - 5.0) < 1e-8 and a.raw == str(5.0)
+    assert isinstance(a.value, float) and abs(a.value - 5.0) < 1e-8 and a.raw == str(5.0)
     a.raw = 'five'
-    assert type(a.value) is str and a.value == 'five' and a.raw == 'five'
+    assert isinstance(a.value, str) and a.value == 'five' and a.raw == 'five'
     a.raw = '5 5.0 five'
     assert hasattr(a.value, '__iter__') and hasattr(a.value, '__len__')
     assert len(a.value) == 3
-    assert type(a.value[0]) is int and a.value[0] == 5
-    assert type(a.value[1]) is float and abs(a.value[1] - 5.0) < 1e-8
-    assert type(a.value[2]) is str and a.value[2] == 'five'
-    assert type(a.raw) is str and len(a.raw.split('\n')) == 1 and len(a.raw.split()) == 3
+    assert isinstance(a.value[0], int) and a.value[0] == 5
+    assert isinstance(a.value[1], float) and abs(a.value[1] - 5.0) < 1e-8
+    assert isinstance(a.value[2], str) and a.value[2] == 'five'
+    assert isinstance(a.raw, str) and len(a.raw.split('\n')) == 1 and len(a.raw.split()) == 3
     assert a.raw.split()[0] == '5' and a.raw.split()[1] == str(5.0) and a.raw.split()[2] == 'five'
 
     assert 'whatever' in a.output_map()
@@ -100,17 +100,17 @@ def test_typedkeyword():
     assert loads(dumps(a)).value is None
     assert loads(dumps(a)).keyword == a.keyword
     a.raw = '5'
-    assert type(a.value) is int and a.value == 5 and a.raw == '5'
+    assert isinstance(a.value, int) and a.value == 5 and a.raw == '5'
     a.value = '5'
-    assert type(a.value) is int and a.value == 5 and a.raw == '5'
-    assert type(eval(repr(a), d).value) is int
+    assert isinstance(a.value, int) and a.value == 5 and a.raw == '5'
+    assert isinstance(eval(repr(a), d).value, int)
     assert eval(repr(a), d).value == 5
     assert repr(loads(dumps(a))) == repr(a)
     a.value = None
     assert a.value is None
     assert a.output_map() is None
     a.value = 5.1
-    assert type(a.value) is int and a.value == 5 and a.raw == '5'
+    assert isinstance(a.value, int) and a.value == 5 and a.raw == '5'
     assert 'whatever' in a.output_map()
     assert a.output_map()['whatever'] == str(5)
     try:
@@ -125,14 +125,14 @@ def test_typedkeyword():
     assert a.value is None
     assert a.output_map() is None
     a.raw = '5.1'
-    assert type(a.value) is float and abs(a.value - 5.1) < 1e-8 and a.raw == str(5.1)
+    assert isinstance(a.value, float) and abs(a.value - 5.1) < 1e-8 and a.raw == str(5.1)
     a.value = '5.1'
-    assert type(a.value) is float and abs(a.value - 5.1) < 1e-8 and a.raw == str(5.1)
+    assert isinstance(a.value, float) and abs(a.value - 5.1) < 1e-8 and a.raw == str(5.1)
     a.value = None
     assert a.value is None
     assert a.output_map() is None
     a.value = 5.1
-    assert type(a.value) is float and abs(a.value - 5.1) < 1e-8 and a.raw == str(5.1)
+    assert isinstance(a.value, float) and abs(a.value - 5.1) < 1e-8 and a.raw == str(5.1)
     assert a.output_map()['whatever'] == str(5.1)
     try:
         a.value = 'five'
@@ -146,28 +146,28 @@ def test_typedkeyword():
     assert a.value is None
     assert a.output_map() is None
     a.raw = '5.1'
-    assert type(a.value) is str and a.value == '5.1' and a.raw == '5.1'
+    assert isinstance(a.value, str) and a.value == '5.1' and a.raw == '5.1'
     a.value = '5.1'
-    assert type(a.value) is str and a.value == '5.1' and a.raw == '5.1'
+    assert isinstance(a.value, str) and a.value == '5.1' and a.raw == '5.1'
     a.value = None
     assert a.value is None
     assert a.output_map() is None
     a.value = 5.1
-    assert type(a.value) is str and a.value == str(5.1) and a.raw == str(5.1)
+    assert isinstance(a.value, str) and a.value == str(5.1) and a.raw == str(5.1)
     assert a.output_map()['whatever'] == str(5.1)
     a.value = 'five'
-    assert type(a.value) is str and a.value == 'five' and a.raw == 'five'
+    assert isinstance(a.value, str) and a.value == 'five' and a.raw == 'five'
 
     a = TypedKeyword('whatever', [int])
     a.raw = '5 5'
     assert hasattr(a.value, '__iter__')
     assert len(a.value) == 2
-    assert all(type(v) is int for v in a.value)
+    assert all(isinstance(v, int) for v in a.value)
     assert all(v == 5 for v in a.value)
     a.value = 5, 5.3, 5.2
     assert hasattr(a.value, '__iter__')
     assert len(a.value) == 3
-    assert all(type(v) is int for v in a.value)
+    assert all(isinstance(v, int) for v in a.value)
     assert all(v == 5 for v in a.value)
     assert all(v == '5' for v in a.raw.split())
     assert all(v == '5' for v in a.output_map()['whatever'].split())
@@ -190,8 +190,8 @@ def test_typedkeyword():
     a.raw = 'five 5'
     assert hasattr(a.value, '__iter__')
     assert len(a.value) == 2
-    assert type(a.value[0]) is str and a.value[0] == 'five'
-    assert type(a.value[1]) is int and a.value[1] == 5
+    assert isinstance(a.value[0], str) and a.value[0] == 'five'
+    assert isinstance(a.value[1], int) and a.value[1] == 5
     assert a.output_map()['whatever'].split()[0] == 'five'
     assert a.output_map()['whatever'].split()[1] == '5'
     try:
@@ -219,14 +219,14 @@ def test_variablelistkeyword():
     assert eval(repr(a), {'VariableListKeyword': VariableListKeyword}).__class__ \
         is VariableListKeyword
     a.raw = '5 0 1 2 3 4'
-    assert type(a.value) is list and len(a.value) == 5
-    assert all(type(v) is int for v in a.value)
+    assert isinstance(a.value, list) and len(a.value) == 5
+    assert all(isinstance(v, int) for v in a.value)
     assert all(array(a.value) - arange(5) == 0)
     assert len(a.raw.split('\n')) == 2
     assert a.raw.split('\n')[0] == '5'
     a.value = 5.1, 4, 3, 2, 1, 0
-    assert type(a.value) is list and len(a.value) == 6
-    assert all(type(v) is int for v in a.value)
+    assert isinstance(a.value, list) and len(a.value) == 6
+    assert all(isinstance(v, int) for v in a.value)
     assert all(array(a.value) - arange(6)[::-1] == 0)
     assert all(array(a.raw.split(), dtype='int32') - ([6] + range(6)[::-1]) == 0)
     assert len(a.raw.split('\n')) == 2

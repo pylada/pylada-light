@@ -178,8 +178,7 @@ def doTree(buglev, doneNames, typeMap, inPath, updateLog):
             if buglev >= 1:
                 print 'doTree: not a cif: %s' % (inPath,)
     elif os.path.isdir(inPath):
-        fnames = os.listdir(inPath)
-        fnames.sort()
+        fnames = sorted(os.listdir(inPath))
         for fn in fnames:
             subPath = '%s/%s' % (inPath, fn,)
             doTree(buglev, doneNames, typeMap, subPath, updateLog)   # recursion
@@ -273,8 +272,7 @@ class CifReader:
                 if not mmap.has_key(tup[0]):
                     self.errorMap[msg] = 0
                 self.errorMap[tup[0]] += 1
-            keys = mmap.keys()
-            keys.sort()
+            keys = sorted(mmap.keys())
             # Make list of strings like: 'msg:numOccur'
             msgs = []
             for key in keys:
@@ -354,8 +352,7 @@ class CifReader:
 
         if self.buglev >= 2:
             print '\nmkCifMap: cifMap:'
-            keys = self.cifMap.keys()
-            keys.sort()
+            keys = sorted(self.cifMap.keys())
             for key in keys:
                 print '  key: %s  value: %s  (%s)' \
                     % (key, repr(self.cifMap[key]), type(self.cifMap[key]).__name__,)
@@ -868,8 +865,7 @@ class CifReader:
 
         if self.buglev >= 2:
             print '\nmkIcsdMap: icsdMap:'
-            keys = self.icsdMap.keys()
-            keys.sort()
+            keys = sorted(self.icsdMap.keys())
             for key in keys:
                 print '  key: %s  value: %s  (%s)' \
                     % (key, repr(self.icsdMap[key]), type(self.icsdMap[key]).__name__,)
@@ -1143,8 +1139,7 @@ class CifReader:
 
         if self.buglev >= 2:
             print '\nmkVaspMap: self.vaspMap:'
-            keys = self.vaspMap.keys()
-            keys.sort()
+            keys = sorted(self.vaspMap.keys())
             for key in keys:
                 print '  key: %s  value: %s  (%s)' \
                     % (key, repr(self.vaspMap[key]),
@@ -1260,22 +1255,22 @@ def symParser(stg):
     if not (tok in names or tok == '-' or type(tok == float)):
         throwcif('unknown syntax: "%s"' % (stg,), None, None)
     tok = toks[-1]                       # last token
-    if not (type(tok) == float or tok in names):
+    if not (isinstance(tok, float) or tok in names):
         throwcif('unknown syntax: "%s"' % (stg,), None, None)
     for ii in range(1, len(toks) - 1):  # all other tokens
-        if type(toks[ii]) == float:
+        if isinstance(toks[ii], float):
             if (toks[ii - 1] not in '-+/') or (toks[ii + 1] not in '-+/'):
                 throwcif('unknown syntax: "%s"' % (stg,), None, None)
         elif toks[ii] in names:
             if (toks[ii - 1] not in '-+') or (toks[ii + 1] not in '-+'):
                 throwcif('unknown syntax: "%s"' % (stg,), None, None)
         elif toks[ii] == '/':
-            if type(toks[ii - 1]) != float or type(toks[ii + 1]) != float:
+            if not isinstance(toks[ii - 1], float) or not isinstance(toks[ii + 1], float):
                 throwcif('unknown syntax: "%s"' % (stg,), None, None)
         elif toks[ii] in '-+':
-            if type(toks[ii - 1]) != float and toks[ii - 1] not in names:
+            if not isinstance(toks[ii - 1], float) and toks[ii - 1] not in names:
                 throwcif('unknown syntax: "%s"' % (stg,), None, None)
-            if type(toks[ii + 1]) != float and toks[ii + 1] not in names:
+            if not isinstance(toks[ii + 1], float) and toks[ii + 1] not in names:
                 throwcif('unknown syntax: "%s"' % (stg,), None, None)
         else:
             throwcif('unknown syntax: "%s"' % (stg,), None, None)
@@ -1292,7 +1287,7 @@ def symParser(stg):
     values = 4 * [None]
     for ii in range(len(toks)):
         tok = toks[ii]
-        if type(tok) == float:
+        if isinstance(tok, float):
             if values[3] != None:
                 throwcif('unknown syntax: "%s"'
                          % (stg,), None, None)

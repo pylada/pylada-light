@@ -330,7 +330,7 @@ class TypedKeyword(ValueKeyword):
         if value is None:
             self._value = None
             return
-        if type(self.type) is list:
+        if isinstance(self.type, list):
             if isinstance(value, str) and not isinstance(self.type, str):
                 value = value.replace(',', ' ').replace(';', ' ').split()
             if not hasattr(value, '__iter__'):
@@ -360,14 +360,14 @@ class TypedKeyword(ValueKeyword):
         """ Returns raw value for CRYSTAL input. """
         if self._value == None:
             return ''  # otherwise, fails to find attribute.
-        if type(self.type) is list:
+        if isinstance(self.type, list):
             return ' '.join(str(v) for v in self.value)
         return str(self._value)
 
     @raw.setter
     def raw(self, value):
         """ Guesses value from raw input. """
-        if type(self.type) is list:
+        if isinstance(self.type, list):
             value = value.split()
         self.value = value
 

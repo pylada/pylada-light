@@ -170,7 +170,7 @@ class AttrBlock(BaseKeyword):
                 elif default is None:
                     doinit = True
                 else:
-                    doinit = type(value) is not type(default)
+                    doinit = not isinstance(value, type(default))
                 if doinit:
                     results[newname] = '{0.__class__.__name__}()'.format(value)
                     add_to_imports(value, imports)
@@ -178,7 +178,7 @@ class AttrBlock(BaseKeyword):
                 value = getattr(self, key)
                 string = repr(value)
                 if defaults is not None and key in defaults._input                     \
-                   and type(value) is type(getattr(defaults, key))                     \
+                   and isinstance(value, type(getattr(defaults, key)))                     \
                    and string == repr(getattr(defaults, key)):
                        continue
                 key = '{0}.{1}'.format(name, key)
@@ -191,7 +191,7 @@ class AttrBlock(BaseKeyword):
                 results['{0}.add_keyword({1!r})'.format(name, key)] = None
             else:
                 if defaults is not None and key in defaults._input                     \
-                   and type(value) is type(defaults._input[key])                       \
+                   and isinstance(value, type(defaults._input[key]))                       \
                    and repr(value) == repr(defaults._input[key]):
                        continue
                 results['{0}.add_keyword({1!r}, {2!r})'.format(name, key, value)]      \

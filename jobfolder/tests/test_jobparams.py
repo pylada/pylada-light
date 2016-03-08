@@ -106,7 +106,7 @@ def test_add_item(extra_folder, jobparams, functional):
     assert getattr(jobparams['/this/0/another'], 'indiv', 0) == 25
     assert getattr(jobparams['/this/0/another'], 'value', 0) == 5
     assert getattr(jobparams['this/0/another'], 'another', 0) == 6
-    assert type(jobparams['this/0/another'].functional) == type(functional)
+    assert isinstance(jobparams['this/0/another'].functional, type(functional))
 
 
 @mark.parametrize('regex, keys, path', [
