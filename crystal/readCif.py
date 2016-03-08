@@ -164,7 +164,7 @@ def doTree(buglev, doneNames, typeMap, inPath, updateLog):
                 try:
                     cifRdr = CifReader(buglev, typeMap, inPath)
                     icsdMap = cifRdr.getIcsdMap()
-                except CifException, exc:
+                except CifException as exc:
                     traceback.print_exc(None, sys.stdout)
                     print "main: caught: %s" % (exc,)
                 if buglev >= 1:
@@ -652,13 +652,13 @@ class CifReader:
             if ftype == 'int':
                 try:
                     tvalue = int(value)
-                except Exception, exc:
+                except Exception as exc:
                     self.throwcif('mkCifMap: invalid int for field "%s". value: "%s"'
                                   % (name, value,))
             elif ftype == 'float':
                 try:
                     tvalue = float(value)
-                except Exception, exc:
+                except Exception as exc:
                     self.throwcif('mkCifMap: invalid float for field "%s". value: "%s"'
                                   % (name, value,))
             elif ftype == 'listInt':
@@ -669,7 +669,7 @@ class CifReader:
                 for ii in range(nval):
                     try:
                         tvalue[ii] = int(value[ii])
-                    except Exception, exc:
+                    except Exception as exc:
                         self.throwcif('mkCifMap: invalid int for field "%s". value: "%s"'
                                       % (name, value[ii],))
             elif ftype == 'listFloat':
@@ -680,7 +680,7 @@ class CifReader:
                 for ii in range(nval):
                     try:
                         tvalue[ii] = float(value[ii])
-                    except Exception, exc:
+                    except Exception as exc:
                         self.throwcif(
                             'mkCifMap: invalid float for field "%s". value: "%s"'
                             % (name, value[ii],))
