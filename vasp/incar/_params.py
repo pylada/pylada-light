@@ -658,7 +658,7 @@ class UParams(SpecialVaspParam):
             if len(specie.U) == 0:
                 continue
             if len(specie.U) > 4:
-                raise AssertionError, "More than 4 channels for U/NLEP parameters"
+                raise AssertionError("More than 4 channels for U/NLEP parameters")
             has_U = True
             # checks consistency.
             which_type = specie.U[0]["type"]
@@ -705,7 +705,7 @@ class UParams(SpecialVaspParam):
                     elif specie.U[i]["func"] == "enlep":
                         a = [specie.U[i]["l"], specie.U[i]["U0"], specie.U[i]["U1"], 3]
                     else:
-                        raise RuntimeError, "Debug Error."
+                        raise RuntimeError("Debug Error.")
                 if bugLev >= 5:
                     print '        a: %s' % (a,)
                 if hasattr(a[1], "rescale"):
@@ -1072,8 +1072,8 @@ class Relaxation(SpecialVaspParam):
                 elif (not ionic) and (not cellshape) and volume:
                     isif = 7
                 elif ionic and (not cellshape) and volume:
-                    raise RuntimeError, "VASP does not allow relaxation of atomic position "\
-                                        "and volume at constant cell-shape.\n"
+                    raise RuntimeError("VASP does not allow relaxation of atomic position "\
+                                        "and volume at constant cell-shape.\n")
                 if nsw == 0:
                     raise ValueError("Cannot set nsw < 1 and perform strain relaxations.")
                 elif nsw is None:

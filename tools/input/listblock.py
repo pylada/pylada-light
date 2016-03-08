@@ -99,13 +99,14 @@ class ListBlock(BaseKeyword, list):
                 self.append(key, value)
             except:
                 from sys import exc_info
+                from six import reraise
                 type, value, traceback = exc_info()
                 message = 'ERROR when reading {0}.'.format(key)
                 if value is None:
                     type.args = type.args, message
                 else:
                     value = value, message
-                raise type, value, traceback
+                reraise(type, value, traceback)
 
     def __ui_repr__(self, imports, name=None, defaults=None, exclude=None):
         """ Dumps representation to string. """

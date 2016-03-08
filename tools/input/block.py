@@ -290,6 +290,7 @@ class AttrBlock(BaseKeyword):
                 else:
                     self.add_keyword(key.lower(), value)
             except:
+                from six import reraise
                 from sys import exc_info
                 type, value, traceback = exc_info()
                 message = 'ERROR when reading {0}.'.format(key)
@@ -297,4 +298,4 @@ class AttrBlock(BaseKeyword):
                     type.args = type.args, message
                 else:
                     value = value, message
-                raise type, value, traceback
+                reraise(type, value, traceback)
