@@ -782,7 +782,7 @@ class ExtractBase(object):
                 for line in file:
                     if found.search(line) is not None:
                         break
-                file.next()
+                next(file)
                 for line in file:
                     data = line.split()
                     if len(data) != 4:
@@ -843,7 +843,7 @@ class ExtractBase(object):
                 for line in file:
                     if found.search(line) is not None:
                         break
-                file.next()
+                next(file)
                 for line in file:
                     data = line.split()
                     if len(data) != 4:

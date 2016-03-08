@@ -115,7 +115,7 @@ def iterate(self, event):
             iterator = interactive.jobfolder.root.values()
         while True:
             try:
-                job = iterator.next()
+                job = next(iterator)
             except StopIteration:
                 print "Reached end of job list."
                 return

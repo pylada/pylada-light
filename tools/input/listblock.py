@@ -137,5 +137,5 @@ class ListBlock(BaseKeyword, list):
         uirepr = self.__ui_repr__({})
         # special case for python 2
         if hasattr(uirepr, 'itervalues'):
-            return uirepr.itervalues().next()
-        return self.__ui_repr__({}).values().next()
+            return next(uirepr.itervalues())
+        return next(self.__ui_repr__({}).values())

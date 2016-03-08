@@ -87,7 +87,7 @@ class Communicator(dict):
         result.parent = ref(self)
         if len(self.machines) != 0:
             while result['n'] != nprocs:
-                key, value = self.machines.items().next()
+                key, value = next(self.machines.items())
                 if result['n'] + value > nprocs:
                     result.machines[key] = nprocs - result['n']
                     self.machines[key] = value - result.machines[key]

@@ -277,7 +277,7 @@ def crystal(file='fort.34'):
             file = file.splitlines().__iter__()
     # read first line
     try:
-        line = file.next()
+        line = next(file)
     except StopIteration:
         raise error.IOError('Premature end of stream.')
     else:
@@ -293,7 +293,7 @@ def crystal(file='fort.34'):
     # read symmetry operators
     result.spacegroup = []
     try:
-        N = int(file.next())
+        N = int(next(file))
     except StopIteration:
         raise error.IOError('Premature end of stream.')
     for i in xrange(N):
@@ -309,7 +309,7 @@ def crystal(file='fort.34'):
 
     # read atoms.
     try:
-        N = int(file.next())
+        N = int(next(file))
     except StopIteration:
         raise error.IOError('Premature end of stream.')
 

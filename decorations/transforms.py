@@ -106,7 +106,7 @@ class Transforms(object):
         size = hft.size
         result = zeros((size - 1, nsites * size), dtype='int16') - 1
         iterable = product(*itertrans)
-        a = iterable.next()  # avoid null translation
+        a = next(iterable)  # avoid null translation
         assert a == (0, 0, 0)  # check that it is null
         for t, (i, j, k) in enumerate(iterable):
             iterpos = [xrange(hft.quotient[0]),
@@ -177,7 +177,7 @@ class Transforms(object):
         size = hft.size
         iterables = [permutations(flavors) for flavors in self.flavors]
         iterables = product(*iterables)
-        a = iterables.next()
+        a = next(iterables)
         assert all(all(array(b) == array(c)) for b, c in zip(a, self.flavors))
 
         def permutations(x):
