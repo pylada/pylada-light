@@ -105,12 +105,12 @@ def test(shell):
 
 if __name__ == "__main__":
     from IPython.core.interactiveshell import InteractiveShell
-    import __builtin__
+    import builtins
     try:
-        saveri = __builtin__.raw_input
-        __builtin__.raw_input = raw_input
+        saveri = builtins.raw_input
+        builtins.raw_input = raw_input
         shell = InteractiveShell.instance()
         shell.magic("load_ext pylada")
         test(shell)
     finally:
-        __builtin__.raw_input = saveri
+        builtins.raw_input = saveri
