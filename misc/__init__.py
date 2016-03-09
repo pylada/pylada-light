@@ -21,7 +21,7 @@
 ###############################
 
 """ Miscellaneous ressources. """
-__all__ = ['bugLev', 'testValidProgram', 'copyfile', 'Changedir',
+__all__ = ['testValidProgram', 'copyfile', 'Changedir',
            'read_input', 'exec_input', 'load',
            'RelativePath', 'LockFile', 'open_exclusive', 'translate_to_regex',
            'mkdtemp', 'Redirect']
@@ -31,17 +31,6 @@ from types import ModuleType
 from .changedir import Changedir
 from .relativepath import RelativePath
 from .lockfile import LockFile, open_exclusive
-
-bugLev = 0
-"""
-global debug level
-"""
-
-
-def setBugLev(lev):
-    global bugLev
-    bugLev = lev
-
 
 testValidProgram = None
 """
@@ -241,10 +230,10 @@ def exec_input(script, global_dict=None, local_dict=None,
     from numpy.linalg import norm, det
     from .. import crystal
     from . import Input
+    import logging
     import quantities
 
-    if bugLev >= 5:
-        print "misc/init: exec_input: entry"
+    logging.debug("misc/init: exec_input: entry")
     # Add some names to execution environment.
     if global_dict is None:
         global_dict = {}
@@ -259,10 +248,9 @@ def exec_input(script, global_dict=None, local_dict=None,
     if local_dict is None:
         local_dict = {}
     # Executes input script.
-    if bugLev >= 5:
-        print 'misc/init: exec_input: ========== start script =========='
-        print script
-        print 'misc/init: exec_input: ========== end script =========='
+    logging.debug('misc/init: exec_input: ========== start script ==========')
+    logging.debug(script)
+    logging.debug('misc/init: exec_input: ========== end script ==========')
     exec(script, global_dict, local_dict)
 
     # Makes sure expected paths are absolute.

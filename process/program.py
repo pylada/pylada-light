@@ -253,7 +253,7 @@ class ProgramProcess(Process):
         from ..error import ValueError
         from .. import mpirun_exe, launch_program as launch
         from . import which
-        from pylada.misc import bugLev
+        import logging
         from pylada.misc import testValidProgram
 
         # Open stdout and stderr if necessary.
@@ -279,12 +279,10 @@ class ProgramProcess(Process):
             self._stdio = file_out, file_err, file_in
 
         # creates commandline
-        if bugLev >= 5:
-            print "process.program: self.program: %s" % (self.program,)
+        logging.debug("process.program: self.program: %s" % self.program)
 
         program = which(self.program)
-        if bugLev >= 5:
-            print "process.program: program: %s" % (program,)
+        logging.debug("process.program: program: %s" % program)
 
         if self.dompi:
             if not hasattr(self, '_comm'):
@@ -293,12 +291,10 @@ class ProgramProcess(Process):
             formatter = {}
             cmdl = ' '.join(str(u) for u in self.cmdline)
             formatter['program'] = '{0} {1}'.format(program, cmdl)
-            if bugLev >= 5:
-                print "process.program: next: formatter: %s" % (formatter,)
-                print "process.program: next: self.cmdline: %s" % (self.cmdline,)
-                print "process.program: next: cmdl: \"%s\"" % (cmdl,)
-                print "process.program: next: formatter[pgm]: \"%s\"" \
-                    % (formatter['program'],)
+            logging.debug("process.program: next: formatter: %s" % formatter)
+            logging.debug("process.program: next: self.cmdline: %s" % self.cmdline)
+            logging.debug("process.program: next: cmdl: \"%s\"" % cmdl)
+            logging.debug("process.program: next: formatter[pgm]: \"%s\"" % formatter['program'])
 
             # gives opportunity to modify the communicator before launching a
             # particular program.
@@ -306,31 +302,27 @@ class ProgramProcess(Process):
                 self._modcomm = self.cmdlmodifier(formatter, self._comm)
                 if self._modcomm is self._comm:
                     self._modcomm = None
-            if bugLev >= 5:
-                print "process.program: next: self._comm: %s" % (self._comm,)
-                print "process.program: next: self._modcomm: %s" % (self._modcomm,)
+            logging.debug("process.program: next: self._comm: %s" % self._comm)
+            logging.debug("process.program: next: self._modcomm: %s" % self._modcomm)
             comm = self._comm if self._modcomm is None else self._modcomm
             cmdline = mpirun_exe
-            if bugLev >= 5:
-                print "process.program: next: cmdline: \"%s\"" % (cmdline,)
-                print "process.program: next: comm: %s" % (comm,)
+            logging.debug("process.program: next: cmdline: \"%s\"" % cmdline)
+            logging.debug("process.program: next: comm: %s" % comm)
         else:
             cmdl = ' '.join(str(u) for u in self.cmdline)
             cmdline = '{0} {1}'.format(program, cmdl)
             comm = None
             formatter = None
-            if bugLev >= 5:
-                print "process.program: next: no mpi: cmdl: \"%s\"" % (cmdl,)
-                print "process.program: next: no mpi: cmdline: \"%s\"" % (cmdline,)
-                print "process.program: next: no mpi: comm: %s" % (comm,)
-        if bugLev >= 5:
-            print "process.program: cmdline: %s" % (cmdline,)
-            print "process.program: comm: %s" % (comm,)
-            print "process.program: formatter: %s" % (formatter,)
-            print "process.program: file_out: %s" % (file_out,)
-            print "process.program: file_err: %s" % (file_err,)
-            print "process.program: file_in: %s" % (file_in,)
-            print "process.program: self.outdir: %s" % (self.outdir,)
+            logging.debug("process.program: next: no mpi: cmdl: \"%s\"" % cmdl)
+            logging.debug("process.program: next: no mpi: cmdline: \"%s\"" % cmdline)
+            logging.debug("process.program: next: no mpi: comm: %s" % comm)
+        logging.debug("process.program: cmdline: %s" % cmdline)
+        logging.debug("process.program: comm: %s" % comm)
+        logging.debug("process.program: formatter: %s" % formatter)
+        logging.debug("process.program: file_out: %s" % file_out)
+        logging.debug("process.program: file_err: %s" % file_err)
+        logging.debug("process.program: file_in: %s" % file_in)
+        logging.debug("process.program: self.outdir: %s" % self.outdir)
 
         self.process = launch(cmdline, comm=comm, formatter=formatter,
                               env=environ, stdout=file_out, stderr=file_err,

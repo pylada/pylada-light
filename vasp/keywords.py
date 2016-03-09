@@ -24,7 +24,6 @@ from quantities import eV
 from ..tools.input import BoolKeyword as BaseBoolKeyword, ValueKeyword,        \
     TypedKeyword, AliasKeyword, ChoiceKeyword,           \
     BaseKeyword, QuantityKeyword
-from pylada.misc import bugLev
 
 
 class BoolKeyword(BaseBoolKeyword):
@@ -867,8 +866,6 @@ class IStruc(AliasKeyword):
     """ Does not correspond to a VASP keyword """
 
     def __init__(self, value='auto'):
-        if bugLev >= 5:
-            print 'keywords: IStruct.init for CONTCAR: value: %s' % (value,)
         super(IStruc, self).__init__(value=value)
 
     def output_map(self, **kwargs):
@@ -878,9 +875,6 @@ class IStruc(AliasKeyword):
         from ..crystal import write, read, specieset
         from . import files
 
-        if bugLev >= 5:
-            print 'keywords: IStruct.output for CONTCAR: _value: %s' \
-                % (self._value,)
         istruc = self._value
         if istruc is None:
             istruc = 0
@@ -894,17 +888,10 @@ class IStruc(AliasKeyword):
             has_restart = vasp.restart.success
         if has_restart:
             structure = vasp.restart.structure
-        if bugLev >= 5:
-            print 'keywords: IStruct.output: istruc: %s' % (istruc,)
-            print 'keywords: IStruct.output: has_restart: %s' % (has_restart,)
-            print 'keywords: IStruct.output: outdir: %s' % (outdir,)
-            print 'keywords: IStruct.output: structure:\n%s' % (structure,)
 
         # determines which CONTCAR is the latest, if any exist.
         if istruc in [-1, 1]:
             last_contcar = latest_file(join(outdir, files.CONTCAR))
-            if bugLev >= 5:
-                print 'keywords: IStruct.output: last_contcar: %s' % (last_contcar,)
             # if a contcar exists and we should re-read, then modifies structure
             # accordingly. It is expected that the structures are equivalent, in the
             # sense that they have the same atoms in the same order (more
@@ -926,9 +913,6 @@ class IStruc(AliasKeyword):
                 structure.cell = other.cell
                 structure.scale = other.scale
                 print "setting cell and scale!"
-                if bugLev >= 5:
-                    print 'keywords: IStruct.output: outdir: %s' % (outdir,)
-                    print 'keywords: IStruct.output: new structure:\n%s' % (structure,)
 
         # Depending on different options and what's available, writes structure or
         # copies contcar.
@@ -982,9 +966,6 @@ class LDAU(BoolKeyword):
         vasp = kwargs['vasp']
         has_nlep = getattr(pylada, 'vasp_has_nlep', False)
         has_nlep = getattr(vasp, 'has_nlep', has_nlep)
-        if bugLev >= 5:
-            print 'vasp/keywords: ldau.output_map:'
-            print '    has_nlep: %s' % (has_nlep,)
 
         # print "vasp/keywords: LDAU.output: keyword: %s  value: %s" \
         #  % (self.keyword, self.value,)
@@ -996,17 +977,6 @@ class LDAU(BoolKeyword):
         has_U, which_type = False, None
         for type in types:
             specie = species[type]
-            if bugLev >= 5:
-                print '        type: %s  specie: %s  U: %s  len: %d' \
-                    % (type, specie, specie.U, len(specie.U),)
-                # Shows, for Cu2 Al2 O4:
-                #   type: Cu
-                #   specie: Specie('/nopt/nrel/ecom/cid/vasp.pseudopotentials.a/
-                #     pseudos/Cu', oxidation=1, U=[{'type': 2, 'J': 0.0, 'U': 5.0,
-                #     'l': 2, 'func': 'U'}], moment=[1.0, 4.0])
-                #   U: [{'type': 2, 'J': 0.0, 'U': 5.0, 'l': 2, 'func': 'U'}]
-                #   len: 1
-                #   ... similarly for Al, O
             if len(specie.U) == 0:
                 continue
             if len(specie.U) > 4:
@@ -1020,9 +990,6 @@ class LDAU(BoolKeyword):
                     raise ConfigError('has_nlep is False. Cannot use NLEP.')
             # checks consistency.
             which_type = specie.U[0]["type"]
-            if bugLev >= 5:
-                print '        which_type: %s' % (which_type,)
-                # Shows: which_type: 2
             for l in specie.U[1:]:
                 if which_type != l["type"]:
                     raise ValueError("LDA+U/NLEP types are not consistent across species.")
@@ -1033,14 +1000,9 @@ class LDAU(BoolKeyword):
         result = super(LDAU, self).output_map(**kwargs)
         result['LDAU'] = '.TRUE.'
         result['LDAUTYPE'] = str(which_type)
-        if bugLev >= 5:
-            print '        initial result: %s' % (result,)
-            # Shows: initial result: {'LDAU': '.TRUE.', 'LDAUTYPE': '2'}
 
         # U and NLEP themselves.
         if has_nlep:
-            if bugLev >= 5:
-                print '  has_nlep is True'
             for i in range(max(len(species[type].U) for type in types)):
                 ldul, lduu, lduj, lduo = [], [], [], []
                 for type in types:
@@ -1069,61 +1031,12 @@ class LDAU(BoolKeyword):
                     lduu.append('{0[1]:18.10e}'.format(a))
                     lduj.append('{0[2]:18.10e}'.format(a))
                     lduo.append('{0[3]}'.format(a))
-                    if bugLev >= 5:
-                        print '      i: %d  type: %s  specie: %s  U: %s' \
-                            % (i, type, specie, specie.U,)
-                        print '          a: %s' % (a,)
-                        print '          ldul: %s' % (ldul,)
-                        print '          lduu: %s' % (lduu,)
-                        print '          lduj: %s' % (lduj,)
-                        print '          lduo: %s' % (lduo,)
-                        # Shows, for Cu2 Al2 O4 (reformatted):
-                        #   i: 0  type: Cu
-                        #   specie: Specie('.../pseudos/Cu', oxidation=1, U=[{'type': 2, 'J': 0.0, 'U': 5.0, 'l': 2, 'func': 'U'}], moment=[1.0, 4.0])
-                        #   U: [{'type': 2, 'J': 0.0, 'U': 5.0, 'l': 2, 'func': 'U'}]
-                        #   a: [2, 5.0, 0.0, 1]
-                        #   ldul: ['2']
-                        #   lduu: ['  5.0']
-                        #   lduj: ['  0.0']
-                        #   lduo: ['1']
-                        #
-                        #   i: 0  type: Al
-                        #   specie: Specie('.../pseudos/Al', oxidation=3)
-                        #   U: []
-                        #   a: (-1, 0.0, 0.0, 1)
-                        #   ldul: ['2', '-1']
-                        #   lduu: ['  5.0', '  0.0']
-                        #   lduj: ['  0.0', '  0.0']
-                        #   lduo: ['1', '1']
-                        #
-                        #   i: 0  type: O
-                        #   specie: Specie('.../pseudos/O', oxidation=-2)
-                        #   U: []
-                        #   a: (-1, 0.0, 0.0, 1)
-                        # Parallel arrays:
-                        #          Cu      Al      O
-                        #   ldul: ['2',    '-1',   '-1']    # from specie.U['l']
-                        #   lduu: ['5.0',  '0.0',  '0.0']   # from specie.U['U']
-                        #   lduj: ['0.0',  '0.0',  '0.0']   # from specie.U['j']
-                        #   lduo: ['1',    '1',    '1']     # ==func=='U'
 
                 result['LDUL{0}'.format(i + 1)] = ' '.join(ldul)
                 result['LDUU{0}'.format(i + 1)] = ' '.join(lduu)
                 result['LDUJ{0}'.format(i + 1)] = ' '.join(lduj)
                 result['LDUO{0}'.format(i + 1)] = ' '.join(lduo)
-                if bugLev >= 5:
-                    print '  has_nlep result: %s' % (result,)
-                    # Shows:
-                    #   has_nlep result: {
-                    #     'LDUO1': '1 1 1',
-                    #     'LDUU1': '  5.0  0.0   0.0',
-                    #     'LDUJ1': '  0.0  0.0   0.0',
-                    #     'LDUL1': '2 -1 -1',
-                    #     'LDAUTYPE': '2',
-                    #     'LDAU': '.TRUE.'}
         else:
-            if bugLev >= 5:
-                print '  Not has_nlep'
             ldul, lduu, lduj = [], [], []
             for type in types:
                 specie = species[type]
@@ -1139,18 +1052,9 @@ class LDAU(BoolKeyword):
                 ldul.append('{0[0]}'.format(a))
                 lduu.append('{0[1]:18.10e}'.format(a))
                 lduj.append('{0[2]:18.10e}'.format(a))
-                if bugLev >= 5:
-                    print '        type: %s  specie: %s  U: %s' \
-                        % (type, specie, specie.U,)
-                    print '          ldul: %s' % (ldul,)
-                    print '          lduu: %s' % (lduu,)
-                    print '          lduj: %s' % (lduj,)
-                    print '          lduo: %s' % (lduo,)
             result['LDUL'] = ' '.join(ldul)
             result['LDUU'] = ' '.join(lduu)
             result['LDUJ'] = ' '.join(lduj)
-            if bugLev >= 5:
-                print '  Not has_nlep final result: %s' % (result,)
         return result
 
 
@@ -1235,14 +1139,8 @@ class Relaxation(BaseKeyword):
     def __init__(self, value=None):
         super(Relaxation, self).__init__()
         self.value = value
-        if bugLev >= 5:
-            print 'keywords: Relaxation.init: value: %s' % (self.value,)
 
     def __get__(self, instance, owner=None):
-        if bugLev >= 5:
-            print 'keywords: Relaxation.get: nsw: %s' % (instance.nsw,)
-            print 'keywords: Relaxation.get: ibrion: %s' % (instance.ibrion,)
-            print 'keywords: Relaxation.get: isif: %s' % (instance.isif,)
         nsw = instance.nsw if instance.nsw is not None else 0
         ibrion = instance.ibrion if instance.ibrion is not None                    \
             else (-1 if nsw <= 0 else 2)
@@ -1262,48 +1160,6 @@ class Relaxation(BaseKeyword):
         import sys
         import traceback
         from ..error import ValueError
-        if bugLev >= 5:
-            print 'keywords: Relaxation.set A: value: %s' % (value,)
-            # Shows: volume ionic cellshape
-            # print 'keywords: Relaxation.set: ===== start stack trace'
-            #traceback.print_stack( file=sys.stdout)
-            # print 'keywords: Relaxation.set: ===== end stack trace'
-
-            # Stack trace A, from ipython script, as part of tst.nonmagnetic_wave()
-            # File "test.py", line 58, in nonmagnetic_wave
-            #   input = read_input(inputpath)
-            # File "vasp/__init__.py", line 67, in read_input
-            #   return read_input(filepath, input_dict)
-            # File "misc/__init__.py", line 195, in read_input
-            #   return exec_input(string, global_dict, local_dict,
-            #     paths, basename(filename))
-            # File "misc/__init__.py", line 226, in exec_input
-            #   exec(script, global_dict, local_dict)
-            # File "<string>", line 160, in <module>
-            # File "tools/input/block.py", line 70, in __setattr__
-            #   if hasattr(result, '__set__'): result.__set__(self, value)
-            # File "keywords.py", line 1027, in __set__
-            #   traceback.print_stack( file=sys.stdout)
-
-            # Stack trace B, from pbsout:
-            # File "ipython/launch/scattered_script.py", line 113, in <module>
-            #   if __name__ == "__main__": main()
-            # File "ipython/launch/scattered_script.py", line 108, in main
-            #   jobfolder[name].compute(comm=comm, outdir=name)
-            # File "jobfolder/jobfolder.py", line 297, in compute
-            #   res = self.functional.__call__(**params)
-            # File "<string>", line 16, in __call__
-            # File "<string>", line 12, in iter
-            # File "vasp/relax.py", line 277, in iter_relax
-            #   **params
-            # File "tools/__init__.py", line 46, in wrapper
-            #   return function(self, structure, outdir, **kwargs)
-            # File "tools/__init__.py", line 65, in wrapper
-            #   if hasattr(self, key): setattr(self, key, kwargs.pop(key))
-            # File "tools/input/block.py", line 70, in __setattr__
-            #   if hasattr(result, '__set__'): result.__set__(self, value)
-            # File "vasp/keywords.py", line 1027, in __set__
-            #   traceback.print_stack( file=sys.stdout)
 
         if value is None:
             value = 'static'
@@ -1319,9 +1175,6 @@ class Relaxation(BaseKeyword):
                      4: 'cellshape ionic', 5: 'cellshape', 6: 'cellshape volume',
                      7: 'volume'}[dummy]
         value = set(value.lower().replace(',', ' ').rstrip().lstrip().split())
-        if bugLev >= 5:
-            print 'keywords: Relaxation.set B: value: %s' % (value,)
-            # Shows: set(['volume', 'cellshape', 'ionic'])
         result = []
         if 'all' in value:
             #result = 'ionic cellshape volume'.split()
@@ -1335,20 +1188,8 @@ class Relaxation(BaseKeyword):
                 result.append('volume')
             if 'gwcalc' in value:
                 result.append('gwcalc')   # gwmod
-        if bugLev >= 5:
-            print 'keywords: Relaxation.set C: result: %s' % (result,)
-            # Shows: ['ionic', 'cellshape', 'volume']
 
         result = ', '.join(result)
-        if bugLev >= 5:
-            print 'keywords: Relaxation.set D: result: %s' % (result,)
-            # Shows: ionic, cellshape, volume
-            print 'keywords: Relaxation.set D: ibrion: %s' % (instance.ibrion,)
-            print 'keywords: Relaxation.set D: isif: %s' % (instance.isif,)
-            print 'keywords: Relaxation.set D: nsw: %s' % (instance.nsw,)
-            # Shows: ibrion: None or 2
-            # Shows: isif: None or 3
-            # Shows: nsw: None or 50
 
         # static case
         if len(result) == 0:
@@ -1370,9 +1211,6 @@ class Relaxation(BaseKeyword):
         cellshape = 'cellshape' in result
         volume = 'volume' in result
         gwcalc = 'gwcalc' in result  # gwmod
-        if bugLev >= 5:
-            print 'keywords: Relaxation.set E: ionic: %s  cellshape: %s  volume: %s  gwcalc: %s' % (ionic, cellshape, volume, gwcalc,)
-            # Shows: ionic: True  cellshape: True  volume: True  gwcalc: False
 
         instance.isif = 0  # gwmod
         if ionic and (not cellshape) and (not volume):

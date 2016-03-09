@@ -23,11 +23,12 @@
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
+import six
 from abc import ABCMeta, abstractmethod
 
 
-class Process(object):
-    """ Abstract base class of all processes. 
+class Process(six.with_metaclass(ABCMeta, object)):
+    """ Abstract base class of all processes.
 
         This class defines the interface for processes. Derived classes should
         overload :py:meth:`start`, :py:meth:`poll`, and :py:meth:`wait`. The
@@ -59,7 +60,6 @@ class Process(object):
           except Fail as e:
             # error, do something
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self, maxtrials=1, **kwargs):
         """ Initializes a process. """
@@ -67,27 +67,27 @@ class Process(object):
 
         self.nberrors = 0
         """ Number of times process was restarted.
-        
-        Some derived instances may well restart a failed sub-process. This is
-        how often it has been restarted.
-    """
+
+            Some derived instances may well restart a failed sub-process. This is
+            how often it has been restarted.
+        """
         self.maxtrials = maxtrials
         """ Maximum number of restarts. """
         self.process = None
         """ Currently running process.
-    
-        This is the sub-process handled by this instance. At the lowest
-        level, it is likely an instance of `subprocess.Popen`__. It may,
-        however, be a further abstraction, such as a
-        :py:class:`~pylada.process.program.ProgramProcess` instance.
 
-        .. __ : http://docs.python.org/library/subprocess.html#subprocess.Popen
-    """
+            This is the sub-process handled by this instance. At the lowest
+            level, it is likely an instance of `subprocess.Popen`__. It may,
+            however, be a further abstraction, such as a
+            :py:class:`~pylada.process.program.ProgramProcess` instance.
+
+            .. __ : http://docs.python.org/library/subprocess.html#subprocess.Popen
+        """
         self.started = False
         """ Whether the process was ever started.
-    
-        Whether :py:meth:`start` was called. It may only be called once. 
-    """
+
+            Whether :py:meth:`start` was called. It may only be called once. 
+        """
 
     @abstractmethod
     def poll(self):

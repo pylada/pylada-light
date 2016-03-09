@@ -78,9 +78,5 @@ class IOMixin(OutcarSearchMixin):
             currently running.
         """
         from os.path import join, exists
-        from pylada.misc import bugLev
         is_run = exists(join(self.directory, '.pylada_is_running'))
-        if bugLev >= 5:
-            print 'vasp/extract/mixin: is_run: dir: %s  is_run: %s' \
-                % (self.directory, is_run,)
         return is_run

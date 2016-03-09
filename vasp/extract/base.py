@@ -27,8 +27,6 @@ from quantities import g, cm, eV
 from ...tools import make_cached
 from ...tools.extract import search_factory
 from ...error import GrepError
-from pylada.misc import bugLev
-
 
 OutcarSearchMixin = search_factory('OutcarSearchMixin', 'OUTCAR', __name__)
 
@@ -38,10 +36,6 @@ class ExtractBase(object):
 
     def __init__(self):
         """ Initializes the extraction class. """
-        from pylada.misc import bugLev
-
-        if bugLev >= 5:
-            print 'vasp/extract/base: ExtractBase: object: ', object
         super(ExtractBase, self).__init__()
 
     @property
@@ -116,16 +110,6 @@ class ExtractBase(object):
         # Hopefully, there shouldn't be too many objects and this should be fairly
         # fast.
         input = exec_input(result)
-        if bugLev >= 5:
-            print 'extract/base functional: ===== start result'
-            print result
-            print 'extract/base functional: ===== end result'
-            print 'extract/base functional: ===== start input'
-            print input
-            print 'extract/base functional: ===== end input'
-            print 'extract/base functional: ===== start input.vasp'
-            print input.vasp
-            print 'extract/base functional: ===== end input.vasp'
 
         for name in dir(input):
             if isinstance(getattr(input, name), Vasp):
@@ -195,18 +179,6 @@ class ExtractBase(object):
         from numpy.linalg import inv
         from ...crystal import Structure
         from .. import exec_input
-        from pylada.misc import bugLev
-
-        # nomodoutcar
-        # try:
-        #  regex = compile('#+ INITIAL STRUCTURE #+\n((.|\n)*)\n#+ END INITIAL STRUCTURE #+')
-        #  result = None
-        #  with self.__outcar__() as file:
-        #    result = regex.search(file.read(), M)
-        #  if bugLev >= 5:
-        #    print 'vasp/extract/base: initial_structure: result: ', result
-        #  if result is not None: return exec_input(result.group(1)).structure
-        # except: pass
 
         result = Structure()
         with self.__outcar__() as file:
@@ -296,12 +268,7 @@ class ExtractBase(object):
     @property
     @make_cached
     def structure(self):
-        from pylada.misc import bugLev
-
         """ Greps structure and total energy from OUTCAR. """
-        if bugLev >= 5:
-            print 'vasp/extract/base: structure: nsw: %s  ibrion: %s' \
-                % (self.nsw, self.ibrion,)
         if self.nsw == 0 or self.ibrion == -1:
             return self.initial_structure
 
@@ -309,8 +276,6 @@ class ExtractBase(object):
             result = self._contcar_structure
         except:
             result = self._grep_structure
-        if bugLev >= 5:
-            print 'vasp/extract/base: structure: result: %s' % (result,)
 
         # tries to find adequate name for structure.
         try:
@@ -326,9 +291,6 @@ class ExtractBase(object):
                 result.name = title
         else:
             result.name = name
-        if bugLev >= 5:
-            print 'vasp/extract/base: structure: name: %s  result.name: %s' \
-                % (name, result.name,)
 
         if self.is_dft:
             result.energy = self.total_energy
@@ -345,8 +307,6 @@ class ExtractBase(object):
                 for key, value in b.__dict__.items():
                     if not hasattr(a, key):
                         setattr(a, key, value)
-        if bugLev >= 5:
-            print 'vasp/extract/base: structure: initial: %s' % (initial,)
 
         # adds magnetization.
         try:
@@ -357,8 +317,6 @@ class ExtractBase(object):
             if magnetization is not None:
                 for atom, mag in zip(result, magnetization):
                     atom.magmom = sum(mag)
-        if bugLev >= 5:
-            print 'vasp/extract/base: structure: magnetization: %s' % (magnetization,)
 
         # adds stress.
         try:
@@ -914,9 +872,6 @@ class ExtractBase(object):
 
         # Here i is the distance from file end of the last line like:
         #  k-point   1 :       0.0000    0.0000    0.0000
-        if bugLev >= 5:
-            print "vasp/ext/base: unpolarized_vals: is_dft: %s  i: %d  line: %s" \
-                % (self.is_dft, i, line,)
 
         # now greps actual results.
         if self.is_dft:
@@ -955,8 +910,6 @@ class ExtractBase(object):
         #   ...
         #   [-30.6596, -30.6596, -30.4905, -30.4905, ...],
         #   [-30.6604, -30.6603, -30.4906, -30.4906, ...]]
-        if bugLev >= 5:
-            print "vasp/ext/base: unpolarized_vals: results: %s" % (results,)
         return results
 
     def _spin_polarized_values(self, which):
@@ -1026,9 +979,6 @@ class ExtractBase(object):
 
         # ionic is like: [12.0, 6.0]
         # species is like: ['Mo', 'S']
-        if bugLev >= 5:
-            print "vasp/ext/base: valence: ionic:", ionic
-            print "vasp/ext/base: valence: species:", species
         for c, s in zip(ionic, species):
             result += c * atoms.count(s)
         return result
@@ -1269,9 +1219,6 @@ class ExtractBase(object):
             eigs = rollaxis(self.eigenvalues, 0, 2)
         else:
             eigs = self.eigenvalues
-        if bugLev >= 5:
-            print "vasp/ext/base: fermi0K: eigs:", eigs
-            print "vasp/ext/base: fermi0K: multiplicity:", self.multiplicity
         # eigs:
         #   [[-30.5498 -30.5497 -30.3889 ...,   7.5536   7.5647   7.5661]
         #    [-30.5371 -30.5371 -30.4543 ...,   7.3166   7.403    7.419 ]
@@ -1303,8 +1250,6 @@ class ExtractBase(object):
         #    (array([-30.6604, -30.6603, -30.4906, ... 7.3096, 7.3097]) * eV, 2.0)]
 
         array = [(e, m) for u, m in zip(eigs, self.multiplicity) for e in u.flat]
-        # if bugLev >= 5:
-        #  print "vasp/ext/base: fermi0K: unsorted array:", array
 
         # Sort by increasing eig
         array = sorted(array, key=itemgetter(0))
@@ -1316,18 +1261,9 @@ class ExtractBase(object):
 
         occ = 0e0
         factor = (2.0 if self.ispin == 1 else 1.0) / float(sum(self.multiplicity))
-        if bugLev >= 5:
-            print "vasp/ext/base: ispin: ", self.ispin
-            print "vasp/ext/base: sum(mult): ", sum(self.multiplicity)
-            # print "vasp/ext/base: fermi0K: sorted array:", array
-            print "vasp/ext/base: fermi0K: factor:", factor
-            print "vasp/ext/base: fermi0K: valence: %s" % (self.valence,)
         for i, (e, w) in enumerate(array):
             occ += w * factor
             if occ >= self.valence - 1e-8:
-                if bugLev >= 5:
-                    print "vasp/ext/base: fermi0K: found i: %s  e: %s  w: %s  occ: %s" \
-                        % (i, e, w, occ,)
                 return e * self.eigenvalues.units
         return None
 
@@ -1354,11 +1290,6 @@ class ExtractBase(object):
         if not self.is_dft:
             raise AttributeError('not a DFT calculation.')
         from numpy import min
-        if bugLev >= 5:
-            print "vasp/ext/base: cbm: eigvals:", self.eigenvalues
-            print "vasp/ext/base: cbm: fermi a:", self.fermi0K
-            print "vasp/ext/base: cbm: fermi units:", self.fermi0K.units
-            print "vasp/ext/base: cbm: fermi b:", self.fermi0K + 1e-8 * self.fermi0K.units
         return min(self.eigenvalues[self.eigenvalues > self.fermi0K + 1e-8 * self.fermi0K.units])
 
     @property

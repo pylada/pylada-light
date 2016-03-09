@@ -126,19 +126,14 @@ def make_cached(method):
 
     @wraps(method)
     def wrapped(*args, **kwargs):
-        from pylada.misc import bugLev
-        if bugLev >= 5:
-            print 'tools/init make_cached entry: method: %s' % (method.__name__,)
+        import logging
+        logging.debug('tools/init make_cached entry: method: %s' % method.__name__)
         if not hasattr(args[0], '_properties_cache'):
             setattr(args[0], '_properties_cache', {})
         cache = getattr(args[0], '_properties_cache')
         if method.__name__ not in cache:
             cache[method.__name__] = method(*args, **kwargs)
-            if bugLev >= 5:
-                print 'tools/init make_cached: set method: %s' % (method.__name__,)
-        else:
-            if bugLev >= 5:
-                print 'tools/init make_cached: use method: %s' % (method.__name__,)
+        logging.debug('tools/init make_cached: set method: %s' % method.__name__)
         return cache[method.__name__]
     return wrapped
 
@@ -263,25 +258,24 @@ def remove_workdir_link(outdir):
 def add_pyladarunning_marker(outdir):
     """ Creates a marker file in output directory. """
     from os.path import join
-    from pylada.misc import bugLev
+    import logging
     file = open(join(outdir, '.pylada_is_running'), 'w')
     file.close()
-    if bugLev >= 5:
-        print 'tools/init: add_run_mark: is_run outdir: %s' % (outdir,)
+    logging.debug('tools/init: add_run_mark: is_run outdir: %s' % outdir)
 
 
 def remove_pyladarunning_marker(outdir):
     """ Creates a marker file in output directory. """
     from os.path import exists, join
     from os import remove
+    import logging
     path = join(outdir, '.pylada_is_running')
     if exists(path):
         try:
             remove(path)
         except OSError:
             pass
-    if bugLev >= 5:
-        print 'tools/init: rem_run_mark: is_run outdir: %s' % (outdir,)
+    logging.debug('tools/init: rem_run_mark: is_run outdir: %s' % outdir)
 
 
 def add_section_to_file(outdir, filename, marker, string, append=True):

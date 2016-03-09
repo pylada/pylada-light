@@ -149,21 +149,19 @@ def completer(self, info):
 
 def get_mppalloc(shell, event, withdefault=True):
     """ Gets mpp allocation. """
-    from pylada.misc import bugLev
+    import logging
 
-    if bugLev >= 1:
-        print "launch/init: shell: %s" % (shell,)
-        print "launch/init: event: %s" % (event,)
-        print "launch/init: event.ppn: %s" % (event.ppn,)
-        print "launch/init: withdefault: %s" % (withdefault,)
+    logging.critical("launch/init: shell: %s" % shell)
+    logging.critical("launch/init: event: %s" % event)
+    logging.critical("launch/init: event.ppn: %s" % event.ppn)
+    logging.critical("launch/init: withdefault: %s" % withdefault)
     try:
         mppalloc = shell.ev(event.nbprocs)
     except Exception as e:
-        print "Could not make sense of --nbprocs argument {0}.\n{1}"               \
-              .format(event.nbprocs, e)
+        print("Could not make sense of --nbprocs argument {0}.\n{1}"               \
+              .format(event.nbprocs, e))
         return
-    if bugLev >= 1:
-        print "launch/init: mppalloc a: %s" % (mppalloc,)
+    logging.critical("launch/init: mppalloc a: %s" % mppalloc)
     if mppalloc is None and withdefault:
         def mppalloc(job):
             """ Returns number of processes for this job. """
@@ -172,8 +170,7 @@ def get_mppalloc(shell, event, withdefault=True):
             nnode = max(1, natom / event.ppn)
             nproc = nnode * event.ppn
             return nproc
-    if bugLev >= 1:
-        print "launch/init: mppalloc b: %s" % (mppalloc,)
+    logging.critical("launch/init: mppalloc b: %s" % mppalloc)
     return mppalloc
 
 

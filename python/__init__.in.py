@@ -117,3 +117,12 @@ else:
         from os.path import dirname
         from pytest import main
         return main(dirname(__file__), **kwargs)
+
+import logging
+logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+if isinstance(logging_level, int):
+    logging.basicConfig(level=logging_level)
+elif getattr(logging, logging_level.upper(), None) is not None:
+    logging.basicConfig(level=getattr(logging, logging_level.upper()))
+else:
+    raise error.RuntimeError("Could not figure out logging level %s." % logging_level )

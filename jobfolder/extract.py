@@ -24,10 +24,11 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['AbstractMassExtract']
 
+import six
 from abc import ABCMeta, abstractmethod
 
 
-class AbstractMassExtract(object):
+class AbstractMassExtract(six.with_metaclass(ABCMeta, object)):
     """ Collects extraction methods from different job-folders. 
 
         Wraps around a root job folder and provides means to access it (or
@@ -44,7 +45,6 @@ class AbstractMassExtract(object):
         derived classes. It should yield for each executable folder a tuple
         consisting of the name of that folder and the relevant *something*.
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self, path=None, view=None, excludes=None, dynamic=False, ordered=True,
                  naked_end=None, unix_re=True):
