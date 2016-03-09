@@ -77,5 +77,11 @@ def test_gruber_fails_on_singular_matrix():
     with raises(error.ValueError):
         gruber(array([[0, 0, 0], [1, 2, 0], [4, 5, 6]]))
 
+def test_gruber_reached_maximum_iterations():
+    from numpy import array
+    from pylada.crystal.cutilities import gruber
+    from pylada import error
+    from pytest import raises
+
     with raises(error.RuntimeError):
         gruber(array([[1, 0, 0], [1, 1, 0], [4, 5, 1]]), itermax=2)
