@@ -70,7 +70,10 @@ def gruber(np.ndarray cell not None, size_t itermax = 0, double tolerance = 1e-1
         long c_result = result.ctypes.data
         long c_cell = cell.ctypes.data
 
-    c_gruber(<t_real*>c_result, <t_real*>c_cell, itermax, tolerance)
+    try:
+        c_gruber(<t_real*>c_result, <t_real*>c_cell, itermax, tolerance)
+    except RuntimeError as e:
+        raise error.RuntimeError(str(e))
     return transpose(result)
 
 cpdef _flatten_indices(int[::1] quotient, int i, int j, int k, int site=0):
