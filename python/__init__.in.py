@@ -80,7 +80,7 @@ def _config_files(dointeractive=False):
     for filename in iglob(join(join(dirname(__file__), "config"), pattern)):
         if dointeractive == False and filename[:4] == 'ipy_':
             continue
-        execfile(filename, global_dict, local_dict)
+        exec(compile(open(filename).read(), filename, 'exec'), global_dict, local_dict)
 
     # then configuration files installed in a global config directory.
     if "PYLADA_CONFIG_DIR" in environ:
@@ -88,11 +88,11 @@ def _config_files(dointeractive=False):
             for filename in iglob(join(directory, pattern)):
                 if dointeractive == False and filename[:4] == 'ipy_':
                     continue
-                execfile(filename, global_dict, local_dict)
+                exec(compile(open(filename).read(), filename, 'exec'), global_dict, local_dict)
 
     # then user configuration file.
     if exists(expandvars(expanduser('~/.pylada'))):
-        execfile(expandvars(expanduser('~/.pylada')), global_dict, local_dict)
+        exec(compile(open(expandvars(expanduser('~/.pylada'))).read(), expandvars(expanduser('~/.pylada')), 'exec'), global_dict, local_dict)
 
     return local_dict
 
