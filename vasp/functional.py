@@ -1087,10 +1087,7 @@ class Vasp(AttrBlock):
         # At this point (vasp==self)._input is a map of the incar parameters.
         # The values may be primitives or callables.
         # Example: self._input['foobar'] = 'FOOBARED'
-
         map = self.output_map(structure=structure, vasp=self, **kwargs)
-        # The resulting map is a map of the incar parameters.
-        # The values may be primitives or callables.
 
         length = max(len(u) for u in map)
         for key, value in map.items():
