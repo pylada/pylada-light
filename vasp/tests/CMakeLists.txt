@@ -37,15 +37,6 @@ if(tests)
     add_pytest(
         GLOB test_*.py
         INSTALL PREFIX "pylada.vasp"
-        EXCLUDE test_run*.py
         LABELS vasp
     )
-
-  if(external_program_tests)
-    add_test(vasp_run python ${CMAKE_CURRENT_SOURCE_DIR}/test_run.py ${CMAKE_CURRENT_SOURCE_DIR})
-    add_test(vasp_runepi python ${CMAKE_CURRENT_SOURCE_DIR}/test_runepi.py ${CMAKE_CURRENT_SOURCE_DIR})
-    add_test(vasp_runrelax python ${CMAKE_CURRENT_SOURCE_DIR}/test_runrelax.py ${CMAKE_CURRENT_SOURCE_DIR})
-    add_test(vasp_runepidoc python ${CMAKE_CURRENT_SOURCE_DIR}/test_runepidoc.py ${CMAKE_CURRENT_SOURCE_DIR})
-    add_test(vasp_runmass python ${CMAKE_CURRENT_SOURCE_DIR}/test_runmass.py ${CMAKE_CURRENT_SOURCE_DIR})
-  endif(external_program_tests)
 endif(tests)

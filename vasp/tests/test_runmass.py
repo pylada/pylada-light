@@ -19,13 +19,18 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from pytest import fixture, mark
+from pylada import vasp_program
 
 
-def test(path):
-    from shutil import rmtree
-    from os.path import exists
-    from os import makedirs
-    from tempfile import mkdtemp
+@fixture
+def path():
+    from os.path import dirname
+    return dirname(__file__)
+
+
+@mark.skipif(vasp_program is None, reason="vasp not configured")
+def test(tmpdir, path):
     from numpy import abs
     from pylada.crystal import Structure
     from pylada.vasp import Vasp
@@ -48,25 +53,10 @@ def test(path):
     emass = EMass(copy=vasp)
     assert abs(emass.encut - 1.4) < 1e-8
     assert abs(emass.ediff - 25e-5) < 1e-10
-    directory = "/tmp/test"  # mkdtemp()
-    if exists(directory) and directory == '/tmp/test':
-        rmtree(directory)
-    if not exists(directory):
-        makedirs(directory)
-    try:
-        result = effective_mass(vasp, structure, outdir=directory, comm=default_comm,
-                                emassparams={'ediff': 1e-8})
-        result.emass
-        assert result.success
-        result = emass(structure, outdir=directory, comm=default_comm,
-                       emassparams={'ediff': 1e-8})
-        assert result.success
-    finally:
-        if directory != '/tmp/test':
-            rmtree(directory)
-        pass
-
-
-if __name__ == "__main__":
-    from sys import argv
-    test(argv[1])
+    result = effective_mass(vasp, structure, outdir=str(tmpdir), comm=default_comm,
+                            emassparams={'ediff': 1e-8})
+    result.emass
+    assert result.success
+    result = emass(structure, outdir=str(tmpdir), comm=default_comm,
+                   emassparams={'ediff': 1e-8})
+    assert result.success
