@@ -21,6 +21,13 @@
 ###############################
 
 """ Creates functionals (classes) from a method. """
+import sys
+if sys.version_info.major == 2:
+    def __func_name(func):
+        return func.func_name
+else:
+    def __func_name(func):
+        return func.__name__
 
 
 def create_initstring(classname, base, method, excludes):
@@ -44,13 +51,13 @@ def create_initstring(classname, base, method, excludes):
     result +=\
         "  \"\"\" Initializes {0} instance.\n\n"                                     \
         "     This function is created automagically from\n"                         \
-        "     :py:func:`{1.__module__}.{1.func_name}`. Please see that function\n"   \
+        "     :py:func:`{1.__module__}.{3}`. Please see that function\n"   \
         "     for the description of its parameters.\n\n"                            \
         "     :param {2.__name__} copy:\n"                                           \
         "         Deep-copies attributes from this instance to the new (derived)\n"  \
         "         object. This parameter makes easy to create meta-functional from\n"\
         "         the most basic wrappers.\n"                                        \
-        "  \"\"\"\n".format(classname, method, base)
+        "  \"\"\"\n".format(classname, method, base, __func_name(method))
 
     # creates line: from copy import deepcopy
     # used by the copy keyword argument below.
@@ -136,16 +143,16 @@ def create_iter(iter, excludes):
         result +=\
             "  \"\"\"{0}\n\n"                                                  \
             "     This function is created automagically from "                \
-            ":py:func:`{1.func_name} <{1.__module__}.{1.func_name}>`.\n"     \
+            ":py:func:`{2} <{1.__module__}.{2}>`.\n"     \
             "     Please see that function for the description of its parameters.\n"\
             "  \"\"\"\n"\
-            .format(first_line, iter)
+            .format(first_line, iter, __func_name(iter))
     # import iterations method
     result += "  from pylada.tools import SuperCall\n"
-    result += "  from {0.__module__} import {0.func_name}\n".format(iter)
+    result += "  from {0.__module__} import {1}\n".format(iter, __func_name(iter))
     # add iteration line:
-    result += "  for o in {0.func_name}(SuperCall(self.__class__, self)"     \
-              .format(iter)
+    result += "  for o in {0}(SuperCall(self.__class__, self)"     \
+              .format(__func_name(iter))
     if args.args is not None and len(args.args) > 1:
         # first add arguments without default (except for first == self).
         nargs = len(args.args) - len(args.defaults)
@@ -202,14 +209,14 @@ def create_call_from_iter(iter, excludes):
         result +=                                                                  \
             "  \"\"\"{0}\n\n"                                                        \
             "     This function is created automagically from\n"                     \
-            "     :py:func:`{1.__module__}.{1.func_name}`. Please see that \n"       \
+            "     :py:func:`{1.__module__}.{2}`. Please see that \n"       \
             "     function for the description of its parameters.\n\n"               \
             "     :param comm:\n"                                                    \
             "        Additional keyword argument defining how call external\n"       \
             "        programs.\n"                                                    \
             "     :type comm: :py:class:`~pylada.process.mpi.Communicator`\n\n"        \
             "  \"\"\"\n"                                                             \
-            .format(first_line, iter)
+            .format(first_line, iter, __func_name(iter))
     # add iteration line:
     iterargs = []
     if args.args is not None and len(args.args) > 1:
@@ -229,10 +236,7 @@ def create_call_from_iter(iter, excludes):
     if args.keywords is not None:
         iterargs.append("**" + args.keywords)
     result += "  result  = None\n"                                               \
-              "  print 'tools/makeclass: create_call_from_iter: comm: ', comm\n" \
               "  for program in self.iter({0}):\n"                               \
-              "    print 'tools/makeclass: create_call_from_iter: program: ', program\n" \
-              "    print 'tools/makeclass: create_call_from_iter: type(program): ', type(program)\n" \
               "    if getattr(program, 'success', False):\n"                     \
               "      result = program\n"                                         \
               "      continue\n"                                                 \
@@ -278,15 +282,15 @@ def create_call(call, excludes):
         result +=\
             "  \"\"\"{0}\n\n"                                                      \
             "     This function is created automagically from "                    \
-            "     {1.__module__}.{1.func_name}. Please see that function for the\n"\
+            "     {1.__module__}.{2}. Please see that function for the\n"\
             "     description of its parameters.\n\n"                              \
             "  \"\"\"\n"                                                           \
-            .format(first_line, call)
+            .format(first_line, call, __func_name(call))
         # import iterations method
     result += "  from pylada.tools import SuperCall\n".format(call)
-    result += "  from {0.__module__} import {0.func_name}\n".format(call)
+    result += "  from {0.__module__} import {1}\n".format(call, __func_name(call))
     # add iteration line:
-    result += "  return {0.func_name}(SuperCall(self.__class__, self)".format(call)
+    result += "  return {1}(SuperCall(self.__class__, self)".format(call, __func_name(call))
     if args.args is not None and len(args.args) > 1:
         # first add arguments without default (except for first == self).
         nargs = len(args.args) - len(args.defaults)
@@ -426,18 +430,17 @@ def makefunc(name, iter, module=None):
         funcstring +=\
             "  \"\"\"{0}\n\n"                                                      \
             "     This function is created automagically from "                    \
-            "     {1.__module__}.{1.func_name}. Please see that function for the\n"\
+            "     {1.__module__}.{2}. Please see that function for the\n"\
             "     description of its parameters.\n\n"                              \
             "    :param comm:\n"                                                   \
             "        Additional keyword argument defining how call external\n"     \
             "        programs.\n"                                                  \
             "    :type comm: :py:class:`~pylada.process.mpi.Communicator`\n\n"       \
             "  \"\"\"\n"\
-            .format(first_line, iter)
+            .format(first_line, iter, __func_name(iter))
     # create function body...
-    funcstring += "  from {0.__module__} import {0.func_name}\n"\
-                  "  print 'tools/makeclass: makefunc: comm: ', comm\n"\
-                  "  for program in {0.func_name}(".format(iter)
+    funcstring += "  from {0.__module__} import {1}\n"\
+                  "  for program in {1}(".format(iter, __func_name(iter))
     # ... including detailed call to iterator function.
     iterargs = []
     if args.args is not None and len(args.args) > 0:

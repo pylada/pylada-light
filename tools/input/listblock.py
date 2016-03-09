@@ -139,4 +139,4 @@ class ListBlock(BaseKeyword, list):
         # special case for python 2
         if hasattr(uirepr, 'itervalues'):
             return next(uirepr.itervalues())
-        return next(self.__ui_repr__({}).values())
+        return next(iter(self.__ui_repr__({}).values()))

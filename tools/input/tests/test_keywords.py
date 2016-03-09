@@ -64,7 +64,9 @@ def test_valuekeyword():
     a.raw = '5.0'
     assert isinstance(a.value, float) and abs(a.value - 5.0) < 1e-8 and a.raw == str(5.0)
     a.raw = 'five'
-    assert isinstance(a.value, str) and a.value == 'five' and a.raw == 'five'
+    assert isinstance(a.value, str)
+    assert a.value == 'five'
+    assert a.raw == 'five'
     a.raw = '5 5.0 five'
     assert hasattr(a.value, '__iter__') and hasattr(a.value, '__len__')
     assert len(a.value) == 3
