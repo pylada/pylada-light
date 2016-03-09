@@ -92,7 +92,8 @@ def _config_files(dointeractive=False):
 
     # then user configuration file.
     if exists(expandvars(expanduser('~/.pylada'))):
-        exec(compile(open(expandvars(expanduser('~/.pylada'))).read(), expandvars(expanduser('~/.pylada')), 'exec'), global_dict, local_dict)
+        exec(compile(open(expandvars(expanduser('~/.pylada'))).read(),
+                     expandvars(expanduser('~/.pylada')), 'exec'), global_dict, local_dict)
 
     return local_dict
 
@@ -125,4 +126,4 @@ if isinstance(logging_level, int):
 elif getattr(logging, logging_level.upper(), None) is not None:
     logging.basicConfig(level=getattr(logging, logging_level.upper()))
 else:
-    raise error.RuntimeError("Could not figure out logging level %s." % logging_level )
+    raise error.RuntimeError("Could not figure out logging level %s." % logging_level)
