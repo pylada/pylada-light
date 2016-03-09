@@ -25,11 +25,5 @@
 ###############################
 
 if(tests)
-    add_pytest(test_atom.py test_structure.py test_cellinvariants.py test_cutilitites.py
-        test_hart-forcade.py test_primitive.py test_space_group.py test_utilities.py
-        test_which_site.py test_write_gulp.py test_coordination_shells.py test_neighbors.py
-        INSTALL PREFIX "pylada.crystal"
-        FAKE_INIT
-        LABELS crystal
-    )
+    add_pytest(test_*.py INSTALL PREFIX "pylada.crystal" FAKE_INIT LABELS crystal)
 endif(tests)
