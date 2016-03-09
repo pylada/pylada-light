@@ -19,50 +19,83 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from pytest import fixture, mark
 
 
-def test_choices():
-    from pickle import loads, dumps
+@fixture
+def choice():
     from pylada.vasp.incar._params import Choices
+    return Choices('algo', {'A': ['aa', 0], 'B': ['bb', 1]})
 
-    a = Choices('algo', {'A': ['aa', 0], 'B': ['bb', 1]})
-    a.value = 'a'
-    assert a.value == 'A'
-    assert loads(dumps(a)).incar_string() == 'ALGO = A'
-    a.value = 'aa'
-    assert a.value == 'A'
-    assert loads(dumps(a)).incar_string() == 'ALGO = A'
-    a.value = 0
-    assert a.value == 'A'
-    assert loads(dumps(a)).incar_string() == 'ALGO = A'
-    a.value = 'b'
-    assert a.value == 'B'
-    assert loads(dumps(a)).incar_string() == 'ALGO = B'
-    a.value = 'bb'
-    assert a.value == 'B'
-    assert loads(dumps(a)).incar_string() == 'ALGO = B'
-    a.value = 1
-    assert a.value == 'B'
-    assert loads(dumps(a)).incar_string() == 'ALGO = B'
-    try:
-        a.value = 2
-    except:
-        pass
-    else:
-        raise RuntimeError()
-    a.value = None
-    assert a.incar_string() is None
-    assert repr(a) == "Choices('algo', {'A': ['aa', 0, 'a'], 'B': ['bb', 1, 'b']}, None)"
 
-    a = Choices('algo', {'A': ['aa', 0], 'B': ['bb', 1]}, 'b')
-    assert a.value == 'B'
-    a = Choices('algo', {'A': ['aa', 0], 'B': ['bb', 1]}, 'bb')
-    assert a.value == 'B'
-    a = Choices('algo', {'A': ['aa', 0], 'B': ['bb', 1]}, 1)
-    assert a.value == 'B'
-    try:
-        a = Choices('algo', {'A': ['aa', 0], 'B': ['bb', 1]}, 2)
-    except:
-        pass
+@mark.parametrize('interchangeable, expected', [
+    ('a', 'A'), ('aa', 'A'), (0, 'A'), ('b', 'B'), ('bb', 'B'), (1, 'B'),
+    (None, None)
+])
+def test_interchangeable(interchangeable, expected, choice):
+    choice.value = interchangeable
+    assert choice.value == expected
+    if expected is not None:
+        assert choice.incar_string() == 'ALGO = %s' % expected
     else:
-        raise RuntimeError()
+        assert choice.incar_string() is None
+
+
+@mark.parametrize('interchangeable, expected', [
+    ('a', 'A'), ('aa', 'A'), (0, 'A'), ('b', 'B'), ('bb', 'B'), (1, 'B'),
+    (None, None)
+])
+def test_interchangeable_and_pickle(interchangeable, expected, choice):
+    from pickle import loads, dumps
+    choice.value = interchangeable
+    choice = loads(dumps(choice))
+    assert choice.value == expected
+    if expected is not None:
+        assert choice.incar_string() == 'ALGO = %s' % expected
+    else:
+        assert choice.incar_string() is None
+
+
+def test_fail_on_unexpected_value(choice):
+    from pytest import raises
+
+    with raises(ValueError):
+        choice.value = 2
+
+    with raises(ValueError):
+        choice.value = 'D'
+
+
+def test_none_value_means_none_incar(choice):
+    choice.value = None
+    assert choice.incar_string() is None
+
+
+@mark.parametrize('interchangeable, expected', [
+    ('a', 'A'), ('aa', 'A'), (0, 'A'), ('b', 'B'), ('bb', 'B'), (1, 'B'),
+    (None, None)
+])
+def test_is_repreable(choice, interchangeable, expected):
+    from pylada.vasp.incar._params import Choices
+    choice.value = interchangeable
+    choice = eval(repr(choice), {'Choices': Choices})
+    assert choice.value == expected
+    if expected is not None:
+        assert choice.incar_string() == 'ALGO = %s' % expected
+    else:
+        assert choice.incar_string() is None
+
+
+@mark.parametrize('value, expected', [('b', 'B'), ('a', 'A'), (1, 'B')])
+def test_construction_with_input_value(value, expected):
+    from pylada.vasp.incar._params import Choices
+    choice = Choices('algo', {'A': ['aa', 0], 'B': ['bb', 1]}, value)
+    assert choice.value == expected
+
+
+def test_construction_fails_on_unexpected_value():
+    from pylada.vasp.incar._params import Choices
+    from pytest import raises
+
+    with raises(ValueError):
+        Choices('algo', {'A': ['aa', 0], 'B': ['bb', 1]}, 2)

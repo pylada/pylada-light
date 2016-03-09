@@ -605,7 +605,7 @@ class NonScf(SpecialVaspParam):
 
 
 class UParams(SpecialVaspParam):
-    """ Sets U, nlep, and enlep parameters. 
+    """ Sets U, nlep, and enlep parameters.
 
         The U, nlep, and enlep parameters of the atomic species are set at the
         same time as the pseudo-potentials. This object merely sets up the incar
@@ -640,6 +640,7 @@ class UParams(SpecialVaspParam):
 
     def incar_string(self, **kwargs):
         from ...crystal import specieset
+        from ... import error
         types = specieset(kwargs['structure'])
         species = kwargs['vasp'].species
         # existence and sanity check
@@ -649,13 +650,13 @@ class UParams(SpecialVaspParam):
             if len(specie.U) == 0:
                 continue
             if len(specie.U) > 4:
-                raise AssertionError("More than 4 channels for U/NLEP parameters")
+                raise error.ValueError("More than 4 channels for U/NLEP parameters")
             has_U = True
             # checks consistency.
             which_type = specie.U[0]["type"]
             for l in specie.U[1:]:
-                assert which_type == l["type"], \
-                    AssertionError("LDA+U/NLEP types are not consistent across species.")
+                if which_type != l["type"]:
+                    raise error.ValueError("LDA+U/NLEP types are not consistent across species.")
         if not has_U:
             return "# no LDA+U/NLEP parameters"
 
@@ -663,8 +664,10 @@ class UParams(SpecialVaspParam):
         result = "LDAU = .TRUE.\nLDAUPRINT = {0}\nLDAUTYPE = {1}\n".format(self.value, which_type)
 
         for i in range(max(len(species[type].U) for type in types)):
-            line = "LDUL{0}=".format(i + 1), "LDUU{0}=".format(i +
-                                                               1), "LDUJ{0}=".format(i + 1), "LDUO{0}=".format(i + 1)
+            line = "LDUL{0}=".format(i + 1),\
+                    "LDUU{0}=".format(i + 1),\
+                    "LDUJ{0}=".format(i + 1),\
+                    "LDUO{0}=".format(i + 1)
             for type in types:
                 specie = species[type]
                 a = -1, 0e0, 0e0, 1

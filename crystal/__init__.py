@@ -62,7 +62,7 @@ def specieset(structure):
         Especially usefull with VASP since we are sure what the list of species
         is always ordered the same way.
     """
-    return {a.type for a in structure}
+    return sorted({a.type for a in structure})
 
 
 def vasp_ordered(structure, site=False):
