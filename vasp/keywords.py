@@ -1157,13 +1157,12 @@ class Relaxation(BaseKeyword):
                 7: 'volume'}[instance.isif]
 
     def __set__(self, instance, value):
-        import sys
-        import traceback
+        from collections import Iterable
         from ..error import ValueError
 
         if value is None:
             value = 'static'
-        if hasattr(value, '__iter__'):
+        if isinstance(value, Iterable) and not isinstance(value, str):
             value = ' '.join([str(u) for u in value])
         # try integer value
         try:
