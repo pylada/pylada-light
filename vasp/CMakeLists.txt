@@ -22,6 +22,6 @@
 add_python_module("pylada.vasp" GLOB "*.py")
 add_subdirectory(incar)
 add_subdirectory(extract)
-# add_subdirectory(nlep)
+add_subdirectory(nlep)
 
 add_subdirectory(tests)
