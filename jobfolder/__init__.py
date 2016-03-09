@@ -75,7 +75,8 @@ def save(jobfolder, path='jobfolder.dict', overwrite=False, timeout=None):
         else:
             raise IOError(
                 '{0} already exists. By default, will not overwrite.'.format(path))
-    dump(jobfolder, open_exclusive(path, "wb", timeout=timeout))
+    with open_exclusive(path, "wb", timeout=timeout) as file:
+        dump(jobfolder, file)
     if is_interactive:
         print("Saved job folder to {0}.".format(path))
 
