@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from fixtures import comm, executable
+from pylada.process.tests.fixtures import comm, executable
 
 
 def test_iterator(executable, tmpdir, comm):

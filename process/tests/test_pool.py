@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from fixtures import executable, jobfolders
+from pylada.process.tests.fixtures import executable, jobfolders
 from pytest import mark, fixture
 from pylada.process.pool import PoolProcess
 
@@ -44,7 +44,7 @@ def processalloc(job):
 def test_failures(tmpdir, executable, comm):
     """ Tests whether scheduling jobs works on known failure cases. """
     from pylada import default_comm
-    from functional import Functional
+    from pylada.process.tests.functional import Functional
     root = jobfolders(executable, 0, 8)
 
     def processalloc_test1(job):
