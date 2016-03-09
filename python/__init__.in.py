@@ -51,10 +51,10 @@ __all__ = [
     "load_ipython_extension", "unload_ipython_extension",
     "error", "crystal", "physics", "misc", "tools", "ewald", "decorations", "config",
     "periodic_table", "vasp", "process", "jobfolder"]
-import error
-import physics
+from . import error
+from . import physics
 from collections import namedtuple
-from ipython import load_ipython_extension, unload_ipython_extension
+from .ipython import load_ipython_extension, unload_ipython_extension
 
 version_info = namedtuple('version_info', ['major', 'minor'])\
     (int("@Pylada_VERSION_MAJOR@"), int("@Pylada_VERSION_MINOR@"))
