@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from fixtures import executable, comm
+from pylada.process.tests.fixtures import executable, comm
 
 
 def test_process_functional(executable, comm, tmpdir):

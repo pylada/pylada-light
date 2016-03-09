@@ -123,15 +123,15 @@ class CallProcess(Process):
         # creates temp input script.
         with Changedir(self.outdir) as outdir:
             pass
-        with NamedTemporaryFile(dir=self.outdir, suffix='.py', delete=False) as stdin:
+        with NamedTemporaryFile(dir=self.outdir, suffix='.py', delete=False, mode='w') as stdin:
             if self.dompi:
                 params = self.params
                 stdin.write("from sys import path\n"
-                            "from boost.mpi import world\n"
                             "path[:] = {0!r}\n\n"
+                            "from mpi4py import MPI\n"
                             "from pickle import loads\n"
                             "params, functional = loads({1!r})\n\n"
-                            "params['comm'] = world\n"
+                            "params['comm'] = MPI.COMM_WORLD\n"
                             "functional(**params)\n"
                             .format(pypath, dumps((params, self.functional))))
             else:
