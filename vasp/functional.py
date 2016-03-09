@@ -3,14 +3,14 @@
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
 #
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
+#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to
+#  submit large numbers of jobs on supercomputers. It provides a python interface to physical input,
+#  such as crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential
+#  programs. It is able to organise and launch computational jobs on PBS and SLURM.
 #
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
+#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU
+#  General Public License as published by the Free Software Foundation, either version 3 of the
+#  License, or (at your option) any later version.
 #
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
@@ -21,7 +21,7 @@
 ###############################
 
 # -*- coding: utf-8 -*-
-""" Sub-package containing the functional. """
+""" Sub-package containing the vasp functional. """
 __docformat__ = "restructuredtext en"
 __all__ = ['Vasp']
 from ..tools import stateless, assign_attributes
