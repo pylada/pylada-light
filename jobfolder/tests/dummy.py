@@ -38,7 +38,7 @@ def Extract(outdir=None):
     with Changedir(outdir) as pwd:
         if not exists('OUTCAR'):
             return Extract(False, outdir, None, functional)
-        with open('OUTCAR', 'r') as file:
+        with open('OUTCAR', 'rb') as file:
             indiv, value = load(file)
 
     return Extract(True, outdir, indiv, functional)
@@ -49,8 +49,7 @@ def functional(indiv, outdir=None, value=False, **kwargs):
     from pickle import dump
 
     with Changedir(outdir) as pwd:
-        with open('OUTCAR', 'w') as file:
-            dump((indiv, value), file)
+        dump((indiv, value), open('OUTCAR', 'wb'))
 
     return Extract(outdir)
 functional.Extract = Extract

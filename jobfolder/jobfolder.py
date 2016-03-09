@@ -266,6 +266,8 @@ class JobFolder(object):
             result = result.children[name]
         return result
 
+    __truediv__ = __div__
+
     def subfolders(self):
         """ Sorted keys of the folders directly under this one. """
         return sorted(self.children.keys())

@@ -91,7 +91,7 @@ class JobParams(AbstractMassExtract):
         for name, job in self.items():
             result[name] = "off" if job.is_tagged else "on"
         if self.naked_end and len(result) == 1:
-            return result[result.keys()[0]]
+            return result[next(iter(result))]
         return result
 
     @onoff.setter
@@ -124,7 +124,7 @@ class JobParams(AbstractMassExtract):
         for k, j in self.items():
             result[k] = j
         if self.naked_end and len(result) == 1:
-            return result[result.keys()[0]]
+            return result[next(iter(result))]
         return ForwardingDict(dictionary=result, naked_end=self.naked_end,
                               only_existing=self.only_existing, readonly=False)
 
@@ -145,7 +145,7 @@ class JobParams(AbstractMassExtract):
             except:
                 result.pop(key, None)
         if self.naked_end and len(result) == 1:
-            return result[result.keys()[0]]
+            return result[next(iter(result))]
         if len(result) == 0:
             raise AttributeError("Attribute {0} not found in {1} instance."
                                  .format(name, self.__class__.__name__))

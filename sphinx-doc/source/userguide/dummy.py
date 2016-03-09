@@ -53,8 +53,7 @@ def functional(structure, outdir=None, value=False, **kwargs):
     structure = deepcopy(structure)
     structure.value = value
     with Changedir(outdir) as pwd:
-        with open('OUTCAR', 'w') as file:
-            dump((random(), structure, value, functional), file)
+        dump((random(), structure, value, functional), open('OUTCAR', 'wb'))
 
     return Extract(outdir)
     return structure

@@ -283,7 +283,7 @@ class AbstractMassExtract(six.with_metaclass(ABCMeta, object)):
             except:
                 result.pop(key, None)
         if self.naked_end and len(result) == 1:
-            return result[result.keys()[0]]
+            return result[next(iter(result))]
         return ForwardingDict(dictionary=result, naked_end=self.naked_end)
 
     def __getitem__(self, name):

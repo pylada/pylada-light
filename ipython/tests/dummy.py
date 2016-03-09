@@ -51,8 +51,7 @@ def functional(indiv, outdir=None, value=False, **kwargs):
     from pickle import dump
 
     with Changedir(outdir) as pwd:
-        with open('OUTCAR', 'w') as file:
-            dump((indiv, value), file)
+        dump((indiv, value), open('OUTCAR', 'wb'))
 
     return Extract(outdir)
 functional.Extract = Extract

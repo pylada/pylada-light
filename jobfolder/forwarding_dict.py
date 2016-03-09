@@ -114,7 +114,7 @@ class ForwardingDict(MutableMapping):
             if not hasattr(value, name):
                 del result[key]
         if self.naked_end and len(result.dictionary) == 1:
-            return result[result.keys()[0]]
+            return result[next(iter(result))]
         if len(result.dictionary) == 0:
             raise AttributeError("Attribute {0} not found in {1} instance."
                                  .format(name, self.__class__.__name__))

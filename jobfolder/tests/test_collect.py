@@ -65,8 +65,7 @@ def collect(tmpdir, jobfolder, expected_results):
         assert result.indiv == expected_results['/' + name + '/']
 
     # and pickle the jobfolder
-    with open(str(tmpdir.join('dict')), 'w') as file:
-        dump(jobfolder, file)
+    dump(jobfolder, open(str(tmpdir.join('dict')), 'wb'))
 
     # now ready to extract stuff
     return MassExtract(path=str(tmpdir.join('dict')))

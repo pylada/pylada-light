@@ -68,7 +68,7 @@ class Record(object):
             else:
                 dictionary = {}
             dictionary[name] = value
-            with open(self.path, 'w') as file:
+            with open(self.path, 'wb') as file:
                 dump(set(dictionary.keys()), file)
                 dump(("This is a record.", dictionary), file)
 
@@ -86,7 +86,7 @@ class Record(object):
             if name not in dictionary:
                 return
             dictionary.pop(name)
-            with open(self.path, 'w') as file:
+            with open(self.path, 'wb') as file:
                 dump(set(dictionary.keys()), file)
                 dump(("This is a record.", dictionary), file)
 
