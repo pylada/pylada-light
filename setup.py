@@ -250,9 +250,9 @@ try:
             'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
             'pylada.ewald.tests',
             'pylada.process', 'pylada.process.tests',
-            # 'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
-            # 'pylada.vasp.extract.tests', 'pylada.vasp.nlep', 'pylada.vasp.incar',
-            # 'pylada.vasp.incar.tests',
+            'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
+            'pylada.vasp.extract.tests', 'pylada.vasp.nlep', 'pylada.vasp.incar',
+            'pylada.vasp.incar.tests',
             'pylada.tools', 'pylada.tools.tests', 'pylada.tools.input',
             'pylada.tools.input.tests'
         ],
