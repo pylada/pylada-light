@@ -68,7 +68,7 @@ def symmetrically_inequivalent_sites(lattice, type):
             # finds index of transformed position, using translation quivalents.
             for t, other in enumerate(sites):
                 if norm(into_cell(pos, lattice.cell, invcell)) < 1e-12:
-                    print t
+                    print(t)
                     break
             # removes equivalent site and index from lists if necessary
             if t != i and t < len(sites):
@@ -496,9 +496,9 @@ def band_filling(defect, host, vbm=None, cbm=None, potal=None, ntype=None, **kwa
         return result_p.rescale(eV)
     else:
         if float(result_n) * float(result_p) > 1E-12:
-            print "### WARNING: set ntype=True or False explitly for band filling correction."
-            print "    band filling for ntype: {0}".format(result_n.rescale(eV))
-            print "    band filling for ptype: {0}".format(result_p.rescale(eV))
+            print("### WARNING: set ntype=True or False explitly for band filling correction.")
+            print("    band filling for ntype: {0}".format(result_n.rescale(eV)))
+            print("    band filling for ptype: {0}".format(result_p.rescale(eV)))
         return result.rescale(eV)
 
 
@@ -630,7 +630,7 @@ def potential_alignment(defect, host, maxdiff=None, first_shell=False, tolerance
 
     if not any(acceptable):
         # if some one try to use maxdiff = 0.0000000001, @&#(@&#(#@^@
-        print "WARNING: maxdiff is too small! Jump to maxdiff=None"
+        print("WARNING: maxdiff is too small! Jump to maxdiff=None")
         # return to the default one, which accept all the atomic sites except the
         # defect sites
         acceptable = list(raw_acceptable)

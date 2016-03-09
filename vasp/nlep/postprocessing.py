@@ -108,7 +108,7 @@ def load_test(run, job=None, rank=None, system=None, files_dest_dir=None, getdir
         dir = dir + "%s/" % system
     dir = dir + "/%d" % run
 
-    print "extracting vasp object from: ", dir
+    print("extracting vasp object from: ", dir)
     test = Extract(outcar=dir)
 #  nlep = get_nlep(test.vasp)
     nlep = get_nlep(test.functional)
@@ -129,26 +129,26 @@ def load_test(run, job=None, rank=None, system=None, files_dest_dir=None, getdir
 def pretty_print_one(res, tag, input, test):
     import numpy as np
     import math
-    print "%s ERRORS::" % (tag)
+    print("%s ERRORS::" % (tag))
     nbands = len(input.nlep_band_idx)
     if (nbands == 6):
-        print "evals:  deep-d     VBM3     VBM2     VBM1    CBM1     CBM2"
+        print("evals:  deep-d     VBM3     VBM2     VBM1    CBM1     CBM2")
     else:
-        print "evals:   VBM3     VBM2     VBM1    CBM1     CBM2"
+        print("evals:   VBM3     VBM2     VBM1    CBM1     CBM2")
     specialk = ["G", "X", "L"]
     for kidx in range(0, 3):
         s = "%s   " % specialk[kidx]
         for bidx in range(0, nbands):
             idx = nbands * kidx + bidx
             s += "%f  " % (res[idx])
-        print s
+        print(s)
     #     deep-d   VBM3  VBM2  VBM1  CBM1 CBM2
     # G:
     # X:
     # L:
 
     baseidx = 3 * nbands
-    print "charges:   s      p      d"
+    print("charges:   s      p      d")
 
     for aidx in range(0, 2):
         sp = input.species_names[input.atom_idx[aidx]]
@@ -156,14 +156,14 @@ def pretty_print_one(res, tag, input, test):
         for cidx in range(0, 3):
             idx = baseidx + 3 * input.atom_idx[aidx] + cidx
             s += "%f  " % (res[idx])
-        print s
+        print(s)
 
     baseidx += 2 * 3
-    print "pressure: %f   " % res[baseidx]
+    print("pressure: %f   " % res[baseidx])
 
     res = np.array(res)
     rms = math.sqrt(sum(res * res))
-    print "%s RMS = " % (tag), rms
+    print("%s RMS = " % (tag), rms)
     return rms
 
 
@@ -171,11 +171,11 @@ def pretty_print(res, res_unweighted, input, test, nlep):
     rms = pretty_print_one(res, "WEIGHTED ", input, test)
     raw_rms = pretty_print_one(res_unweighted, "UNWEIGHTED ", input, test)
 
-    print "NLEP parameters"
+    print("NLEP parameters")
 #  for symbol, specie in test.vasp.species.items():
     for symbol, specie in test.functional.species.items():
         for nlep_params in specie.U:
-            print symbol, nlep_params
+            print(symbol, nlep_params)
 
     return rms, raw_rms
 
@@ -206,7 +206,7 @@ def find_best(system_names, njobs=16, withranks=False, getdir=None):
     from operator import itemgetter
     from boost.mpi import world
 
-    print "find best, jobs, ranks = ", njobs, withranks
+    print("find best, jobs, ranks = ", njobs, withranks)
     generic_input = load_run_input()
     if getdir == None:
         getdir = generic_input.indir
@@ -239,7 +239,7 @@ def find_best(system_names, njobs=16, withranks=False, getdir=None):
     rmsidx = len(all_solns[0]) - 1
     sorted_solns = sorted(all_solns, key=itemgetter(rmsidx))
     for s in sorted_solns:
-        print s
+        print(s)
 
     job = int(sorted_solns[0][0])
     run = int(sorted_solns[0][1])
@@ -257,14 +257,14 @@ def get_analog_name(cat, an):
 
 
 def prepare_analog_fit(test, nlep_params):
-    print "preparing initial conditions for analogous elements"
+    print("preparing initial conditions for analogous elements")
     analogs = {'Al': 'Mg', 'Mg': 'Al',  'Ga': 'Zn', 'Zn': 'Ga',  'In': 'Cd', 'Cd': 'In',
                'N': 'O', 'O': 'N',  'P': 'S', 'S': 'P',   'As': 'Se', 'Se': 'As'}
     adict = {}
     for symbol, specie in test.functional.species.items():
         row = []
         for nlep_params in specie.U:
-            print symbol, analogs[symbol], nlep_params
+            print(symbol, analogs[symbol], nlep_params)
             row.append(nlep_params)
         adict[analogs[symbol]] = row
     return adict

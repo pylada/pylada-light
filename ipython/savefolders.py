@@ -54,11 +54,11 @@ def savefolders(self, event):
 
     args = [u for u in event.split()]
     if '--help' in args or '-h' in args:
-        print savefolders.__doc__
+        print(savefolders.__doc__)
         return
 
     if len(args) > 2:
-        print "savefolders takes zero, one, or two arguments."
+        print("savefolders takes zero, one, or two arguments.")
         return
 
     if len(args) == 2:
@@ -68,8 +68,8 @@ def savefolders(self, event):
         return
 
     if interactive.jobfolder is None:
-        print "No current job-folder."
-        print "Please load first with %explore."
+        print("No current job-folder.")
+        print("Please load first with %explore.")
         return
     jobfolder = interactive.jobfolder.root
     jobfolder_path = interactive.jobfolder_path
@@ -79,19 +79,19 @@ def savefolders(self, event):
         interactive.jobfolder_path = jobfolder_path
 
     if jobfolder_path is None:
-        print "No current job-folder path.\n"\
+        print("No current job-folder path.\n"\
               "Please specify on input, eg\n"\
-              ">saveto this/path/filename"
+              ">saveto this/path/filename")
         return
     if exists(jobfolder_path):
         if not isfile(jobfolder_path):
-            print "{0} is not a file.".format(jobfolder_path)
+            print("{0} is not a file.".format(jobfolder_path))
             return
         a = 'y'       # testValidProgram: force yes to allow automated testing
         while a not in ['n', 'y']:
             a = six.raw_input("File %s already exists.\nOverwrite? [y/n] " % jobfolder_path)
         if a == 'n':
-            print "Aborting."
+            print("Aborting.")
             return
     save(jobfolder.root, jobfolder_path, overwrite=True, timeout=10)
     if len(args) == 1:

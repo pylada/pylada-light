@@ -76,15 +76,15 @@ def launch_single(self, event, jobfolder):
     job = interactive.jobfolder
     name = interactive.jobfolder.name[1:]
     if job.functional is None:
-        print "Current jobfolder does not contain any calculation."
+        print("Current jobfolder does not contain any calculation.")
         return
     # avoid successful jobs.unless specifically requested
     if hasattr(job.functional, 'Extract') and not event.force:
         p = join(directory, name)
         extract = job.functional.Extract(p)
         if extract.success:
-            print "Job {0} completed successfully. "                                 \
-                  "It will not be relaunched.".format(name)
+            print("Job {0} completed successfully. "                                 \
+                  "It will not be relaunched.".format(name))
             return
     # now creates script
     pbsargs['n'] = get_mppalloc(shell, event, False)
@@ -108,8 +108,8 @@ def launch_single(self, event, jobfolder):
             else pbs_string.format(**pbsargs)
         file.write(string)
     assert exists(pbsscript)
-    print "Created pbsscript {0} for job-folder {1}."                            \
-          .format(pbsscript, path)
+    print("Created pbsscript {0} for job-folder {1}."                            \
+          .format(pbsscript, path))
 
     if event.nolaunch:
         return

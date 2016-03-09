@@ -97,20 +97,20 @@ def explore(self, cmdl):
        and len(args.type) == 0 \
        and len(args.jobfolder) == 0:
         if interactive.jobfolder is None:
-            print "No current job folders."
+            print("No current job folders.")
         elif interactive.jobfolder_path is None:
-            print "Current position in job folder:", interactive.jobfolder.name
+            print("Current position in job folder:", interactive.jobfolder.name)
         else:
-            print "Current position in job folder:", interactive.jobfolder.name
-            print "Path to job folder: ", interactive.jobfolder_path
+            print("Current position in job folder:", interactive.jobfolder.name)
+            print("Path to job folder: ", interactive.jobfolder_path)
         return
 
     options = ['', "errors", "results", "all", 'running']
     if hasattr(self, "magic_qstat"):
         options.append("running")
     if args.type not in options:
-        print "Unknown TYPE argument {0}.\nTYPE can be one of {1}."                \
-              .format(args.type, options)
+        print("Unknown TYPE argument {0}.\nTYPE can be one of {1}."                \
+              .format(args.type, options))
         return
 
     # tries to open dictionary
@@ -124,8 +124,8 @@ def explore(self, cmdl):
     # running and have failed.
     if args.type == "errors":
         if interactive.jobfolder_path is None:
-            print "No known path/file for current job-folder.\n"\
-                  "Please save to file first."
+            print("No known path/file for current job-folder.\n"\
+                  "Please save to file first.")
             return
         for name, job in interactive.jobfolder.items():
             if job.is_tagged:
@@ -156,8 +156,8 @@ def explore(self, cmdl):
     # Look only for jobs which are successfull.
     if args.type == "results":
         if interactive.jobfolder_path is None:
-            print "No known path/file for current job-folder.\n"\
-                  "Please save to file first."
+            print("No known path/file for current job-folder.\n"\
+                  "Please save to file first.")
             return
         directory = dirname(interactive.jobfolder_path)
         for name, job in interactive.jobfolder.items():
@@ -169,8 +169,8 @@ def explore(self, cmdl):
     # Look only for jobs which are running (and can be determined as such).
     elif args.type == "running":
         if interactive.jobfolder_path is None:
-            print "No known path/file for current job-folder.\n"\
-                  "Please save to file first."
+            print("No known path/file for current job-folder.\n"\
+                  "Please save to file first.")
             return
         for name, job in interactive.jobfolder.items():
             directory = join(dirname(interactive.jobfolder_path), name)
@@ -219,8 +219,8 @@ def _explore_impl(self, args):
     # case where we want to change the way the current dictionary is read.
     if len(args.jobfolder) == 0:
         if interactive.jobfolder is None:
-            print "No job folder currently loaded.\n"\
-                  "Please use \"explore {0} path/to/jobict\".".format(args.type)
+            print("No job folder currently loaded.\n"\
+                  "Please use \"explore {0} path/to/jobict\".".format(args.type))
             interactive.__dict__.pop("jobfolder", None)
             return
 
@@ -239,9 +239,9 @@ def _explore_impl(self, args):
     if args.is_file == False and args.is_expression == False                     \
        and isfile(RelativePath(args.jobfolder).path)                             \
        and isinstance(shell.user_ns.get(args.jobfolder, None), JobFolder):
-        print "The file {0} and the variable {1} both exist.\n"                    \
+        print("The file {0} and the variable {1} both exist.\n"                    \
               "Please specify --file or --expression.\n"                           \
-              .format(RelativePath(args.jobfolder).path, args.jobfolder)
+              .format(RelativePath(args.jobfolder).path, args.jobfolder))
         return
     jobfolder, new_path = None, None
     if args.is_file                                                              \
@@ -251,27 +251,27 @@ def _explore_impl(self, args):
         try:
             jobfolder = load(args.jobfolder, timeout=6)
         except ImportError as e:
-            print "ImportError: ", e
+            print("ImportError: ", e)
             return
         except Exception as e:
-            print e
+            print(e)
             if LockFile(args.jobfolder).is_locked:
-                print "You may want to check for the existence of {0}."                \
-                      .format(LockFile(args.jobfolder).lock_directory)
-                print "If you are sure there are no job-folders out "                  \
+                print("You may want to check for the existence of {0}."                \
+                      .format(LockFile(args.jobfolder).lock_directory))
+                print("If you are sure there are no job-folders out "                  \
                       "there accessing {0},\n"                                         \
-                      "you may want to delete that directory.".format(args.jobfolder)
+                      "you may want to delete that directory.".format(args.jobfolder))
             return
         else:
             new_path = abspath(args.jobfolder)
     if jobfolder is None and (args.is_expression or not args.is_file):
         jobfolder = shell.user_ns.get(args.jobfolder, None)
         if not isinstance(jobfolder, JobFolder):
-            print "{0} is not a job-folder object.".format(args.jobfolder)
+            print("{0} is not a job-folder object.".format(args.jobfolder))
             return
 
     if jobfolder is None:  # error
-        print "Could not convert \"{0}\" to a job-dictionary.".format(args.jobfolder)
+        print("Could not convert \"{0}\" to a job-dictionary.".format(args.jobfolder))
         return
 
     interactive.jobfolder = jobfolder

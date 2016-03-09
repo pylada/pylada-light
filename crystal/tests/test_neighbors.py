@@ -28,7 +28,7 @@ def check_bcc():
     from pylada.crystal import Structure, neighbors
     structure = Structure([[-0.5, 0.5, 0.5], [0.5, -0.5, 0.5], [0.5, 0.5, -0.5]])\
         .add_atom(0, 0, 0, "Mo")
-    print neighbors(structure, 12, [0, 0, 0])
+    print(neighbors(structure, 12, [0, 0, 0]))
 
 
 def check(structure, center, tolerance=1e-8):

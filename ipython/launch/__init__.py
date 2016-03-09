@@ -98,24 +98,24 @@ def launch(self, event):
             try:
                 d = load_jobs(path=pickle, timeout=20)
             except ImportError as e:
-                print "ImportError: ", e
+                print("ImportError: ", e)
                 return
             except Exception as e:
-                print e
+                print(e)
                 if LockFile(pickle).is_locked:
-                    print "You may want to check for the existence of {0}."\
-                          .format(LockFile(pickle).lock_directory)
-                    print "If you are sure there are no jobs out there accessing {0},\n"\
-                          "you may want to delete that directory.".format(args.pickle)
+                    print("You may want to check for the existence of {0}."\
+                          .format(LockFile(pickle).lock_directory))
+                    print("If you are sure there are no jobs out there accessing {0},\n"\
+                          "you may want to delete that directory.".format(args.pickle))
                     return
             else:
                 jobfolders.append((d, pickle))
     else:  # current job folder.
         if interactive.jobfolder is None:
-            print "No current job-dictionary."
+            print("No current job-dictionary.")
             return
         if interactive.jobfolder_path is None:
-            print "No path for currrent job-dictionary."
+            print("No path for currrent job-dictionary.")
             return
         jobfolders = [(interactive.jobfolder, interactive.jobfolder_path)]
 
@@ -158,8 +158,8 @@ def get_mppalloc(shell, event, withdefault=True):
     try:
         mppalloc = shell.ev(event.nbprocs)
     except Exception as e:
-        print("Could not make sense of --nbprocs argument {0}.\n{1}"               \
-              .format(event.nbprocs, e))
+        print(("Could not make sense of --nbprocs argument {0}.\n{1}"               \
+              .format(event.nbprocs, e)))
         return
     logging.critical("launch/init: mppalloc a: %s" % mppalloc)
     if mppalloc is None and withdefault:
@@ -181,8 +181,8 @@ def get_walltime(shell, event, pbsargs):
         try:
             walltime = shell.ev(event.walltime)
         except Exception as e:
-            print "Could not make sense of --walltime argument {0}.\n{1}"            \
-                  .format(event.walltime, e)
+            print("Could not make sense of --walltime argument {0}.\n{1}"            \
+                  .format(event.walltime, e))
             return False
     else:
         walltime = event.walltime
@@ -191,8 +191,8 @@ def get_walltime(shell, event, pbsargs):
         a, b, c = walltime.group(1), walltime.group(2), walltime.group(3)
         walltime = "{0:0>2}:{1:0>2}:{2:0>2}".format(a, b, c)
     else:
-        print "Could not make sense of --walltime argument {0}."                   \
-              .format(event.walltime)
+        print("Could not make sense of --walltime argument {0}."                   \
+              .format(event.walltime))
         return False
     pbsargs['walltime'] = walltime
     return True
@@ -211,7 +211,7 @@ def get_queues(shell, event, pbsargs):
         pbsargs["feature"] = event.feature
     if getattr(event, 'debug', False):
         if debug_queue is None:
-            print "No known debug queue for this machine"
+            print("No known debug queue for this machine")
             return False
         pbsargs[debug_queue[0]] = debug_queue[1]
     return True

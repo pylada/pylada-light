@@ -80,7 +80,7 @@ def main():
         python_path.append(options.ppath)
 
     if not exists(options.pickle):
-        print "Could not find file {0}.".format(options.pickle)
+        print("Could not find file {0}.".format(options.pickle))
         return
 
     # Set up mpi processes.
@@ -94,8 +94,8 @@ def main():
     timeout = None if options.timeout <= 0 else options.timeout
 
     jobfolder = jobfolder.load(options.pickle, timeout=timeout)
-    print('  ipy/lau/scattered_script: jobfolder: %s' % jobfolder)
-    print('  ipy/lau/scattered_script: options: %s' % options)
+    print(('  ipy/lau/scattered_script: jobfolder: %s' % jobfolder))
+    print(('  ipy/lau/scattered_script: options: %s' % options))
     for name in options.names:
         logging.critical('ipy/lau/scattered_script: testValidProgram: %s' % testValidProgram)
         logging.critical('ipy/lau/scattered_script: name: %s' % name)

@@ -155,7 +155,7 @@ def test_b5(u):
                 pos = dot(op[:3], atom.pos) + op[3]
                 j = which_site(pos, other, invcell)
                 if j == -1:
-                    print(i, z)
+                    print((i, z))
                     print(atom)
                     print(op)
                     print(pos)

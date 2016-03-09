@@ -45,8 +45,8 @@ def main():
         print(message)
         if args.fail_mid_call:
             exit(2)
-        print("sysname: %s\nnodename: %s\nrelease: %s\n"
-              "compilation: %s\nversion: %s\nmachine: %s\n" % uname())
+        print(("sysname: %s\nnodename: %s\nrelease: %s\n"
+              "compilation: %s\nversion: %s\nmachine: %s\n" % uname()))
 
     exit(2 if args.fail_at_end else 0)
 

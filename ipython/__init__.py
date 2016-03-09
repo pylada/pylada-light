@@ -155,15 +155,15 @@ def qdel(self, arg):
     from pylada import qdel_exe
     arg = arg.lstrip().rstrip()
     if '--help' in arg.split() or '-h' in arg.split():
-        print qdel.__doc__
+        print(qdel.__doc__)
         return
     if len(arg) != 0:
         result = self.qstat(arg)
         if len(result) == 0:
-            print 'No jobs in queue'
+            print('No jobs in queue')
             return
         for u, name in zip(result.fields(0), result.fields(-1)):
-            print "cancelling %s." % (name)
+            print("cancelling %s." % (name))
         message = "Are you sure you want to cancel the jobs listed above? [y/n] "
     else:
         message = "Cancel all jobs? [y/n] "
@@ -201,7 +201,7 @@ def qstat(self, arg):
     from pylada import ipython_qstat
     arg = arg.rstrip().lstrip()
     if len(arg) != 0 and '--help' in arg.split() or '-h' in arg.split():
-        print qstat.__doc__ + '\n' + ipython_qstat.__doc__
+        print(qstat.__doc__ + '\n' + ipython_qstat.__doc__)
         return
     result = ipython_qstat(self, arg)
     if len(arg) == 0:

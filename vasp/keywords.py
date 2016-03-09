@@ -912,7 +912,7 @@ class IStruc(AliasKeyword):
                         a.pos = b.pos
                 structure.cell = other.cell
                 structure.scale = other.scale
-                print "setting cell and scale!"
+                print("setting cell and scale!")
 
         # Depending on different options and what's available, writes structure or
         # copies contcar.

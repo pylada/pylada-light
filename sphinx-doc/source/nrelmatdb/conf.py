@@ -19,7 +19,7 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../..'))
 
-print '\nconf.py sys.path: %s\n' % (sys.path,)
+print('\nconf.py sys.path: %s\n' % (sys.path,))
 
 # -- General configuration -----------------------------------------------------
 

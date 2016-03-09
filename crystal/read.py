@@ -80,8 +80,8 @@ def poscar(path="POSCAR", types=None):
         vol = det(cell)
         if scale < 1.E-8:
             scale = abs(scale / vol) ** (1.0 / 3)
-        print result
-        print scale
+        print(result)
+        print(scale)
         result.scale = scale * angstrom
         # checks for vasp 5 input.
         is_vasp_5 = True

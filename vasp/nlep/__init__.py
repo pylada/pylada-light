@@ -25,5 +25,5 @@
 
 def fit(system_params=None):
     from . import mpopt
-    print "fit called"
+    print("fit called")
     mpopt.main(system_params)

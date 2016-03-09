@@ -34,14 +34,14 @@ def listfolders(self, arg):
             string += name + '  '
             if (i + 1) % 6 == 0:
                 string += '\n'
-        print string if len(string) != 0 else "No sub-folders."
+        print(string if len(string) != 0 else "No sub-folders.")
         return
     elif 'all' in arg.split():
         current = JobParams(jobfolder=interactive.jobfolder)[interactive.jobfolder.name]
         for job in current.jobfolder.root.values():
             if job.is_tagged:
                 continue
-            print job.name
+            print(job.name)
         return
     else:
         dirs = arg.split('/')
@@ -56,6 +56,6 @@ def listfolders(self, arg):
             if all(fnmatch(u, v) for u, v in zip(names, dirs)):
                 result.add('/'.join(names[:len(dirs)]))
         for i, string in enumerate(result):
-            print string,
+            print(string, end=' ')
             if (i + 1) % 6 == 0:
-                print '\n'
+                print('\n')

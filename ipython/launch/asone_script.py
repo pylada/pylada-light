@@ -64,7 +64,7 @@ def main():
         python_path.append(options.ppath)
 
     if not exists(options.pickle):
-        print "Could not find file {0}.".format(options.pickle)
+        print("Could not find file {0}.".format(options.pickle))
         return
 
     # Set up mpi processes.

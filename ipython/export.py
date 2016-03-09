@@ -89,8 +89,8 @@ def export(self, event):
     collect = shell.user_ns.get('collect', None)
     rootpath = getattr(collect, 'rootpath', None)
     if collect is None:
-        print "Could not find 'collect' object in user namespace."
-        print "Please load a job-dictionary."
+        print("Could not find 'collect' object in user namespace.")
+        print("Please load a job-dictionary.")
         return
 
     kwargs = args.__dict__.copy()
@@ -135,14 +135,14 @@ def export(self, event):
         args.filename = relpath(RelativePath(args.filename).path, getcwd())
         if exists(args.filename):
             if not isfile(args.filename):
-                print "{0} exists but is not a file. Aborting.".format(args.filename)
+                print("{0} exists but is not a file. Aborting.".format(args.filename))
                 return
             a = ''
             while a not in ['n', 'y']:
                 a = six.raw_input("File {0} already exists.\nOverwrite? [y/n] "
                                   .format(args.filename))
             if a == 'n':
-                print "Aborted."
+                print("Aborted.")
                 return
 
         # figure out the type of the tarfile.
@@ -159,7 +159,7 @@ def export(self, event):
         for file in allfiles:
             tarme.add(file, arcname=relpath(file, directory))
         tarme.close()
-        print "Saved archive to {0}.".format(args.filename)
+        print("Saved archive to {0}.".format(args.filename))
 
 
 def completer(self, event):

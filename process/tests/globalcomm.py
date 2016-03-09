@@ -36,14 +36,14 @@ def test(nbprocs, ppn):
 
     pylada.default_comm['ppn'] = ppn
     pylada.default_comm['n'] = nbprocs
-    print 'EXPECTED N={0}, PPN={1}'.format(nbprocs, ppn)
+    print('EXPECTED N={0}, PPN={1}'.format(nbprocs, ppn))
     create_global_comm(nbprocs)
-    print 'FOUND'
+    print('FOUND')
     for u in pylada.default_comm.items():
-        print u[0], u[1]
-    print 'MACHINES'
+        print(u[0], u[1])
+    print('MACHINES')
     for u in pylada.default_comm.machines.items():
-        print u[0], u[1]
+        print(u[0], u[1])
 
 if __name__ == '__main__':
     test(nbprocs=64, ppn=32)

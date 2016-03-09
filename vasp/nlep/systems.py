@@ -57,7 +57,7 @@ def setup_one_system(cat, an, run_input, nlep_params, sys_params=None):
     from boost.mpi import world
     compound = "%s%s" % (cat, an)
 
-    print "creating system for ", cat, an, " with nlep_params= ", nlep_params
+    print("creating system for ", cat, an, " with nlep_params= ", nlep_params)
     potcar_dir = run_input.potcar_dir
     outcar_data_dir = run_input.outcar_data_dir
     outdir = run_input.outdir
@@ -65,15 +65,15 @@ def setup_one_system(cat, an, run_input, nlep_params, sys_params=None):
         sys_params = SystemParams(cat, an, potcar_dir, outcar_data_dir,
                                   run_input.floating_vbm, nlep_params)
     else:
-        print "using user system params for %s" % (compound)
+        print("using user system params for %s" % (compound))
     theSys = System(compound, sys_params, outdir)
     if (run_input.special_pc != None and compound in run_input.special_pc):
-        print "overriding target partial charges for systems %s from run_input" % compound
+        print("overriding target partial charges for systems %s from run_input" % compound)
         theSys.special_pc = run_input.special_pc[compound]
     if (run_input.floating_vbm):
         theSys.floating_vbm = True
     if (run_input.eigenvalue_weights != None and compound in run_input.eigenvalue_weights):
-        print "overriding eigenvalue weights for systems %s from run_input" % compound
+        print("overriding eigenvalue weights for systems %s from run_input" % compound)
         theSys.eigenvalue_weights = run_input.eigenvalue_weights[compound]
 
     return theSys
@@ -113,13 +113,13 @@ class MultiSystem():
         for cat in cations:
             for an in anions:
                 cmpd = "%s%s" % (cat, an)
-                print "check: is ", cmpd, " in ", dont_fit
+                print("check: is ", cmpd, " in ", dont_fit)
                 if (dont_fit == None or cmpd not in dont_fit):
                     if (run_input.load_from_analogs):
                         analog_cmpd = get_analog_name(cat, an)
                         test, nlep = load_test(runs[analog_cmpd], job, rank, analog_cmpd, None)
                         nlep_params = prepare_analog_fit(test, nlep)
-                        print "nlep_params from analog fit: ", nlep_params
+                        print("nlep_params from analog fit: ", nlep_params)
                     else:
                         nlep_params = None
                     # append these, don't require all
@@ -149,9 +149,9 @@ class MultiSystem():
         x = self.get_nlep_params_x()
         for s in self.systems:
             if (False and s.floating_vbm):   # the variable that stores the band_shift is at the end of the big multi-system x
-                print "floating vbm"
+                print("floating vbm")
                 x.append(0)  # initial shift is zero
-        print x
+        print(x)
         return np.array(x)
 
     def get_ranges(self):
@@ -159,7 +159,7 @@ class MultiSystem():
         x = []
         for symbol, specie in self.species.items():
             x += get_range_from_specie(specie)
-        print x
+        print(x)
         return np.array(x)
 
     def setx(self, x):
@@ -204,7 +204,7 @@ class MultiSystem():
             if (len(x) > total_num_nlep_params):
                 for i in range(0, len(self.systems)):
                     if (self.systems[i] == sys):
-                        print "found sys ", i, total_num_nlep_params, x
+                        print("found sys ", i, total_num_nlep_params, x)
                         break
                 xsys.append(x[total_num_nlep_params + i])
         return np.array(xsys)

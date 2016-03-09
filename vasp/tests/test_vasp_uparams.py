@@ -65,7 +65,7 @@ def test_HubbardU_and_NLEP_parameters():
     a.species = {'A': Specie([U(2, 0, 0.5)]), 'B': Specie([]), 'X': Specie([])}
     a.ldau = False
     assert a.ldau == False
-    print o
+    print(o)
     assert o.output_map(vasp=a) is None
     # now prints U
     a.ldau = True

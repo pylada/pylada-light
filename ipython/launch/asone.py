@@ -77,8 +77,8 @@ def launch(self, event, jobfolders):
                 p = join(directory, name)
                 extract = job.functional.Extract(p)
                 if extract.success:
-                    print "Job {0} completed successfully. "                             \
-                          "It will not be relaunched.".format(name)
+                    print("Job {0} completed successfully. "                             \
+                          "It will not be relaunched.".format(name))
                     continue
             nbjobs += 1
         if path.rfind('.') != -1:
@@ -104,7 +104,7 @@ def launch(self, event, jobfolders):
                                   "Are you sure this job is not currently running [y/n]? "
                                   .format(pbsscripts[-1]))
             if a == 'n':
-                print "Aborting."
+                print("Aborting.")
                 return
             remove(pbsscripts[-1])
         with open(pbsscripts[-1], "w") as file:
@@ -112,8 +112,8 @@ def launch(self, event, jobfolders):
                 else pbs_string.format(**pbsargs)
             file.write(string)
         assert exists(pbsscripts[-1])
-        print "Created pbsscript {0} for job-folder {1}."                          \
-              .format(pbsscripts[-1], path)
+        print("Created pbsscript {0} for job-folder {1}."                          \
+              .format(pbsscripts[-1], path))
 
     if event.nolaunch:
         return

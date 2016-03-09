@@ -28,17 +28,17 @@ def showme(self, event):
     from pylada import interactive
     # gets dictionary, path.
     if interactive.jobfolder is None:
-        print "No current job-folder."
+        print("No current job-folder.")
         return
     # splits argumetns, removes decorative keywords.
     args = [u for u in event.split() if u not in ["in"]]
     # nothing to do.
     if len(args) == 0:
-        print "Showme requires an argument."
-        print "Find out which via tab completion."
+        print("Showme requires an argument.")
+        print("Find out which via tab completion.")
         return
     elif len(args) > 1:
-        print "Showme accepts only one argument."
+        print("Showme accepts only one argument.")
         return
 
     if args[0] == "params":
@@ -50,7 +50,7 @@ def showme(self, event):
     elif args[0] in interactive.jobfolder.params:
         showme_param(self, args[0])
     else:
-        print "Unknown job parameter {0}.".format(args[0])
+        print("Unknown job parameter {0}.".format(args[0]))
 
 
 def showme_functional(self):
@@ -61,8 +61,8 @@ def showme_functional(self):
     from pylada import interactive
     from ..misc import read_input
     if interactive.jobfolder.functional is None:
-        print "No current functional."
-        print "Please first set it with jobparams."
+        print("No current functional.")
+        print("Please first set it with jobparams.")
         return
     try:  # try/finally section will removed namedtemporaryfile.
         # want .py suffix to get syntax highlighting in editors.
@@ -78,8 +78,8 @@ def showme_functional(self):
                 string = 'from pylada.vasp.specie import Specie\n'
                 string += repr(interactive.jobfolder.functional)
                 if len(string) > 1 and string[0] == '<' and string[-1] == '>':
-                    print "Functional cannot be represented."
-                    print "Please use jobparams to modify it."
+                    print("Functional cannot be represented.")
+                    print("Please use jobparams to modify it.")
                     return
                 file.write(string)
 
@@ -108,7 +108,7 @@ def showme_param(self, arg):
     from ..misc import read_input, import_dictionary, import_header_string
 
     if arg not in interactive.jobfolder.params:
-        print "{0} is not a jobparameter.".format(arg)
+        print("{0} is not a jobparameter.".format(arg))
         return
 
     try:  # try/finally section will removed namedtemporaryfile.
@@ -117,8 +117,8 @@ def showme_param(self, arg):
             filename = file.name
             string = repr(interactive.jobfolder.params[arg])
             if len(string) > 1 and string[0] == '<' and string[-1] == '>':
-                print "Parameter {0} cannot be represented.".format(arg)
-                print "Please use jobparams to modify it."
+                print("Parameter {0} cannot be represented.".format(arg))
+                print("Please use jobparams to modify it.")
                 return
             if interactive.jobfolder.params[arg].__class__.__module__ != '__builtin__':
                 obre = search(r'\s*(\S+)\s*=\s*{0.__class__.__name__}\s*\('
@@ -146,7 +146,7 @@ def showme_param(self, arg):
         # change jobparameters.
         input = read_input(filename)
         if not hasattr(input, othername):
-            print "Cannot find {0} in file. Aborting.".format(othername)
+            print("Cannot find {0} in file. Aborting.".format(othername))
             return
         interactive.jobfolder.params[arg] = getattr(input, othername)
     finally:
@@ -174,12 +174,12 @@ def showme_params(self):
                 mods = import_dictionary(value, mods)
                 string = repr(value)
                 if len(string) > 1 and string[0] == '<' and string[-1] == '>':
-                    print "Parameter {0} cannot be represented.".format(arg)
-                    print "Please use jobparams to modify it."
+                    print("Parameter {0} cannot be represented.".format(arg))
+                    print("Please use jobparams to modify it.")
                     return
                 import_dictionary(value, mods)
 
-            print mods
+            print(mods)
             if len(mods) != 0:
                 file.write(import_header_string(mods))
             file.write('params = {}\n')
@@ -209,7 +209,7 @@ def showme_params(self):
         # change jobparameters.
         input = read_input(filename)
         if not hasattr(input, 'params'):
-            print "Cannot find {0} in file. Aborting.".format('params')
+            print("Cannot find {0} in file. Aborting.".format('params'))
             return
         interactive.jobfolder.params = getattr(input, 'params')
     finally:
@@ -227,20 +227,20 @@ def showme_pbs(self, which):
     from .. import interactive
 
     if not interactive.jobfolder.is_executable:
-        print "Current position in job-dictionary is not a job."
+        print("Current position in job-dictionary is not a job.")
         return
     if which == 'pbs':
         which = 'pbsscript'
     directory = join(dirname(interactive.jobfolder_path),
                      interactive.jobfolder.name[1:])
-    print directory
+    print(directory)
     if not exists(directory):
-        print 'Job was likely never launched.'
+        print('Job was likely never launched.')
         return
     files = glob(join(directory, '{0}'.format(which)))\
         + glob(join(directory, '*-*{0}'.format(which)))
     if len(files) == 0:
-        print 'Could not find appropriate file for {0}'.format(interactive.jobfolder.name)
+        print('Could not find appropriate file for {0}'.format(interactive.jobfolder.name))
         return
     files = sorted(files, key=lambda x: getmtime(x))
     cmdLine = 'less {0}'.format(files[-1])

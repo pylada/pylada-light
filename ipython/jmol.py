@@ -106,7 +106,7 @@ def jmol(self, event):
     from numpy import all, abs, max, min
 
     if '-h' in event.split() or '--help' in event.split():
-        print  "usage: %jmol [-h] structure\n"                                     \
+        print("usage: %jmol [-h] structure\n"                                     \
                "\n"                                                                \
                "Launches jmol for a given structure.\n"                            \
                "\n"                                                                \
@@ -114,10 +114,10 @@ def jmol(self, event):
                "  structure   Variable/expression referencing a structure.\n"      \
                "\n"                                                                \
                "optional arguments:\n"                                             \
-               "  -h, --help  show this help message and exit"
+               "  -h, --help  show this help message and exit")
         return
     if len(event.rstrip().lstrip()) == 0:
-        print '%jmol requires at least one argument.'
+        print('%jmol requires at least one argument.')
         return
     shell = get_ipython()
     if event.rstrip().lstrip() in shell.user_ns:

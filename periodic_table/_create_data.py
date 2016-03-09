@@ -322,7 +322,7 @@ def _create_elements_py(filename="_elements.py"):
             .parent.prettify()
         found = re_atomweight.search(atom.atomic_weight)
         if found is None:
-            print name
+            print(name)
         else:
             atom.atomic_weight = float(found.group(1))
 

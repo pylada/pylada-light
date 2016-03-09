@@ -64,7 +64,7 @@ class MassExtract(AbstractMassExtract):
                 if is_interactive:
                     from .. import interactive
                     if interactive.jobfolder is None:
-                        print "No current job-dictionary."
+                        print("No current job-dictionary.")
                         return
                     return interactive.jobfolder.root
                 else:
@@ -80,7 +80,7 @@ class MassExtract(AbstractMassExtract):
         if self._jobfolder is None and self._rootpath is None and is_interactive:
             from .. import interactive
             if interactive.jobfolder_path is None:
-                print "No current path to job-dictionary."
+                print("No current path to job-dictionary.")
                 return
             return interactive.jobfolder_path
         return super(MassExtract, self).rootpath

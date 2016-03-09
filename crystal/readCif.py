@@ -46,25 +46,25 @@ import numpy as np
 
 
 def badparms(msg):
-    print '\nError: %s' % (msg,)
-    print 'Parms:'
-    print ''
-    print '  Specify either -inFile or (inDir and updateLog).'
-    print '  -buglev      <int>     debug level'
-    print '  -inFile      <string>  input cif file'
-    print ''
-    print '  -inDir       <string>  dir containing cif files'
-    print '  -updateLog   <string>  updated log of cif files processed'
-    print ''
-    print '  -inPotenDir  <string>  input dir containing pseudopotential subdirs'
-    print '                           Or none.'
-    print '  -outPoscar  <string>   output POSCAR file'
-    print '                           Or none.'
-    print '  -outPotcar  <string>   output POTCAR file'
-    print '                           Or none.'
-    print ''
-    print 'Example:'
-    print './readCif.py -buglev 5 -inFile icsd_027856.cif -inPotenDir  ~/vladan/td.pseudos/pseudos -outPoscar temp.poscar -outPotcar temp.potcar | less'
+    print('\nError: %s' % (msg,))
+    print('Parms:')
+    print('')
+    print('  Specify either -inFile or (inDir and updateLog).')
+    print('  -buglev      <int>     debug level')
+    print('  -inFile      <string>  input cif file')
+    print('')
+    print('  -inDir       <string>  dir containing cif files')
+    print('  -updateLog   <string>  updated log of cif files processed')
+    print('')
+    print('  -inPotenDir  <string>  input dir containing pseudopotential subdirs')
+    print('                           Or none.')
+    print('  -outPoscar  <string>   output POSCAR file')
+    print('                           Or none.')
+    print('  -outPotcar  <string>   output POTCAR file')
+    print('                           Or none.')
+    print('')
+    print('Example:')
+    print('./readCif.py -buglev 5 -inFile icsd_027856.cif -inPotenDir  ~/vladan/td.pseudos/pseudos -outPoscar temp.poscar -outPotcar temp.potcar | less')
     sys.exit(1)
 
 
@@ -144,7 +144,7 @@ def main():
                 doneNames.append(line)
         fin.close()
         if buglev >= 2:
-            print 'main: doneNames: %s' % (doneNames,)
+            print('main: doneNames: %s' % (doneNames,))
         doTree(buglev, doneNames, inDir, updateLog)
 
 #====================================================================
@@ -152,31 +152,31 @@ def main():
 
 def doTree(buglev, doneNames, typeMap, inPath, updateLog):
     if buglev >= 1:
-        print 'doTree.entry: inPath: %s' % (inPath,)
+        print('doTree.entry: inPath: %s' % (inPath,))
     if os.path.isfile(inPath):
         if inPath.endswith('.cif'):
             if inPath in doneNames:
                 if buglev >= 1:
-                    print 'main: already done: inPath: %s' % (inPath,)
+                    print('main: already done: inPath: %s' % (inPath,))
             else:
                 if buglev >= 1:
-                    print 'doTree: before  inPath: %s' % (inPath,)
+                    print('doTree: before  inPath: %s' % (inPath,))
                 try:
                     cifRdr = CifReader(buglev, typeMap, inPath)
                     icsdMap = cifRdr.getIcsdMap()
                 except CifException as exc:
                     traceback.print_exc(None, sys.stdout)
-                    print "main: caught: %s" % (exc,)
+                    print("main: caught: %s" % (exc,))
                 if buglev >= 1:
-                    print 'doTree: after   inPath: %s' % (inPath,)
+                    print('doTree: after   inPath: %s' % (inPath,))
 
                 # Update the log
                 fout = open(updateLog, 'a')
-                print >> fout, inPath
+                print(inPath, file=fout)
                 fout.close()
         else:
             if buglev >= 1:
-                print 'doTree: not a cif: %s' % (inPath,)
+                print('doTree: not a cif: %s' % (inPath,))
     elif os.path.isdir(inPath):
         fnames = sorted(os.listdir(inPath))
         for fn in fnames:
@@ -292,7 +292,7 @@ class CifReader:
             self.printLine(msg)
 
     def printLine(self, msg):
-        print '%s: iline: %d  line: %s' % (msg, self.iline, repr(self.line),)
+        print('%s: iline: %d  line: %s' % (msg, self.iline, repr(self.line),))
 
     def getCifMap(self):
         if not self.cifMapDone:
@@ -316,7 +316,7 @@ class CifReader:
 
     def mkCifMap(self):
         if self.buglev >= 2:
-            print 'mkCifMap: entry'
+            print('mkCifMap: entry')
 
         # Scan down for '_data'
         while self.iline < self.nline and \
@@ -351,14 +351,14 @@ class CifReader:
             = self.formatErrorMsg()
 
         if self.buglev >= 2:
-            print '\nmkCifMap: cifMap:'
+            print('\nmkCifMap: cifMap:')
             keys = sorted(self.cifMap.keys())
             for key in keys:
-                print '  key: %s  value: %s  (%s)' \
-                    % (key, repr(self.cifMap[key]), type(self.cifMap[key]).__name__,)
+                print('  key: %s  value: %s  (%s)' \
+                    % (key, repr(self.cifMap[key]), type(self.cifMap[key]).__name__,))
 
         if self.buglev >= 2:
-            print 'mkCifMap: exit'
+            print('mkCifMap: exit')
 
     #====================================================================
 
@@ -442,7 +442,7 @@ class CifReader:
             self.advanceLine('readLoop: got key')
         nkey = len(keys)
         if self.buglev >= 5:
-            print '  keys: %s' % (keys,)
+            print('  keys: %s' % (keys,))
 
         # Make list of empty sublists.  One sublist per key.
         valmat = []
@@ -484,7 +484,7 @@ class CifReader:
 
                     vals = [value]
                     if self.buglev >= 5:
-                        print '    got semicolon value: ', vals
+                        print('    got semicolon value: ', vals)
 
                 else:     # else no ';'
                     if self.iline >= self.nline:
@@ -528,14 +528,14 @@ class CifReader:
 
                     self.advanceLine('readLoop: pass single line record')
                     if self.buglev >= 5:
-                        print '    got line vals: ', vals
+                        print('    got line vals: ', vals)
 
                 values += vals
             # end while len(values) < nkey
 
             if self.buglev >= 5:
-                print '  nkey: %d  nval: %s' % (nkey, len(values),)
-                print '  values: %s' % (values,)
+                print('  nkey: %d  nval: %s' % (nkey, len(values),))
+                print('  values: %s' % (values,))
 
             # Kluge Fixups:
 
@@ -585,8 +585,8 @@ class CifReader:
             tvec = self.convertType(keys[ii], valmat[ii])
             self.cifMap[keys[ii]] = tvec
             if self.buglev >= 5:
-                print 'readLoop: loop final: key: %s  values: %s' \
-                    % (keys[ii], valmat[ii],)
+                print('readLoop: loop final: key: %s  values: %s' \
+                    % (keys[ii], valmat[ii],))
         if self.buglev >= 5:
             self.printLine('readLoop.exit')
 
@@ -696,7 +696,7 @@ class CifReader:
 
         timea = datetime.datetime.now()
         if self.buglev >= 2:
-            print 'mkIcsdMap: entry'
+            print('mkIcsdMap: entry')
 
         self.getCifMap()          # insure self.cifMap is built
 
@@ -864,24 +864,24 @@ class CifReader:
             = self.formatErrorMsg()
 
         if self.buglev >= 2:
-            print '\nmkIcsdMap: icsdMap:'
+            print('\nmkIcsdMap: icsdMap:')
             keys = sorted(self.icsdMap.keys())
             for key in keys:
-                print '  key: %s  value: %s  (%s)' \
-                    % (key, repr(self.icsdMap[key]), type(self.icsdMap[key]).__name__,)
+                print('  key: %s  value: %s  (%s)' \
+                    % (key, repr(self.icsdMap[key]), type(self.icsdMap[key]).__name__,))
 
         timeb = datetime.datetime.now()
         if self.buglev >= 1:
-            print 'mkIcsdMap: icsd: %7d  num: %4d  chemSum: %s' \
+            print('mkIcsdMap: icsd: %7d  num: %4d  chemSum: %s' \
                 % (self.icsdMap['_database_code_ICSD'],
                    self.icsdMap['numCellAtom'],
-                   self.icsdMap['_chemical_formula_sum'],)
+                   self.icsdMap['_chemical_formula_sum'],))
         if self.buglev >= 2:
-            print 'mkIcsdMap: %20s time: %10.5f' \
-                % ('all', (timeb - timea).total_seconds(),)
+            print('mkIcsdMap: %20s time: %10.5f' \
+                % ('all', (timeb - timea).total_seconds(),))
         timea = timeb
         if self.buglev >= 2:
-            print 'mkIcsdMap: exit'
+            print('mkIcsdMap: exit')
 
     #====================================================================
 
@@ -891,7 +891,7 @@ class CifReader:
 
         timea = datetime.datetime.now()
         if self.buglev >= 2:
-            print 'mkVaspMap: entry'
+            print('mkVaspMap: entry')
 
         self.getIcsdMap()          # insure self.icsdMap is built
 
@@ -913,16 +913,16 @@ class CifReader:
         cell = np.array([a1, a2, a3])    # a1, a2, a3 are the rows.
 
         if self.buglev >= 2:
-            print 'mkVaspMap: a1: %s' % (a1,)
-            print 'mkVaspMap: a2: %s' % (a2,)
-            print 'mkVaspMap: a3: %s' % (a3,)
-            print 'mkVaspMap: cell:\n%s' % (cell,)
+            print('mkVaspMap: a1: %s' % (a1,))
+            print('mkVaspMap: a2: %s' % (a2,))
+            print('mkVaspMap: a3: %s' % (a3,))
+            print('mkVaspMap: cell:\n%s' % (cell,))
 
         # Symmetry ops: _symmetry_equiv_pos_as_xyz
         # Set transMats = list of 3x4 transformation matrices
         symStgs = self.icsdMap['_symmetry_equiv_pos_as_xyz']
         if self.buglev >= 5:
-            print '\nmkVaspMap: symStgs: %s\n' % (symStgs,)
+            print('\nmkVaspMap: symStgs: %s\n' % (symStgs,))
         # ['x, x-y, -z+1/2', '-x+y, y, -z+1/2', ...]
         transMats = []
         for stg in symStgs:
@@ -934,17 +934,17 @@ class CifReader:
                 specs[ii] = specs[ii].rstrip(',')    # get rid of trailing comma
                 values = symParser(specs[ii])
                 if self.buglev >= 5:
-                    print 'mkVaspMap: ii: %d  spec: %s  values: %s' \
-                        % (ii, specs[ii], values,)
+                    print('mkVaspMap: ii: %d  spec: %s  values: %s' \
+                        % (ii, specs[ii], values,))
                 transMat.append(values)
             transMat = np.array(transMat, dtype=float)
             if self.buglev >= 10:
-                print '\nmkVaspMap: transMat:\n%s\n' % (transMat,)
+                print('\nmkVaspMap: transMat:\n%s\n' % (transMat,))
             transMats.append(transMat)
         timeb = datetime.datetime.now()
         if self.buglev >= 2:
-            print 'mkVaspMap: %20s time: %10.5f' \
-                % ('symmetry ops', (timeb - timea).total_seconds(),)
+            print('mkVaspMap: %20s time: %10.5f' \
+                % ('symmetry ops', (timeb - timea).total_seconds(),))
         timea = timeb
 
         # atom_site positions
@@ -968,17 +968,17 @@ class CifReader:
             wyc = [slabels[ii], [fracxs[ii], fracys[ii], fraczs[ii]]]
             wyckoffs.append(wyc)
             if self.buglev >= 2:
-                print 'mkVaspMap: wyc: %s' % (wyc,)
+                print('mkVaspMap: wyc: %s' % (wyc,))
 
         # Get list of unique symbols: ['Mo', 'S']
         syms = [ww[0] for ww in wyckoffs]
         uniqueSyms = list(set(syms))               # unique values
         if self.buglev >= 2:
-            print 'mkVaspMap: uniqueSyms: %s' % (uniqueSyms,)
+            print('mkVaspMap: uniqueSyms: %s' % (uniqueSyms,))
         timeb = datetime.datetime.now()
         if self.buglev >= 2:
-            print 'mkVaspMap: %20s time: %10.5f' \
-                % ('unique syms', (timeb - timea).total_seconds(),)
+            print('mkVaspMap: %20s time: %10.5f' \
+                % ('unique syms', (timeb - timea).total_seconds(),))
         timea = timeb
 
         dtma = 0
@@ -995,26 +995,26 @@ class CifReader:
         #   wycPos comes from wyckoffs.
 
         if self.buglev >= 2:
-            print '\nmkVaspMap: Get posVecs'
+            print('\nmkVaspMap: Get posVecs')
         posVecs = []                     # parallel array with uniqueSyms
         for ii in range(len(uniqueSyms)):
             posVecs.append([])
 
         for wyc in wyckoffs:
             if self.buglev >= 2:
-                print '  wyc: ', wyc
+                print('  wyc: ', wyc)
             wycSym = wyc[0]
             wycPos = wyc[1] + [1.0]
             for transMat in transMats:
                 tma = datetime.datetime.now()
                 if self.buglev >= 10:
-                    print '    transMat:\n%s' % (transMat,)
+                    print('    transMat:\n%s' % (transMat,))
                 if self.buglev >= 10:
-                    print '    wycPos: %s' % (wycPos,)
+                    print('    wycPos: %s' % (wycPos,))
 
                 posVec = np.dot(transMat, wycPos)
                 if self.buglev >= 10:
-                    print '    raw posVec: %s' % (posVec,)
+                    print('    raw posVec: %s' % (posVec,))
 
                 # Insure posVec elements are in the unit cube
                 for ii in range(len(posVec)):
@@ -1023,7 +1023,7 @@ class CifReader:
                     if posVec[ii] >= 1:
                         posVec[ii] -= 1
                 if self.buglev >= 10:
-                    print '    final posVec: %s' % (posVec,)
+                    print('    final posVec: %s' % (posVec,))
                 tmb = datetime.datetime.now()
                 dtma += (tmb - tma).total_seconds()
                 tma = tmb
@@ -1037,7 +1037,7 @@ class CifReader:
 
                 if posVecs[ix] == []:
                     if self.buglev >= 5:
-                        print '    append posVec a: %s' % (posVec,)
+                        print('    append posVec a: %s' % (posVec,))
                     posVecs[ix].append(posVec)
                 else:
                     # If posVec is close to an ele already in posVecs, ignore posVec.
@@ -1070,10 +1070,10 @@ class CifReader:
 
                     if minNorm < 0.01:
                         if self.buglev >= 5:
-                            print '    duplicate posVec: %s' % (posVec,)
+                            print('    duplicate posVec: %s' % (posVec,))
                     else:
                         if self.buglev >= 5:
-                            print '    append posVec b: %s' % (posVec,)
+                            print('    append posVec b: %s' % (posVec,))
                         posVecs[ix].append(posVec)
 
                     tmb = datetime.datetime.now()
@@ -1085,31 +1085,31 @@ class CifReader:
         if writePlot:
             fout = open('tempplot', 'w')
             for ii in range(len(uniqueSyms)):
-                print 'mkVaspMap: posvecs for %s:' % (uniqueSyms[ii],)
+                print('mkVaspMap: posvecs for %s:' % (uniqueSyms[ii],))
                 for pvec in posVecs[ii]:
-                    print '  %s' % (pvec,)
-                    print >> fout, '%s %s' % (ii, pvec,)
+                    print('  %s' % (pvec,))
+                    print('%s %s' % (ii, pvec,), file=fout)
             fout.close()
 
         timeb = datetime.datetime.now()
         if self.buglev >= 2:
-            print 'mkVaspMap: %20s time: %10.5f' \
-                % ('posVecs', (timeb - timea).total_seconds(),)
-            print 'mkVaspMap: dtma time: %10.5f' % (dtma,)
-            print 'mkVaspMap: dtmb time: %10.5f' % (dtmb,)
-            print 'mkVaspMap: dtmc time: %10.5f' % (dtmc,)
-            print 'mkVaspMap: dtmd time: %10.5f' % (dtmd,)
+            print('mkVaspMap: %20s time: %10.5f' \
+                % ('posVecs', (timeb - timea).total_seconds(),))
+            print('mkVaspMap: dtma time: %10.5f' % (dtma,))
+            print('mkVaspMap: dtmb time: %10.5f' % (dtmb,))
+            print('mkVaspMap: dtmc time: %10.5f' % (dtmc,))
+            print('mkVaspMap: dtmd time: %10.5f' % (dtmd,))
 
         cellTrans = np.transpose(cell)
 
         if self.buglev >= 5:
-            print 'mkVaspMap: cell:\n%s' % (cell,)
-            print 'mkVaspMap: cellTrans:\n%s' % (cellTrans,)
-            print '\nmkVaspMap: posVecs:'
+            print('mkVaspMap: cell:\n%s' % (cell,))
+            print('mkVaspMap: cellTrans:\n%s' % (cellTrans,))
+            print('\nmkVaspMap: posVecs:')
             for ii in range(len(uniqueSyms)):
-                print '  posVecs for ii: %d  sym: %s' % (ii, uniqueSyms[ii],)
+                print('  posVecs for ii: %d  sym: %s' % (ii, uniqueSyms[ii],))
                 for posVec in posVecs[ii]:
-                    print '    posVec: %s' % (posVec,)
+                    print('    posVec: %s' % (posVec,))
 
         atomVecs = []
         for ii in range(len(uniqueSyms)):
@@ -1119,11 +1119,11 @@ class CifReader:
                 atomVecs[-1].append(atomVec)
 
         if self.buglev >= 5:
-            print '\nmkVaspMap: atomVecs:'
+            print('\nmkVaspMap: atomVecs:')
             for ii in range(len(uniqueSyms)):
-                print '  atomVecs for ii: %d  sym: %s' % (ii, uniqueSyms[ii],)
+                print('  atomVecs for ii: %d  sym: %s' % (ii, uniqueSyms[ii],))
                 for atomVec in atomVecs[ii]:
-                    print '    atomVec: %s' % (atomVec,)
+                    print('    atomVec: %s' % (atomVec,))
 
         self.vaspMap = {}
         self.vaspMap['cellBasis'] = cell
@@ -1133,20 +1133,20 @@ class CifReader:
 
         timeb = datetime.datetime.now()
         if self.buglev >= 2:
-            print 'mkVaspMap: %20s time: %10.5f' \
-                % ('finish', (timeb - timea).total_seconds(),)
+            print('mkVaspMap: %20s time: %10.5f' \
+                % ('finish', (timeb - timea).total_seconds(),))
         timea = timeb
 
         if self.buglev >= 2:
-            print '\nmkVaspMap: self.vaspMap:'
+            print('\nmkVaspMap: self.vaspMap:')
             keys = sorted(self.vaspMap.keys())
             for key in keys:
-                print '  key: %s  value: %s  (%s)' \
+                print('  key: %s  value: %s  (%s)' \
                     % (key, repr(self.vaspMap[key]),
-                       type(self.vaspMap[key]).__name__,)
+                       type(self.vaspMap[key]).__name__,))
 
         if self.buglev >= 2:
-            print 'mkVaspMap: exit'
+            print('mkVaspMap: exit')
 
 
 #====================================================================
@@ -1159,17 +1159,17 @@ def writePoscar(
     fout = open(outPoscar, 'w')
 
     # Name
-    print >> fout, sysName
+    print(sysName, file=fout)
 
     # Universal scaling factor == lattice constant
-    print >> fout, '%g' % (vaspMap['posScaleFactor'],)
+    print('%g' % (vaspMap['posScaleFactor'],), file=fout)
 
     # Lattice vectors == basis vectors (rows) of the unit cell
     basis = vaspMap['cellBasis']
     for ii in range(3):
         for jj in range(3):
-            print >> fout, ' %14.7g' % (basis[ii, jj],),
-        print >> fout, ''      # newline
+            print(' %14.7g' % (basis[ii, jj],), end=' ', file=fout)
+        print('', file=fout)      # newline
 
     usyms = vaspMap['uniqueSyms']      # parallel array
     posVecs = vaspMap['posVecs']       # parallel array
@@ -1178,11 +1178,11 @@ def writePoscar(
 
     # Num atoms of each species
     for ii in range(len(posVecs)):
-        print >> fout, '%d' % (len(posVecs[ii]),),
-    print >> fout, ''
+        print('%d' % (len(posVecs[ii]),), end=' ', file=fout)
+    print('', file=fout)
 
     # Cartesian vs direct coords
-    print >> fout, 'direct'
+    print('direct', file=fout)
 
     # Atom positions
     for ii in range(len(usyms)):
@@ -1190,7 +1190,7 @@ def writePoscar(
             msg = ''
             for jj in range(len(posVec)):
                 msg += ' %14.7g' % (posVec[jj],)
-            print >> fout, msg
+            print(msg, file=fout)
 
     fout.close()
 

@@ -58,9 +58,9 @@ class SystemParams:
 # will just make that happen:
         if anion < cation:
             self.atom_idx = [1, 0]
-            print "%s < %s, swapping order" % (anion, cation)
+            print("%s < %s, swapping order" % (anion, cation))
         else:
-            print "%s < %s, order kept" % (cation, anion)
+            print("%s < %s, order kept" % (cation, anion))
 
         self.special_SSe = False
         self.special_cbm_gap = False
@@ -118,10 +118,10 @@ class SystemParams:
 
             if (self.special_SSe):
                 if (self.anion in ["S"]):
-                    print "special weights for S CB-X state"
+                    print("special weights for S CB-X state")
                     self.eigenvalue_weights[1][4] *= 2.0
                 elif (self.anion in ["Se"]):
-                    print "special weights for Se CB-X state"
+                    print("special weights for Se CB-X state")
                 self.eigenvalue_weights[1][4] *= 1.5
 
             self.pc_orbital_weights = np.array(
@@ -162,10 +162,10 @@ class SystemParams:
                 self.eigenvalue_weights[0][2] = 1
             if (self.special_SSe):
                 if (self.anion in ["S"]):
-                    print "special weights for S CB-X state"
+                    print("special weights for S CB-X state")
                     self.eigenvalue_weights[1][3] *= 2.0
                 if (self.anion in ["Se"]):
-                    print "special weights for Se CB-X state"
+                    print("special weights for Se CB-X state")
                     self.eigenvalue_weights[1][3] *= 1.5
 
             self.pc_orbital_weights = np.array(

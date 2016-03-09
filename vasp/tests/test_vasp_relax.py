@@ -69,7 +69,7 @@ def test_relax_keyword():
     assert a.isif == 2
 
     a.relaxation = 'cellshape, volume ions'
-    print a.relaxation
+    print(a.relaxation)
     assert a.relaxation == 'cellshape ionic volume'
     assert a.isif == 3
 

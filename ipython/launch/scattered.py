@@ -112,7 +112,7 @@ def launch(self, event, jobfolders):
                 # 'RHQ' is the status that the job is indeed in the queue, 'C' job completed and being removed from the queue
                 # if needed, a prefix can be used to distinguish two jobs with the same name
                 if len(set(status) & set('RHQ')) > 0:
-                    print("Job %s is in the queue, will not be re-queued" % name)
+                    print(("Job %s is in the queue, will not be re-queued" % name))
                     continue
             #######
 
@@ -121,8 +121,8 @@ def launch(self, event, jobfolders):
                 p = join(directory, name)
                 extract = job.functional.Extract(p)
                 if extract.success:
-                    print("Job {0} completed successfully. "                             \
-                          "It will not be relaunched.".format(name))
+                    print(("Job {0} completed successfully. "                             \
+                          "It will not be relaunched.".format(name)))
                     continue
 
             # setup parameters for launching/running jobs
@@ -169,7 +169,7 @@ def launch(self, event, jobfolders):
                     file.write(line + '\n')
             assert exists(pbsscripts[-1])
 
-        print("Created {0} scattered jobs from {1}.".format(len(pbsscripts), path))
+        print(("Created {0} scattered jobs from {1}.".format(len(pbsscripts), path)))
 
     if event.nolaunch:
         return
@@ -194,9 +194,9 @@ def launch(self, event, jobfolders):
                 # xxx: all subprocess: set stderr, stdout
         if os.path.getsize(nmerr) != 0:
             with open(nmerr) as fin:
-                print 'launch/scattered: stderr: %s' % (fin.read(),)
+                print('launch/scattered: stderr: %s' % (fin.read(),))
         with open(nmout) as fin:
-            print 'launch/scattered: stdout: %s' % (fin.read(),)
+            print('launch/scattered: stdout: %s' % (fin.read(),))
 
 
 def completer(self, info, data):

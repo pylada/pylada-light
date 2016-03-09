@@ -66,7 +66,7 @@ class JobParams(AbstractMassExtract):
                 if is_interactive:
                     from .. import interactive
                     if interactive.jobfolder is None:
-                        print "No current job-folder."
+                        print("No current job-folder.")
                         return
                     return interactive.jobfolder.root
                 else:
@@ -256,7 +256,7 @@ class JobParams(AbstractMassExtract):
                 a = six.raw_input(
                     "Modifying existing folder parameters {0}.\nIs this OK? [y/n] ".format(name))
             if a == 'n':
-                print "Aborting."
+                print("Aborting.")
                 return
         self.jobfolder[name] = deepcopy(jobfolder)
 
@@ -265,14 +265,14 @@ class JobParams(AbstractMassExtract):
         import six
         from .. import is_interactive
         if is_interactive:
-            print "Deleting the following jobs:"
+            print("Deleting the following jobs:")
             for key in self[name].keys():
-                print key
+                print(key)
             a = ''
             while a != 'n' and a != 'y':
                 a = six.raw_input('Ok? [y/n] ')
             if a == 'n':
-                print "Aborting."
+                print("Aborting.")
                 return
         for key in self[name].keys():
             del self.jobfolder.root[key]
@@ -299,23 +299,23 @@ class JobParams(AbstractMassExtract):
         keys = jobfolder.keys()
         if is_interactive:
             if len(keys) == 0:
-                print "Empty input job-folder. Aborting."
+                print("Empty input job-folder. Aborting.")
                 return
             add = [k for k in keys if k in self]
             if len(add) > 0:
-                print "Adding the following jobfolderionaries:"
+                print("Adding the following jobfolderionaries:")
                 for key in add:
-                    print key
+                    print(key)
             update = [k for k in keys if k in self]
             if len(update) > 0:
-                print "Updating the following jobfolderionaries:"
+                print("Updating the following jobfolderionaries:")
                 for key in update:
-                    print key
+                    print(key)
             a = ''
             while a != 'n' and a != 'y':
                 a = six.raw_input("Is the above OK? [n/y] ")
             if a == 'n':
-                print "Aborting."
+                print("Aborting.")
                 return
         rootadd = jobfolder
         if isinstance(rootadd, JobParams):

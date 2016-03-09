@@ -165,7 +165,7 @@ class Objective(object):
         if (not os.path.isdir(this_outdir)):
             os.mkdir(this_outdir)
 
-        print "rank %d calling vasp in dir %s" % (world.rank, this_outdir)
+        print("rank %d calling vasp in dir %s" % (world.rank, this_outdir))
 
         if self.use_syscall:
             out = self.vasp\
