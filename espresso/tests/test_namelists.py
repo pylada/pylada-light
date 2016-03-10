@@ -102,6 +102,7 @@ def test_simple_back_to_ordered(simple_namelist):
         assert back_key == key
         assert back[key] == simple_namelist[key]
 
+
 def test_recursive_back_to_ordered(recursive_namelist):
     from collections import OrderedDict
     nl = Namelists(recursive_namelist)
@@ -112,3 +113,23 @@ def test_recursive_back_to_ordered(recursive_namelist):
     for back_key, key in zip(back, recursive_namelist):
         assert back_key == key
         assert isinstance(back[key], OrderedDict)
+
+
+def test_set_known_attributes(recursive_namelist):
+    nl = Namelists(recursive_namelist)
+    nl.system.bravais = 2
+    assert nl.system.bravais == 2
+
+
+def test_add_namelist_attribute(recursive_namelist):
+    nl = Namelists(recursive_namelist)
+    nl.system.bravasi = 2
+    assert nl.system.bravasi == 2
+    assert 'bravasi' in nl.system.ordered_dict
+
+
+def test_add_private_attribute(recursive_namelist):
+    nl = Namelists(recursive_namelist)
+    nl.system._bravasi = 2
+    assert nl.system._bravasi == 2
+    assert '_bravasi' not in nl.system.ordered_dict
