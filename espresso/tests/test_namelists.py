@@ -106,7 +106,7 @@ def test_simple_back_to_ordered(simple_namelist):
     nl = Namelist(simple_namelist)
     assert len(nl) > 0
 
-    back = nl.ordered_dict()
+    back = nl.namelist()
     assert len(back) == len(simple_namelist)
     for back_key, key in zip(back, simple_namelist):
         assert back_key == key
@@ -118,7 +118,7 @@ def test_recursive_back_to_ordered(recursive_namelist):
     nl = Namelist(recursive_namelist)
     assert len(nl) > 0
 
-    back = nl.ordered_dict()
+    back = nl.namelist()
     assert len(back) == len(recursive_namelist)
     for back_key, key in zip(back, recursive_namelist):
         assert back_key == key
@@ -135,14 +135,14 @@ def test_add_namelist_attribute(recursive_namelist):
     nl = Namelist(recursive_namelist)
     nl.system.bravasi = 2
     assert nl.system.bravasi == 2
-    assert 'bravasi' in nl.system.ordered_dict()
+    assert 'bravasi' in nl.system.namelist()
 
 
 def test_add_private_attribute(recursive_namelist):
     nl = Namelist(recursive_namelist)
     nl.system._bravasi = 2
     assert nl.system._bravasi == 2
-    assert '_bravasi' not in nl.system.ordered_dict()
+    assert '_bravasi' not in nl.system.namelist()
 
 
 def test_delete_namelist_attribute(recursive_namelist):
@@ -151,7 +151,7 @@ def test_delete_namelist_attribute(recursive_namelist):
     del nl.system.ibrav
     with raises(AttributeError):
         nl.system.ibrav
-    assert 'ibrav' not in nl.system.ordered_dict()
+    assert 'ibrav' not in nl.system.namelist()
 
 
 def test_delete_private_attribute(recursive_namelist):
@@ -190,7 +190,7 @@ def test_traitlets_appear_in_dict(WithTraitLets):
     from pytest import raises
     from traitlets import TraitError
     nl = WithTraitLets()
-    assert 'ibrav' in nl.ordered_dict()
+    assert 'ibrav' in nl.namelist()
     assert 'ibrav' not in nl.__dict__['_Namelist__inputs']
 
 
@@ -202,7 +202,7 @@ def test_traitlets_from_filled(simple_namelist, WithTraitLets):
 
     nl.ibrav = 3
     assert nl.ibrav == 3
-    assert 'ibrav' in nl.ordered_dict()
+    assert 'ibrav' in nl.namelist()
     with raises(TraitError):
         nl.ibrav = 15
 
@@ -218,7 +218,7 @@ def test_traitlets_cannot_be_deleted(WithTraitLets):
 def test_none_arguments_do_not_appear_in_dict(simple_namelist):
     nl = Namelist(simple_namelist)
     nl.ibrav = None
-    assert 'ibrav' not in nl.ordered_dict()
+    assert 'ibrav' not in nl.namelist()
 
 
 def test_none_traitelets_do_not_appear_in_dict(WithTraitLets):
@@ -226,11 +226,12 @@ def test_none_traitelets_do_not_appear_in_dict(WithTraitLets):
     from traitlets import TraitError
     nl = WithTraitLets()
     nl.ibrav = None
-    assert 'ibrav' not in nl.ordered_dict()
+    assert 'ibrav' not in nl.namelist()
 
 
 def test_input_transform(WithTraitLets):
     from pylada.espresso.namelists import input_transform
+
     class Transformed(WithTraitLets):
 
         @input_transform
@@ -238,5 +239,15 @@ def test_input_transform(WithTraitLets):
             dictionary['ibrav'] = value
 
     nl = Transformed()
-    assert nl.ordered_dict(value=5)['ibrav'] == 5
-    assert nl.ordered_dict(value=6)['ibrav'] == 6
+    assert nl.namelist(value=5)['ibrav'] == 5
+    assert nl.namelist(value=6)['ibrav'] == 6
+
+
+def test_write_read_loop(recursive_namelist):
+    nl = Namelist(recursive_namelist)
+    reread = Namelist()
+    reread.read_string(nl.write())
+    assert len(reread.electrons) == 0
+    assert reread.system.ibrav == 2
+    assert reread.system.occupations == 'smearing'
+    assert reread.control.prefix == 'al'

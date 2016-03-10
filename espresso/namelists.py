@@ -39,12 +39,12 @@ def input_transform(method):
     """ Adds a transform called when creating an ordered dict from a Namelist
 
         Method decorated with this object are called as the last step of
-        :py:method:`Namelist.ordered_dict`. They are meant to transform the ordered dict before
+        :py:method:`Namelist.namelist`. They are meant to transform the ordered dict before
         they are written as fortran namelists.
 
         The signature for the method should be `method(self, dictionary, **kwargs)`, where `self` is
         the Namelist object, dictionary is the ordered dict to transform, and the keyword arguments
-        are those passed on to :py:method:`Namelist.ordered_dict`.
+        are those passed on to :py:method:`Namelist.namelist`.
     """
     return InputTransform(method)
 
@@ -53,9 +53,9 @@ class Namelist(HasTraits):
     """ Defines a recursive Pwscf namelist """
 
     def __init__(self, dictionary=None):
-        from collections import OrderedDict
+        from f90nml import Namelist as F90Namelist
         super(HasTraits, self).__init__()
-        self.__inputs = OrderedDict()
+        self.__inputs = F90Namelist()
         if dictionary is not None:
             for key, value in dictionary.items():
                 setattr(self, key, value)
@@ -95,14 +95,14 @@ class Namelist(HasTraits):
             except KeyError as e:
                 raise AttributeError(str(e))
 
-    def ordered_dict(self, **kwargs):
-        from collections import OrderedDict
+    def namelist(self, **kwargs):
+        """ Returns a f90nml Namelist object """
         from . import logger
         result = self.__inputs.copy()
         for key in list(result.keys()):
             value = result[key]
             if isinstance(value, Namelist):
-                result[key] = value.ordered_dict(**kwargs)
+                result[key] = value.namelist(**kwargs)
             elif value is None:
                 result.pop(key)
         for key in self.trait_names():
@@ -116,3 +116,60 @@ class Namelist(HasTraits):
                 transform.method(self, result, **kwargs)
 
         return result
+
+    def write(self, filename=None, **kwargs):
+        """ Writes namelist to file or string, or stream
+
+            - if filename is None (default), then returns a string containing namelist in fortran
+                format
+            - if filename is a string, then it should a path to a file
+            - otherwise, filename is assumed to be a stream of some sort, with a `write` method
+
+            Keywords are passed on to :py:method:`Namelist.namelist`
+        """
+        from f90nml import Namelist as F90Namelist
+        from os.path import expanduser, expandvars, abspath
+        from io import StringIO
+        from ..espresso import logger
+        if filename is None:
+            result = StringIO()
+            self.write(result)
+            result.seek(0)
+            return result.read()
+
+        if isinstance(filename, str):
+            path = abspath(expanduser(expandvars(filename)))
+            logger.info("Writing fortran namelist to %s" % path)
+            with open(path, 'w') as file:
+                self.write(file)
+            return
+
+
+        namelist = self.namelist(**kwargs)
+        for key, value in namelist.items():
+            if isinstance(value, list):
+                for g_vars in value:
+                    namelist.write_nmlgrp(key, g_vars, filename)
+            elif isinstance(value, F90Namelist):
+                namelist.write_nmlgrp(key, value, filename)
+            else:
+                raise RuntimeError("Can only write namelists that consist of namelists")
+
+    def read(self, filename, clear=False):
+        """ Read input from file """
+        from f90nml import read
+        from os.path import expanduser, expandvars
+        if clear:
+            self.__inputs.clear()
+
+        dictionary = read(expanduser(expandvars(filename)))
+        for key, value in dictionary.items():
+            setattr(self, key, value)
+
+    def read_string(self, string, clear=False):
+        from tempfile import NamedTemporaryFile
+        with NamedTemporaryFile(mode='w') as file:
+            file.write(string)
+            file.seek(0)
+            return self.read(file.name, clear=clear)
+
