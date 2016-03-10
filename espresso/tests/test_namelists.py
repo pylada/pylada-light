@@ -117,8 +117,8 @@ def test_recursive_back_to_ordered(recursive_namelist):
 
 def test_set_known_attributes(recursive_namelist):
     nl = Namelists(recursive_namelist)
-    nl.system.bravais = 2
-    assert nl.system.bravais == 2
+    nl.system.ibrav = 2
+    assert nl.system.ibrav == 2
 
 
 def test_add_namelist_attribute(recursive_namelist):
@@ -133,3 +133,31 @@ def test_add_private_attribute(recursive_namelist):
     nl.system._bravasi = 2
     assert nl.system._bravasi == 2
     assert '_bravasi' not in nl.system.ordered_dict
+
+
+def test_delete_namelist_attribute(recursive_namelist):
+    from pytest import raises
+    nl = Namelists(recursive_namelist)
+    del nl.system.ibrav
+    with raises(AttributeError):
+        nl.system.ibrav
+    assert 'ibrav' not in nl.system.ordered_dict
+
+
+def test_delete_private_attribute(recursive_namelist):
+    from pytest import raises
+    nl = Namelists(recursive_namelist)
+    nl._private = 0
+    del nl._private
+    with raises(AttributeError):
+        nl._private
+
+
+def test_deleting_uknown_attribute_fails(recursive_namelist):
+    from pytest import raises
+    nl = Namelists(recursive_namelist)
+    with raises(AttributeError):
+        del nl.system.ibravi
+
+    with raises(AttributeError):
+        del nl.system._ibravi

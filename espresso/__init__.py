@@ -61,6 +61,15 @@ class Namelists(HasTraits):
         """ Number of parameters in namelist """
         return len(self.__inputs)
 
+    def __delattr__(self, name):
+        if name[0] == '_':
+            super(Namelists, self).__delattr__(name)
+        else:
+            try:
+                self.__inputs.pop(name)
+            except KeyError as e:
+                raise AttributeError(str(e))
+
     @property
     def ordered_dict(self):
         from collections import OrderedDict
