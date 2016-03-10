@@ -20,23 +20,36 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 # -*- coding: utf-8 -*-
-
 from pytest import fixture, mark
+from pylada.espresso import Namelists
 
 
 @fixture
-def simple_namelist():
+def recursive_namelist():
     from collections import OrderedDict
     return OrderedDict([
-        ('ibrav', 2),
-        ('celldm', [7.5]),
-        ('nat', 1),
-        ('ntyp', 1),
-        ('ecutwfc', 12.0),
-        ('occupations', 'smearing'),
-        ('smearing', 'marzari-vanderbilt'),
-        ('degauss', 0.06)
-    ])
+        ('control', OrderedDict([
+            ('prefix', 'al'),
+            ('outdir', 'temporary directory for large files'),
+            ('pseudo_dir',
+             'directory where pp-files are kept')
+        ])),
+        ('system', OrderedDict([
+            ('ibrav', 2),
+            ('celldm', [7.5]),
+            ('nat', 1),
+            ('ntyp', 1),
+            ('ecutwfc', 12.0),
+            ('occupations', 'smearing'),
+            ('smearing', 'marzari-vanderbilt'),
+            ('degauss', 0.06)
+        ])),
+        ('electrons', OrderedDict())])
+
+
+@fixture
+def simple_namelist(recursive_namelist):
+    return recursive_namelist['system']
 
 
 @mark.parametrize('name, type_, value', [
@@ -52,7 +65,6 @@ def simple_namelist():
 def test_scalar_namelist_attributes(simple_namelist, name, type_, value):
     from numpy import abs, allclose
     from collections import Sequence
-    from pylada.espresso import Namelists
 
     nl = Namelists(simple_namelist)
     assert hasattr(nl, name)
@@ -63,3 +75,40 @@ def test_scalar_namelist_attributes(simple_namelist, name, type_, value):
         assert allclose(getattr(nl, name), value, 1e-12)
     else:
         assert getattr(nl, name) == value
+
+
+def test_recursive_namelist_attributes(recursive_namelist):
+    nl = Namelists(recursive_namelist)
+    assert hasattr(nl, 'system')
+    assert isinstance(getattr(nl, 'system'), Namelists)
+    assert getattr(nl.system, 'ibrav', 0) == 2
+    assert len(nl) == 3
+
+
+def test_empty_namelists_do_appear(recursive_namelist):
+    nl = Namelists(recursive_namelist)
+    assert hasattr(nl, 'electrons')
+    assert isinstance(getattr(nl, 'electrons'), Namelists)
+    assert len(nl.electrons) == 0
+
+
+def test_simple_back_to_ordered(simple_namelist):
+    nl = Namelists(simple_namelist)
+    assert len(nl) > 0
+
+    back = nl.ordered_dict
+    assert len(back) == len(simple_namelist)
+    for back_key, key in zip(back, simple_namelist):
+        assert back_key == key
+        assert back[key] == simple_namelist[key]
+
+def test_recursive_back_to_ordered(recursive_namelist):
+    from collections import OrderedDict
+    nl = Namelists(recursive_namelist)
+    assert len(nl) > 0
+
+    back = nl.ordered_dict
+    assert len(back) == len(recursive_namelist)
+    for back_key, key in zip(back, recursive_namelist):
+        assert back_key == key
+        assert isinstance(back[key], OrderedDict)
