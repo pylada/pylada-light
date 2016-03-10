@@ -24,5 +24,10 @@
 """ Sub-package containing the espresso functional. """
 __docformat__ = "restructuredtext en"
 __all__ = ['Namelist', 'Card']
+
+from logging import getLogger
+logger = getLogger()
+""" Logger for vasp """
+
 from .namelists import Namelist
 from .card import Card

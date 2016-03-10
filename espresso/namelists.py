@@ -30,8 +30,10 @@ from decorator import decorator
 
 class InputTransform(object):
     """ Objects that holds a function to transform the ordered dict of a Namelist """
+
     def __init__(self, method):
         self.method = method
+
 
 def input_transform(method):
     """ Adds a transform called when creating an ordered dict from a Namelist
@@ -70,11 +72,14 @@ class Namelist(HasTraits):
     def __setattr__(self, name, value):
         """ Non-private attributes become part of the namelist proper """
         from collections import Mapping
+        from . import logger
         if name[0] == '_' or self.has_trait(name):
             super(Namelist, self).__setattr__(name, value)
         elif isinstance(value, Mapping) and not isinstance(value, Namelist):
             self.__inputs[name] = Namelist(value)
         else:
+            if name in self.__inputs:
+                logger.info("Creating new attribute %s in Namelist" % name)
             self.__inputs[name] = value
 
     def __len__(self):
@@ -92,6 +97,7 @@ class Namelist(HasTraits):
 
     def ordered_dict(self, **kwargs):
         from collections import OrderedDict
+        from . import logger
         result = self.__inputs.copy()
         for key in list(result.keys()):
             value = result[key]
@@ -106,6 +112,7 @@ class Namelist(HasTraits):
 
         for transform in self.__class__.__dict__.values():
             if isinstance(transform, InputTransform):
+                logger.debug("Transforming input using method %s" % transform.method.__name__)
                 transform.method(self, result, **kwargs)
 
         return result
