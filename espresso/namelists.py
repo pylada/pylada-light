@@ -25,6 +25,26 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['Namelist']
 from traitlets import HasTraits
+from decorator import decorator
+
+
+class InputTransform(object):
+    """ Objects that holds a function to transform the ordered dict of a Namelist """
+    def __init__(self, method):
+        self.method = method
+
+def input_transform(method):
+    """ Adds a transform called when creating an ordered dict from a Namelist
+
+        Method decorated with this object are called as the last step of
+        :py:method:`Namelist.ordered_dict`. They are meant to transform the ordered dict before
+        they are written as fortran namelists.
+
+        The signature for the method should be `method(self, dictionary, **kwargs)`, where `self` is
+        the Namelist object, dictionary is the ordered dict to transform, and the keyword arguments
+        are those passed on to :py:method:`Namelist.ordered_dict`.
+    """
+    return InputTransform(method)
 
 
 class Namelist(HasTraits):
@@ -70,18 +90,22 @@ class Namelist(HasTraits):
             except KeyError as e:
                 raise AttributeError(str(e))
 
-    @property
-    def ordered_dict(self):
+    def ordered_dict(self, **kwargs):
         from collections import OrderedDict
         result = self.__inputs.copy()
         for key in list(result.keys()):
             value = result[key]
             if isinstance(value, Namelist):
-                result[key] = value.ordered_dict
+                result[key] = value.ordered_dict(**kwargs)
             elif value is None:
                 result.pop(key)
         for key in self.trait_names():
             value = getattr(self, key)
             if value is not None:
                 result[key] = value
+
+        for transform in self.__class__.__dict__.values():
+            if isinstance(transform, InputTransform):
+                transform.method(self, result, **kwargs)
+
         return result
