@@ -78,6 +78,10 @@ class Namelist(HasTraits):
             value = result[key]
             if isinstance(value, Namelist):
                 result[key] = value.ordered_dict
+            elif value is None:
+                result.pop(key)
         for key in self.trait_names():
-            result[key] = getattr(self, key)
+            value = getattr(self, key)
+            if value is not None:
+                result[key] = value
         return result

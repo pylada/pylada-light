@@ -58,7 +58,7 @@ def WithTraitLets():
 
     class WithTraitLets(Namelist):
         ibrav = Enum([0, 1, 2, 3, 4, 5, -5, 6, 7, 8, 9, -9, 10, 11, 12, -12, 13, 14], 0,
-                     help="Bravais class")
+                     help="Bravais class", allow_none=True)
     return WithTraitLets
 
 
@@ -185,11 +185,13 @@ def test_traitlets_from_empty(WithTraitLets):
     with raises(TraitError):
         nl.ibrav = 15
 
-    with raises(AttributeError):
-        del nl.ibrav
 
+def test_traitlets_appear_in_dict(WithTraitLets):
+    from pytest import raises
+    from traitlets import TraitError
+    nl = WithTraitLets()
     assert 'ibrav' in nl.ordered_dict
-
+    assert 'ibrav' not in nl.__dict__['_Namelist__inputs']
 
 
 def test_traitlets_from_filled(simple_namelist, WithTraitLets):
@@ -200,12 +202,28 @@ def test_traitlets_from_filled(simple_namelist, WithTraitLets):
 
     nl.ibrav = 3
     assert nl.ibrav == 3
-
+    assert 'ibrav' in nl.ordered_dict
     with raises(TraitError):
         nl.ibrav = 15
 
+
+def test_traitlets_cannot_be_deleted(WithTraitLets):
+    from pytest import raises
+    from traitlets import TraitError
+    nl = WithTraitLets()
     with raises(AttributeError):
         del nl.ibrav
 
-    assert 'ibrav' in nl.ordered_dict
-    assert 'ibrav' not in nl.__dict__['_Namelist__inputs']
+
+def test_none_arguments_do_not_appear_in_dict(simple_namelist):
+    nl = Namelist(simple_namelist)
+    nl.ibrav = None
+    assert 'ibrav' not in nl.ordered_dict
+
+
+def test_none_traitelets_do_not_appear_in_dict(WithTraitLets):
+    from pytest import raises
+    from traitlets import TraitError
+    nl = WithTraitLets()
+    nl.ibrav = None
+    assert 'ibrav' not in nl.ordered_dict
