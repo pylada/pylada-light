@@ -25,22 +25,7 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['Card']
 from traitlets import HasTraits, Unicode, CaselessStrEnum, TraitType
-
-
-class MutableCaselessStrEnum(TraitType):
-    """ CaselessStrEnum to which we can easily add allowed values """
-
-    info_text = 'Pwscf card names'
-    card_names = {'atomic_species', 'atomic_positions', 'k_points', 'cell_parameters',
-                  'occupations', 'constraints', 'atomic_forces'}
-    default_value = next(iter(card_names))
-
-    def validate(self, obj, value):
-        value = str(value).lower()
-        print(value, MutableCaselessStrEnum.card_names)
-        if value not in MutableCaselessStrEnum.card_names:
-            self.error(obj, "Card name is not one of %s" % MutableCaselessStrEnum.card_names)
-        return value
+from .trait_types import MutableCaselessStrEnum
 
 
 class Card(HasTraits):
