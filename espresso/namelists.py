@@ -21,13 +21,13 @@
 ###############################
 
 # -*- coding: utf-8 -*-
-""" Sub-package containing the espresso functional. """
+""" Namelist makes it easy to access and modify fortran namelists """
 __docformat__ = "restructuredtext en"
 __all__ = ['Namelist']
 from traitlets import HasTraits
 
 
-class Namelists(HasTraits):
+class Namelist(HasTraits):
     """ Defines a recursive Pwscf namelist """
 
     def __init__(self, dictionary=None):
@@ -41,7 +41,7 @@ class Namelists(HasTraits):
     def __getattr__(self, name):
         """ Non-private attributes are part of the namelist proper """
         if name[0] == '_' or self.has_trait(name):
-            return super(Namelists, self).__getattr__(name)
+            return super(Namelist, self).__getattr__(name)
         try:
             return self.__inputs[name]
         except KeyError as e:
@@ -51,9 +51,9 @@ class Namelists(HasTraits):
         """ Non-private attributes become part of the namelist proper """
         from collections import Mapping
         if name[0] == '_' or self.has_trait(name):
-            super(Namelists, self).__setattr__(name, value)
-        elif isinstance(value, Mapping) and not isinstance(value, Namelists):
-            self.__inputs[name] = Namelists(value)
+            super(Namelist, self).__setattr__(name, value)
+        elif isinstance(value, Mapping) and not isinstance(value, Namelist):
+            self.__inputs[name] = Namelist(value)
         else:
             self.__inputs[name] = value
 
@@ -63,7 +63,7 @@ class Namelists(HasTraits):
 
     def __delattr__(self, name):
         if name[0] == '_' or self.has_trait(name):
-            super(Namelists, self).__delattr__(name)
+            super(Namelist, self).__delattr__(name)
         else:
             try:
                 self.__inputs.pop(name)
@@ -76,7 +76,7 @@ class Namelists(HasTraits):
         result = self.__inputs.copy()
         for key in list(result.keys()):
             value = result[key]
-            if isinstance(value, Namelists):
+            if isinstance(value, Namelist):
                 result[key] = value.ordered_dict
         for key in self.trait_names():
             result[key] = getattr(self, key)

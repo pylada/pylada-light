@@ -21,7 +21,7 @@
 ###############################
 # -*- coding: utf-8 -*-
 from pytest import fixture, mark
-from pylada.espresso import Namelists
+from pylada.espresso import Namelist
 
 
 @fixture
@@ -56,7 +56,7 @@ def simple_namelist(recursive_namelist):
 def WithTraitLets():
     from traitlets import Enum
 
-    class WithTraitLets(Namelists):
+    class WithTraitLets(Namelist):
         ibrav = Enum([0, 1, 2, 3, 4, 5, -5, 6, 7, 8, 9, -9, 10, 11, 12, -12, 13, 14], 0,
                      help="Bravais class")
     return WithTraitLets
@@ -76,7 +76,7 @@ def test_scalar_namelist_attributes(simple_namelist, name, type_, value):
     from numpy import abs, allclose
     from collections import Sequence
 
-    nl = Namelists(simple_namelist)
+    nl = Namelist(simple_namelist)
     assert hasattr(nl, name)
     assert isinstance(getattr(nl, name), type_)
     if type_ == float:
@@ -88,22 +88,22 @@ def test_scalar_namelist_attributes(simple_namelist, name, type_, value):
 
 
 def test_recursive_namelist_attributes(recursive_namelist):
-    nl = Namelists(recursive_namelist)
+    nl = Namelist(recursive_namelist)
     assert hasattr(nl, 'system')
-    assert isinstance(getattr(nl, 'system'), Namelists)
+    assert isinstance(getattr(nl, 'system'), Namelist)
     assert getattr(nl.system, 'ibrav', 0) == 2
     assert len(nl) == 3
 
 
 def test_empty_namelists_do_appear(recursive_namelist):
-    nl = Namelists(recursive_namelist)
+    nl = Namelist(recursive_namelist)
     assert hasattr(nl, 'electrons')
-    assert isinstance(getattr(nl, 'electrons'), Namelists)
+    assert isinstance(getattr(nl, 'electrons'), Namelist)
     assert len(nl.electrons) == 0
 
 
 def test_simple_back_to_ordered(simple_namelist):
-    nl = Namelists(simple_namelist)
+    nl = Namelist(simple_namelist)
     assert len(nl) > 0
 
     back = nl.ordered_dict
@@ -115,7 +115,7 @@ def test_simple_back_to_ordered(simple_namelist):
 
 def test_recursive_back_to_ordered(recursive_namelist):
     from collections import OrderedDict
-    nl = Namelists(recursive_namelist)
+    nl = Namelist(recursive_namelist)
     assert len(nl) > 0
 
     back = nl.ordered_dict
@@ -126,20 +126,20 @@ def test_recursive_back_to_ordered(recursive_namelist):
 
 
 def test_set_known_attributes(recursive_namelist):
-    nl = Namelists(recursive_namelist)
+    nl = Namelist(recursive_namelist)
     nl.system.ibrav = 2
     assert nl.system.ibrav == 2
 
 
 def test_add_namelist_attribute(recursive_namelist):
-    nl = Namelists(recursive_namelist)
+    nl = Namelist(recursive_namelist)
     nl.system.bravasi = 2
     assert nl.system.bravasi == 2
     assert 'bravasi' in nl.system.ordered_dict
 
 
 def test_add_private_attribute(recursive_namelist):
-    nl = Namelists(recursive_namelist)
+    nl = Namelist(recursive_namelist)
     nl.system._bravasi = 2
     assert nl.system._bravasi == 2
     assert '_bravasi' not in nl.system.ordered_dict
@@ -147,7 +147,7 @@ def test_add_private_attribute(recursive_namelist):
 
 def test_delete_namelist_attribute(recursive_namelist):
     from pytest import raises
-    nl = Namelists(recursive_namelist)
+    nl = Namelist(recursive_namelist)
     del nl.system.ibrav
     with raises(AttributeError):
         nl.system.ibrav
@@ -156,7 +156,7 @@ def test_delete_namelist_attribute(recursive_namelist):
 
 def test_delete_private_attribute(recursive_namelist):
     from pytest import raises
-    nl = Namelists(recursive_namelist)
+    nl = Namelist(recursive_namelist)
     nl._private = 0
     del nl._private
     with raises(AttributeError):
@@ -165,7 +165,7 @@ def test_delete_private_attribute(recursive_namelist):
 
 def test_deleting_uknown_attribute_fails(recursive_namelist):
     from pytest import raises
-    nl = Namelists(recursive_namelist)
+    nl = Namelist(recursive_namelist)
     with raises(AttributeError):
         del nl.system.ibravi
 
@@ -208,4 +208,4 @@ def test_traitlets_from_filled(simple_namelist, WithTraitLets):
         del nl.ibrav
 
     assert 'ibrav' in nl.ordered_dict
-    assert 'ibrav' not in nl.__dict__['_Namelists__inputs']
+    assert 'ibrav' not in nl.__dict__['_Namelist__inputs']
