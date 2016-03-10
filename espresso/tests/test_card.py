@@ -116,3 +116,36 @@ def test_set_card_name():
     card = Card('ATOMIC_SPECIES')
     card.name = 'k_poinTs'
     assert card.name == 'k_points'
+
+
+def test_read_card(subtitled_stream, card_stream):
+    from pylada.espresso.card import read_cards
+    from io import StringIO
+    from pylada.espresso import logger
+    logger.setLevel(4)
+    stream = StringIO(subtitled_stream.read() + "\n" + card_stream.read())
+    result = read_cards(stream)
+    assert len(result) == 2
+    assert result[0].name == 'k_points'
+    assert result[0].subtitle == 'tpiba'
+    assert result[0].value == "2\n0 0 0 0.8\n0.5 0.5 0.5 0.2"
+    assert result[1].name == 'atomic_species'
+    assert result[1].subtitle is None
+    assert result[1].value == 'Al 1 this.that'
+
+
+def test_read_card_with_namelist(subtitled_stream, card_stream):
+    from pylada.espresso.card import read_cards
+    from io import StringIO
+    from pylada.espresso import logger
+    logger.setLevel(4)
+    stream = StringIO(subtitled_stream.read() + "\n&electrons\nbullshit = 1\n/\n"
+                      + "\n" + card_stream.read())
+    result = read_cards(stream)
+    assert len(result) == 2
+    assert result[0].name == 'k_points'
+    assert result[0].subtitle == 'tpiba'
+    assert result[0].value == "2\n0 0 0 0.8\n0.5 0.5 0.5 0.2"
+    assert result[1].name == 'atomic_species'
+    assert result[1].subtitle is None
+    assert result[1].value == 'Al 1 this.that'

@@ -25,7 +25,7 @@
 from traitlets import TraitType
 
 
-class MutableCaselessStrEnum(TraitType):
+class CardNameTrait(TraitType):
     """ CaselessStrEnum to which we can easily add allowed values """
 
     info_text = 'Pwscf cards'
@@ -35,8 +35,8 @@ class MutableCaselessStrEnum(TraitType):
 
     def validate(self, obj, value):
         value = str(value).lower()
-        if value not in MutableCaselessStrEnum.card_names:
-            self.error(obj, "Card name is not one of %s" % MutableCaselessStrEnum.card_names)
+        if value not in CardNameTrait.card_names:
+            self.error(obj, "Card name is not one of %s" % CardNameTrait.card_names)
         return value
 
 
