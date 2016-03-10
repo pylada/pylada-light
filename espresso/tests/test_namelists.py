@@ -235,7 +235,6 @@ def test_input_transform(WithTraitLets):
 
         @input_transform
         def __transform_ibrav(self, dictionary, value):
-            print("I AM HERE")
             dictionary['ibrav'] = value
 
     nl = Transformed()
