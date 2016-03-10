@@ -52,6 +52,16 @@ def simple_namelist(recursive_namelist):
     return recursive_namelist['system']
 
 
+@fixture
+def WithTraitLets():
+    from traitlets import Enum
+
+    class WithTraitLets(Namelists):
+        ibrav = Enum([0, 1, 2, 3, 4, 5, -5, 6, 7, 8, 9, -9, 10, 11, 12, -12, 13, 14], 0,
+                     help="Bravais class")
+    return WithTraitLets
+
+
 @mark.parametrize('name, type_, value', [
     ('ibrav', int, 2),
     ('nat', int, 1),
@@ -161,3 +171,41 @@ def test_deleting_uknown_attribute_fails(recursive_namelist):
 
     with raises(AttributeError):
         del nl.system._ibravi
+
+
+def test_traitlets_from_empty(WithTraitLets):
+    from pytest import raises
+    from traitlets import TraitError
+    nl = WithTraitLets()
+    assert nl.ibrav == 0
+
+    nl.ibrav = 2
+    assert nl.ibrav == 2
+
+    with raises(TraitError):
+        nl.ibrav = 15
+
+    with raises(AttributeError):
+        del nl.ibrav
+
+    assert 'ibrav' in nl.ordered_dict
+
+
+
+def test_traitlets_from_filled(simple_namelist, WithTraitLets):
+    from pytest import raises
+    from traitlets import TraitError
+    nl = WithTraitLets(simple_namelist)
+    assert nl.ibrav == 2
+
+    nl.ibrav = 3
+    assert nl.ibrav == 3
+
+    with raises(TraitError):
+        nl.ibrav = 15
+
+    with raises(AttributeError):
+        del nl.ibrav
+
+    assert 'ibrav' in nl.ordered_dict
+    assert 'ibrav' not in nl.__dict__['_Namelists__inputs']

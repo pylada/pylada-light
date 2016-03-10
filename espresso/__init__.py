@@ -40,7 +40,7 @@ class Namelists(HasTraits):
 
     def __getattr__(self, name):
         """ Non-private attributes are part of the namelist proper """
-        if name[0] == '_':
+        if name[0] == '_' or self.has_trait(name):
             return super(Namelists, self).__getattr__(name)
         try:
             return self.__inputs[name]
@@ -50,7 +50,7 @@ class Namelists(HasTraits):
     def __setattr__(self, name, value):
         """ Non-private attributes become part of the namelist proper """
         from collections import Mapping
-        if name[0] == '_':
+        if name[0] == '_' or self.has_trait(name):
             super(Namelists, self).__setattr__(name, value)
         elif isinstance(value, Mapping) and not isinstance(value, Namelists):
             self.__inputs[name] = Namelists(value)
@@ -62,7 +62,7 @@ class Namelists(HasTraits):
         return len(self.__inputs)
 
     def __delattr__(self, name):
-        if name[0] == '_':
+        if name[0] == '_' or self.has_trait(name):
             super(Namelists, self).__delattr__(name)
         else:
             try:
@@ -74,7 +74,10 @@ class Namelists(HasTraits):
     def ordered_dict(self):
         from collections import OrderedDict
         result = self.__inputs.copy()
-        for key, value in result.items():
+        for key in list(result.keys()):
+            value = result[key]
             if isinstance(value, Namelists):
                 result[key] = value.ordered_dict
+        for key in self.trait_names():
+            result[key] = getattr(self, key)
         return result
