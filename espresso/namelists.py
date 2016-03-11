@@ -84,8 +84,12 @@ class Namelist(HasTraits):
 
     def __len__(self):
         """ Number of parameters in namelist """
-        return len(self.__inputs) \
-            + len([1 for u in self._trait_values.values() if u is not None])
+        n = 0
+        for name in self.trait_names():
+            value = getattr(self, name)
+            if value is not None:
+                n += 1
+        return len(self.__inputs) + n
 
     def __delattr__(self, name):
         if name[0] == '_' or self.has_trait(name):
@@ -172,3 +176,13 @@ class Namelist(HasTraits):
             file.write(string)
             file.seek(0)
             return self.read(file.name, clear=clear)
+
+    def clear(self):
+        """ Removes all namelist attributes """
+        self.__inputs.clear()
+
+    def names(self):
+        """ All names of attributes that end up in the namelist """
+        from itertools import chain
+        yield from chain(self.__inputs, self.trait_names())
+
