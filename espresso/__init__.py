@@ -23,7 +23,7 @@
 # -*- coding: utf-8 -*-
 """ Sub-package containing the espresso functional. """
 __docformat__ = "restructuredtext en"
-__all__ = ['Namelist', 'Card']
+__all__ = ['Namelist', 'Card', 'Pwscf']
 
 from logging import getLogger
 logger = getLogger()
@@ -31,3 +31,4 @@ logger = getLogger()
 
 from .namelists import Namelist
 from .card import Card
+from .functional import Pwscf
