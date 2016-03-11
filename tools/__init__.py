@@ -27,6 +27,8 @@ __all__ = ['stateless', 'assign_attributes', 'check_success',
            'create_directory', 'prep_symlink', 'add_pyladarunning_marker',
            'remove_pyladarunning_marker', 'remove_workdir_link',
            'add_section_to_file', 'get_section_from_file', 'OnFinish']
+from pylada import logger
+logger.getChild("tools")
 
 
 def stateless(function):
@@ -126,14 +128,13 @@ def make_cached(method):
 
     @wraps(method)
     def wrapped(*args, **kwargs):
-        import logging
-        logging.debug('tools/init make_cached entry: method: %s' % method.__name__)
+        logger.debug('tools/init make_cached entry: method: %s' % method.__name__)
         if not hasattr(args[0], '_properties_cache'):
             setattr(args[0], '_properties_cache', {})
         cache = getattr(args[0], '_properties_cache')
         if method.__name__ not in cache:
             cache[method.__name__] = method(*args, **kwargs)
-        logging.debug('tools/init make_cached: set method: %s' % method.__name__)
+        logger.debug('tools/init make_cached: set method: %s' % method.__name__)
         return cache[method.__name__]
     return wrapped
 
@@ -258,24 +259,22 @@ def remove_workdir_link(outdir):
 def add_pyladarunning_marker(outdir):
     """ Creates a marker file in output directory. """
     from os.path import join
-    import logging
     file = open(join(outdir, '.pylada_is_running'), 'w')
     file.close()
-    logging.debug('tools/init: add_run_mark: is_run outdir: %s' % outdir)
+    logger.debug('tools/init: add_run_mark: is_run outdir: %s' % outdir)
 
 
 def remove_pyladarunning_marker(outdir):
     """ Creates a marker file in output directory. """
     from os.path import exists, join
     from os import remove
-    import logging
     path = join(outdir, '.pylada_is_running')
     if exists(path):
         try:
             remove(path)
         except OSError:
             pass
-    logging.debug('tools/init: rem_run_mark: is_run outdir: %s' % outdir)
+    logger.debug('tools/init: rem_run_mark: is_run outdir: %s' % outdir)
 
 
 def add_section_to_file(outdir, filename, marker, string, append=True):

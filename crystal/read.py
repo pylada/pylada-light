@@ -348,7 +348,7 @@ def icsd_cif_a(filename):
         in the case occupation < 0.5 it will treat it as 0 and
         it will accept all occupation = 0.5 as 1 and create a mess!
     """
-    import logging
+    from pylada import logger
     import re
     from os.path import basename
     from numpy.linalg import norm
@@ -356,7 +356,7 @@ def icsd_cif_a(filename):
     from numpy import pi, sin, cos, sqrt, dot
 
     lines = open(filename, 'r').readlines()
-    logging.info("crystal/read: icsd_cif_a: %s" % filename)
+    logger.info("crystal/read: icsd_cif_a: %s" % filename)
 
     sym_big = 0
     sym_end = 0
@@ -439,30 +439,30 @@ def icsd_cif_a(filename):
 
     # _symmetry_equiv_pos_* lines are like:
     #     1     'x, x-y, -z+1/2'
-    logging.debug("crystal/read: icsd_cif_a: sym_big: %s" % sym_big)
-    logging.debug("crystal/read: icsd_cif_a: sym_end: %s" % sym_end)
+    logger.debug("crystal/read: icsd_cif_a: sym_big: %s" % sym_big)
+    logger.debug("crystal/read: icsd_cif_a: sym_end: %s" % sym_end)
 
     symm_ops = ['(' + x.split()[1][1:] + x.split()[2] + x.split()[3][:-1] + ')'
                 for x in lines[sym_big + 1:sym_end - 1]]
-    logging.debug("crystal/read: icsd_cif_a: symm_ops a: %s" % symm_ops)
+    logger.debug("crystal/read: icsd_cif_a: symm_ops a: %s" % symm_ops)
     # ['(x,x-y,-z+1/2)', '(-x+y,y,-z+1/2)', ...]
 
     # Insert decimal points after integers
     symm_ops = [re.sub(r'(\d+)', r'\1.', x) for x in symm_ops]
-    logging.debug("crystal/read: icsd_cif_a: symm_ops b: %s" % symm_ops)
+    logger.debug("crystal/read: icsd_cif_a: symm_ops b: %s" % symm_ops)
     # ['(x,x-y,-z+1./2.)', '(-x+y,y,-z+1./2.)', ...]
 
     # _atom_site_* lines are like:
     #   Mo1 Mo4+ 2 c 0.3333 0.6667 0.25 1. 0
-    logging.debug("crystal/read: icsd_cif_a: pos_big: %s" % pos_big)
-    logging.debug("crystal/read: icsd_cif_a: pos_end: %s" % pos_end)
+    logger.debug("crystal/read: icsd_cif_a: pos_big: %s" % pos_big)
+    logger.debug("crystal/read: icsd_cif_a: pos_end: %s" % pos_end)
     wyckoff = [[x.split()[0], [x.split()[4], x.split()[5], x.split()[6]], x.split()[7]]
                for x in lines[pos_big + 1:pos_end]]
-    logging.debug("crystal/read: icsd_cif_a: wyckoff a: %s" % wyckoff)
+    logger.debug("crystal/read: icsd_cif_a: wyckoff a: %s" % wyckoff)
     # [['Mo1', ['0.3333', '0.6667', '0.25'], '1.'], ['S1', ['0.3333', '0.6667', '0.621(4)'], '1.']]
 
     wyckoff = [w for w in wyckoff if int(float(w[-1][:4]) + 0.5) != 0]
-    logging.debug("crystal/read: icsd_cif_a: wyckoff b: %s" % wyckoff)
+    logger.debug("crystal/read: icsd_cif_a: wyckoff b: %s" % wyckoff)
     # [['Mo1', ['0.3333', '0.6667', '0.25'], '1.'], ['S1', ['0.3333', '0.6667', '0.621(4)'], '1.']]
 
     # Setting up a good wyckoff list
@@ -494,7 +494,7 @@ def icsd_cif_a(filename):
 
     # List of unique symbols ["Mo", "S"]
     symbols = list({w[0] for w in wyckoff})
-    logging.debug("crystal/read: icsd_cif_a: symbols: %s" % symbols)
+    logger.debug("crystal/read: icsd_cif_a: symbols: %s" % symbols)
 
     # List of position vectors for each symbol
     positions = [[] for i in range(len(symbols))]
@@ -502,11 +502,11 @@ def icsd_cif_a(filename):
     for w in wyckoff:
         symbol = w[0]
         x, y, z = w[1][0], w[1][1], w[1][2]
-        logging.debug("symbol: %s  x: %s   y: %s  z: %s" % (symbol, x, y, z))
+        logger.debug("symbol: %s  x: %s   y: %s  z: %s" % (symbol, x, y, z))
         for i in range(len(symm_ops)):
             # Set pom = new position based on symmetry transform
             pom = list(eval(symm_ops[i]))
-            logging.debug("i: %s  pom a: %s" % (i, pom))
+            logger.debug("i: %s  pom a: %s" % (i, pom))
             # [0.3333, -0.3334, 0.25]
 
             # Move positions to range [0,1]:
@@ -515,14 +515,14 @@ def icsd_cif_a(filename):
                     pom[j] = pom[j] + 1.
                 if pom[j] >= 0.999:
                     pom[j] = pom[j] - 1.
-            logging.debug("i: %s   pom b: %s" % (i, pom))
+            logger.debug("i: %s   pom b: %s" % (i, pom))
             # [0.3333, 0.6666, 0.25]
 
             # If pom is not in positions[symbol], append pom
             if not any(norm(array(u) - array(pom)) < 0.01 for u in positions[symbols.index(symbol)]):
                 ix = symbols.index(symbol)
                 positions[ix].append(pom)
-                logging.debug("new positions for %s: %s" % (symbol, repr(positions[ix])))
+                logger.debug("new positions for %s: %s" % (symbol, repr(positions[ix])))
 
     ################ CELL ####################
 
@@ -533,13 +533,13 @@ def icsd_cif_a(filename):
                                        cos(gamma * pi / 180.) + cos(alpha * pi / 180.))
     a3 = array([c1, c2, sqrt(c**2 - (c1**2 + c2**2))])
     cell = array([a1, a2, a3])
-    logging.debug("crystal/read: icsd_cif_a: a1: %s" % a1)
-    logging.debug("crystal/read: icsd_cif_a: a2: %s" % a2)
-    logging.debug("crystal/read: icsd_cif_a: a3: %s" % a3)
+    logger.debug("crystal/read: icsd_cif_a: a1: %s" % a1)
+    logger.debug("crystal/read: icsd_cif_a: a2: %s" % a2)
+    logger.debug("crystal/read: icsd_cif_a: a3: %s" % a3)
     ##########################################
 
     from pylada.crystal import Structure, primitive
-    logging.debug("crystal/read: icsd_cif_a: cell: %s" % cell)
+    logger.debug("crystal/read: icsd_cif_a: cell: %s" % cell)
 
     structure = Structure(
         transpose(cell),
@@ -547,24 +547,24 @@ def icsd_cif_a(filename):
         name=basename(filename))
 
     for i in range(len(symbols)):
-        logging.debug("crystal/read: icsd_cif_a: i: %s  symbol: %s  len(position): %i" % (
+        logger.debug("crystal/read: icsd_cif_a: i: %s  symbol: %s  len(position): %i" % (
             i,  symbols[i], len(positions[i])
         ))
         # crystal/read: i:  0   symbol:  Mo   len position:  2
 
         for j in range(len(positions[i])):
             atpos = dot(transpose(cell), positions[i][j])
-            logging.debug("j: %s  pos: %s" % (j, positions[i][j]))
-            logging.debug("atpos: " % atpos)
+            logger.debug("j: %s  pos: %s" % (j, positions[i][j]))
+            logger.debug("atpos: " % atpos)
             #  j:  0   pos:  [0.3333, 0.6666000000000001, 0.25]
             #  atpos:  [  6.32378655e-16   1.81847148e+00   3.07500000e+00]
 
             structure.add_atom(atpos[0], atpos[1], atpos[2], symbols[i])
 
-    logging.info("crystal/read: icsd_cif_a: structure: %s" % structure)
+    logger.info("crystal/read: icsd_cif_a: structure: %s" % structure)
 
     prim = primitive(structure)
-    logging.info("crystal/read: icsd_cif_a: primitive structure: %s" % prim)
+    logger.info("crystal/read: icsd_cif_a: primitive structure: %s" % prim)
 
     return prim
 
@@ -614,6 +614,6 @@ def icsd_cif_b(filename):
 
 
     prim = primitive(structure)
-    logging.info("  crystal/read: icsd_cif_b: structure: %s" % structure)
+    logger.info("  crystal/read: icsd_cif_b: structure: %s" % structure)
 
     return prim

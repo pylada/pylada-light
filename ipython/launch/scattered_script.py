@@ -65,8 +65,8 @@ def main():
         return
 
     from pylada.misc import setBugLev
-    import logging
-    logging.basicConfig(level=options.logging.upper())
+    from pylada.ipython import logger
+    logger.basicConfig(level=options.logger.upper())
 
     from pylada.misc import setTestValidProgram
     tstPgm = options.testValidProgram
@@ -97,23 +97,23 @@ def main():
     print(('  ipy/lau/scattered_script: jobfolder: %s' % jobfolder))
     print(('  ipy/lau/scattered_script: options: %s' % options))
     for name in options.names:
-        logging.critical('ipy/lau/scattered_script: testValidProgram: %s' % testValidProgram)
-        logging.critical('ipy/lau/scattered_script: name: %s' % name)
-        logging.critical('ipy/lau/scattered_script: jobfolder[name]: %s' % jobfolder[name])
-        logging.critical('ipy/lau/scattered_script: type(jobfolder[name]): %s' %
+        logger.critical('ipy/lau/scattered_script: testValidProgram: %s' % testValidProgram)
+        logger.critical('ipy/lau/scattered_script: name: %s' % name)
+        logger.critical('ipy/lau/scattered_script: jobfolder[name]: %s' % jobfolder[name])
+        logger.critical('ipy/lau/scattered_script: type(jobfolder[name]): %s' %
                          type(jobfolder[name]))
-        logging.critical(
+        logger.critical(
             'ipy/lau/scattered_script: jobfolder[name].compute: %s' % jobfolder[name].compute)
-        logging.critical(
+        logger.critical(
             'ipy/lau/scattered_script: type(jobfolder[name].compute): %s' \
             % type(jobfolder[name].compute))
-        logging.critical('ipy/lau/scattered_script: before compute for name: %s' % name)
+        logger.critical('ipy/lau/scattered_script: before compute for name: %s' % name)
 
         comm = pylada.default_comm
         if testValidProgram != None:
             comm = None
         jobfolder[name].compute(comm=comm, outdir=name)
-        logging.critical('ipy/lau/scattered_script: after compute for name: %s' % name)
+        logger.critical('ipy/lau/scattered_script: after compute for name: %s' % name)
 
 if __name__ == "__main__":
     main()

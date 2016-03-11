@@ -33,6 +33,7 @@
 """
 __docformat__ = "restructuredtext en"
 __all__ = ['relax', 'iter_relax', 'Relax', 'epitaxial', 'iter_epitaxial', 'RelaxExtract']
+from ..vasp import logger
 from ..tools.makeclass import makeclass, makefunc
 from .functional import Vasp
 from .extract import Extract, MassExtract
@@ -179,23 +180,22 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
     from os import getcwd
     from os.path import join
     from shutil import rmtree
-    import logging
     from ..misc import RelativePath
     from ..error import ExternalRunFailed
 
-    logging.debug("vasp/relax: iter_relax: entry.  type(vasp): %s" % (type(vasp)))
-    logging.debug('vasp/relax: iter_relax: entry. === start vasp:\n%s' % repr(vasp))
-    logging.debug('===== end vasp')
-    logging.debug('vasp/relax: iter_relax: entry. structure:\n%s' % structure)
-    logging.debug('vasp/relax: iter_relax: type(structure): %s' % type(structure))
-    logging.debug('vasp/relax: iter_relax: entry.  outdir: %s' % outdir)
-    logging.debug('vasp/relax: iter_relax: entry.  first_trial: %s' % first_trial)
-    logging.debug('vasp/relax: iter_relax: entry.  maxcalls: %s' % maxcalls)
-    logging.debug('vasp/relax: iter_relax: entry.  keepsteps: %s' % keepsteps)
-    logging.debug('vasp/relax: iter_relax: entry.  nofail: %s' % nofail)
-    logging.debug('vasp/relax: iter_relax: entry.  convergence: %s' % convergence)
-    logging.debug('vasp/relax: iter_relax: entry.  minrelsteps: %s' % minrelsteps)
-    logging.debug('vasp/relax: iter_relax: entry.  kwargs: %s' % kwargs)
+    logger.debug("vasp/relax: iter_relax: entry.  type(vasp): %s" % (type(vasp)))
+    logger.debug('vasp/relax: iter_relax: entry. === start vasp:\n%s' % repr(vasp))
+    logger.debug('===== end vasp')
+    logger.debug('vasp/relax: iter_relax: entry. structure:\n%s' % structure)
+    logger.debug('vasp/relax: iter_relax: type(structure): %s' % type(structure))
+    logger.debug('vasp/relax: iter_relax: entry.  outdir: %s' % outdir)
+    logger.debug('vasp/relax: iter_relax: entry.  first_trial: %s' % first_trial)
+    logger.debug('vasp/relax: iter_relax: entry.  maxcalls: %s' % maxcalls)
+    logger.debug('vasp/relax: iter_relax: entry.  keepsteps: %s' % keepsteps)
+    logger.debug('vasp/relax: iter_relax: entry.  nofail: %s' % nofail)
+    logger.debug('vasp/relax: iter_relax: entry.  convergence: %s' % convergence)
+    logger.debug('vasp/relax: iter_relax: entry.  minrelsteps: %s' % minrelsteps)
+    logger.debug('vasp/relax: iter_relax: entry.  kwargs: %s' % kwargs)
 
     # make this function stateless.
     vasp = deepcopy(vasp)
@@ -203,7 +203,7 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
     if first_trial is None:
         first_trial = {}
     outdir = getcwd() if outdir is None else RelativePath(outdir).path
-    logging.debug("vasp/relax: iter_relax: final outdir: %s\n" % outdir)
+    logger.debug("vasp/relax: iter_relax: final outdir: %s\n" % outdir)
     # .../mos2_024000/mos2_024000.cif/non-magnetic
 
     # convergence criteria and behavior.

@@ -24,6 +24,7 @@
 """ Sub-package containing the vasp functional. """
 __docformat__ = "restructuredtext en"
 __all__ = ['Vasp']
+from pylada.vasp import logger
 from ..tools import stateless, assign_attributes
 from ..tools.input import AttrBlock
 from ..misc import add_setter
@@ -941,10 +942,9 @@ class Vasp(AttrBlock):
         """
         from ..process.program import ProgramProcess
         from .extract import Extract as ExtractVasp
-        import logging
 
-        logging.info('vasp/functional iter: outdir: %s' % outdir)
-        logging.debug('vasp/functional iter: structure:\n%s' % repr(structure))
+        logger.info('vasp/functional iter: outdir: %s' % outdir)
+        logger.debug('vasp/functional iter: structure:\n%s' % repr(structure))
 
         # check for pre-existing and successful run.
         if not overwrite:
@@ -996,25 +996,24 @@ class Vasp(AttrBlock):
         from ..crystal import specieset
         from ..misc.changedir import Changedir
         from . import files
-        import logging
 
-        logging.info('vasp/functional bringup: outdir: %s ' % outdir)
-        logging.debug('vasp/functional bringup: structure:\n%s' % repr(structure))
-        logging.debug('vasp/functional bringup: kwargs: %s' % repr(kwargs))
+        logger.info('vasp/functional bringup: outdir: %s ' % outdir)
+        logger.debug('vasp/functional bringup: structure:\n%s' % repr(structure))
+        logger.debug('vasp/functional bringup: kwargs: %s' % repr(kwargs))
 
         with Changedir(outdir) as tmpdir:
             # creates INCAR file (and POSCAR via istruc).
             fpath = join(outdir, files.INCAR)
-            logging.debug("vasp/functional bringup: incar fpath: %s " % fpath)
+            logger.debug("vasp/functional bringup: incar fpath: %s " % fpath)
             self.write_incar(structure, path=fpath, outdir=outdir, **kwargs)
 
             # creates kpoints file
-            logging.debug("vasp/functional bringup: files.KPOINTS: %s " % files.KPOINTS)
+            logger.debug("vasp/functional bringup: files.KPOINTS: %s " % files.KPOINTS)
             with open(files.KPOINTS, "w") as kp_file:
                 self.write_kpoints(kp_file, structure)
 
             # creates POTCAR file
-            logging.debug("vasp/functional bringup: files.POTCAR: %s " % files.POTCAR)
+            logger.debug("vasp/functional bringup: files.POTCAR: %s " % files.POTCAR)
             with open(files.POTCAR, 'w') as potcar:
                 for s in specieset(structure):
                     outLines = self.species[s].read_potcar()
@@ -1048,9 +1047,8 @@ class Vasp(AttrBlock):
         from os import remove
         from . import files
         from ..misc import Changedir
-        import logging
 
-        logging.info('vasp/functional bringdown: directory: %s ' % directory)
+        logger.info('vasp/functional bringdown: directory: %s ' % directory)
 
         with Changedir(directory) as pwd:
             with open('pylada.FUNCTIONAL', 'w') as fout:
@@ -1064,11 +1062,10 @@ class Vasp(AttrBlock):
         from os.path import dirname
         from ..misc import RelativePath
         from .files import INCAR
-        import logging
 
-        logging.debug("vasp/functional write_incar: path: %s " % path)
-        logging.debug("vasp/functional write_incar: structure:\n%s" % repr(structure))
-        logging.debug("vasp/functional write_incar: kwargs: %s" % repr(kwargs))
+        logger.debug("vasp/functional write_incar: path: %s " % path)
+        logger.debug("vasp/functional write_incar: structure:\n%s" % repr(structure))
+        logger.debug("vasp/functional write_incar: kwargs: %s" % repr(kwargs))
 
         # check what type path is.
         # if not a file, opens one an does recurrent call.
@@ -1097,10 +1094,8 @@ class Vasp(AttrBlock):
 
     def write_kpoints(self, file, structure, kpoints=None):
         """ Writes kpoints to a stream. """
-        import logging
-
-        logging.info("vasp/functional write_kpoints: file: %s " % file)
-        logging.debug("vasp/functional write_kpoints: kpoints: %s " % kpoints)
+        logger.info("vasp/functional write_kpoints: file: %s " % file)
+        logger.debug("vasp/functional write_kpoints: kpoints: %s " % kpoints)
 
         if kpoints == None:
             kpoints = self.kpoints

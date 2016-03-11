@@ -46,9 +46,9 @@ def launch(self, event, jobfolders):
     from ... import pbs_string, default_pbs, qsub_exe, default_comm
     from . import get_walltime, get_mppalloc, get_queues, scattered_script
     from pylada.misc import testValidProgram
-    import logging
+    from ..ipython import logger
 
-    logging.critical("launch/scattered: event: %s" % event)
+    logger.critical("launch/scattered: event: %s" % event)
     shell = get_shell(self)
 
     pbsargs = deepcopy(dict(default_comm))
@@ -66,11 +66,11 @@ def launch(self, event, jobfolders):
     # Set pbsargs['queue'], pbsargs['account']
     if not get_queues(shell, event, pbsargs):
         return
-    logging.critical("launch/scattered: pbsargs: %s" % pbsargs)
+    logger.critical("launch/scattered: pbsargs: %s" % pbsargs)
 
     # gets python script to launch in pbs.
     pyscript = scattered_script.__file__
-    logging.critical("launch/scattered: pyscript: %s" % pyscript)
+    logger.critical("launch/scattered: pyscript: %s" % pyscript)
     if pyscript[-1] == 'c':
         pyscript = pyscript[:-1]   # change .pyc to .py
 
@@ -85,18 +85,18 @@ def launch(self, event, jobfolders):
     # now  loop over jobfolders
     pbsscripts = []
     for current, path in jobfolders:
-        logging.critical("launch/scattered: current: %s  path: %s" % (current, path))
+        logger.critical("launch/scattered: current: %s  path: %s" % (current, path))
         # creates directory.
         directory = dirname(path)
         with Changedir(directory) as pwd:
             pass
         # loop over executable folders in current jobfolder
         for name, job in current.root.items():
-            logging.critical('launch/scattered: current: %s' % current)
-            logging.critical('launch/scattered: current.root: %s' % current.root)
-            logging.critical('launch/scattered: name: %s' % name)
-            logging.critical('launch/scattered: job: %s' % job)
-            logging.critical('launch/scattered: job.is_tagged: %s' % job.is_tagged)
+            logger.critical('launch/scattered: current: %s' % current)
+            logger.critical('launch/scattered: current.root: %s' % current.root)
+            logger.critical('launch/scattered: name: %s' % name)
+            logger.critical('launch/scattered: job: %s' % job)
+            logger.critical('launch/scattered: job.is_tagged: %s' % job.is_tagged)
 
             # avoid jobfolder which are off
             if job.is_tagged:
@@ -135,15 +135,15 @@ def launch(self, event, jobfolders):
             pbsargs['name'] = name if len(name)                                      \
                 else "{0}-root".format(basename(path))
             pbsargs['directory'] = directory
-            pbsargs['logging'] = logging
+            pbsargs['logging'] = 'critical'
             pbsargs['testValidProgram'] = testValidProgram
 
             pbsargs['scriptcommand']                                                 \
                 = "{0} --logging {logging} --testValidProgram {testValidProgram} --nbprocs {n} --ppn {ppn} --jobid={1} {2}"                   \
                 .format(pyscript, name, path, **pbsargs)
             ppath = pbspaths(directory, name, 'script')
-            logging.critical("launch/scattered: ppath: \"%s\"" % ppath)
-            logging.critical("launch/scattered: pbsargs: \"%s\"" % pbsargs)
+            logger.critical("launch/scattered: ppath: \"%s\"" % ppath)
+            logger.critical("launch/scattered: pbsargs: \"%s\"" % pbsargs)
             pbsscripts.append(ppath)
 
             # write pbs scripts
@@ -156,9 +156,9 @@ def launch(self, event, jobfolders):
                     else pbs_string.format(**pbsargs)
                 # peregrine takes back the option of "anynode"
                 string = string.replace("#PBS -l feature=anynode", "##PBS -l feature=anynode")
-                logging.critical("launch/scattered: ===== start pbsscripts[-1]: %s =====" % pbsscripts[-1])
-                logging.critical('%s' % string)
-                logging.critical("launch/scattered: ===== end pbsscripts[-1]: %s =====" % pbsscripts[-1])
+                logger.critical("launch/scattered: ===== start pbsscripts[-1]: %s =====" % pbsscripts[-1])
+                logger.critical('%s' % string)
+                logger.critical("launch/scattered: ===== end pbsscripts[-1]: %s =====" % pbsscripts[-1])
                 lines = string.split('\n')
                 omitTag = '# omitted for testValidProgram: '
                 for line in lines:
@@ -175,9 +175,9 @@ def launch(self, event, jobfolders):
         return
     # otherwise, launch.
     for script in pbsscripts:
-        logging.critical("launch/scattered: launch: shell: %s" % shell)
-        logging.critical("launch/scattered: launch: qsub_exe: %s" % qsub_exe)
-        logging.critical("launch/scattered: launch: script: \"%s\"" % script)
+        logger.critical("launch/scattered: launch: shell: %s" % shell)
+        logger.critical("launch/scattered: launch: qsub_exe: %s" % qsub_exe)
+        logger.critical("launch/scattered: launch: script: \"%s\"" % script)
 
         if testValidProgram != None:
             cmdLine = '/bin/bash ' + script

@@ -75,7 +75,7 @@ class JobFolder(object):
     @functional.setter
     def functional(self, value):
         from pickle import dumps, loads  # ascertains pickle-ability, copies functional
-        import logging
+        from ..jobfolder import logger
 
         if value is not None and not hasattr(value, "__call__"):
             raise ValueError("folder.functional should be either None(no job) or a callable.")
@@ -86,7 +86,7 @@ class JobFolder(object):
             raise ValueError(
                 "Could not pickle functional. Caught Error:\n{0}".format(e))
 
-        logging.critical('jobfolder.functional.setter for name: %s ' % self.name)
+        logger.critical('jobfolder.functional.setter for name: %s ' % self.name)
         try:
             self._functional = loads(string)
         except Exception as e:
@@ -287,25 +287,25 @@ class JobFolder(object):
 
             >>> return self.functional(**self.params.copy().update(kwargs))
         """
-        import logging
+        from jobfolder import logger
 
         if not self.is_executable:
             return None
         params = self.params.copy()
         params.update(kwargs)
-        logging.critical('jobfolder.compute: self: %s' % self)
-        logging.critical('jobfolder.compute: kwargs: %s', kwargs)
-        logging.critical('jobfolder.compute: params: %s', params)
-        logging.critical('jobfolder.compute: ===== start self.functional =====')
-        logging.critical(repr(self.functional))
-        logging.critical('jobfolder.compute: ===== end self.functional =====')
-        logging.critical('jobfolder.compute: type(self.functional): %s' % type(self.functional))
-        logging.critical('jobfolder.compute: before call')
+        logger.critical('jobfolder.compute: self: %s' % self)
+        logger.critical('jobfolder.compute: kwargs: %s', kwargs)
+        logger.critical('jobfolder.compute: params: %s', params)
+        logger.critical('jobfolder.compute: ===== start self.functional =====')
+        logger.critical(repr(self.functional))
+        logger.critical('jobfolder.compute: ===== end self.functional =====')
+        logger.critical('jobfolder.compute: type(self.functional): %s' % type(self.functional))
+        logger.critical('jobfolder.compute: before call')
 
         # This calls the dynamically compiled code
         # created by tools/makeclass: create_call_from_iter
         res = self.functional.__call__(**params)
-        logging.critical('jobfolder.compute: after call')
+        logger.critical('jobfolder.compute: after call')
 
         return res
 

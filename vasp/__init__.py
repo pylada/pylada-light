@@ -39,6 +39,8 @@
 """
 __docformat__ = "restructuredtext en"
 __all__ = ['Vasp', 'Extract', 'Specie', 'MassExtract', 'relax', 'emass', 'read_input', 'exec_input']
+from pylada import logger
+logger.getChild("vasp")
 from .extract import Extract, MassExtract
 from .specie import Specie
 from .functional import Vasp

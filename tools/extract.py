@@ -41,9 +41,9 @@ class AbstractExtractBase(six.with_metaclass(ABCMeta, object)):
               directory : str or None
                 Root directory for extraction. If None, will use current working directory.
         """
-        import logging
+        from ..tools import logger
 
-        logging.debug('tools/extract: AbstractExtractBase: object: %s' % object)
+        logger.debug('tools/extract: AbstractExtractBase: object: %s' % object)
         object.__init__(self)
 
         from os import getcwd

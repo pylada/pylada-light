@@ -160,24 +160,24 @@ class Communicator(dict):
         """
         from tempfile import NamedTemporaryFile
         from ..misc import RelativePath
-        import logging
+        from ..process import logger
 
         if self._nodefile is not None:
-            logging.debug('process/mpi.py: old nodefile: %s' % self._nodefile)
+            logger.debug('process/mpi.py: old nodefile: %s' % self._nodefile)
             raise NodeFileExists("Please call cleanup first.  nodefile: \"%s\""
                                  % (self._nodefile,))
         if self['n'] == 0:
             raise MPISizeError("No processes in this communicator.")
 
         with NamedTemporaryFile(dir=RelativePath(dir).path, delete=False, prefix='pylada_comm') as file:
-            logging.debug('process/mpi.py: new nodefile: %s' % file.name)
+            logger.debug('process/mpi.py: new nodefile: %s' % file.name)
             for machine, slots in self.machines.items():
                 if slots == 0:
                     continue
                 ##file.write('{0} slots={1}\n'.format(machine, slots))
                 file.write(machine)
                 file.write('\n')
-                logging.debug('machine: %s  slots: %s' % (machine, slots))
+                logger.debug('machine: %s  slots: %s' % (machine, slots))
 
             self._nodefile = file.name
         return self._nodefile
@@ -244,12 +244,12 @@ def create_global_comm(nprocs, dir=None):
     from ..misc import Changedir
     from ..error import ConfigError
     import pylada
-    import logging
+    from ..process import logger
 
-    logging.critical('process/mpi: create_global_comm: entry')
-    logging.critical('process/mpi: create_global_comm: nprocs: %s' % nprocs)
-    logging.critical('process/mpi: create_global_comm: dir: \"%s\"' % dir)
-    logging.critical('process/mpi: create_global_comm: script: \"%s\"' % script)
+    logger.critical('process/mpi: create_global_comm: entry')
+    logger.critical('process/mpi: create_global_comm: nprocs: %s' % nprocs)
+    logger.critical('process/mpi: create_global_comm: dir: \"%s\"' % dir)
+    logger.critical('process/mpi: create_global_comm: script: \"%s\"' % script)
 
     if not do_multiple_mpi_programs:
         return
@@ -269,21 +269,21 @@ def create_global_comm(nprocs, dir=None):
         formatter = Communicator(n=nprocs).copy()
         formatter['program'] = executable + ' ' + filename
 
-        logging.debug("process.mpi: create_global_comm: formatter: %s" % formatter)
-        logging.debug("process.mpi: filename: \"%s\"" % filename)
-        logging.debug("===content:===\n%s===end===" % open(filename).read())
-        logging.debug("process.mpi: create_global_comm: mpirun_exe: %s "  % mpirun_exe)
-        logging.debug("process.mpi: *** launch ***")
+        logger.debug("process.mpi: create_global_comm: formatter: %s" % formatter)
+        logger.debug("process.mpi: filename: \"%s\"" % filename)
+        logger.debug("===content:===\n%s===end===" % open(filename).read())
+        logger.debug("process.mpi: create_global_comm: mpirun_exe: %s "  % mpirun_exe)
+        logger.debug("process.mpi: *** launch ***")
 
         process = launch(mpirun_exe, stdout=PIPE, formatter=formatter,
                          stderr=PIPE, env=environ)
-        logging.debug("process.mpi: create_global_comm: process: %s" % process)
-        logging.debug("process.mpi: *** start process.communicate ***")
+        logger.debug("process.mpi: create_global_comm: process: %s" % process)
+        logger.debug("process.mpi: *** start process.communicate ***")
 
         stdout, stderr = process.communicate()
-        logging.debug("process.mpi: === start stdout ===\n%s\n=== end ===" % stdout)
-        logging.debug("process.mpi: === start stderr ===\n%s\n=== end ===" % stderr)
-        logging.debug("process.mpi: *** start process.communicate ***")
+        logger.debug("process.mpi: === start stdout ===\n%s\n=== end ===" % stdout)
+        logger.debug("process.mpi: === start stderr ===\n%s\n=== end ===" % stderr)
+        logger.debug("process.mpi: *** start process.communicate ***")
     finally:
         if exists(filename):
             try:
@@ -293,8 +293,8 @@ def create_global_comm(nprocs, dir=None):
     # we use that to deduce the number of machines and processes per machine.
     processes = [line.group(1) for line
                  in finditer('PYLADA MACHINE HOSTNAME:\s*(\S*)', stdout)]
-    logging.debug("  process.mpi: create_global_comm: processes: %s" % processes)
-    logging.debug("process.mpi: nprocs: create_global_comm: %s" % nprocs)
+    logger.debug("  process.mpi: create_global_comm: processes: %s" % processes)
+    logger.debug("process.mpi: nprocs: create_global_comm: %s" % nprocs)
     # sanity check.
     if nprocs != len(processes):
         envstring = ''

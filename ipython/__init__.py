@@ -25,6 +25,9 @@
 __docformat__ = "restructuredtext en"
 __pylada_is_loaded__ = False
 """ Whether the Pylada plugin has already been loaded or not. """
+from pylada import logger
+logger = logger.getChild("ipython")
+""" Sub-logger for ipython """
 
 
 def load_ipython_extension(ip):

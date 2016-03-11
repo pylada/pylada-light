@@ -65,11 +65,12 @@ def machine_dependent_call_modifier(formatter=None, comm=None, env=None):
         :return: ignored
     """
     import logging
+    from pylada import logger
     if len(getattr(comm, 'machines', [])) != 0:
         nfile = comm.nodefile()
         formatter['placement'] = "-machinefile {0}".format(nfile)
-        logging.debug("config/mpi: machine_dep_call_mod: nodefile: \"%s\"" % nfile)
-        if logging.getLogger().isEnabledFor(logging.debug):
+        logger.debug("config/mpi: machine_dep_call_mod: nodefile: \"%s\"" % nfile)
+        if logger.isEnabledFor(logging.debug):
             with open(nfile) as fin:
                 fin.write("config/mpi: machine_dep_call_mod: nodefile contents: \"%s\"" %
                           fin.read())

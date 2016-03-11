@@ -26,6 +26,7 @@ __all__ = ["SpecialVaspParam", "ExtraElectron", "Algo", "Precision", "Ediff",
            "Ediffg", "Encut", "EncutGW", "FFTGrid", "Restart", "UParams", "IniWave",
            "Magmom", 'Npar', 'Boolean', 'Integer', 'Choices', 'PrecFock', 'NonScf',
            "System", 'PartialRestart', 'Relaxation', 'Smearing', 'Lsorbit']
+from ...vasp import logger
 from quantities import eV
 
 
@@ -497,7 +498,6 @@ class PartialRestart(SpecialVaspParam):
     def __init__(self, value): super(PartialRestart, self).__init__(value)
 
     def incar_string(self, **kwargs):
-        import logging
         from os.path import join, exists, getsize
         from shutil import copy
         from ...misc import copyfile
@@ -506,9 +506,9 @@ class PartialRestart(SpecialVaspParam):
         if self.value is None or self.value.success == False:
             if kwargs['vasp'].nonscf:
                 kwargs['vasp'].icharg = 12
-            logging.critical('vasp/incar/_params: PartialRestart: no luck')
+            logger.critical('vasp/incar/_params: PartialRestart: no luck')
         else:
-            logging.critical('vasp/incar/_params: PartialRestart: self.val.dir: %s' %
+            logger.critical('vasp/incar/_params: PartialRestart: self.val.dir: %s' %
                              self.value.directory)
             ewave = exists(join(self.value.directory, files.WAVECAR))
             if ewave:
@@ -559,17 +559,16 @@ class Restart(PartialRestart):
         from os import getcwd
         from ...misc import copyfile
         from .. import files
-        import logging
 
         result = super(Restart, self).incar_string(**kwargs)
         if self.value is not None and self.value.success:
             copyfile(join(self.value.directory, files.CONTCAR), files.POSCAR,
                      nothrow='same exists', symlink=getattr(kwargs["vasp"], 'symlink', False),
                      nocopyempty=True)
-            logging.critical('vasp/incar/_params: Restart CONTCAR: self.val.dir: %s' %
+            logger.critical('vasp/incar/_params: Restart CONTCAR: self.val.dir: %s' %
                              self.value.directory)
-        logging.debug('vasp/incar/_params: Restart: getcwd():  %s' % getcwd())
-        logging.debug('vasp/incar/_params: Restart: result: %s' % result)
+        logger.debug('vasp/incar/_params: Restart: getcwd():  %s' % getcwd())
+        logger.debug('vasp/incar/_params: Restart: result: %s' % result)
         return result
 
 

@@ -50,12 +50,9 @@ __docformat__ = "restructuredtext en"
 __all__ = [
     "load_ipython_extension", "unload_ipython_extension",
     "error", "crystal", "physics", "misc", "tools", "ewald", "decorations", "config",
-    "periodic_table", "vasp", "process", "jobfolder"]
-from . import error
-from . import physics
-from collections import namedtuple
-from .ipython import load_ipython_extension, unload_ipython_extension
+    "periodic_table", "vasp", "process", "jobfolder", "logger"]
 
+from collections import namedtuple
 version_info = namedtuple('version_info', ['major', 'minor'])\
     (int("@Pylada_VERSION_MAJOR@"), int("@Pylada_VERSION_MINOR@"))
 """ Tuple containing version info. """
@@ -119,11 +116,20 @@ else:
         from pytest import main
         return main(dirname(__file__), **kwargs)
 
+from . import error
 import logging
-logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+import sys
+logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
+                    stream=sys.stdout)
 if isinstance(logging_level, int):
     logging.basicConfig(level=logging_level)
-elif getattr(logging, logging_level.upper(), None) is not None:
+elif getattr(logging, logging_level.lower(), None) is not None:
     logging.basicConfig(level=getattr(logging, logging_level.upper()))
 else:
     raise error.RuntimeError("Could not figure out logging level %s." % logging_level)
+logger = logging.getLogger(root_logger)
+
+
+from . import physics
+from .ipython import load_ipython_extension, unload_ipython_extension
+

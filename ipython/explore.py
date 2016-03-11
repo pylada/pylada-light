@@ -55,7 +55,7 @@ def explore(self, cmdl):
 
         >>> explore results path/to/job_pickle
     """
-    import logging
+    from  ..ipython import logger
     import argparse
     from os.path import join, dirname
     from pylada import interactive
@@ -151,7 +151,7 @@ def explore(self, cmdl):
                 # what's left is an error.
                 else:
                     job.untag()
-                logging.debug('ipython/explore errors: dir: %s  is_run: %s' % (directory, is_run))
+                logger.debug('ipython/explore errors: dir: %s  is_run: %s' % (directory, is_run))
 
     # Look only for jobs which are successfull.
     if args.type == "results":
@@ -196,7 +196,7 @@ def explore(self, cmdl):
                 job.untag()
             else:
                 job.tag()
-            logging.debug('ipython/explore running: dir: %s  is_run: %s' % (directory, is_run))
+            logger.debug('ipython/explore running: dir: %s  is_run: %s' % (directory, is_run))
 
     # All jobs without restriction.
     elif args.type == "all":
@@ -284,7 +284,7 @@ def _explore_impl(self, args):
 
 def completer(self, event):
     """ Completer for explore. """
-    import logging
+    from ..ipython import logger
     from ..jobfolder import JobFolder
     from . import jobfolder_file_completer
 

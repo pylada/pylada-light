@@ -79,6 +79,8 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['Process', 'ProgramProcess', 'CallProcess', 'IteratorProcess',
            'JobFolderProcess', 'PoolProcess', 'Fail', 'which', 'DummyProcess']
+from pylada import logger
+logger = logger.getChild("process")
 
 from ..error import root
 from .pool import PoolProcess

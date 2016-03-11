@@ -149,19 +149,19 @@ def completer(self, info):
 
 def get_mppalloc(shell, event, withdefault=True):
     """ Gets mpp allocation. """
-    import logging
+    from ..ipython import logger
 
-    logging.critical("launch/init: shell: %s" % shell)
-    logging.critical("launch/init: event: %s" % event)
-    logging.critical("launch/init: event.ppn: %s" % event.ppn)
-    logging.critical("launch/init: withdefault: %s" % withdefault)
+    logger.critical("launch/init: shell: %s" % shell)
+    logger.critical("launch/init: event: %s" % event)
+    logger.critical("launch/init: event.ppn: %s" % event.ppn)
+    logger.critical("launch/init: withdefault: %s" % withdefault)
     try:
         mppalloc = shell.ev(event.nbprocs)
     except Exception as e:
         print(("Could not make sense of --nbprocs argument {0}.\n{1}"               \
               .format(event.nbprocs, e)))
         return
-    logging.critical("launch/init: mppalloc a: %s" % mppalloc)
+    logger.critical("launch/init: mppalloc a: %s" % mppalloc)
     if mppalloc is None and withdefault:
         def mppalloc(job):
             """ Returns number of processes for this job. """
@@ -170,7 +170,7 @@ def get_mppalloc(shell, event, withdefault=True):
             nnode = max(1, natom / event.ppn)
             nproc = nnode * event.ppn
             return nproc
-    logging.critical("launch/init: mppalloc b: %s" % mppalloc)
+    logger.critical("launch/init: mppalloc b: %s" % mppalloc)
     return mppalloc
 
 

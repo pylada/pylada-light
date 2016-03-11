@@ -67,7 +67,7 @@ def machine_dependent_call_modifier(formatter=None, comm=None, env=None):
            Also, the hostname were shortened to exclude cx1.hpc.imperial.ac.uk
            domain name in :py:function:`~pylada.modify_global_comm`. 
     """
-    import logging
+    from pylada import logger
     if len(getattr(comm, 'machines', [])) == 0:
         return ""
 
@@ -76,7 +76,7 @@ def machine_dependent_call_modifier(formatter=None, comm=None, env=None):
     with open(nodefile, 'w') as file:
         for key, value in comm.machines.items():
             stg = '\n'.join([key] * value) + '\n'
-            logging.debug(
+            logger.debug(
                 "config/cx1: nodefile: key: \"%s\"  value: \"%s\"  stg: \"%s\"" \
                     % (key, value, stg))
             file.write(stg)

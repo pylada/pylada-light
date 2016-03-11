@@ -37,6 +37,8 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['JobFolder', 'walk_through', 'save', 'load', 'MassExtract',
            'AbstractMassExtract', 'JobParams']
+from pylada import logger
+logger = logger.getChild("jobfolder")
 
 from .jobfolder import JobFolder
 from .manipulator import JobParams

@@ -230,10 +230,10 @@ def exec_input(script, global_dict=None, local_dict=None,
     from numpy.linalg import norm, det
     from .. import crystal
     from . import Input
-    import logging
+    from pylada import logger
     import quantities
 
-    logging.debug("misc/init: exec_input: entry")
+    logger.debug("misc/init: exec_input: entry")
     # Add some names to execution environment.
     if global_dict is None:
         global_dict = {}
@@ -248,9 +248,9 @@ def exec_input(script, global_dict=None, local_dict=None,
     if local_dict is None:
         local_dict = {}
     # Executes input script.
-    logging.debug('misc/init: exec_input: ========== start script ==========')
-    logging.debug(script)
-    logging.debug('misc/init: exec_input: ========== end script ==========')
+    logger.debug('misc/init: exec_input: ========== start script ==========')
+    logger.debug(script)
+    logger.debug('misc/init: exec_input: ========== end script ==========')
     exec(script, global_dict, local_dict)
 
     # Makes sure expected paths are absolute.
