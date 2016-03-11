@@ -70,7 +70,7 @@ def test_goaround(card_stream):
     from io import StringIO
     card, read_card = Card('ATOMIC_SPECIES'), Card('ATOMIC_SPECIES')
     card.read(card_stream)
-    read_card.read(StringIO(repr(card)))
+    read_card.read(StringIO(str(card)))
     assert read_card.name == 'atomic_species'
     assert read_card.subtitle is None
     assert read_card.value == 'Al 1 this.that'
@@ -80,7 +80,7 @@ def test_goaround_subtitled(subtitled_stream):
     from io import StringIO
     card, read_card = Card('K_POINTS'), Card('K_POINTS')
     card.read(subtitled_stream)
-    read_card.read(StringIO(repr(card)))
+    read_card.read(StringIO(str(card)))
     assert read_card.name == 'k_points'
     assert read_card.subtitle == 'tpiba'
     assert read_card.value == "2\n0 0 0 0.8\n0.5 0.5 0.5 0.2"
@@ -91,7 +91,7 @@ def test_read_but_not_find(subtitled_stream, card_stream):
     card, read_card = Card('ATOMIC_SPECIES'), Card('K_POINTS')
     read_card.read(subtitled_stream)
     card.read(card_stream)
-    read_card.read(StringIO(repr(card)))
+    read_card.read(StringIO(str(card)))
     assert read_card.name == 'k_points'
     assert read_card.subtitle == 'tpiba'
     assert read_card.value == "2\n0 0 0 0.8\n0.5 0.5 0.5 0.2"
