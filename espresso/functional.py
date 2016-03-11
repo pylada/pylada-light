@@ -93,8 +93,10 @@ class Pwscf(HasTraits):
             - otherwise, filename is assumed to be a stream of some sort, with a `write` method
         """
         from f90nml import Namelist as F90Namelist
-        from os.path import expanduser, expandvars
+        from os.path import expanduser, expandvars, abspath
+        from copy import copy
         from io import StringIO
+
         if filename is None:
             result = StringIO()
             self.write(result)
@@ -109,20 +111,21 @@ class Pwscf(HasTraits):
             return
 
         # write namelists first
-        namelist = self.__namelists.copy()
-        for key, value in self.traits().items():
+        namelist = copy(self.__namelists)
+        for key in self.trait_names():
+            value = getattr(self, key)
             if isinstance(value, Namelist):
-                namelist[key] = value
+                setattr(namelist, key, value)
         namelist.write(filename)
 
         # then write cards
         for name in self.traits().keys():
             value = getattr(self, name)
             if isinstance(value, Card):
-                value.write(filename)
+                filename.write(str(value) + "\n")
 
         for value in self.__cards.values():
-            value.write(filename)
+            filename.write(str(value) + "\n")
 
     def read(self, filename, clear=True):
         """ Read from a file """

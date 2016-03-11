@@ -91,9 +91,13 @@ def test_can_add_namelist_attributes(espresso):
 
 
 def test_read_aluminum(aluminum):
-    from numpy import allclose
     espresso = Pwscf()
     espresso.read(aluminum)
+    check_aluminum(espresso)
+
+
+def check_aluminum(espresso):
+    from numpy import allclose
     assert espresso.control.prefix == 'al'
     assert espresso.control.outdir == 'temporary directory for large files'
     assert espresso.control.pseudo_dir == 'directory where pp-files are kept'
@@ -113,3 +117,15 @@ def test_read_aluminum(aluminum):
     assert hasattr(espresso, 'k_points')
     assert espresso.kpoints.subtitle == 'automatic'
     assert espresso.kpoints.value == '6 6 6 1 1 1'
+
+
+def test_read_write_loop(aluminum, tmpdir):
+    from pylada.espresso import logger
+    logger.setLevel(31)
+    espresso = Pwscf()
+    espresso.read(aluminum)
+    espresso.write(str(tmpdir.join('al2.scf')))
+    espresso = Pwscf()
+    espresso.read(str(tmpdir.join('al2.scf')))
+    check_aluminum(espresso)
+
