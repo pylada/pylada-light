@@ -95,6 +95,13 @@ def test_recursive_namelist_attributes(recursive_namelist):
     assert len(nl) == 3
 
 
+def test_length_includes_traits(WithTraitLets, simple_namelist):
+    nl = WithTraitLets(simple_namelist)
+    assert len(nl) == len(simple_namelist)
+    nl.ibrav = None
+    assert len(nl) == len(simple_namelist) - 1
+
+
 def test_empty_namelists_do_appear(recursive_namelist):
     nl = Namelist(recursive_namelist)
     assert hasattr(nl, 'electrons')

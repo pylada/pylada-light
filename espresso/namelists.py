@@ -84,7 +84,8 @@ class Namelist(HasTraits):
 
     def __len__(self):
         """ Number of parameters in namelist """
-        return len(self.__inputs)
+        return len(self.__inputs) \
+            + len([1 for u in self._trait_values.values() if u is not None])
 
     def __delattr__(self, name):
         if name[0] == '_' or self.has_trait(name):
@@ -144,7 +145,6 @@ class Namelist(HasTraits):
                 self.write(file)
             return
 
-
         namelist = self.namelist(**kwargs)
         for key, value in namelist.items():
             if isinstance(value, list):
@@ -172,4 +172,3 @@ class Namelist(HasTraits):
             file.write(string)
             file.seek(0)
             return self.read(file.name, clear=clear)
-
