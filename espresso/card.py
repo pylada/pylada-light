@@ -80,7 +80,6 @@ def read_cards(stream):
         `stream` can be a stream of a path (string). This funtion will avoid namelists, and read
         all cards, as defined by the :py:attr:`CardNameTrait.card_names`.
     """
-    from ..espresso import logger
     from os.path import expandvars, expanduser
     if isinstance(stream, str):
         path = expandvars(expanduser(stream))
