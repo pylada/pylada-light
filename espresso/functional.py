@@ -24,6 +24,7 @@
 """ Pwscf functional """
 __docformat__ = "restructuredtext en"
 __all__ = ['Pwscf']
+from ..espresso import logger
 from quantities import bohr_radius
 from traitlets import HasTraits, CaselessStrEnum, Unicode, Integer, Instance
 from .trait_types import DimensionalTrait
@@ -101,7 +102,9 @@ class Pwscf(HasTraits):
             return result
 
         if isinstance(filename, str):
-            with open(expanduser(expandvars(filename)), 'w') as file:
+            path = abspath(expanduser(expandvars(filename)))
+            logger.info("%s: writing to file %s", self.__class__.__name__, path)
+            with open(path, 'w') as file:
                 self.write(file)
             return
 
@@ -125,7 +128,6 @@ class Pwscf(HasTraits):
         """ Read from a file """
         from os.path import expanduser, expandvars, abspath
         from f90nml import Namelist as F90Namelist
-        from ..espresso import logger
         from .trait_types import CardNameTrait
         from .card import read_cards
 
@@ -168,7 +170,6 @@ class Pwscf(HasTraits):
 
     def add_card(self, name, value=None, subtitle=None):
         """ Adds a new card, or sets the value of an existing one """
-        from ..espresso import logger
         if isinstance(getattr(self, name, None), Card):
             card = getattr(self, name)
         else:

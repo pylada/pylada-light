@@ -24,6 +24,7 @@
 """ Namelist makes it easy to access and modify fortran namelists """
 __docformat__ = "restructuredtext en"
 __all__ = ['Namelist']
+from ..espresso import logger
 from traitlets import HasTraits
 from decorator import decorator
 
@@ -72,7 +73,6 @@ class Namelist(HasTraits):
     def __setattr__(self, name, value):
         """ Non-private attributes become part of the namelist proper """
         from collections import Mapping
-        from . import logger
         if name[0] == '_' or self.has_trait(name):
             super(Namelist, self).__setattr__(name, value)
         elif isinstance(value, Mapping) and not isinstance(value, Namelist):
@@ -102,7 +102,6 @@ class Namelist(HasTraits):
 
     def namelist(self, **kwargs):
         """ Returns a f90nml Namelist object """
-        from . import logger
         result = self.__inputs.copy()
         for key in list(result.keys()):
             value = result[key]
@@ -135,7 +134,6 @@ class Namelist(HasTraits):
         from f90nml import Namelist as F90Namelist
         from os.path import expanduser, expandvars, abspath
         from io import StringIO
-        from ..espresso import logger
         if filename is None:
             result = StringIO()
             self.write(result)
@@ -144,7 +142,7 @@ class Namelist(HasTraits):
 
         if isinstance(filename, str):
             path = abspath(expanduser(expandvars(filename)))
-            logger.info("Writing fortran namelist to %s" % path)
+            logger.log(10, "Writing fortran namelist to %s" % path)
             with open(path, 'w') as file:
                 self.write(file)
             return

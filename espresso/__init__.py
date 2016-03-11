@@ -25,9 +25,9 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['Namelist', 'Card', 'Pwscf']
 
-from logging import getLogger
-logger = getLogger()
-""" Logger for vasp """
+from pylada import logger
+logger = logger.getChild('espresso')
+""" Logger for espresso """
 
 from .namelists import Namelist
 from .card import Card

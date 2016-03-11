@@ -26,6 +26,7 @@ __docformat__ = "restructuredtext en"
 __all__ = ['Card']
 from traitlets import HasTraits, Unicode, CaselessStrEnum, TraitType
 from .trait_types import CardNameTrait
+from ..espresso import logger
 
 
 class Card(HasTraits):
@@ -53,7 +54,6 @@ class Card(HasTraits):
             return "%s %s\n%s" % (self.name.upper(), self.subtitle, self.value)
 
     def read(self, stream):
-        from ..espresso import logger
         doing_title = True
         for line in stream:
             title = line.rstrip().lstrip().split()

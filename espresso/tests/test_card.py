@@ -121,8 +121,6 @@ def test_set_card_name():
 def test_read_card(subtitled_stream, card_stream):
     from pylada.espresso.card import read_cards
     from io import StringIO
-    from pylada.espresso import logger
-    logger.setLevel(4)
     stream = StringIO(subtitled_stream.read() + "\n" + card_stream.read())
     result = read_cards(stream)
     assert len(result) == 2
@@ -137,8 +135,6 @@ def test_read_card(subtitled_stream, card_stream):
 def test_read_card_with_namelist(subtitled_stream, card_stream):
     from pylada.espresso.card import read_cards
     from io import StringIO
-    from pylada.espresso import logger
-    logger.setLevel(4)
     stream = StringIO(subtitled_stream.read() + "\n&electrons\nbullshit = 1\n/\n"
                       + "\n" + card_stream.read())
     result = read_cards(stream)
