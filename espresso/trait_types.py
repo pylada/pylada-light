@@ -46,7 +46,7 @@ class DimensionalTrait(TraitType):
     info_text = 'Traits with a physical dimension'
 
     def __init__(self, units, **kwargs):
-        super(DimensionalUnicode, self).__init__(**kwargs)
+        super(DimensionalTrait, self).__init__(**kwargs)
         self.units = units
 
     def validate(self, obj, value):
@@ -56,7 +56,7 @@ class DimensionalTrait(TraitType):
             return value * self.units
 
 
-class LowercaseUnicode(Unicode):
+class LowerCaseUnicode(Unicode):
     """ String that always lowercase """
 
     default_value = None
@@ -65,5 +65,5 @@ class LowercaseUnicode(Unicode):
     def validate(self, obj, value):
         if value is None:
             return None
-        result = super(LowercaseUnicode, self).validate(obj, value)
+        result = super(LowerCaseUnicode, self).validate(obj, value)
         return result.lower()
