@@ -22,7 +22,7 @@
 
 # -*- coding: utf-8 -*-
 """ Sub-package containing specialized traitets """
-from traitlets import TraitType
+from traitlets import TraitType, Unicode
 
 
 class CardNameTrait(TraitType):
@@ -46,7 +46,7 @@ class DimensionalTrait(TraitType):
     info_text = 'Traits with a physical dimension'
 
     def __init__(self, units, **kwargs):
-        super(DimensionalTrait, self).__init__(**kwargs)
+        super(DimensionalUnicode, self).__init__(**kwargs)
         self.units = units
 
     def validate(self, obj, value):
@@ -54,3 +54,16 @@ class DimensionalTrait(TraitType):
             return value.rescale(self.units)
         else:
             return value * self.units
+
+
+class LowercaseUnicode(Unicode):
+    """ String that always lowercase """
+
+    default_value = None
+    info_text = 'A lowercase unicode string'
+
+    def validate(self, obj, value):
+        if value is None:
+            return None
+        result = super(LowercaseUnicode, self).validate(obj, value)
+        return result.lower()

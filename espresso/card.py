@@ -24,14 +24,14 @@
 """ Namelist makes it easy to access and modify fortran namelists """
 __docformat__ = "restructuredtext en"
 __all__ = ['Card']
-from traitlets import HasTraits, Unicode, CaselessStrEnum, TraitType
-from .trait_types import CardNameTrait
+from traitlets import HasTraits, CaselessStrEnum, TraitType
+from .trait_types import CardNameTrait, LowercaseUnicode
 from ..espresso import logger
 
 
 class Card(HasTraits):
     """ Defines a Pwscf card """
-    subtitle = Unicode(None, allow_none=True)
+    subtitle = LowercaseUnicode(None, allow_none=True)
     name = CardNameTrait(allow_none=False)
 
     def __init__(self, name, value=None, subtitle=None):
