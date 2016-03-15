@@ -131,31 +131,8 @@ class Namelist(HasTraits):
 
             Keywords are passed on to :py:method:`Namelist.namelist`
         """
-        from f90nml import Namelist as F90Namelist
-        from os.path import expanduser, expandvars, abspath
-        from io import StringIO
-        if filename is None:
-            result = StringIO()
-            self.write(result)
-            result.seek(0)
-            return result.read()
-
-        if isinstance(filename, str):
-            path = abspath(expanduser(expandvars(filename)))
-            logger.log(10, "Writing fortran namelist to %s" % path)
-            with open(path, 'w') as file:
-                self.write(file)
-            return
-
-        namelist = self.namelist(**kwargs)
-        for key, value in namelist.items():
-            if isinstance(value, list):
-                for g_vars in value:
-                    namelist.write_nmlgrp(key, g_vars, filename)
-            elif isinstance(value, F90Namelist):
-                namelist.write_nmlgrp(key, value, filename)
-            else:
-                raise RuntimeError("Can only write namelists that consist of namelists")
+        from .misc import write_f90namelist
+        return write_f90namelist(self.namelist(**kwargs), stream=filename)
 
     def read(self, filename, clear=False):
         """ Read input from file """
@@ -183,4 +160,3 @@ class Namelist(HasTraits):
         """ All names of attributes that end up in the namelist """
         from itertools import chain
         yield from chain(self.__inputs, self.trait_names())
-

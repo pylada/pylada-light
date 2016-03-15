@@ -84,53 +84,36 @@ class Pwscf(HasTraits):
         self.__namelists = Namelist()
         self.__cards = {}
 
-    def write(self, filename=None):
+    def write(self, strean=None):
         """ Writes Pwscf input
 
-            - if filename is None (default), then returns a string containing namelist in fortran
+            - if strean is None (default), then returns a string containing namelist in fortran
                 format
-            - if filename is a string, then it should a path to a file
-            - otherwise, filename is assumed to be a stream of some sort, with a `write` method
+            - if strean is a string, then it should a path to a file
+            - otherwise, strean is assumed to be a stream of some sort, with a `write` method
         """
-        from f90nml import Namelist as F90Namelist
         from os.path import expanduser, expandvars, abspath
+        from .. import error
+        from .misc import write_pwscf_input
         from copy import copy
         from io import StringIO
 
-        if filename is None:
-            result = StringIO()
-            self.write(result)
-            result.seek(0)
-            return result
-
-        if isinstance(filename, str):
-            path = abspath(expanduser(expandvars(filename)))
-            logger.info("%s: writing to file %s", self.__class__.__name__, path)
-            with open(path, 'w') as file:
-                self.write(file)
-            return
-
-        # write namelists first
         namelist = copy(self.__namelists)
+        cards = copy(self.__cards)
         for key in self.trait_names():
             value = getattr(self, key)
             if isinstance(value, Namelist):
                 setattr(namelist, key, value)
-        namelist.write(filename)
+            elif isinstance(value, Card):
+                if value.name in cards:
+                    raise error.internal("Found two cards with the same name")
+                cards[value.name] = value
 
-        # then write cards
-        for name in self.traits().keys():
-            value = getattr(self, name)
-            if isinstance(value, Card):
-                filename.write(str(value) + "\n")
-
-        for value in self.__cards.values():
-            filename.write(str(value) + "\n")
+        return write_pwscf_input(namelist.namelist(), cards.values(), strean)
 
     def read(self, filename, clear=True):
         """ Read from a file """
         from os.path import expanduser, expandvars, abspath
-        from f90nml import Namelist as F90Namelist
         from .trait_types import CardNameTrait
         from .card import read_cards
 
