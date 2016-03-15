@@ -54,6 +54,7 @@ class Control(Namelist):
     verbosity = CaselessStrEnum(['high', 'low'], 'low', allow_none=False,
                                 help="How much talk from Pwscf")
     prefix = Unicode(None, allow_none=True, help="Prefix for output files")
+    pseudo_dir = Unicode(None, allow_none=True, help="Directory with pseudo-potential files")
 
 
 class System(Namelist):
@@ -84,15 +85,16 @@ class Pwscf(HasTraits):
         self.__namelists = Namelist()
         self.__cards = {}
 
-    def write(self, strean=None):
+    def write(self, stream=None, structure=None, **kwargs):
         """ Writes Pwscf input
 
-            - if strean is None (default), then returns a string containing namelist in fortran
+            - if stream is None (default), then returns a string containing namelist in fortran
                 format
-            - if strean is a string, then it should a path to a file
-            - otherwise, strean is assumed to be a stream of some sort, with a `write` method
+            - if stream is a string, then it should a path to a file
+            - otherwise, stream is assumed to be a stream of some sort, with a `write` method
         """
         from os.path import expanduser, expandvars, abspath
+        from .structure_handling import add_structure
         from .. import error
         from .misc import write_pwscf_input
         from copy import copy
@@ -109,7 +111,12 @@ class Pwscf(HasTraits):
                     raise error.internal("Found two cards with the same name")
                 cards[value.name] = value
 
-        return write_pwscf_input(namelist.namelist(), cards.values(), strean)
+        cards = list(cards.values())
+        f90namelist = namelist.namelist(structure=structure, **kwargs)
+        if structure is not None:
+            add_structure(structure, f90namelist, cards)
+
+        return write_pwscf_input(f90namelist, cards, stream)
 
     def read(self, filename, clear=True):
         """ Read from a file """
@@ -178,3 +185,12 @@ class Pwscf(HasTraits):
         if dictionary is not None:
             for key, value in dictionary.items():
                 setattr(namelist, key, value)
+
+    def _bring_up(self, structure, outdir, **kwargs):
+        """ Prepares for actual run """
+        from os.path import join
+        from ..misc.changedir import Changedir
+
+        logger.info('Preparing directory to run Pwscf: %s ' % outdir)
+        with Changedir(outdir) as tmpdir:
+            self.write(structure=structure, stream=join(tmpdir, "pwscf.in"), **kwargs)

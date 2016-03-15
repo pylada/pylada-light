@@ -35,7 +35,7 @@ def aluminum(tmpdir):
         /
         &system
            ibrav=  2, celldm(1) =7.50, nat=  1, ntyp= 1,
-           ecutwfc =12.0, 
+           ecutwfc =12.0,
            occupations='smearing', smearing='marzari-vanderbilt', degauss=0.06
         /
         &electrons
@@ -119,13 +119,17 @@ def check_aluminum(espresso):
     assert espresso.kpoints.value == '6 6 6 1 1 1'
 
 
-def test_read_write_loop(aluminum, tmpdir):
-    from pylada.espresso import logger
-    logger.setLevel(31)
-    espresso = Pwscf()
+def test_read_write_loop(aluminum, tmpdir, espresso):
     espresso.read(aluminum)
     espresso.write(str(tmpdir.join('al2.scf')))
     espresso = Pwscf()
     espresso.read(str(tmpdir.join('al2.scf')))
     check_aluminum(espresso)
+
+
+def test_bringup(tmpdir, espresso):
+    from pylada.crystal.A2BX4 import b5
+    structure = b5()
+    espresso._bring_up(outdir=str(tmpdir.join('runhere')), structure=structure)
+    assert tmpdir.join('runhere', 'pwscf.in').check()
 
