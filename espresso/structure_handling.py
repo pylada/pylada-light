@@ -163,7 +163,7 @@ def _read_trig(system):
     from numpy import sqrt, array
     scale = _get_scale(system)
     c = _get_params(system)[2]
-    tx, ty, tz = sqrt((1.-c)/2.), sqrt((1.-c)/6.), sqrt((1+2*c)/3.)
+    tx, ty, tz = sqrt((1. - c) / 2.), sqrt((1. - c) / 6.), sqrt((1 + 2 * c) / 3.)
     cell = array([[tx, -ty, tz], [0, 2. * ty, tz], [-tx, -ty, tz]], dtype='float64')
     return cell.transpose(), scale
 
@@ -173,11 +173,45 @@ def _read_mtrig(system):
     from numpy import sqrt, array
     scale = _get_scale(system)
     c = _get_params(system)[2]
-    tx, ty, tz = sqrt((1.-c)/2.), sqrt((1.-c)/6.), sqrt((1+2*c)/3.)
-    u, v = tz - 2*sqrt(2)*ty,  tz + sqrt(2)*ty
+    tx, ty, tz = sqrt((1. - c) / 2.), sqrt((1. - c) / 6.), sqrt((1 + 2 * c) / 3.)
+    u, v = tz - 2 * sqrt(2) * ty,  tz + sqrt(2) * ty
     cell = array([[u, v, v], [v, u, v], [v, v, u]], dtype='float64')
     return cell.transpose(), scale / sqrt(3.)
 
 
-def write_structure(structure, stream):
-    pass
+def add_structure(structure, f90namelist, cards):
+    """ Modifies f90namelist and cards according to structure """
+    from . import Card
+    from f90nml import Namelist as F90Namelist
+    from quantities import bohr_radius
+    if 'system' not in f90namelist:
+        f90namelist['system'] = F90Namelist()
+    for key in ['a', 'b', 'c', 'cosab', 'cosac', 'cosbc', 'celldm']:
+        f90namelist['system'].pop(key, None)
+        f90namelist['system'].pop(key.upper(), None)
+
+    f90namelist['system']['ibrav'] = 0
+    f90namelist['system']['celldim'] = float(structure.scale.rescale(bohr_radius))
+
+    card_dict = {card.name: card for card in cards}
+    if 'cell' not in card_dict:
+        cell = Card('cell_parameters')
+        cards.append(cell)
+    else:
+        cell = card_dict['cell']
+    cell.subtitle = 'alat'
+    cell.value = ""
+    for i in range(structure.cell.shape[1]):
+        cell.value += " ".join([str(u) for u in structure.cell[:, i]]) + "\n"
+
+    positions = card_dict.get('atomic_positions', Card('atomic_positions'))
+    if 'atomic_positions' not in card_dict:
+        positions = Card('atomic_positions')
+        cards.append(positions)
+    else:
+        positions = card_dict['atomic_positions']
+    positions.subtitle = 'alat'
+    positions.value = ""
+    for atom in structure:
+        positions.value += "%s %18.12e %18.12e %18.12e\n" % (atom.type, atom.pos[0], atom.pos[1],
+                                                             atom.pos[2])

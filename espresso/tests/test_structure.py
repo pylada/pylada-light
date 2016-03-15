@@ -24,6 +24,23 @@ from pytest import fixture, mark
 from pylada.espresso import structure_handling as sh
 from quantities import angstrom, bohr_radius
 
+@fixture
+def pwscfin(tmpdir):
+    string = """
+        &system
+            ibrav=5,
+            celldm = 1.0 0.0 0.0 0.5,
+        /
+
+    ATOMIC_POSITIONS alat
+    A 0 0 0
+    B 1 2 3
+    """
+    tmpdir.join('pos.in').write(string)
+    return tmpdir.join('pos.in')
+
+
+
 
 def get_namelist(ibrav, **kwargs):
     from pylada.espresso import Namelist
@@ -121,22 +138,11 @@ def test_hexa_cell_and_scale(celldim, A, expected_scale, C, c_over_a):
     assert abs(scale - expected_scale) < 1e-8
 
 
-def test_read_structure(tmpdir):
+def test_read_structure(pwscfin):
     from numpy import allclose, sqrt, array
     from quantities import bohr_radius
     from pylada.espresso.structure_handling import read_structure
-    string = """
-        &system
-            ibrav=5,
-            celldm = 1.0 0.0 0.0 0.5,
-        /
-
-    ATOMIC_POSITIONS alat
-    A 0 0 0
-    B 1 2 3
-    """
-    tmpdir.join('pos.in').write(string)
-    structure = read_structure(str(tmpdir.join('pos.in')))
+    structure = read_structure(str(pwscfin))
 
     c = 0.5
     tx, ty, tz = sqrt((1.-c)/2.), sqrt((1.-c)/6.), sqrt((1.+2. * c)/3.)
@@ -147,3 +153,25 @@ def test_read_structure(tmpdir):
     assert allclose(structure[0].pos, [0, 0, 0.])
     assert structure[1].type == 'B'
     assert allclose(structure[1].pos, [1, 2, 3.])
+
+
+def test_write_read_loop(tmpdir, pwscfin):
+    from numpy import abs, allclose
+    from f90nml import Namelist as F90Namelist
+    from pylada.espresso.structure_handling import add_structure, read_structure
+    from pylada.espresso.misc import write_pwscf_input
+    structure = read_structure(str(pwscfin))
+
+    namelist = F90Namelist()
+    cards = []
+    add_structure(structure, namelist, cards)
+    print(namelist)
+    write_pwscf_input(namelist, cards, str(tmpdir.join('other.in')))
+    reread = read_structure(str(tmpdir.join('other.in')))
+
+    assert allclose(reread.cell, structure.cell)
+    assert abs(reread.scale - structure.scale) < 1e-12
+    assert len(reread) == len(structure)
+    for i in range(len(reread)):
+        assert allclose(reread[i].pos, structure[i].pos)
+        assert reread[i].type  == structure[i].type
