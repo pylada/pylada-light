@@ -79,11 +79,29 @@ class Pwscf(HasTraits):
 
     kpoints = alias(k_points)
 
+    __private_cards = ['atomic_species']
+    """ Cards that are handled differently by Pwscf
+
+        For instance, atomic_species is handled the species attribute.
+    """
+
+
     def __init__(self, **kwargs):
         from . import Namelist
         super(Pwscf, self).__init__(**kwargs)
         self.__namelists = Namelist()
         self.__cards = {}
+        self.species = {}
+        """ Dictionary of species that can be used in the calculation
+
+            A specie is an object with at least a 'filename' attribute pointing to the
+            pseudo-potential.
+        """
+
+    def add_specie(self, name, pseudo):
+        """ Adds a specie to the current known species """
+        from .specie import Specie
+        self.species[name] = Specie(pseudo)
 
     def write(self, stream=None, structure=None, **kwargs):
         """ Writes Pwscf input
@@ -115,6 +133,9 @@ class Pwscf(HasTraits):
         f90namelist = namelist.namelist(structure=structure, **kwargs)
         if structure is not None:
             add_structure(structure, f90namelist, cards)
+            atomic_species = self._add_atomic_species(structure, cards)
+            cards = [u for u in cards if u.name != 'atomic_species']
+            cards.append(atomic_species)
 
         return write_pwscf_input(f90namelist, cards, stream)
 
@@ -150,6 +171,8 @@ class Pwscf(HasTraits):
             if card.name in self.trait_names():
                 getattr(self, card.name).subtitle = card.subtitle
                 getattr(self, card.name).value = card.value
+            elif card.name in self.__private_cards:
+                logger.debug('%s is handled internally' % card.name)
             else:
                 self.__cards[card.name] = card
 
@@ -165,6 +188,9 @@ class Pwscf(HasTraits):
         """ Adds a new card, or sets the value of an existing one """
         if isinstance(getattr(self, name, None), Card):
             card = getattr(self, name)
+        elif card.name in self.__private_cards:
+            logger.warn('%s is handled internally' % card.name)
+            return
         else:
             logger.info("%s: Adding new card %s", self.__class__.__name__, name)
             card = Card(name)
@@ -189,8 +215,34 @@ class Pwscf(HasTraits):
     def _bring_up(self, structure, outdir, **kwargs):
         """ Prepares for actual run """
         from os.path import join
+        from .specie import Specie
         from ..misc.changedir import Changedir
 
         logger.info('Preparing directory to run Pwscf: %s ' % outdir)
+
         with Changedir(outdir) as tmpdir:
             self.write(structure=structure, stream=join(tmpdir, "pwscf.in"), **kwargs)
+
+    def _atomic_species_card(self, structure):
+        """ Creates atomic-species card """
+        from .. import periodic_table
+        from .card import Card
+        result = Card('atomic_species', value="")
+        # Check peudo-files exist
+        for specie in set([u.type for u in structure]):
+            if specie not in self.species:
+                msg = "No specie defined for %s: no way to get pseudopotential" % specie
+                raise error.RuntimeError(msg)
+            pseudo = self.species[specie].pseudo
+            if not Specie(pseudo.file_exists(self.control.pseudo_dir)
+                logger.critical(
+                    "Specie %s: pseudo = %s" % (specie, self.species[specie].pseudo))
+                msg = "No pseudopotential found for %s" % specie)
+                raise error.RuntimeError(msg)
+            mass = getattr(pseudo, 'mass', None)
+            if mass is None:
+                mass = getattr(getattr(periodic_table, name, None), 'mass')
+            if mass is None:
+                mass = 1
+            result.value += "%s %s %s\n" % (specie, mass, specie.pseudo)
+        return result
