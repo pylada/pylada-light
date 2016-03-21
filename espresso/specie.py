@@ -56,8 +56,8 @@ class Specie(object):
             1. None
         """
         from os.path import exists, join, abspath, expanduser, expandvars, isfile
-        from os import environ
-        if pseudo is None:
+        from os import environ, getcwd
+        if self.pseudo is None:
             return None
         prefixes = [getcwd()]
         if pseudo_dir is not None:
@@ -66,7 +66,7 @@ class Specie(object):
             prefixes.append(environ['ESPRESSO_PSEUDO'])
         prefixes.append(expanduser(join('~', 'espresso', 'pseudo')))
         for prefix in prefixes:
-            path = join(getcwd(), pseudo)
-            if exists(path) and isfile(path)
-                return return path
+            path = join(prefix, self.pseudo)
+            if exists(path) and isfile(path):
+                return path
         return None

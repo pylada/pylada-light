@@ -106,9 +106,8 @@ def check_aluminum(espresso):
     assert espresso.system.nat == 1
     assert espresso.system.ntyp == 1
 
-    assert hasattr(espresso, 'atomic_species')
-    assert espresso.atomic_species.subtitle is None
-    assert espresso.atomic_species.value == 'Al  26.98 Al.vbc.UPF'
+    # atomic_species is a a private card, handled entirely by the functional 
+    assert not hasattr(espresso, 'atomic_species')
 
     assert hasattr(espresso, 'atomic_positions')
     assert espresso.atomic_positions.subtitle is None
@@ -130,6 +129,38 @@ def test_read_write_loop(aluminum, tmpdir, espresso):
 def test_bringup(tmpdir, espresso):
     from pylada.crystal.A2BX4 import b5
     structure = b5()
+    # create fake pseudo files: _bring_up checks that the files exist
+    tmpdir.join('pseudos', 'A.upf').ensure(file=True)
+    tmpdir.join('pseudos', 'B.upf').ensure(file=True)
+    tmpdir.join('pseudos', 'X.upf').ensure(file=True)
+
+    espresso.control.pseudo_dir = str(tmpdir.join('pseudos'))
+    espresso.add_specie('A', 'A.upf', mass=1)
+    espresso.add_specie('B', 'B.upf', mass=2)
+    espresso.add_specie('X', 'X.upf', mass=3)
     espresso._bring_up(outdir=str(tmpdir.join('runhere')), structure=structure)
     assert tmpdir.join('runhere', 'pwscf.in').check()
 
+
+def test_atomic_specie(tmpdir, espresso):
+    from pylada.crystal.A2BX4 import b5
+    structure = b5()
+
+    tmpdir.join('pseudos', 'A.upf').ensure(file=True)
+    tmpdir.join('pseudos', 'B.upf').ensure(file=True)
+    tmpdir.join('pseudos', 'X.upf').ensure(file=True)
+
+    espresso.control.pseudo_dir = str(tmpdir.join('pseudos'))
+    espresso.add_specie('A', 'A.upf', mass=1)
+    espresso.add_specie('B', 'B.upf', mass=2)
+    espresso.add_specie('X', 'X.upf', mass=3)
+
+    card = espresso._atomic_species_card(structure)
+    assert card.name == "atomic_species"
+    assert card.subtitle is None
+    lines = card.value.rstrip().lstrip().split('\n')
+    assert len(lines) == 3
+    assert all(len(u.split()) == 3 for u in lines)
+    assert set([u.split()[0] for u in lines]) == {'A', 'B', 'X'}
+    assert set([u.split()[1] for u in lines]) == {'1', '2', '3'}
+    assert set([u.split()[2] for u in lines]) == {'A.upf', 'B.upf', 'X.upf'}

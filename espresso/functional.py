@@ -85,7 +85,6 @@ class Pwscf(HasTraits):
         For instance, atomic_species is handled the species attribute.
     """
 
-
     def __init__(self, **kwargs):
         from . import Namelist
         super(Pwscf, self).__init__(**kwargs)
@@ -98,10 +97,10 @@ class Pwscf(HasTraits):
             pseudo-potential.
         """
 
-    def add_specie(self, name, pseudo):
+    def add_specie(self, name, pseudo, **kwargs):
         """ Adds a specie to the current known species """
         from .specie import Specie
-        self.species[name] = Specie(pseudo)
+        self.species[name] = Specie(pseudo, **kwargs)
 
     def write(self, stream=None, structure=None, **kwargs):
         """ Writes Pwscf input
@@ -133,7 +132,7 @@ class Pwscf(HasTraits):
         f90namelist = namelist.namelist(structure=structure, **kwargs)
         if structure is not None:
             add_structure(structure, f90namelist, cards)
-            atomic_species = self._add_atomic_species(structure, cards)
+            atomic_species = self._atomic_species_card(structure)
             cards = [u for u in cards if u.name != 'atomic_species']
             cards.append(atomic_species)
 
@@ -182,7 +181,7 @@ class Pwscf(HasTraits):
             return self.__cards[name]
         elif hasattr(self.__namelists, name):
             return getattr(self.__namelists, name)
-        return super(Pwscf, self).__getattr__(name)
+        return super(Pwscf, self).__getattribute__(name)
 
     def add_card(self, name, value=None, subtitle=None):
         """ Adds a new card, or sets the value of an existing one """
@@ -215,7 +214,6 @@ class Pwscf(HasTraits):
     def _bring_up(self, structure, outdir, **kwargs):
         """ Prepares for actual run """
         from os.path import join
-        from .specie import Specie
         from ..misc.changedir import Changedir
 
         logger.info('Preparing directory to run Pwscf: %s ' % outdir)
@@ -225,24 +223,23 @@ class Pwscf(HasTraits):
 
     def _atomic_species_card(self, structure):
         """ Creates atomic-species card """
-        from .. import periodic_table
+        from .. import periodic_table, error
+        from .specie import Specie
         from .card import Card
         result = Card('atomic_species', value="")
         # Check peudo-files exist
-        for specie in set([u.type for u in structure]):
-            if specie not in self.species:
-                msg = "No specie defined for %s: no way to get pseudopotential" % specie
+        for specie_name in set([u.type for u in structure]):
+            if specie_name not in self.species:
+                msg = "No specie defined for %s: no way to get pseudopotential" % specie_name
                 raise error.RuntimeError(msg)
-            pseudo = self.species[specie].pseudo
-            if not Specie(pseudo.file_exists(self.control.pseudo_dir)
+            specie = self.species[specie_name]
+            if not Specie(specie.pseudo).file_exists(self.control.pseudo_dir):
                 logger.critical(
-                    "Specie %s: pseudo = %s" % (specie, self.species[specie].pseudo))
-                msg = "No pseudopotential found for %s" % specie)
+                    "Specie %s: pseudo = %s" % (specie_name, specie.pseudo))
+                msg = "No pseudopotential found for %s" % specie_name
                 raise error.RuntimeError(msg)
-            mass = getattr(pseudo, 'mass', None)
+            mass = getattr(specie, 'mass', None)
             if mass is None:
-                mass = getattr(getattr(periodic_table, name, None), 'mass')
-            if mass is None:
-                mass = 1
-            result.value += "%s %s %s\n" % (specie, mass, specie.pseudo)
+                mass = getattr(getattr(periodic_table, specie_name, None), 'mass', 1)
+            result.value += "%s %s %s\n" % (specie_name, mass, specie.pseudo)
         return result
