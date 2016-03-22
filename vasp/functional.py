@@ -872,18 +872,20 @@ class Vasp(AttrBlock):
     def iter(self, structure, outdir=None, comm=None, overwrite=False, **kwargs):
         """ Allows asynchronous vasp calculations
 
-            This is a generator which yields two types of objects: 
+            This is a generator which is equivalent to the following:
 
-               - :py:class:`~pylada.process.program.ProgramProcess`: once started,
-                 this process will run an actual VASP_ calculation.
-               - :py:attr:`Extract`: once the program has been runned, and
-                 extraction object is yielded, in order that the results of the run
-                 can be analyzed. 
+            .. code:: python
 
-            In a new calculation, an instance of each type will be yielded, in the
-            order of their description above. It is expected that program is runned
-            first, using the first object, before looping to the second object. 
-            Thie generator function makes it possible to run different instances of
+                yield Program(program="Vasp", outdir=outdir)
+                yield Extract(outdir=outdir)
+
+            - :py:class:`~pylada.process.program.ProgramProcess`: once started, this process will
+               run an actual VASP_ calculation.
+            - :py:attr:`Extract`: once the program has been runned, and extraction object is
+              yielded, in order that the results of the run can be analyzed.
+
+
+            This generator function makes it possible to run different instances of
             VASP_ simultaneously. It also makes it possible to create more complex
             calculations which necessitate more than one actual call to VASP_ (see
             :py:class:`~pylada.vasp.relax.iter_relax`), while retaining the ability
@@ -899,9 +901,9 @@ class Vasp(AttrBlock):
             you want to understand this looping business. The benefit of this
             approach can be seen in :py:class:`~pylada.vasp.relax.iter_relax` (more
             complex calculations) and
-            :py:class:`pylada.process.jobfolder.JobFolderProcess`. 
+            :py:class:`pylada.process.jobfolder.JobFolderProcess`.
 
-            :param structure:  
+            :param structure:
                 :py:class:`~pylada.crystal.Structure` structure to compute.
             :param outdir:
                 Output directory where the results should be stored.  This
