@@ -24,7 +24,7 @@ from pytest import fixture, mark
 
 @fixture
 def functional():
-    from .dummy import functional
+    from pylada.jobfolder.tests.dummy import functional
     return functional
 
 

@@ -22,6 +22,7 @@
 
 """ Submodule declaring the folder folders class. """
 __docformat__ = "restructuredtext en"
+from . import logger
 
 
 class JobFolder(object):
@@ -75,7 +76,6 @@ class JobFolder(object):
     @functional.setter
     def functional(self, value):
         from pickle import dumps, loads  # ascertains pickle-ability, copies functional
-        from ..jobfolder import logger
 
         if value is not None and not hasattr(value, "__call__"):
             raise ValueError("folder.functional should be either None(no job) or a callable.")
@@ -287,8 +287,6 @@ class JobFolder(object):
 
             >>> return self.functional(**self.params.copy().update(kwargs))
         """
-        from jobfolder import logger
-
         if not self.is_executable:
             return None
         params = self.params.copy()
