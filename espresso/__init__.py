@@ -23,7 +23,7 @@
 # -*- coding: utf-8 -*-
 """ Sub-package containing the espresso functional. """
 __docformat__ = "restructuredtext en"
-__all__ = ['Namelist', 'Card', 'Pwscf']
+__all__ = ['Namelist', 'Card', 'Pwscf', 'read_structure']
 
 from pylada import logger
 logger = logger.getChild('espresso')
@@ -32,3 +32,4 @@ logger = logger.getChild('espresso')
 from .namelists import Namelist
 from .card import Card
 from .functional import Pwscf
+from .structure_handling import read_structure

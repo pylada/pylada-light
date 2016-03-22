@@ -132,7 +132,7 @@ class Pwscf(HasTraits):
         f90namelist = namelist.namelist(structure=structure, **kwargs)
         if structure is not None:
             add_structure(structure, f90namelist, cards)
-            atomic_species = self._atomic_species_card(structure)
+            atomic_species = self._write_atomic_species_card(structure)
             cards = [u for u in cards if u.name != 'atomic_species']
             cards.append(atomic_species)
 
@@ -171,7 +171,10 @@ class Pwscf(HasTraits):
                 getattr(self, card.name).subtitle = card.subtitle
                 getattr(self, card.name).value = card.value
             elif card.name in self.__private_cards:
-                logger.debug('%s is handled internally' % card.name)
+                if hasattr(self, '_read_%s_card' % card.name):
+                    getattr(self, '_read_%s_card' % card.name)(card)
+                else:
+                    logger.debug('%s is handled internally' % card.name)
             else:
                 self.__cards[card.name] = card
 
@@ -221,8 +224,9 @@ class Pwscf(HasTraits):
         with Changedir(outdir) as tmpdir:
             self.write(structure=structure, stream=join(tmpdir, "pwscf.in"), **kwargs)
 
-    def _atomic_species_card(self, structure):
+    def _write_atomic_species_card(self, structure):
         """ Creates atomic-species card """
+        from quantities import atomic_mass_unit
         from .. import periodic_table, error
         from .specie import Specie
         from .card import Card
@@ -241,5 +245,17 @@ class Pwscf(HasTraits):
             mass = getattr(specie, 'mass', None)
             if mass is None:
                 mass = getattr(getattr(periodic_table, specie_name, None), 'mass', 1)
+            if hasattr(mass, 'rescale'):
+                mass = float(mass.rescale(atomic_mass_unit))
             result.value += "%s %s %s\n" % (specie_name, mass, specie.pseudo)
         return result
+
+    def _read_atomic_species_card(self, card):
+        """ Adds atomic specie info to species dictionary """
+        for line in card.value.rstrip().lstrip().split('\n'):
+            name, mass, pseudo = line.split()
+            if name in self.species:
+                self.species[name].pseudo = pseudo
+                self.species[name].mass = float(mass)
+            else:
+                self.add_specie(name, pseudo, mass=float(mass))

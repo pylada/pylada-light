@@ -22,15 +22,20 @@
 
 """ Defines specie specific methods and objects. """
 __docformat__ = "restructuredtext en"
+from quantities import atomic_mass_unit
+from traitlets import HasTraits
+from .trait_types import DimensionalTrait
 
 
-class Specie(object):
+class Specie(HasTraits):
     """ Holds atomic specie information.
 
         Instances of this object define an atomic specie for Espresso calculations.
         In addition, it may contain element-related information used to build a
         set of high-throughput jobs.
     """
+    mass = DimensionalTrait(atomic_mass_unit, default_value=1, allow_none=False,
+                            help="Atomic mass of the element")
 
     def __init__(self, pseudo, **kwargs):
         """ Initializes a specie.
