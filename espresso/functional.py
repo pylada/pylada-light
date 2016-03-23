@@ -388,9 +388,9 @@ class Pwscf(HasTraits):
                 remove('.pylada_is_running')
 
     @classmethod
-    def Extract(outdir):
+    def Extract(class_, outdir):
         from collections import namedtuple
-        return namedtuple('Extract', ['success'])(true)
+        return namedtuple('Extract', ['success'])(False)
 
     def __repr__(self):
         from itertools import chain
@@ -409,3 +409,31 @@ class Pwscf(HasTraits):
                 result += value.printattr("pwscf." + name)
 
         return result
+
+    def __call__(self, structure, outdir=None, comm=None, overwrite=False, **kwargs):
+        """ Blocking call to pwscf
+
+            :returns: An extraction object of type :py:attr:`Extract`.
+        """
+        from .. import error
+        for program in self.iter(
+                structure, outdir=outdir, comm=comm, overwrite=overwrite, **kwargs):
+            # iterator may yield the result from a prior successful run.
+            if getattr(program, 'success', False):
+                continue
+            # If the following is True, then the program failed to run correctly.
+            if not hasattr(program, 'start'):
+                break
+            # otherwise, it should yield a Program process to execute.
+            # This next line starts the asynchronous call to the external VASP
+            # program.
+            program.start(comm)
+
+            # This next lines waits until the VASP program is finished.
+            program.wait()
+
+        # Last yield should be an extraction object.
+        if not program.success:
+            raise error.RuntimeError("Pwscf failed to execute correctly.")
+
+        return program
