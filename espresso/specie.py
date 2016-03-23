@@ -37,7 +37,7 @@ class Specie(HasTraits):
     mass = DimensionalTrait(atomic_mass_unit, default_value=1, allow_none=False,
                             help="Atomic mass of the element")
 
-    def __init__(self, pseudo, **kwargs):
+    def __init__(self, name, pseudo, **kwargs):
         """ Initializes a specie.
 
             :param pseudo:
@@ -45,7 +45,10 @@ class Specie(HasTraits):
             :param kwargs:
                 Any other keyworkd argument is added as an attribute of this object.
         """
+        self.name = name
+        """ Name of the specie associated with the pseudo """
         self.pseudo = pseudo
+        """ Name of the file associated with the pseudo """
         # sets up other arguments.
         for k, v in kwargs.items():
             setattr(self, k, v)

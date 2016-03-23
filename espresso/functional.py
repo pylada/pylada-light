@@ -118,7 +118,7 @@ class Pwscf(HasTraits):
     def add_specie(self, name, pseudo, **kwargs):
         """ Adds a specie to the current known species """
         from .specie import Specie
-        self.species[name] = Specie(pseudo, **kwargs)
+        self.species[name] = Specie(name, pseudo, **kwargs)
 
     def write(self, stream=None, structure=None, **kwargs):
         """ Writes Pwscf input
