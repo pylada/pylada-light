@@ -205,3 +205,17 @@ def test_iteration(tmpdir, aluminum, espresso):
     extract = next(iterator)
     assert isinstance(extract, Extract)
     assert extract.success
+
+
+def test_add_namelist(espresso):
+    espresso.add_namelist("nml", wtd=2)
+    assert hasattr(espresso, 'nml')
+    assert getattr(espresso.nml, 'wtd', 3) == 2
+
+
+def test_add_existing_namelist(espresso):
+    espresso.electrons.cat = 2
+    espresso.add_namelist("electrons", wtd=2)
+    assert hasattr(espresso, 'electrons')
+    assert not hasattr(espresso.electrons, 'cat')
+    assert getattr(espresso.electrons, 'wtd', 3) == 2

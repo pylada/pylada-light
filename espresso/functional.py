@@ -210,19 +210,19 @@ class Pwscf(HasTraits):
         card.subtitle = subtitle
         card.value = value
 
-    def add_namelist(self, name, dictionary=None):
+    def add_namelist(self, name, **kwargs):
         """ Adds a new namelist, or sets the value of an existing one """
-        from .namelist import Namelist
+        from .namelists import Namelist
         if isinstance(getattr(self, name, None), Namelist):
             namelist = getattr(self, name)
             namelist.clear()
         else:
             logger.info("%s: Adding new namelist %s", self.__class__.__name__, name)
             namelist = Namelist()
-            self.__namelists[name] = namelist
-        if dictionary is not None:
-            for key, value in dictionary.items():
-                setattr(namelist, key, value)
+            setattr(self.__namelists, name, namelist)
+
+        for key, value in kwargs.items():
+            setattr(namelist, key, value)
 
     @stateless
     @assign_attributes(ignore=['overwrite', 'comm'])
@@ -403,7 +403,15 @@ class Pwscf(HasTraits):
             if k[0] != '_':
                 result += "pwscf.%s = %s\n" % (k, repr(v))
 
-        for name in chain(self.__namelists.names(), self.trait_names()):
+        for name in self.__namelists.names():
+            result += "pwscf.add_namelist(%s" % name
+            value = getattr(self, name)
+            for k in value.names():
+                v = getattr(value, k)
+                result += ", %s=%s" % (k, repr(v))
+            result += ")"
+
+        for name in self.trait_names():
             value = getattr(self, name)
             if hasattr(value, 'printattr'):
                 result += value.printattr("pwscf." + name)
