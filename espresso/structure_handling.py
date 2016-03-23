@@ -190,12 +190,14 @@ def add_structure(structure, f90namelist, cards):
     from quantities import bohr_radius
     if 'system' not in f90namelist:
         f90namelist['system'] = F90Namelist()
-    for key in ['a', 'b', 'c', 'cosab', 'cosac', 'cosbc', 'celldm']:
+    for key in ['a', 'b', 'c', 'cosab', 'cosac', 'cosbc', 'celldm', 'nat', 'ntyp']:
         f90namelist['system'].pop(key, None)
         f90namelist['system'].pop(key.upper(), None)
 
     f90namelist['system']['ibrav'] = 0
     f90namelist['system']['celldm'] = float(structure.scale.rescale(bohr_radius))
+    f90namelist['system']['nat'] = len(structure)
+    f90namelist['system']['ntyp'] = len(set([u.type for u in structure]))
 
     card_dict = {card.name: card for card in cards}
     if 'cell' not in card_dict:
