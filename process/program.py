@@ -148,44 +148,44 @@ class ProgramProcess(Process):
             raise ValueError('cmdlmodifier should None or a callable')
         self.cmdlmodifier = cmdlmodifier
         """ A function to modify command-line parameters.
-    
-        This function is only invoked for mpirun programs.
-        It can be used to, say, make sure a program is launched only with an
-        even number of processes. It should add 'placement' to the dictionary.
-    """
+
+            This function is only invoked for mpirun programs.
+            It can be used to, say, make sure a program is launched only with an
+            even number of processes. It should add 'placement' to the dictionary.
+        """
         self._modcomm = None
         """ An optional modified communicator. 
 
-        Holds communicator optionally returned by commandline communicator.
-    """
+            Holds communicator optionally returned by commandline communicator.
+        """
         self.onfinish = onfinish
         """ Callback when the processes finishes. 
 
-        Called even on error. Should take two arguments:
-        
-          - process: holds this instance
-          - error: True if an error occured.
+            Called even on error. Should take two arguments:
 
-        It is called before the :py:meth:`_cleanup` method. In other words, the
-        process is passed as it is when the error is found.
-    """
+              - process: holds this instance
+              - error: True if an error occured.
+
+            It is called before the :py:meth:`_cleanup` method. In other words, the
+            process is passed as it is when the error is found.
+        """
         self.onfail = onfail
         """ Called if program fails. 
 
-        Some program, such as CRYSTAL, return error codes when unconverged.
-        However, does not necessarily mean the program failed to run. This
-        function is called when a failure occurs, to make sure it is real or
-        not. It should raise Fail if an error has occurred and return normally
-        otherwise.
-    """
+            Some program, such as CRYSTAL, return error codes when unconverged.
+            However, does not necessarily mean the program failed to run. This
+            function is called when a failure occurs, to make sure it is real or
+            not. It should raise Fail if an error has occurred and return normally
+            otherwise.
+        """
 
         self._onexit_id = None
         """ Id of the callback for cleaning up left-over jobs when python exits.
 
-        This job may be killed prior by, say, the resources manager, before it
-        actually ends. We may want to keep track of it to make sure the process
-        is killed.
-    """
+            This job may be killed prior by, say, the resources manager, before it
+            actually ends. We may want to keep track of it to make sure the process
+            is killed.
+        """
 
     def poll(self):
         """ Polls current job.
