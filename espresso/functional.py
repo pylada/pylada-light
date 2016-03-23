@@ -394,3 +394,21 @@ class Pwscf(HasTraits):
     def Extract(outdir):
         from collections import namedtuple
         return namedtuple('Extract', ['success'])(true)
+
+    def __repr__(self):
+        from itertools import chain
+        result = "pwscf = %s()\n" % self.__class__.__name__
+        for k, v in self.__dict__.items():
+            if k[0] != '_':
+                result += "pwscf.%s = %s\n" % (k, repr(v))
+
+        for k, v in self.__cards.items():
+            if k[0] != '_':
+                result += "pwscf.%s = %s\n" % (k, repr(v))
+
+        for name in chain(self.__namelists.names(), self.trait_names()):
+            value = getattr(self, name)
+            if hasattr(value, 'printattr'):
+                result += value.printattr("pwscf." + name)
+
+        return result

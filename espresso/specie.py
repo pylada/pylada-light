@@ -78,3 +78,14 @@ class Specie(HasTraits):
             if exists(path) and isfile(path):
                 return path
         return None
+
+    def __repr__(self):
+        result = "%s('%s', '%s'" % (self.__class__.__name__, self.name, self.pseudo)
+        attrs = ", ".join([
+            "%s=%s" % (k, repr(v)) for k, v in self.__dict__.items()
+            if k[0] != '_' and k not in ['name', 'pseudo']
+        ])
+        if len(attrs) > 0:
+            result += ", " + attrs
+        return result + ")"
+

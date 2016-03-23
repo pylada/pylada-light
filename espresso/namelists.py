@@ -160,3 +160,18 @@ class Namelist(HasTraits):
         """ All names of attributes that end up in the namelist """
         from itertools import chain
         yield from chain(self.__inputs, self.trait_names())
+
+    def __repr__(self):
+        result = "%s(" % self.__class__.__name__
+        for k in self.names():
+            if k[0] != '_':
+                result += ", %s=%s" % (k, repr(getattr(self, k)))
+        return result + ")"
+
+    def printattr(self, name='nml'):
+        result = ""
+        for k in self.names():
+            value = getattr(self, k)
+            if k[0] != '_' and value is not None:
+                result += "%s.%s=%s\n" % (name, k, repr(value))
+        return result
