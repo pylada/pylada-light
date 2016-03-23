@@ -224,7 +224,6 @@ class Pwscf(HasTraits):
             for key, value in dictionary.items():
                 setattr(namelist, key, value)
 
-
     @stateless
     @assign_attributes(ignore=['overwrite', 'comm'])
     def iter(self, structure, outdir=None, comm=None, overwrite=False, **kwargs):
@@ -315,7 +314,6 @@ class Pwscf(HasTraits):
         # yields final extraction object.
         yield self.Extract(outdir)
 
-
     def pseudos_do_exist(self, structure, verbose=False):
         """ True if it all pseudos exist
 
@@ -328,13 +326,12 @@ class Pwscf(HasTraits):
                 msg = "No specie defined for %s: no way to get pseudopotential" % specie_name
                 raise error.KeyError(msg)
             specie = self.species[specie_name]
-            if not Specie(specie.pseudo).file_exists(self.control.pseudo_dir):
+            if not Specie(specie_name, specie.pseudo).file_exists(self.control.pseudo_dir):
                 if verbose:
                     logger.critical(
                         "Specie %s: pseudo = %s" % (specie_name, specie.pseudo))
                 return False
         return True
-
 
     def _bring_up(self, structure, outdir, **kwargs):
         """ Prepares for actual run """
