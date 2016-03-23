@@ -29,8 +29,8 @@ def aluminum(tmpdir):
     """ Creates input for aluminum """
     tmpdir.join('al.scf').write("""
         &control
-           prefix='al'
-           outdir='temporary directory for large files'
+           prefix='al',
+           outdir='%s',
            pseudo_dir = '%s',
         /
         &system
@@ -46,7 +46,7 @@ def aluminum(tmpdir):
         Al 0.00 0.00 0.00 
        K_POINTS automatic
          6 6 6 1 1 1
-    """ % tmpdir.join('pseudos'))
+    """ % (tmpdir, tmpdir.join('pseudos')))
     return str(tmpdir.join('al.scf'))
 
 
@@ -103,7 +103,7 @@ def check_aluminum_functional(tmpdir, espresso):
     from quantities import atomic_mass_unit
     from numpy import allclose
     assert espresso.control.prefix == 'al'
-    assert espresso.control.outdir == 'temporary directory for large files'
+    assert espresso.control.outdir == str(tmpdir)
     assert espresso.control.pseudo_dir == str(tmpdir.join('pseudos'))
 
     # atomic_species is a a private card, handled entirely by the functional 
@@ -180,3 +180,28 @@ def test_atomic_specie(tmpdir, espresso):
     assert set([u.split()[0] for u in lines]) == {'A', 'B', 'X'}
     assert set([int(float(u.split()[1])) for u in lines]) == {1, 2, 3}
     assert set([u.split()[2] for u in lines]) == {'A.upf', 'B.upf', 'X.upf'}
+
+
+def test_iteration(tmpdir, aluminum, espresso):
+    """ Checks iterations goes through the expected steps """
+    from pylada import logger
+    logger.setLevel(10)
+    from sys import executable as python
+    from os.path import dirname, join
+    from pylada.espresso import read_structure
+    from pylada.espresso.tests.extract import Extract
+    structure = read_structure(aluminum)
+    espresso.read(aluminum)
+    espresso.program = python + " " + join(dirname(__file__), 'dummy_pwscf.py')
+    espresso.Extract = Extract
+    tmpdir.join('pseudos', 'Al.vbc.UPF').ensure(file=True)
+    iterator = espresso.iter(outdir=str(tmpdir), overwrite=True, structure=structure)
+    program_process = next(iterator)
+    assert hasattr(program_process, 'start')
+    assert hasattr(program_process, 'wait')
+    program_process.start()
+    result = program_process.wait()
+    assert tmpdir.join('stdout').check()
+    extract = next(iterator)
+    assert isinstance(extract, Extract)
+    assert extract.success

@@ -291,10 +291,7 @@ class ProgramProcess(Process):
             formatter = {}
             cmdl = ' '.join(str(u) for u in self.cmdline)
             formatter['program'] = '{0} {1}'.format(program, cmdl)
-            logger.debug("process.program: next: formatter: %s" % formatter)
-            logger.debug("process.program: next: self.cmdline: %s" % self.cmdline)
             logger.debug("process.program: next: cmdl: \"%s\"" % cmdl)
-            logger.debug("process.program: next: formatter[pgm]: \"%s\"" % formatter['program'])
 
             # gives opportunity to modify the communicator before launching a
             # particular program.
@@ -302,26 +299,14 @@ class ProgramProcess(Process):
                 self._modcomm = self.cmdlmodifier(formatter, self._comm)
                 if self._modcomm is self._comm:
                     self._modcomm = None
-            logger.debug("process.program: next: self._comm: %s" % self._comm)
-            logger.debug("process.program: next: self._modcomm: %s" % self._modcomm)
             comm = self._comm if self._modcomm is None else self._modcomm
             cmdline = mpirun_exe
-            logger.debug("process.program: next: cmdline: \"%s\"" % cmdline)
-            logger.debug("process.program: next: comm: %s" % comm)
         else:
             cmdl = ' '.join(str(u) for u in self.cmdline)
             cmdline = '{0} {1}'.format(program, cmdl)
             comm = None
             formatter = None
-            logger.debug("process.program: next: no mpi: cmdl: \"%s\"" % cmdl)
             logger.debug("process.program: next: no mpi: cmdline: \"%s\"" % cmdline)
-            logger.debug("process.program: next: no mpi: comm: %s" % comm)
-        logger.debug("process.program: cmdline: %s" % cmdline)
-        logger.debug("process.program: comm: %s" % comm)
-        logger.debug("process.program: formatter: %s" % formatter)
-        logger.debug("process.program: file_out: %s" % file_out)
-        logger.debug("process.program: file_err: %s" % file_err)
-        logger.debug("process.program: file_in: %s" % file_in)
         logger.debug("process.program: self.outdir: %s" % self.outdir)
 
         self.process = launch(cmdline, comm=comm, formatter=formatter,

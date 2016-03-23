@@ -24,4 +24,4 @@
 #  with PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-add_python_module("pylada.config" general.py  mpi.py  vasp.py ipython.py logging.py)
+add_python_module("pylada.config" general.py mpi.py vasp.py ipython.py logging.py espresso.py)

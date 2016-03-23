@@ -104,12 +104,16 @@ def read_cell_and_scale(system, cell_parameters):
 
 
 def _get_scale(system):
+    from collections import Sequence
     from quantities import bohr_radius, angstrom
     celldm = getattr(system, 'celldm', None)
     if celldm == 'A':
         return angstrom
-    elif celldm is not None and len(celldm) > 0:
-        return celldm[0] * bohr_radius
+    elif celldm is not None:
+        if not isinstance(celldm, Sequence):
+            return celldm * bohr_radius
+        elif len(celldm) > 0:
+            return celldm[0] * bohr_radius
     elif hasattr(system, 'A'):
         return system.a * angstrom
     return bohr_radius
@@ -191,7 +195,7 @@ def add_structure(structure, f90namelist, cards):
         f90namelist['system'].pop(key.upper(), None)
 
     f90namelist['system']['ibrav'] = 0
-    f90namelist['system']['celldim'] = float(structure.scale.rescale(bohr_radius))
+    f90namelist['system']['celldm'] = float(structure.scale.rescale(bohr_radius))
 
     card_dict = {card.name: card for card in cards}
     if 'cell' not in card_dict:

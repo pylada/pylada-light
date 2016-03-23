@@ -165,7 +165,6 @@ def test_write_read_loop(tmpdir, pwscfin):
     namelist = F90Namelist()
     cards = []
     add_structure(structure, namelist, cards)
-    print(namelist)
     write_pwscf_input(namelist, cards, str(tmpdir.join('other.in')))
     reread = read_structure(str(tmpdir.join('other.in')))
 

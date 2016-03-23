@@ -26,7 +26,7 @@
 
 if(tests)
     add_pytest(
-        GLOB test_*.py
+        GLOB test_*.py dummy_pwscf.py extract.py
         INSTALL PREFIX "pylada.espresso"
         LABELS espresso
     )
