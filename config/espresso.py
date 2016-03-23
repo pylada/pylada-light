@@ -1,2 +1,2 @@
-pwscf_program = None
+pwscf_program = 'pw.x'
 """ Path to pwscf program """
