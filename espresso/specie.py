@@ -88,4 +88,3 @@ class Specie(HasTraits):
         if len(attrs) > 0:
             result += ", " + attrs
         return result + ")"
-

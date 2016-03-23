@@ -834,8 +834,7 @@ class Vasp(AttrBlock):
             if hasattr(self, key):
                 setattr(self, key, value)
 
-    def __call__(self, structure, outdir=None, comm=None, overwrite=False,
-                 **kwargs):
+    def __call__(self, structure, outdir=None, comm=None, overwrite=False, **kwargs):
         """ Calls vasp program and waits until completion.
 
             This function makes a blocking call to the VASP_ external program. It
