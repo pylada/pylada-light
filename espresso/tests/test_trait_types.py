@@ -52,6 +52,14 @@ def test_dimensional_can_set_dimensional_value(dimensional):
     assert all(abs(dimensional.dimensional - 5 * bohr_radius) < 1e-8)
 
 
+def test_dimensional_with_none():
+    class Dimensional(HasTraits):
+        dimensional = DimensionalTrait(angstrom, allow_none=True, default_value=None)
+
+    a = Dimensional()
+    assert a.dimensional is None
+
+
 @mark.parametrize('value, expected', [
     (5 * bohr_radius, 5 * bohr_radius),
     (5, 5 * angstrom),

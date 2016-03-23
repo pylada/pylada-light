@@ -52,8 +52,10 @@ class DimensionalTrait(TraitType):
     def validate(self, obj, value):
         if hasattr(value, 'rescale'):
             return value.rescale(self.units)
-        else:
+        elif value is not None:
             return value * self.units
+        else:
+            return value
 
 
 class LowerCaseUnicode(Unicode):

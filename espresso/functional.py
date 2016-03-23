@@ -25,8 +25,8 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['Pwscf']
 from ..espresso import logger
-from quantities import bohr_radius
-from traitlets import HasTraits, CaselessStrEnum, Unicode, Integer, Instance
+from quantities import bohr_radius, second, Ry
+from traitlets import HasTraits, CaselessStrEnum, Unicode, Integer, Instance, Bool, Enum, Float
 from ..tools import stateless, assign_attributes
 from .namelists import input_transform
 from .trait_types import DimensionalTrait
@@ -51,12 +51,28 @@ def alias(method):
 class Control(Namelist):
     """ Control namelist """
     calculation = CaselessStrEnum(['scf', 'nscf', 'bands', 'relax', 'md', 'vc-relax', 'vc-md'],
-                                  'scf', allow_none=False, help="Task to be performed")
+                                  default_value='scf', allow_none=False, help="Task to be performed")
     title = Unicode(None, allow_none=True, help="Title of the calculation")
     verbosity = CaselessStrEnum(['high', 'low'], 'low', allow_none=False,
                                 help="How much talk from Pwscf")
     prefix = Unicode(None, allow_none=True, help="Prefix for output files")
     pseudo_dir = Unicode(None, allow_none=True, help="Directory with pseudo-potential files")
+    wf_collect = Bool(allow_none=True, default_value=None,
+                      help="If true, saves wavefunctions to readable files")
+    nstep = Integer(allow_none=True, default_value=None, min=0,
+                    help="Number of ionic + electronic steps")
+    iprint = Integer(allow_none=True, default_value=None, min=0,
+                     help="Bands are printed every n steps")
+    tstress = Bool(allow_none=True, default_value=None, help="Whether to compute stress")
+    tprnfor = Bool(allow_none=True, default_value=None, help="Whether to compute forces")
+    max_seconds = DimensionalTrait(second, allow_none=True,
+                                   default_value=None, help="Jobs stops after n seconds")
+    etot_conv_thr = Float(allow_none=True, default_value=None,
+                          help="Convergence criteria for total energy")
+    force_conv_thr = Float(allow_none=True, default_value=None,
+                           help="Convergence criteria for forces")
+    disk_io = Enum(['high', 'medium', 'low', 'none'], default_value=None,
+                   allow_none=True, help="Amount of disk IO")
 
     @input_transform
     def _set_outdir(self, dictionary, **kwargs):
@@ -66,10 +82,38 @@ class Control(Namelist):
             return
         dictionary['outdir'] = expanduser(expandvars(kwargs['outdir']))
 
+    @input_transform
+    def _set_max_seconds(self, dictionary, **kwargs):
+        value = dictionary.get('max_seconds', None)
+        if hasattr(value, 'rescale'):
+            dictionary['max_seconds'] = float(value.rescale(second))
+
 
 class System(Namelist):
     """ System namelist """
     nbnd = Integer(default_value=None, allow_none=True, help="Number of bands")
+    tot_charge = Float(default_value=None, allow_none=True, help="Total charge of the system")
+    tot_magnetization = Float(default_value=None, allow_none=True, help="Total magnetization")
+    ecutwfc = DimensionalTrait(Ry, allow_none=True, default_value=None,
+                               help="Kinetic energy cutoff for wavefunctions")
+    ecutrho = DimensionalTrait(Ry, allow_none=True, default_value=None,
+                               help="Kinetic energy cutoff for charge density")
+    ecutfock = DimensionalTrait(Ry, allow_none=True, default_value=None,
+                                help="Kinetic energy cutoff for the exact exchange operator")
+    occupations = Enum(['smearing', 'tetrahedra', 'fixed', 'from_input'], allow_none=True,
+                       default_value=None, help="Occupation scheme")
+    smearing = Enum(['gaussian', 'gauss', 'methfessel-paxton', 'm-p', 'mp', 'marzari-vanderbilt',
+                     'm-z', 'mz', 'fermi-dirac', 'f-d', 'fd'], allow_none=True,
+                    default_value=None, help="Smearing function")
+    degauss = DimensionalTrait(Ry, allow_none=True, default_value=None,
+                               help="Typical energy associated with smearing")
+
+    @input_transform
+    def _set_rydberg_traits(self, dictionary, **kwargs):
+        for name in ['degauss', 'ecutfock', 'ecutwfc', 'ecutrho']:
+            value = dictionary.get(name, None)
+            if hasattr(value, 'rescale'):
+                dictionary[name] = float(value.rescale(Ry))
 
 
 class Electrons(Namelist):
@@ -77,6 +121,22 @@ class Electrons(Namelist):
     electron_maxstep = Integer(default_value=None, allow_none=True,
                                help="Maximum number of scf iterations")
     itermax = alias(electron_maxstep)
+    conv_thr = Float(allow_none=True, default_value=None,
+                     help="Convergence criteria for self consistency")
+    mixing_ndim = Integer(allow_none=True, default_value=None, min=0,
+                          help="Number of iterations used in mixing")
+    mixing_mode = Enum(['plain', 'TF', 'local-TF'], allow_none=True, default_value=None,
+                       help="Mixing mode")
+    mixing_beta = Float(allow_none=True, default_value=None, help="Mixing factor")
+    diagonalization = Enum(['david', 'cg', 'cg-serial'], allow_none=True, default_value=None,
+                           help="Diagonalization method")
+    diago_cg_max_iter = Integer(allow_none=True, default_value=None, min=0,
+                                help="Max number of iterations for CG diagonalization")
+    diago_david_ndim = Integer(allow_none=True, default_value=None, min=2,
+                               help="Dimension of workspace in David diagonalization")
+    diago_full_acc = Bool(allow_none=True, default_value=None,
+                          help="Whether to diagonalize empty-states at the same level"
+                          "as occupied states")
 
 
 class Pwscf(HasTraits):

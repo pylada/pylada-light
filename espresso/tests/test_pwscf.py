@@ -84,10 +84,10 @@ def test_can_set_attributes(espresso):
 
 
 def test_can_add_namelist_attributes(espresso):
-    assert not hasattr(espresso.system, 'tot_charge')
-    assert 'tot_charge' not in espresso.system.namelist()
-    espresso.system.tot_charge = 1
-    assert 'tot_charge' in espresso.system.namelist()
+    assert not hasattr(espresso.system, 'toot_charge')
+    assert 'toot_charge' not in espresso.system.namelist()
+    espresso.system.toot_charge = 1
+    assert 'toot_charge' in espresso.system.namelist()
 
 
 def test_read_aluminum(tmpdir, aluminum):
