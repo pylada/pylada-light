@@ -51,9 +51,9 @@ def alias(method):
 class Control(Namelist):
     """ Control namelist """
     calculation = CaselessStrEnum(['scf', 'nscf', 'bands', 'relax', 'md', 'vc-relax', 'vc-md'],
-                                  default_value='scf', allow_none=False, help="Task to be performed")
+                                  default_value=None, allow_none=True, help="Task to be performed")
     title = Unicode(None, allow_none=True, help="Title of the calculation")
-    verbosity = CaselessStrEnum(['high', 'low'], 'low', allow_none=False,
+    verbosity = CaselessStrEnum(['high', 'low'], None, allow_none=True,
                                 help="How much talk from Pwscf")
     prefix = Unicode(None, allow_none=True, help="Prefix for output files")
     pseudo_dir = Unicode(None, allow_none=True, help="Directory with pseudo-potential files")
@@ -453,11 +453,22 @@ class Pwscf(HasTraits):
         return namedtuple('Extract', ['success'])(False)
 
     def __repr__(self):
+        from numpy import abs
+        from quantities import atomic_mass_unit
         from itertools import chain
         result = "pwscf = %s()\n" % self.__class__.__name__
         for k, v in self.__dict__.items():
-            if k[0] != '_':
+            if k[0] != '_' and k != 'species':
                 result += "pwscf.%s = %s\n" % (k, repr(v))
+
+        for name, value in self.species.items():
+            result += "pwscf.add_specie('%s', '%s'" % (name, value.pseudo)
+            if abs(value.mass - atomic_mass_unit) > 1e-12:
+                result += ", mass=%s" % float(value.mass.rescale(atomic_mass_unit))
+            for k, v in value.__dict__.items():
+                if k[0] != '_' and k not in ['name', 'pseudo']:
+                    result += ", %s=%s" % (k, repr(v))
+            result += ")\n"
 
         for k, v in self.__cards.items():
             if k[0] != '_':

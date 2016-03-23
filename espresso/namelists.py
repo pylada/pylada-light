@@ -163,10 +163,13 @@ class Namelist(HasTraits):
 
     def __repr__(self):
         result = "%s(" % self.__class__.__name__
+        attrs = ""
         for k in self.names():
-            if k[0] != '_':
-                result += ", %s=%s" % (k, repr(getattr(self, k)))
-        return result + ")"
+            value = getattr(self, k)
+            if k[0] != '_' and value is not None:
+                attrs += ", %s=%s" % (k, repr(value))
+
+        return result + attrs[2:] + ")"
 
     def printattr(self, name='nml'):
         result = ""
