@@ -56,9 +56,9 @@ def espresso():
 
 
 def test_attributes_default(espresso):
-    assert espresso.control.calculation == 'scf'
+    assert espresso.control.calculation is None
     assert espresso.control.title is None
-    assert espresso.control.verbosity == 'low'
+    assert espresso.control.verbosity is None
     assert espresso.system.nbnd is None
     assert len(espresso.electrons) == 0
     assert espresso.kpoints.name == 'k_points'

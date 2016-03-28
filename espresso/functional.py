@@ -55,7 +55,7 @@ class Control(Namelist):
     title = Unicode(None, allow_none=True, help="Title of the calculation")
     verbosity = CaselessStrEnum(['high', 'low'], None, allow_none=True,
                                 help="How much talk from Pwscf")
-    prefix = Unicode(None, allow_none=True, help="Prefix for output files")
+    prefix = Unicode("pwscf", allow_none=False, help="Prefix for output files")
     pseudo_dir = Unicode(None, allow_none=True, help="Directory with pseudo-potential files")
     wf_collect = Bool(allow_none=True, default_value=None,
                       help="If true, saves wavefunctions to readable files")
@@ -189,6 +189,7 @@ class Pwscf(HasTraits):
             - otherwise, stream is assumed to be a stream of some sort, with a `write` method
         """
         from os.path import expanduser, expandvars, abspath
+        from f90nml import Namelist as F90Namelist
         from .structure_handling import add_structure
         from .. import error
         from .misc import write_pwscf_input
@@ -368,8 +369,10 @@ class Pwscf(HasTraits):
         def onfinish(process, error):
             self._bring_down(outdir, structure)
 
+        stdout = self.control.prefix + ".out"
+        stderr = self.control.prefix + ".err"
         yield ProgramProcess(program, cmdline=cmdline, outdir=outdir, onfinish=onfinish,
-                             stdin='pwscf.in', stdout='stdout', stderr='stderr',
+                             stdin='pwscf.in', stdout=stdout, stderr=stderr,
                              dompi=comm is not None)
         # yields final extraction object.
         yield self.Extract(outdir)
