@@ -219,7 +219,7 @@ def prep_symlink(outdir, workdir, filename=None):
     if samefile(outdir, workdir):
         return
     if filename is None:
-        with Changedir(workdir) as cwd:
+        with Changedir(workdir):
             if lexists('workdir'):
                 try:
                     remove('workdir')
@@ -231,7 +231,7 @@ def prep_symlink(outdir, workdir, filename=None):
                 pass
         return
 
-    with Changedir(workdir) as cwd:
+    with Changedir(workdir):
         if lexists(filename):
             try:
                 remove(filename)
