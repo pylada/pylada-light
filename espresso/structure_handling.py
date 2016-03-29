@@ -23,7 +23,7 @@
 # -*- coding: utf-8 -*-
 """ Reads and writes structure to and from espresso input """
 __docformat__ = "restructuredtext en"
-__all__ = ['read_structure', 'write_structure']
+__all__ = ['read_structure', 'add_structure']
 
 from pylada import logger
 logger = logger.getChild('espresso')
@@ -33,8 +33,7 @@ logger = logger.getChild('espresso')
 def read_structure(filename):
     """ Reads crystal structure from Espresso input """
     from numpy import dot, array
-    from io import StringIO
-    from os.path import expanduser, expandvars, abspath
+    from quantities import bohr_radius, angstrom
     from ..crystal import Structure
     from .. import error
     from . import Namelist
@@ -122,7 +121,7 @@ def _get_scale(system):
 def _get_params(system):
     """ Returns celldim(2-6), whatever the input may be """
     from numpy import zeros
-    from quantities import bohr_radius, angstrom
+    from quantities import angstrom
     result = zeros(5, dtype='float64')
     celldim = getattr(system, 'celldm', None)
     if celldim is not None:
@@ -141,7 +140,6 @@ def _read_free(system, cell_parameters):
     """ Read free cell """
     from numpy import array
     from quantities import bohr_radius, angstrom
-    celldm = getattr(system, 'celldm', None)
     scale = _get_scale(system)
     if cell_parameters.subtitle is not None:
         if cell_parameters.subtitle == 'bohr':
@@ -154,7 +152,6 @@ def _read_free(system, cell_parameters):
 
 
 def _read_hexa(system):
-    from quantities import angstrom
     from numpy import sqrt, array
     scale = _get_scale(system)
     c_over_a = _get_params(system)[1]
@@ -163,7 +160,6 @@ def _read_hexa(system):
 
 
 def _read_trig(system):
-    from quantities import angstrom
     from numpy import sqrt, array
     scale = _get_scale(system)
     c = _get_params(system)[2]
@@ -173,11 +169,10 @@ def _read_trig(system):
 
 
 def _read_mtrig(system):
-    from quantities import angstrom
     from numpy import sqrt, array
     scale = _get_scale(system)
     c = _get_params(system)[2]
-    tx, ty, tz = sqrt((1. - c) / 2.), sqrt((1. - c) / 6.), sqrt((1 + 2 * c) / 3.)
+    ty, tz = sqrt((1. - c) / 6.), sqrt((1 + 2 * c) / 3.)
     u, v = tz - 2 * sqrt(2) * ty,  tz + sqrt(2) * ty
     cell = array([[u, v, v], [v, u, v], [v, v, u]], dtype='float64')
     return cell.transpose(), scale / sqrt(3.)
