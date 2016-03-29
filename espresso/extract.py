@@ -23,6 +23,7 @@
 # -*- coding: utf-8 -*-
 """ Pwscf Extraction """
 from ..espresso import logger
+from ..tools import make_cached
 logger = logger.getChild('extract')
 
 
@@ -71,6 +72,18 @@ class Extract(object):
             return self.__grep_pwscf_out(b"JOB DONE.") is not None
         except:
             return False
+
+    @property
+    @make_cached
+    def functional(self):
+        """ Functional used in calculation """
+        from .functional import Pwscf
+        path = self.abspath.join("%s.in" % self.prefix)
+        if not path.check(file=True):
+            raise IOError("Could not find input file %s" % path)
+        pwscf = Pwscf()
+        pwscf.read(str(path))
+        return pwscf
 
     def __directory_hook__(self):
         """ Called whenever the directory changes. """

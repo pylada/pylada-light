@@ -24,6 +24,8 @@
 """ Pwscf Extraction Tests """
 from py.test import fixture, mark
 from pylada.espresso.extract import Extract
+import pylada.espresso.tests.fixtures
+aluminum_pwscf = fixture(pylada.espresso.tests.fixtures.aluminum_pwscf)
 
 
 @fixture
@@ -71,3 +73,11 @@ def test_success(tmpdir, prefix):
 
     path.write("JOB DONE.")
     assert extract.success
+
+
+def test_functional(nonscf, aluminum_pwscf):
+    from numpy import abs
+    expected = aluminum_pwscf
+    pwscf = nonscf.functional
+    assert abs(pwscf.system.ecutwfc - expected.system.ecutwfc) < 1e-8
+    assert pwscf.system.occupations == expected.system.occupations
