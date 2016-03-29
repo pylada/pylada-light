@@ -71,7 +71,6 @@ def write_pwscf_input(f90namelist, cards, stream=None):
     """
     from f90nml import Namelist as F90Namelist
     from os.path import expanduser, expandvars, abspath
-    from copy import copy
     from io import StringIO
 
     card_order = ['atomic_species', 'atomic_positions', 'k_points', 'cell_parameters',
@@ -97,7 +96,7 @@ def write_pwscf_input(f90namelist, cards, stream=None):
         return -1 if list_.count(item) == 0 else list_.index(item)
 
     # reorders namelists
-    f90namelists = F90Namelist(sorted(
+    f90namelist = F90Namelist(sorted(
         f90namelist.items(),
         key=lambda x: key_order(x[0], namelist_order)
     ))
