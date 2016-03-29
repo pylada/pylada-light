@@ -25,7 +25,7 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['Pwscf']
 from ..espresso import logger
-from quantities import bohr_radius, second, Ry
+from quantities import second, Ry
 from traitlets import HasTraits, CaselessStrEnum, Unicode, Integer, Instance, Bool, Enum, Float
 from ..tools import stateless, assign_attributes
 from .namelists import input_transform
@@ -188,13 +188,10 @@ class Pwscf(HasTraits):
             - if stream is a string, then it should a path to a file
             - otherwise, stream is assumed to be a stream of some sort, with a `write` method
         """
-        from os.path import expanduser, expandvars, abspath
-        from f90nml import Namelist as F90Namelist
         from .structure_handling import add_structure
         from .. import error
         from .misc import write_pwscf_input
         from copy import copy
-        from io import StringIO
 
         namelist = copy(self.__namelists)
         cards = copy(self.__cards)
@@ -220,7 +217,6 @@ class Pwscf(HasTraits):
     def read(self, filename, clear=True):
         """ Read from a file """
         from os.path import expanduser, expandvars, abspath
-        from .trait_types import CardNameTrait
         from .card import read_cards
 
         # read namelists first
@@ -234,7 +230,7 @@ class Pwscf(HasTraits):
 
         filename = abspath(expandvars(expanduser(filename)))
         logger.info("%s: Reading from file %s", self.__class__.__name__, filename)
-        namelist = self.__namelists.read(filename)
+        self.__namelists.read(filename)
 
         traits = set(self.trait_names()).intersection(self.__namelists.names())
         for traitname in traits:
@@ -443,10 +439,9 @@ class Pwscf(HasTraits):
     def _bring_down(self, directory, structure):
         from os.path import exists
         from os import remove
-        from . import files
         from ..misc import Changedir
 
-        with Changedir(directory) as pwd:
+        with Changedir(directory):
             if exists('.pylada_is_running'):
                 remove('.pylada_is_running')
 
@@ -458,7 +453,6 @@ class Pwscf(HasTraits):
     def __repr__(self):
         from numpy import abs
         from quantities import atomic_mass_unit
-        from itertools import chain
         result = "pwscf = %s()\n" % self.__class__.__name__
         for k, v in self.__dict__.items():
             if k[0] != '_' and k != 'species':
