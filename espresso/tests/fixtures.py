@@ -22,8 +22,9 @@
 # -*- coding: utf-8 -*-
 from pytest import fixture
 
+
 @fixture
-def aluminum(tmpdir):
+def aluminum_file(tmpdir):
     """ Creates input for aluminum """
     tmpdir.join('al.scf').write("""
         &control
@@ -46,7 +47,6 @@ def aluminum(tmpdir):
          6 6 6 1 1 1
     """ % (tmpdir, tmpdir.join('pseudos')))
     return str(tmpdir.join('al.scf'))
-
 
 
 def check_aluminum_functional(tmpdir, espresso):
@@ -78,3 +78,25 @@ def check_aluminum_structure(structure):
     assert abs(structure.scale - 7.5 * bohr_radius) < 1e-8
 
 
+@fixture
+def aluminum_pwscf():
+    from pylada.espresso import Pwscf
+    pwscf = Pwscf()
+    pwscf.system.ecutwfc = 12.0
+    pwscf.system.occupations = 'smearing'
+    pwscf.system.smearing = 'marzari-vanderbilt'
+    pwscf.system.degauss = 0.06
+    pwscf.kpoints.subtitle = 'automatic'
+    pwscf.kpoints.value = '6 6 6 1 1 1'
+    pwscf.add_specie('Al', 'Al.pz-vbc.UPF')
+    return pwscf
+
+
+@fixture
+def aluminum_structure():
+    from quantities import bohr_radius
+    from pylada.crystal.bravais import fcc
+    result = fcc()
+    result.scale = 7.5 * bohr_radius
+    result[0].type = 'Al'
+    return result

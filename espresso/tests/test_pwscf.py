@@ -22,9 +22,9 @@
 # -*- coding: utf-8 -*-
 from pytest import fixture
 from pylada.espresso import Pwscf
-from pylada.espresso.tests import check_aluminum_functional, check_aluminum_structure
-import pylada.espresso.tests
-aluminum = pylada.espresso.tests.aluminum
+from pylada.espresso.tests.fixtures import check_aluminum_functional, check_aluminum_structure
+import pylada.espresso.tests.fixtures
+aluminum_file = pylada.espresso.tests.fixtures.aluminum_file
 
 
 @fixture
@@ -67,21 +67,21 @@ def test_can_add_namelist_attributes(espresso):
     assert 'toot_charge' in espresso.system.namelist()
 
 
-def test_read_aluminum(tmpdir, aluminum):
+def test_read_aluminum(tmpdir, aluminum_file):
     from pylada.espresso import read_structure
     espresso = Pwscf()
-    espresso.read(aluminum)
-    structure = read_structure(aluminum)
+    espresso.read(aluminum_file)
+    structure = read_structure(aluminum_file)
     check_aluminum_functional(tmpdir, espresso)
     check_aluminum_structure(structure)
 
 
-def test_read_write_loop(aluminum, tmpdir, espresso):
+def test_read_write_loop(aluminum_file, tmpdir, espresso):
     from pylada.espresso import read_structure
-    espresso.read(aluminum)
+    espresso.read(aluminum_file)
     espresso.control.pseudo_dir = str(tmpdir.join('pseudos'))
     tmpdir.join('pseudos', 'Al.vbc.UPF').ensure(file=True)
-    structure = read_structure(aluminum)
+    structure = read_structure(aluminum_file)
     espresso.write(str(tmpdir.join('al2.scf')), structure=structure)
     espresso = Pwscf()
 
@@ -129,16 +129,14 @@ def test_atomic_specie(tmpdir, espresso):
     assert set([u.split()[2] for u in lines]) == {'A.upf', 'B.upf', 'X.upf'}
 
 
-def test_iteration(tmpdir, aluminum, espresso):
+def test_iteration(tmpdir, aluminum_file, espresso):
     """ Checks iterations goes through the expected steps """
-    from pylada import logger
-    logger.setLevel(10)
     from sys import executable as python
     from os.path import dirname, join
     from pylada.espresso import read_structure
     from pylada.espresso.tests.extract import Extract
-    structure = read_structure(aluminum)
-    espresso.read(aluminum)
+    structure = read_structure(aluminum_file)
+    espresso.read(aluminum_file)
     espresso.program = python + " " + join(dirname(__file__), 'dummy_pwscf.py')
     espresso.Extract = Extract
     tmpdir.join('pseudos', 'Al.vbc.UPF').ensure(file=True)
@@ -148,7 +146,7 @@ def test_iteration(tmpdir, aluminum, espresso):
     assert hasattr(program_process, 'wait')
     program_process.start()
     program_process.wait()
-    assert tmpdir.join('stdout').check()
+    assert tmpdir.join("%s.out" % espresso.control.prefix).check()
     extract = next(iterator)
     assert isinstance(extract, Extract)
     assert extract.success

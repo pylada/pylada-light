@@ -32,8 +32,7 @@ class Extract(object):
     @property
     def success(self):
         from os.path import exists, join
-        path = join(self.directory, 'stdout')
+        path = join(self.directory, 'al.out')
         if not exists(path):
             return False
-        with open(path, 'r') as file:
-            return file.read().rstrip().lstrip() == 'done'
+        return open(path, 'r').read().rstrip().lstrip() == 'done'
