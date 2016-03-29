@@ -109,11 +109,17 @@ class System(Namelist):
                                help="Typical energy associated with smearing")
 
     @input_transform
-    def _set_rydberg_traits(self, dictionary, **kwargs):
+    def __set_rydberg_traits(self, dictionary, **kwargs):
         for name in ['degauss', 'ecutfock', 'ecutwfc', 'ecutrho']:
             value = dictionary.get(name, None)
             if hasattr(value, 'rescale'):
                 dictionary[name] = float(value.rescale(Ry))
+
+    @input_transform
+    def __ecutrho_is_required(self, dictionary, **kwargs):
+        from .. import error
+        if dictionary.get('ecutrho', None) is None:
+            raise error.ValueError("ecutwfc has not been set. It is a required parameter")
 
 
 class Electrons(Namelist):

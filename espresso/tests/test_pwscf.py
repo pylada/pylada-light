@@ -29,7 +29,10 @@ aluminum_file = pylada.espresso.tests.fixtures.aluminum_file
 
 @fixture
 def espresso():
-    return Pwscf()
+    pwscf = Pwscf()
+    # Required for all writing because required by Pwscf
+    pwscf.system.ecutrho = 12.0
+    return pwscf
 
 
 def test_attributes_default(espresso):
@@ -164,3 +167,16 @@ def test_add_existing_namelist(espresso):
     assert hasattr(espresso, 'electrons')
     assert not hasattr(espresso.electrons, 'cat')
     assert getattr(espresso.electrons, 'wtd', 3) == 2
+
+
+def test_ecutrho_required():
+    from py.test import raises
+    from pylada.espresso import Pwscf
+    from pylada import error
+    pwscf = Pwscf()
+
+    with raises(error.ValueError):
+        pwscf.system.namelist()
+
+    with raises(error.ValueError):
+        pwscf.write()
