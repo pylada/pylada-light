@@ -25,9 +25,17 @@
 ###############################
 
 if(tests)
-    add_pytest(
-        GLOB test_*.py dummy_pwscf.py extract.py
-        INSTALL PREFIX "pylada.espresso"
-        LABELS espresso
+  add_pytest(
+      GLOB test_*.py dummy_pwscf.py extract.py
+      INSTALL PREFIX "pylada.espresso"
+      LABELS espresso
+  )
+  install_python(DIRECTORY data/nonscf DESTINATION pylada/espresso/tests/data)
+  if(NOT EXISTS "${PYTHON_BINARY_DIR}/pylada/espresso/tests/data/nonscf")
+    file(MAKE_DIRECTORY "${PYTHON_BINARY_DIR}/pylada/espresso/tests")
+    execute_process(COMMAND
+        ${CMAKE_COMMAND} -E create_symlink "${CMAKE_CURRENT_SOURCE_DIR}/data"
+        "${PYTHON_BINARY_DIR}/pylada/espresso/tests/data"
     )
+  endif()
 endif(tests)
