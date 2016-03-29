@@ -143,6 +143,15 @@ class Electrons(Namelist):
     diago_full_acc = Bool(allow_none=True, default_value=None,
                           help="Whether to diagonalize empty-states at the same level"
                           "as occupied states")
+    startingpot = CaselessStrEnum(['file', 'atomic'], default_value=None, allow_none=True,
+                                  help="Start from existing charge density file\n\n"
+                                  "Generally, pylada will handle this value on its own."
+                                  "Users are unlikely to need set it themselves.")
+    startingwfc = CaselessStrEnum(['atomic', 'atomic+random', 'random', 'file'],
+                                  default_value=None, allow_none=True,
+                                  help="Start from existing charge density file\n\n"
+                                  "When restarting/continuing a calculation, this parameter is "
+                                  "automatically set to 'file'.")
 
 
 class Pwscf(HasTraits):
@@ -289,7 +298,7 @@ class Pwscf(HasTraits):
 
     @stateless
     @assign_attributes(ignore=['overwrite', 'comm'])
-    def iter(self, structure, outdir=None, comm=None, overwrite=False, **kwargs):
+    def iter(self, structure, outdir=None, comm=None, overwrite=False, restart=None, **kwargs):
         """ Allows asynchronous Pwscf calculations
 
             This is a generator which yields two types of objects:
@@ -357,6 +366,10 @@ class Pwscf(HasTraits):
                 yield extract  # in which case, returns extraction object.
                 return
 
+        # if restarting, gets structure, sets charge density and wavefuntion at start
+        # otherwise start passes structure back to caller 
+        structure = self._restarting(structure, restart)
+
         # copies/creates file environment for calculation.
         self._bring_up(structure, outdir, comm=comm, overwrite=overwrite)
 
@@ -399,6 +412,40 @@ class Pwscf(HasTraits):
                 return False
         return True
 
+    def _restarting(self, structure, restart):
+        """ Steps to take when restarting
+
+            if restarting, gets structure, sets charge density and wavefuntion at start. Otherwise
+            passes structure back to caller.
+        """
+        from .. import error
+        if restart is None:
+            return structure
+
+        # normalize: restart could be an Extract object, or a path
+        restart = self.Extract(restart)
+        if not restart.success:
+            logger.critical("Cannot restart from unsuccessful calculation")
+            raise error.RuntimeError("Cannot restart from unsuccessful calculation")
+
+        chden = restart.abspath.join('charge-density.xml')
+        if chden.check(file=True):
+            logger.info("Restarting from charge density %s" % chden)
+            self.electrons.startingpot = 'file'
+        elif self.electrons.startingpot == 'file':
+            logger.warning("No charge density found, setting startingpot to atomic")
+            self.electrons.startingpot = 'atomic'
+
+        wfcden = restart.abspath.join('%s.wfc1' % self.control.prefix)
+        if wfcden.check(file=True):
+            logger.info("Restarting from wavefunction file %s" % wfcden)
+            self.electrons.startingwfc = 'file'
+        elif self.electrons.startingwfc == 'file':
+            logger.warning("No wavefunction file found, setting startingwfc to atomic+random")
+            self.electrons.startingwfc = 'atomic+random'
+
+        return restart.initial_structure
+
     def _bring_up(self, structure, outdir, **kwargs):
         """ Prepares for actual run """
         from os.path import join
@@ -407,7 +454,6 @@ class Pwscf(HasTraits):
         logger.info('Preparing directory to run Pwscf: %s ' % outdir)
 
         with Changedir(outdir) as tmpdir:
-            # inputfile = join(tmpdir, "pwscf.in")
             self.write(structure=structure,
                        stream=join(tmpdir, "%s.in" % self.control.prefix),
                        outdir=tmpdir, **kwargs)
@@ -455,8 +501,10 @@ class Pwscf(HasTraits):
 
     @classmethod
     def Extract(class_, outdir):
-        from collections import namedtuple
-        return namedtuple('Extract', ['success'])(False)
+        from .extract import Extract
+        if hasattr(outdir, 'success') and hasattr(outdir, 'directory'):
+            return outdir
+        return Extract(outdir)
 
     def __repr__(self):
         from numpy import abs
