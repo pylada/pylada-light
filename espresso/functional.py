@@ -367,8 +367,9 @@ class Pwscf(HasTraits):
 
         stdout = self.control.prefix + ".out"
         stderr = self.control.prefix + ".err"
+        stdin = self.control.prefix + ".in"
         yield ProgramProcess(program, cmdline=cmdline, outdir=outdir, onfinish=onfinish,
-                             stdin='pwscf.in', stdout=stdout, stderr=stderr,
+                             stdin=stdin, stdout=stdout, stderr=stderr,
                              dompi=comm is not None)
         # yields final extraction object.
         yield self.Extract(outdir)
@@ -402,7 +403,8 @@ class Pwscf(HasTraits):
         with Changedir(outdir) as tmpdir:
             # inputfile = join(tmpdir, "pwscf.in")
             self.write(structure=structure,
-                       stream=join(tmpdir, "pwscf.in"), outdir=tmpdir, **kwargs)
+                       stream=join(tmpdir, "%s.in" % self.control.prefix),
+                       outdir=tmpdir, **kwargs)
 
             self.pseudos_do_exist(structure, verbose=True)
 
