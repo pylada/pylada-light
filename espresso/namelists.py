@@ -108,9 +108,12 @@ class Namelist(HasTraits):
                 result[key] = value.namelist(**kwargs)
             elif value is None:
                 result.pop(key)
+
         for key in self.trait_names():
             value = getattr(self, key)
-            if value is not None:
+            if isinstance(value, Namelist):
+                result[key] = value.namelist(**kwargs)
+            elif value is not None:
                 result[key] = value
 
         for transform in self.__class__.__dict__.values():
