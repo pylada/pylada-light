@@ -85,6 +85,16 @@ class Extract(object):
         pwscf.read(str(path))
         return pwscf
 
+    @property
+    @make_cached
+    def initial_structure(self):
+        """ Reads input structure """
+        from .structure_handling import read_structure
+        path = self.abspath.join("%s.in" % self.prefix)
+        if not path.check(file=True):
+            raise IOError("Could not find input file %s" % path)
+        return read_structure(str(path))
+
     def __directory_hook__(self):
         """ Called whenever the directory changes. """
         self.uncache()

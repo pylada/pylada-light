@@ -25,7 +25,8 @@
 from py.test import fixture, mark
 from pylada.espresso.extract import Extract
 import pylada.espresso.tests.fixtures
-aluminum_pwscf = fixture(pylada.espresso.tests.fixtures.aluminum_pwscf)
+aluminum_pwscf = pylada.espresso.tests.fixtures.aluminum_pwscf
+aluminum_structure = pylada.espresso.tests.fixtures.aluminum_structure
 
 
 @fixture
@@ -81,3 +82,13 @@ def test_functional(nonscf, aluminum_pwscf):
     pwscf = nonscf.functional
     assert abs(pwscf.system.ecutwfc - expected.system.ecutwfc) < 1e-8
     assert pwscf.system.occupations == expected.system.occupations
+
+
+def test_initial_structure(nonscf, aluminum_structure):
+    from numpy import allclose, abs
+    assert len(nonscf.initial_structure) == len(aluminum_structure)
+    assert allclose(nonscf.initial_structure.cell, aluminum_structure.cell)
+    assert abs(nonscf.initial_structure.scale - aluminum_structure.scale) < 1e-8
+    for atom, expected in zip(nonscf.initial_structure, aluminum_structure):
+        assert allclose(atom.pos, expected.pos)
+        assert atom.type == expected.type
