@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 # -*- coding: utf-8 -*-
-from pytest import fixture, mark
+from pytest import fixture
 from pylada.espresso import Pwscf
 
 
@@ -101,7 +101,6 @@ def test_read_aluminum(tmpdir, aluminum):
 
 def check_aluminum_functional(tmpdir, espresso):
     from quantities import atomic_mass_unit
-    from numpy import allclose
     assert espresso.control.prefix == 'al'
     assert espresso.control.outdir == str(tmpdir)
     assert espresso.control.pseudo_dir == str(tmpdir.join('pseudos'))
@@ -200,7 +199,7 @@ def test_iteration(tmpdir, aluminum, espresso):
     assert hasattr(program_process, 'start')
     assert hasattr(program_process, 'wait')
     program_process.start()
-    result = program_process.wait()
+    program_process.wait()
     assert tmpdir.join('stdout').check()
     extract = next(iterator)
     assert isinstance(extract, Extract)
