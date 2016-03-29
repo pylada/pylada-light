@@ -26,7 +26,6 @@ __docformat__ = "restructuredtext en"
 __all__ = ['Namelist']
 from ..espresso import logger
 from traitlets import HasTraits
-from decorator import decorator
 
 
 class InputTransform(object):
