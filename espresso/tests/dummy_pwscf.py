@@ -22,10 +22,10 @@
 # -*- coding: utf-8 -*-
 from pylada.espresso import Pwscf
 from tempfile import NamedTemporaryFile
-from pylada.espresso.tests.test_pwscf import check_aluminum_functional, check_aluminum_structure
+from pylada.espresso.tests.fixtures import check_aluminum_functional, check_aluminum_structure
 from pylada.espresso import read_structure
 from py.path import local
-from sys import stdin, exit
+from sys import stdin
 pwscf = Pwscf()
 with NamedTemporaryFile(mode="w") as file:
     file.write(stdin.read())
