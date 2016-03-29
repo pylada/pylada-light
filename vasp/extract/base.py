@@ -94,7 +94,6 @@ class ExtractBase(object):
         """
         import os
         from .. import Vasp
-        from re import compile
         from .. import exec_input
 
         # nomodoutcar
@@ -174,15 +173,12 @@ class ExtractBase(object):
     @property
     def initial_structure(self):
         """ Structure at start of calculations. """
-        from re import compile, M
         from numpy import array, dot
         from numpy.linalg import inv
         from ...crystal import Structure
-        from .. import exec_input
 
         result = Structure()
         with self.__outcar__() as file:
-            atom_index, cell_index = None, None
             cell_re = compile(r"""^\s*direct\s+lattice\s+vectors\s+""")
             atom_re = compile(r"""^\s*position\s+of\s+ions\s+in\s+fractional\s+coordinates""")
             for line in file:
