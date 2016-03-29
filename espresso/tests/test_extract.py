@@ -84,11 +84,13 @@ def test_functional(nonscf, aluminum_pwscf):
     assert pwscf.system.occupations == expected.system.occupations
 
 
-def test_initial_structure(nonscf, aluminum_structure):
+@mark.parametrize('attr', ['structure', 'initial_structure'])
+def test_initial_structure(nonscf, aluminum_structure, attr):
     from numpy import allclose, abs
-    assert len(nonscf.initial_structure) == len(aluminum_structure)
-    assert allclose(nonscf.initial_structure.cell, aluminum_structure.cell)
-    assert abs(nonscf.initial_structure.scale - aluminum_structure.scale) < 1e-8
-    for atom, expected in zip(nonscf.initial_structure, aluminum_structure):
+    structure = getattr(nonscf, attr)
+    assert len(structure) == len(aluminum_structure)
+    assert allclose(structure.cell, aluminum_structure.cell)
+    assert abs(structure.scale - aluminum_structure.scale) < 1e-8
+    for atom, expected in zip(structure, aluminum_structure):
         assert allclose(atom.pos, expected.pos)
         assert atom.type == expected.type

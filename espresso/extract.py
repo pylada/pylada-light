@@ -95,6 +95,16 @@ class Extract(object):
             raise IOError("Could not find input file %s" % path)
         return read_structure(str(path))
 
+    @property
+    @make_cached
+    def structure(self):
+        """ Structure on output """
+        from .. import error
+        if self.functional.control.calculation in ['scf', 'nscf', 'bands'] \
+           or self.functional.control.calculation is None:
+            return self.initial_structure
+        raise error.NotImplementedError("Structure from output")
+
     def __directory_hook__(self):
         """ Called whenever the directory changes. """
         self.uncache()
