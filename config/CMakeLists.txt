@@ -26,7 +26,7 @@
 
 add_python_module("pylada.config"
     PYFILES escan.py general.py  ladabase.py  mpi.py  vasp.py ipython.py
-    dftcrystal.py deepcopy_rig.py patch_ordered_dict.py gulp.py
+    dftcrystal.py patch_ordered_dict.py gulp.py
 )
 install(FILES ${CONFIG_FILES}
     DESTINATION ${CMAKE_PYINSTALL_PREFIX}/pylada/config)
