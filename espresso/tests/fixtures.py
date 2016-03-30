@@ -100,3 +100,27 @@ def aluminum_structure():
     result.scale = 7.5 * bohr_radius
     result[0].type = 'Al'
     return result
+
+
+@fixture
+def diamond_structure():
+    from quantities import bohr_radius
+    from pylada.crystal.bravais import fcc
+    result = fcc()
+    result.scale = 10.2 * bohr_radius
+    result[0].type = 'Si'
+    result.add_atom(0.25, 0.25, 0.25, 'Si')
+    return result
+
+
+@fixture
+def diamond_pwscf():
+    from pylada.espresso import Pwscf
+    pwscf = Pwscf()
+    pwscf.system.ecutwfc = 12.0
+    pwscf.kpoints.subtitle = None
+    pwscf.kpoints.value = "2\n"\
+        "0.25 0.25 0.75 3.0\n"\
+        "0.25 0.25 0.25 1.0\n"
+    pwscf.add_specie('Si', 'Si.pz-vbc.UPF')
+    return pwscf
