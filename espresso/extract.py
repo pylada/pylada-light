@@ -57,13 +57,24 @@ class Extract(object):
         from py.path import local
         return local(expandvars(str(self.directory)), expanduser=True)
 
+    @property
+    def input_path(self):
+        return self.abspath.join("%s.in" % self.prefix)
+
+    @property
+    def output_path(self):
+        return self.abspath.join("%s.out" % self.prefix)
+
+    @property
+    def error_path(self):
+        return self.abspath.join("%s.err" % self.prefix)
+
     def __grep_pwscf_out(self, regex):
         from .. import error
         from re import search
-        path = self.abspath.join(self.prefix + ".out")
-        if not path.check(file=True):
-            raise error.IOError("File %s does not exist" % path)
-        return search(regex, path.open("rb").read())
+        if not self.output_path.check(file=True):
+            raise error.IOError("File %s does not exist" % self.output_path)
+        return search(regex, self.output_path.open("rb").read())
 
     @property
     def success(self):
@@ -78,11 +89,10 @@ class Extract(object):
     def functional(self):
         """ Functional used in calculation """
         from .functional import Pwscf
-        path = self.abspath.join("%s.in" % self.prefix)
-        if not path.check(file=True):
-            raise IOError("Could not find input file %s" % path)
+        if not self.input_path.check(file=True):
+            raise IOError("Could not find input file %s" % self.input_path)
         pwscf = Pwscf()
-        pwscf.read(str(path))
+        pwscf.read(str(self.input_path))
         return pwscf
 
     @property
@@ -90,10 +100,9 @@ class Extract(object):
     def initial_structure(self):
         """ Reads input structure """
         from .structure_handling import read_structure
-        path = self.abspath.join("%s.in" % self.prefix)
-        if not path.check(file=True):
-            raise IOError("Could not find input file %s" % path)
-        return read_structure(str(path))
+        if not self.input_path.check(file=True):
+            raise IOError("Could not find input file %s" % self.input_path)
+        return read_structure(str(self.input_path))
 
     @property
     @make_cached
