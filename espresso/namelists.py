@@ -76,6 +76,8 @@ class Namelist(HasTraits):
             super(Namelist, self).__setattr__(name, value)
         elif isinstance(value, Mapping) and not isinstance(value, Namelist):
             self.__inputs[name] = Namelist(value)
+        elif hasattr(self, name) and name not in self.__inputs:
+            super(Namelist, self).__setattr__(name, value)
         else:
             if name in self.__inputs:
                 logger.info("Creating new attribute %s in Namelist" % name)
