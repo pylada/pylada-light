@@ -124,7 +124,12 @@ class Pwscf(HasTraits):
                 cards.pop(i)
         cards.append(atomic_species)
 
-
+    @input_transform
+    def __delete_ions_and_cells_if_not_relaxing(self, dictionary, **kwargs):
+        if self.control.calculation not in ['relax', 'md', 'vc-relax', 'vc-md']:
+            dictionary.pop('ions', None)
+        if self.control.calculation not in ['vc-relax', 'vc-md']:
+            dictionary.pop('cell', None)
 
     def read(self, filename, clear=True):
         """ Read from a file """

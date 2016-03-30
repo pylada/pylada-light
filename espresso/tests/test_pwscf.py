@@ -181,6 +181,7 @@ def test_ecutrho_required():
     with raises(error.ValueError):
         pwscf.write()
 
+
 def test_dimensional_trait_transform(espresso):
     from numpy import abs
     from quantities import eV, Ry
@@ -189,3 +190,29 @@ def test_dimensional_trait_transform(espresso):
     assert abs(espresso.system.ecutrho - 100 * eV) < 1e-8
     assert espresso.system.ecutrho.units == eV
     assert abs(espresso.system.namelist()['ecutrho'] - float((100 * eV).rescale(Ry))) < 1e-8
+
+
+def test_ions_and_cells_do_not_appear_unless_relaxing(espresso, tmpdir):
+    espresso.ions.something = 1
+    espresso.cell.something = 1
+    espresso.control.calculation = 'scf'
+    espresso.write(str(tmpdir.join('pwscf.in')))
+
+    pwscf = Pwscf()
+    pwscf.read(str(tmpdir.join('pwscf.in')))
+    assert not hasattr(pwscf.ions, 'something')
+    assert not hasattr(pwscf.cell, 'something')
+
+    espresso.control.calculation = 'relax'
+    espresso.write(str(tmpdir.join('pwscf.in')))
+    pwscf = Pwscf()
+    pwscf.read(str(tmpdir.join('pwscf.in')))
+    assert getattr(pwscf.ions, 'something', 0) == 1
+    assert not hasattr(pwscf.cell, 'something')
+
+    espresso.control.calculation = 'vc-relax'
+    espresso.write(str(tmpdir.join('pwscf.in')))
+    pwscf = Pwscf()
+    pwscf.read(str(tmpdir.join('pwscf.in')))
+    assert getattr(pwscf.ions, 'something', 0) == 1
+    assert getattr(pwscf.cell, 'something', 0) == 1
