@@ -169,3 +169,29 @@ def test_write_read_loop(tmpdir, pwscfin):
     for i in range(len(reread)):
         assert allclose(reread[i].pos, structure[i].pos)
         assert reread[i].type == structure[i].type
+
+
+def test_read_forces(tmpdir):
+    from quantities import Ry, bohr_radius as a0
+    from numpy import allclose
+    from pylada.espresso.structure_handling import read_structure
+    string = """
+        &system
+            ibrav=5,
+            celldm = 1.0 0.0 0.0 0.5,
+        /
+
+    ATOMIC_POSITIONS alat
+    A 0 0 0
+    B 1 2 3
+    ATOMIC_FORCES
+    A 0 0 0
+    B 1 2 3
+    """
+    tmpdir.join('pos.in').write(string)
+    structure = read_structure(str(tmpdir.join('pos.in')))
+    for atom in structure:
+        assert hasattr(atom, 'force')
+        assert atom.force.units == (Ry / a0)
+    assert allclose(structure[0].force.magnitude, [0, 0, 0])
+    assert allclose(structure[1].force.magnitude, [1, 2, 3])

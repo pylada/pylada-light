@@ -33,7 +33,7 @@ logger = logger.getChild('espresso')
 def read_structure(filename):
     """ Reads crystal structure from Espresso input """
     from numpy import dot, array
-    from quantities import bohr_radius, angstrom
+    from quantities import bohr_radius as a0, angstrom, Ry
     from ..crystal import Structure
     from .. import error
     from . import Namelist
@@ -47,7 +47,7 @@ def read_structure(filename):
     if 'cell_parameters' not in set([u.name for u in cards]):
         cell_parameters = None
         if namelists.system.ibrav == 0:
-            raise RuntimeError("Card CELL_PARAMETERS is missing")
+            raise error.RuntimeError("Card CELL_PARAMETERS is missing")
     else:
         cell_parameters = [u for u in cards if u.name == 'cell_parameters'][0]
 
@@ -61,7 +61,7 @@ def read_structure(filename):
         result.add_atom(array(line[1:4], dtype='float64'), line[0])
 
     if positions.subtitle == 'bohr':
-        factor = float(bohr_radius.rescale(result.scale))
+        factor = float(a0.rescale(result.scale))
         for atom in result:
             atom.pos *= factor
     elif positions.subtitle == 'angstrom':
@@ -72,7 +72,17 @@ def read_structure(filename):
         for atom in result:
             atom.pos = dot(result.cell, atom.pos)
     elif positions.subtitle == 'crystal_sg':
-        raise RuntimeError("Reading symmetric atomic positions is not implemented")
+        raise error.RuntimeError("Reading symmetric atomic positions is not implemented")
+
+    if 'atomic_forces' in set([u.name for u in cards]):
+        atomic_forces = [u for u in cards if u.name == 'atomic_forces'][0]
+        if atomic_forces.value is None:
+            raise error.RuntimeError("Atomic forces card is empty")
+        lines = atomic_forces.value.rstrip().lstrip().split('\n')
+        if len(lines) != len(result):
+            raise error.RuntimeError("Number forces and number of atoms do not match")
+        for atom, force in zip(result, lines):
+            atom.force = array(force.rstrip().lstrip().split()[1:4], dtype='float64') * Ry / a0
 
     return result
 
@@ -218,6 +228,7 @@ def add_structure(structure, f90namelist, cards):
                                                              atom.pos[2])
 
     __add_forces_to_input(cards, structure)
+
 
 def __add_forces_to_input(cards, structure):
     from numpy import allclose
