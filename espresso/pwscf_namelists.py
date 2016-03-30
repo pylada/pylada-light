@@ -37,7 +37,7 @@ def alias(method):
         return property(method.__get__,
                         getattr(method, '__set__', None),
                         getattr(method, '__del__', None),
-                        doc=getattr(method, 'help', getattr(method, '__doc__', None)))
+                        doc="Alias for another espresso input")
     else:
         return property(lambda x: getattr(x, method),
                         lambda x, v: setattr(x, method, v),
