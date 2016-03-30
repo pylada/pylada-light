@@ -195,6 +195,7 @@ class Extract(object):
 
         structure = self.initial_structure.copy()
         self.__ions(structure)
+        self.__forces(structure)
         if self.functional.control.calculation in ['relax', 'md']:
             return structure
         raise error.NotImplementedError("Structure from output")

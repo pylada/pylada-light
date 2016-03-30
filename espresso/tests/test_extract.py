@@ -113,6 +113,8 @@ def test_ions_structure(ions):
     print(structure)
     assert allclose(structure[0].pos, [-0.002382255, -0.002360252, 0.002263443], 1e-5)
     assert allclose(structure[1].pos, [0.247615432, 0.247636961, 0.252268307], 1e-5)
+    assert allclose(structure[0].force.magnitude, [-0.00000632, -0.00000775, 0.00001397])
+    assert allclose(structure[1].force.magnitude, [0.00000632, 0.00000775, -0.00001397])
     assert allclose(structure.cell, ions.initial_structure.cell, 1e-12)
     assert abs(structure.scale - ions.initial_structure.scale) < 1e-12
 
