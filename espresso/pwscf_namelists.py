@@ -105,16 +105,9 @@ class System(Namelist):
     __set_degauss = dimensional_trait_as_other('degauss', degauss)
 
     @input_transform
-    def __set_rydberg_traits(self, dictionary, **kwargs):
-        for name in ['degauss', 'ecutfock', 'ecutwfc', 'ecutrho']:
-            value = dictionary.get(name, None)
-            if hasattr(value, 'rescale'):
-                dictionary[name] = float(value.rescale(Ry))
-
-    @input_transform
-    def __ecutrho_is_required(self, dictionary, **kwargs):
+    def __ecutwfc_is_required(self, dictionary, **kwargs):
         from .. import error
-        if dictionary.get('ecutrho', None) is None:
+        if dictionary.get('ecutwfc', None) is None:
             raise error.ValueError("ecutwfc has not been set. It is a required parameter")
 
 

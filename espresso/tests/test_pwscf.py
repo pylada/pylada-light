@@ -31,7 +31,7 @@ aluminum_file = pylada.espresso.tests.fixtures.aluminum_file
 def espresso():
     pwscf = Pwscf()
     # Required for all writing because required by Pwscf
-    pwscf.system.ecutrho = 12.0
+    pwscf.system.ecutwfc = 12.0
     return pwscf
 
 
@@ -169,12 +169,15 @@ def test_add_existing_namelist(espresso):
     assert getattr(espresso.electrons, 'wtd', 3) == 2
 
 
-def test_ecutrho_required():
+def test_ecutwfc_required():
     from py.test import raises
     from pylada.espresso import Pwscf
     from pylada import error
     pwscf = Pwscf()
+    pwscf.system.ecutwfc = 12
+    pwscf.system.namelist()
 
+    pwscf.system.ecutwfc = None
     with raises(error.ValueError):
         pwscf.system.namelist()
 
@@ -182,14 +185,15 @@ def test_ecutrho_required():
         pwscf.write()
 
 
+
 def test_dimensional_trait_transform(espresso):
     from numpy import abs
     from quantities import eV, Ry
-    espresso.system.ecutrho = 100 * eV
+    espresso.system.ecutwfc = 100 * eV
 
-    assert abs(espresso.system.ecutrho - 100 * eV) < 1e-8
-    assert espresso.system.ecutrho.units == eV
-    assert abs(espresso.system.namelist()['ecutrho'] - float((100 * eV).rescale(Ry))) < 1e-8
+    assert abs(espresso.system.ecutwfc - 100 * eV) < 1e-8
+    assert espresso.system.ecutwfc.units == eV
+    assert abs(espresso.system.namelist()['ecutwfc'] - float((100 * eV).rescale(Ry))) < 1e-8
 
 
 def test_ions_and_cells_do_not_appear_unless_relaxing(espresso, tmpdir):
