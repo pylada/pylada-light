@@ -107,18 +107,17 @@ class Extract(object):
 
     def __ions(self, structure):
         """ Modify atomic positions according to last change """
-        with self.output_path.open(mode='r') as file:
-            natoms, subtitle = -1, None
-            for line in file:
-                if natoms < 0 and 'ATOMIC_POSITIONS' in line:
-                    natoms = 0
-                    subtitle = line.rstrip().split()[-1]
-                elif natoms < len(structure) and natoms >= 0:
-                    structure[natoms].pos = line.rstrip().split()[1:4]
-                    natoms += 1
-                    if natoms == len(structure):
-                        natoms = -1
+        from .. import error
+        from .card import read_cards
+        cards = [u for u in read_cards(self.output_path.open(mode='r'))
+                 if u.name == 'atomic_positions']
+        positions = cards[-1].value.split('\n')
+        if len(positions) != len(structure):
+            raise error.RuntimeError("Number of atoms and input positions do not match")
+        for atom, input in zip(structure, positions):
+            atom.pos = input.split()[1:4]
 
+        subtitle = cards[-1].subtitle.replace('(', '').replace(')', '')
         if subtitle == 'bhor':
             factor = 1e0 / float(structure.scale.units.rescale('bohr_radius'))
             for atom in structure:
