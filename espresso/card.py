@@ -87,6 +87,7 @@ def read_cards(stream):
 
     results = []
     in_namelist = False
+    reading = False
     for line in stream:
         title = line.rstrip().lstrip().split()
         logger.log(5, "line: %s", line[:-1])
@@ -95,16 +96,22 @@ def read_cards(stream):
                 in_namelist = False
             continue
         elif len(title) == 0:
+            reading = False
+            continue
+        elif 'End final' in line:
+            reading = False
             continue
         elif title[0][0] == '&':
             in_namelist = True
+            reading = False
             continue
         elif title[0].lower() in CardNameTrait.card_names:
             subtitle = None
             if len(title) > 1:
                 subtitle = ' '.join(title[1:])
             results.append(Card(title[0], subtitle=subtitle, value=None))
-        elif len(results) > 0 and title[0].lower() not in CardNameTrait.card_names:
+            reading = True
+        elif reading and title[0].lower() not in CardNameTrait.card_names:
             if results[-1].value is None:
                 results[-1].value = line.rstrip().lstrip()
             else:
