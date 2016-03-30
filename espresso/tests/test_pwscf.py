@@ -180,3 +180,12 @@ def test_ecutrho_required():
 
     with raises(error.ValueError):
         pwscf.write()
+
+def test_dimensional_trait_transform(espresso):
+    from numpy import abs
+    from quantities import eV, Ry
+    espresso.system.ecutrho = 100 * eV
+
+    assert abs(espresso.system.ecutrho - 100 * eV) < 1e-8
+    assert espresso.system.ecutrho.units == Ry
+    assert abs(espresso.system.namelist()['ecutrho'] - float((100 * eV).rescale(Ry))) < 1e-8

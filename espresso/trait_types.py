@@ -58,6 +58,37 @@ class DimensionalTrait(TraitType):
             return value
 
 
+def dimensional_trait_as_other(name, units=None, other=float):
+    """ Dimensional traits must be transformed to floating point for fortran
+
+        This function returns an input_transform function that makes sure the input value is
+        transformed by first rescaling to the given units, then transforming to float.
+
+        :param name: str
+            Key to look for in the namelist dictionary
+        :units: quantities.UnitQuantity, None, DimensionalTrait
+            Rescale to these units
+        :other: callable
+            Transforms dictionary item (possibly rescaled) to fortran input
+    """
+    from .namelists import input_transform
+
+    if hasattr(units, 'units'):
+        units = units.units
+
+    @input_transform
+    def __dimensional_input_transform(self, dictionary, **kwargs):
+        value = dictionary.get(name, None)
+        if value is None:
+            return
+        if hasattr(value, 'rescale') and units is not None:
+            value = value.rescale(units)
+        dictionary[name] = other(value)
+    __dimensional_input_transform.__doc__ = """ Tranforms %s for writing to namelist """
+
+    return __dimensional_input_transform
+
+
 class LowerCaseUnicode(Unicode):
     """ String that always lowercase """
 
