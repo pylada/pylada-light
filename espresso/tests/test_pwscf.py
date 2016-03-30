@@ -220,3 +220,16 @@ def test_ions_and_cells_do_not_appear_unless_relaxing(espresso, tmpdir):
     pwscf.read(str(tmpdir.join('pwscf.in')))
     assert getattr(pwscf.ions, 'something', 0) == 1
     assert getattr(pwscf.cell, 'something', 0) == 1
+
+
+def test_aliases():
+    espresso = Pwscf()
+    espresso.electrons.itermax = 1
+    ms = espresso.electrons.electron_maxstep
+    assert ms == 1
+    espresso.electrons.itermax = 10
+    assert espresso.electrons.electron_maxstep == 10
+    espresso.electrons.electron_maxstep = None
+    assert espresso.electrons.itermax is None
+    assert 'itermax' not in espresso.electrons.namelist()
+    assert 'electron_maxstep' not in espresso.electrons.namelist()
