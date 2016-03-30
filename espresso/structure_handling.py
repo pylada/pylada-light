@@ -216,3 +216,32 @@ def add_structure(structure, f90namelist, cards):
     for atom in structure:
         positions.value += "%s %18.12e %18.12e %18.12e\n" % (atom.type, atom.pos[0], atom.pos[1],
                                                              atom.pos[2])
+
+    __add_forces_to_input(cards, structure)
+
+def __add_forces_to_input(cards, structure):
+    from numpy import allclose
+    from quantities import Ry, bohr_radius as a0
+    from .card import Card
+    if structure is None:
+        return
+    forces = []
+    units = Ry / a0
+    for atom in structure:
+        force = getattr(atom, 'force', [0, 0, 0])
+        if hasattr(force, 'rescale'):
+            force = force.rescale(units).magnitude
+        forces.append(force)
+
+    if allclose(forces, 0):
+        return
+
+    atomic_forces = Card('atomic_forces', value="")
+    for atom, force in zip(structure, forces):
+        atomic_forces.value += "%s %18.15e %18.15e %18.15e\n" % (
+            atom.type, force[0], force[1], force[2])
+    # filter cards in-place: we need to modify the input sequence itself
+    for i, u in enumerate(list(cards)):
+        if u.name in 'atomic_forces':
+            cards.pop(i)
+    cards.append(atomic_forces)

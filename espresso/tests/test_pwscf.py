@@ -25,6 +25,7 @@ from pylada.espresso import Pwscf
 from pylada.espresso.tests.fixtures import check_aluminum_functional, check_aluminum_structure
 import pylada.espresso.tests.fixtures
 aluminum_file = pylada.espresso.tests.fixtures.aluminum_file
+diamond_structure = pylada.espresso.tests.fixtures.diamond_structure
 
 
 @fixture
@@ -233,3 +234,25 @@ def test_aliases():
     assert espresso.electrons.itermax is None
     assert 'itermax' not in espresso.electrons.namelist()
     assert 'electron_maxstep' not in espresso.electrons.namelist()
+
+
+def test_add_forces(espresso, tmpdir, diamond_structure):
+    from numpy import allclose, array
+    from pylada.espresso.card import read_cards
+    diamond_structure[1].force = [1, 2, 3]
+
+    espresso.add_specie('Si', 'Al.vbc.UPF')
+    tmpdir.join('pseudos', 'Al.vbc.UPF').ensure(file=True)
+    espresso.write(str(tmpdir.join('al2.scf')), structure=diamond_structure)
+    cards = read_cards(str(tmpdir.join('al2.scf')))
+
+    assert 'atomic_forces' in set([u.name for u in cards])
+    atomic_forces = [u for u in cards if u.name == 'atomic_forces'][0]
+    assert atomic_forces.subtitle is None
+    actual = atomic_forces.value.rstrip().lstrip().split('\n')
+    assert len(actual) == 2
+    assert actual[0].split()[0] == 'Si'
+    assert actual[1].split()[0] == 'Si'
+    assert allclose(array(actual[0].split()[1:], dtype='float64'), 0)
+    assert allclose(array(actual[1].split()[1:], dtype='float64'), [1, 2, 3])
+
