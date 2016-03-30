@@ -27,6 +27,45 @@ from ..tools import make_cached
 logger = logger.getChild('extract')
 
 
+def grepper(regex, path="output_path", last=True, fail=False, fail_on_missing_file=True):
+    """ Decorator to ease adding greppers
+
+        :param regex: str
+            Regular expression to match in file
+        :param path: attribute from which to get path to file
+        :param last: Bool
+            If true, returns last instance of regex, and the first otherwise.
+        :param fail: Bool
+            If true, raises exception if regex not found.
+        :param fail_on_missing_file: Bool
+            If true, raises exception if path is not found.
+    """
+    def grepper(method):
+        from functools import wraps
+
+        @wraps(method)
+        def attribute(self):
+            from .. import error
+            from re import finditer, search
+            filepath = getattr(self, path)
+            match = None
+            if not filepath.check(file=True):
+                if fail_on_missing_file:
+                    raise error.IOError("File %s does not exist" % filepath)
+            elif last:
+                for match in finditer(regex, filepath.open("r").read()):
+                    pass
+            else:
+                match = search(regex, filepath.open("r").read())
+
+            if match is None and fail:
+                raise error.RuntimeError(
+                    "Could not find %s in %s" % (method.__name__, filepath))
+            return method(self, match)
+        return attribute
+    return grepper
+
+
 class Extract(object):
     """ Extracts stuff from pwscf output """
 
@@ -104,7 +143,6 @@ class Extract(object):
             raise IOError("Could not find input file %s" % self.input_path)
         return read_structure(str(self.input_path))
 
-
     def __ions(self, structure):
         """ Modify atomic positions according to last change """
         from .. import error
@@ -126,6 +164,27 @@ class Extract(object):
             factor = 1e0 / float(structure.scale.units.rescale('angstrom'))
             for atom in structure:
                 atom.pos *= factor
+
+    def __forces(self, structure):
+        """ Sets forces on structure atoms """
+        from .. import error
+        if len(self.forces) != len(structure):
+            raise error.RuntimeError("Number of forces is not equal to number of atoms")
+        for atom, force in zip(structure, self.forces):
+            atom.force = force
+
+    @property
+    @make_cached
+    @grepper("Forces acting on atoms.*\n\n((?:\s*atom .* force = .*\n)*)")
+    def forces(self, match):
+        """ Greps forces from pwscf.out """
+        from numpy import array
+        from quantities import Ry, bohr_radius as a0
+        lines = match.group(1).rstrip().lstrip().split('\n')
+        return (Ry / a0) * array(
+            [u.rstrip().lstrip().split()[6:] for u in lines],
+            dtype='float64'
+        )
 
     @property
     @make_cached

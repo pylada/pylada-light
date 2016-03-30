@@ -115,3 +115,14 @@ def test_ions_structure(ions):
     assert allclose(structure[1].pos, [0.247615432, 0.247636961, 0.252268307], 1e-5)
     assert allclose(structure.cell, ions.initial_structure.cell, 1e-12)
     assert abs(structure.scale - ions.initial_structure.scale) < 1e-12
+
+
+def test_forces(ions):
+    from numpy import allclose
+    from quantities import Ry, bohr_radius as a0
+    assert ions.forces.shape[0] == 2
+    assert ions.forces.shape[1] == 3
+    assert ions.forces.simplified.dimensionality == (Ry / a0).simplified.dimensionality
+    assert ions.forces.units == (Ry / a0).units
+    assert allclose(ions.forces.magnitude[0], [-0.00000632, -0.00000775, 0.00001397])
+    assert allclose(ions.forces.magnitude[1], [0.00000632, 0.00000775, -0.00001397])
