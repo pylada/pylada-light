@@ -29,7 +29,7 @@ class Structure(MutableSequence):
                 and copies if a basic python type.
         """
         from quantities import angstrom
-        from numpy import identity, array, all
+        from numpy import identity, array
         from .. import error
 
         if len(args) == 9 or len(args) == 3:
