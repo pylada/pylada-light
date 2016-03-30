@@ -42,7 +42,7 @@ def setTestValidProgram(pgm):
     import os
     global testValidProgram
     if pgm == None:
-        testValidPgm = None
+        testValidProgram = None
     else:
         testValidProgram = os.path.expanduser(pgm)
 
@@ -164,7 +164,7 @@ def copyfile(src, dest=None, nothrow=None, symlink=False, aslink=False, nocopyem
             if relpath(src, dirname(dest)).count("../") == relpath(src, '/').count("../"):
                 ln(src, realpath(dest))
             else:
-                with Changedir(dirname(dest)) as cwd:
+                with Changedir(dirname(dest)):
                     ln(relpath(src, dirname(dest)), basename(dest))
         else:
             _copyfile_impl(src, dest)
