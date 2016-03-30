@@ -104,6 +104,30 @@ class Extract(object):
             raise IOError("Could not find input file %s" % self.input_path)
         return read_structure(str(self.input_path))
 
+
+    def __ions(self, structure):
+        """ Modify atomic positions according to last change """
+        with self.output_path.open(mode='r') as file:
+            natoms, subtitle = -1, None
+            for line in file:
+                if natoms < 0 and 'ATOMIC_POSITIONS' in line:
+                    natoms = 0
+                    subtitle = line.rstrip().split()[-1]
+                elif natoms < len(structure) and natoms >= 0:
+                    structure[natoms].pos = line.rstrip().split()[1:4]
+                    natoms += 1
+                    if natoms == len(structure):
+                        natoms = -1
+
+        if subtitle == 'bhor':
+            factor = 1e0 / float(structure.scale.units.rescale('bohr_radius'))
+            for atom in structure:
+                atom.pos *= factor
+        elif subtitle == 'angstrom':
+            factor = 1e0 / float(structure.scale.units.rescale('angstrom'))
+            for atom in structure:
+                atom.pos *= factor
+
     @property
     @make_cached
     def structure(self):
@@ -112,6 +136,11 @@ class Extract(object):
         if self.functional.control.calculation in ['scf', 'nscf', 'bands'] \
            or self.functional.control.calculation is None:
             return self.initial_structure
+
+        structure = self.initial_structure.copy()
+        self.__ions(structure)
+        if self.functional.control.calculation in ['relax', 'md']:
+            return structure
         raise error.NotImplementedError("Structure from output")
 
     def __directory_hook__(self):

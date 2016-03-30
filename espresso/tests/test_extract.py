@@ -30,6 +30,17 @@ aluminum_structure = pylada.espresso.tests.fixtures.aluminum_structure
 
 
 @fixture
+def ions_path():
+    from py.path import local
+    return local(local(__file__).dirname).join("data", "ions")
+
+
+@fixture
+def ions(ions_path):
+    return Extract(ions_path)
+
+
+@fixture
 def nonscf_path():
     from py.path import local
     return local(local(__file__).dirname).join("data", "nonscf")
@@ -94,3 +105,13 @@ def test_initial_structure(nonscf, aluminum_structure, attr):
     for atom, expected in zip(structure, aluminum_structure):
         assert allclose(atom.pos, expected.pos)
         assert atom.type == expected.type
+
+
+def test_ions_structure(ions):
+    from numpy import allclose, abs
+    structure = ions.structure
+    print(structure)
+    assert allclose(structure[0].pos, [-0.002382255, -0.002360252, 0.002263443], 1e-5)
+    assert allclose(structure[1].pos, [0.247615432, 0.247636961, 0.252268307], 1e-5)
+    assert allclose(structure.cell, ions.initial_structure.cell, 1e-12)
+    assert abs(structure.scale - ions.initial_structure.scale) < 1e-12
