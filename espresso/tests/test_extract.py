@@ -41,6 +41,17 @@ def ions(ions_path):
 
 
 @fixture
+def cellshape_path():
+    from py.path import local
+    return local(local(__file__).dirname).join("data", "cellshape")
+
+
+@fixture
+def cellshape(cellshape_path):
+    return Extract(cellshape_path)
+
+
+@fixture
 def nonscf_path():
     from py.path import local
     return local(local(__file__).dirname).join("data", "nonscf")
@@ -128,3 +139,11 @@ def test_forces(ions):
     assert ions.forces.units == (Ry / a0).units
     assert allclose(ions.forces.magnitude[0], [-0.00000632, -0.00000775, 0.00001397])
     assert allclose(ions.forces.magnitude[1], [0.00000632, 0.00000775, -0.00001397])
+
+
+def test_cellshape(cellshape):
+    from numpy import allclose
+    cell = [[-0.067143868, 0.552766546, 0.336086835],
+            [0.556165582, -0.065688527, 0.336330003],
+            [0.436036702, 0.436446512, 0.042774639]]
+    assert allclose(cellshape.structure.cell, cell)

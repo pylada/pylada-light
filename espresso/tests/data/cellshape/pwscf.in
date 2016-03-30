@@ -1,0 +1,40 @@
+&control
+    calculation = 'vc-relax'
+    prefix = 'pwscf'
+    outdir = '/Users/mdavezac/workspaces/pylada-light/src/pylada-light/build/cellshape',
+/
+
+&system
+    ecutwfc = 12.0
+    ibrav = 0
+    celldm = 10.2
+    nat = 2
+    ntyp = 1
+/
+
+&electrons
+/
+
+&ions
+/
+
+&cell
+    cell_factor = 2.0
+/
+ATOMIC_SPECIES
+Si 1.0 Si.pz-vbc.UPF
+
+ATOMIC_POSITIONS alat
+Si 0.000000000000e+00 0.000000000000e+00 0.000000000000e+00
+Si 2.462032906052e-01 2.463872552587e-01 2.525313630711e-01
+
+K_POINTS
+2
+0.25 0.25 0.75 3.0
+0.25 0.25 0.25 1.0
+
+CELL_PARAMETERS alat
+-0.000533959871465 0.497381469134 0.496861607045
+0.500215913966 0.00274380669029 0.496691573885
+0.503430310139 0.499676629777 -0.000873094485988
+

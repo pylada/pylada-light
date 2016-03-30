@@ -124,3 +124,35 @@ def diamond_pwscf():
         "0.25 0.25 0.25 1.0\n"
     pwscf.add_specie('Si', 'Si.pz-vbc.UPF')
     return pwscf
+
+
+def run_nonscf(directory="nonscf"):
+    """ Example of running non-scf calculations """
+    structure = aluminum_structure()
+    pwscf = aluminum_pwscf()
+    pwscf.control.calculation = 'relax'
+    pwscf(structure, outdir=directory)
+
+
+def run_ions(directory="ions"):
+    """ Example of running ionic relaxation calculations """
+    from numpy.random import random
+    structure = diamond_structure()
+    pwscf = diamond_pwscf()
+
+    structure[1].pos += random(3) * 0.01 - 0.005
+    pwscf.control.calculation = 'relax'
+    pwscf(structure, outdir=directory)
+
+
+def run_cellrelax(directory="cellshape"):
+    """ Example of running relaxation with cell-shape """
+    from numpy.random import random
+    structure = diamond_structure()
+    pwscf = diamond_pwscf()
+
+    structure[1].pos += random(3) * 0.01 - 0.005
+    structure.cell += random((3, 3)) * 0.01 - 0.005
+    pwscf.control.calculation = 'vc-relax'
+    pwscf.cell.factor = 2.0
+    pwscf(structure, outdir=directory)

@@ -171,6 +171,13 @@ class Extract(object):
         for atom, force in zip(structure, self.forces):
             atom.force = force
 
+    def __cell(self, structure):
+        """ Modify atomic positions according to last change """
+        from .card import read_cards
+        cards = [u for u in read_cards(self.output_path.open(mode='r'))
+                 if u.name == 'cell_parameters']
+        structure.cell = [u.split() for u in cards[-1].value.split('\n')]
+
     @property
     @make_cached
     @grepper("Forces acting on atoms.*\n\n((?:\s*atom .* force = .*\n)*)")
@@ -188,7 +195,6 @@ class Extract(object):
     @make_cached
     def structure(self):
         """ Structure on output """
-        from .. import error
         if self.functional.control.calculation in ['scf', 'nscf', 'bands'] \
            or self.functional.control.calculation is None:
             return self.initial_structure
@@ -196,9 +202,9 @@ class Extract(object):
         structure = self.initial_structure.copy()
         self.__ions(structure)
         self.__forces(structure)
-        if self.functional.control.calculation in ['relax', 'md']:
-            return structure
-        raise error.NotImplementedError("Structure from output")
+        if self.functional.control.calculation not in ['relax', 'md']:
+            self.__cell(structure)
+        return structure
 
     def __directory_hook__(self):
         """ Called whenever the directory changes. """
