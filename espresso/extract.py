@@ -116,12 +116,10 @@ class Extract(object):
         return search(regex, self.output_path.open("rb").read())
 
     @property
-    def success(self):
+    @grepper("JOB DONE.", fail=False, fail_on_missing_file=False)
+    def success(self, match):
         """ True if calculation is successful """
-        try:
-            return self.__grep_pwscf_out(b"JOB DONE.") is not None
-        except:
-            return False
+        return match is not None
 
     @property
     @make_cached
