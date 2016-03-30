@@ -147,3 +147,17 @@ def test_cellshape(cellshape):
             [0.556165582, -0.065688527, 0.336330003],
             [0.436036702, 0.436446512, 0.042774639]]
     assert allclose(cellshape.structure.cell, cell)
+
+
+def test_total_energy(cellshape):
+    from quantities import Ry
+    from numpy import abs
+    assert abs(cellshape.total_energy + 16.12300085 * Ry) < 1e-12
+
+
+def test_stress(cellshape):
+    from quantities import kilobar
+    from numpy import allclose
+    expected = [[2.23, -32.38, -0.94], [-32.38, 3.06, -0.13], [-0.94, -0.13, -64.29]]
+    assert cellshape.stress.units == kilobar
+    assert allclose(cellshape.stress.magnitude, expected)

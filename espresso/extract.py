@@ -193,6 +193,23 @@ class Extract(object):
 
     @property
     @make_cached
+    @grepper("\!\s*total energy\s*=\s*(\S*) Ry", fail=True)
+    def total_energy(self, match):
+        """ Total energy at the end of the calculation """
+        from quantities import Ry
+        return float(match.group(1)) * Ry
+
+    @property
+    @make_cached
+    @grepper("total \s* stress .*kbar.*\n((?:.*\n){3})", fail=True)
+    def stress(self, match):
+        from quantities import kilobar
+        from numpy import array
+        lines = match.group(1).rstrip().lstrip().split('\n')
+        return array([u.split()[3:6] for u in lines], dtype='float64') * kilobar
+
+    @property
+    @make_cached
     def structure(self):
         """ Structure on output """
         if self.functional.control.calculation in ['scf', 'nscf', 'bands'] \
