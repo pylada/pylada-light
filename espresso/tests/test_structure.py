@@ -24,6 +24,7 @@ from pytest import fixture, mark
 from pylada.espresso import structure_handling as sh
 from quantities import angstrom, bohr_radius
 
+
 @fixture
 def pwscfin(tmpdir):
     string = """
@@ -38,8 +39,6 @@ def pwscfin(tmpdir):
     """
     tmpdir.join('pos.in').write(string)
     return tmpdir.join('pos.in')
-
-
 
 
 def get_namelist(ibrav, **kwargs):
@@ -89,7 +88,6 @@ def test_free_cell(celldim, subtitle, expected_scale):
 ])
 def test_cubic_cell_and_scale(celldim, A, expected_scale):
     from numpy import abs, allclose
-    from pylada.espresso import Card, Namelist
     namelist = get_namelist(1, celldm=celldim, A=A)
     cell, scale = sh.read_cell_and_scale(namelist, None)
     assert allclose(cell, [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
@@ -103,10 +101,9 @@ def test_cubic_cell_and_scale(celldim, A, expected_scale):
 ])
 def test_fcc_cell_and_scale(celldim, A, expected_scale):
     from numpy import abs, allclose
-    from pylada.espresso import Card, Namelist
     namelist = get_namelist(2, celldm=celldim, A=A)
     cell, scale = sh.read_cell_and_scale(namelist, None)
-    assert allclose(2*cell, [[-1, 0, -1], [0, 1, 1], [1, 1, 0]])
+    assert allclose(2 * cell, [[-1, 0, -1], [0, 1, 1], [1, 1, 0]])
     assert abs(scale - expected_scale) < 1e-8
 
 
@@ -117,10 +114,9 @@ def test_fcc_cell_and_scale(celldim, A, expected_scale):
 ])
 def test_bcc_cell_and_scale(celldim, A, expected_scale):
     from numpy import abs, allclose
-    from pylada.espresso import Card, Namelist
     namelist = get_namelist(3, celldm=celldim, a=A)
     cell, scale = sh.read_cell_and_scale(namelist, None)
-    assert allclose(2*cell, [[1, -1, -1], [1, 1, -1], [1, 1, 1]])
+    assert allclose(2 * cell, [[1, -1, -1], [1, 1, -1], [1, 1, 1]])
     assert abs(scale - expected_scale) < 1e-8
 
 
@@ -130,23 +126,22 @@ def test_bcc_cell_and_scale(celldim, A, expected_scale):
 ])
 def test_hexa_cell_and_scale(celldim, A, expected_scale, C, c_over_a):
     from numpy import abs, allclose, sqrt
-    from pylada.espresso import Card, Namelist
     namelist = get_namelist(4, celldm=celldim, a=A, c=C)
     cell, scale = sh.read_cell_and_scale(namelist, None)
-    expected_cell = [[1, -0.5, 0], [0, sqrt(3.)/2., 0], [0, 0, c_over_a]]
+    expected_cell = [[1, -0.5, 0], [0, sqrt(3.) / 2., 0], [0, 0, c_over_a]]
     assert allclose(cell, expected_cell)
     assert abs(scale - expected_scale) < 1e-8
 
 
 def test_read_structure(pwscfin):
-    from numpy import allclose, sqrt, array
+    from numpy import allclose, sqrt
     from quantities import bohr_radius
     from pylada.espresso.structure_handling import read_structure
     structure = read_structure(str(pwscfin))
 
     c = 0.5
-    tx, ty, tz = sqrt((1.-c)/2.), sqrt((1.-c)/6.), sqrt((1.+2. * c)/3.)
-    assert allclose(structure.cell.transpose(), [[tx,-ty,tz], [0, 2*ty, tz], [-tx,-ty,tz]])
+    tx, ty, tz = sqrt((1. - c) / 2.), sqrt((1. - c) / 6.), sqrt((1. + 2. * c) / 3.)
+    assert allclose(structure.cell.transpose(), [[tx, -ty, tz], [0, 2 * ty, tz], [-tx, -ty, tz]])
     assert abs(structure.scale - bohr_radius) < 1e-8
     assert len(structure) == 2
     assert structure[0].type == 'A'
@@ -173,4 +168,4 @@ def test_write_read_loop(tmpdir, pwscfin):
     assert len(reread) == len(structure)
     for i in range(len(reread)):
         assert allclose(reread[i].pos, structure[i].pos)
-        assert reread[i].type  == structure[i].type
+        assert reread[i].type == structure[i].type
