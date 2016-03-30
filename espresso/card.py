@@ -24,7 +24,7 @@
 """ Namelist makes it easy to access and modify fortran namelists """
 __docformat__ = "restructuredtext en"
 __all__ = ['Card']
-from traitlets import HasTraits, CaselessStrEnum, TraitType
+from traitlets import HasTraits
 from .trait_types import CardNameTrait, LowerCaseUnicode
 from ..espresso import logger
 
@@ -35,7 +35,6 @@ class Card(HasTraits):
     name = CardNameTrait(allow_none=False)
 
     def __init__(self, name, value=None, subtitle=None):
-        from collections import OrderedDict
         super(HasTraits, self).__init__()
         name = str(name).lower()
         if name not in CardNameTrait.card_names:
@@ -101,7 +100,6 @@ def read_cards(stream):
             in_namelist = True
             continue
         elif title[0].lower() in CardNameTrait.card_names:
-            doing_title = False
             subtitle = None
             if len(title) > 1:
                 subtitle = ' '.join(title[1:])
