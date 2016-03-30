@@ -50,8 +50,14 @@ class DimensionalTrait(TraitType):
         self.units = units
 
     def validate(self, obj, value):
-        if hasattr(value, 'rescale'):
-            return value.rescale(self.units)
+        from traitlets import TraitError
+        if hasattr(value, 'simplified'):
+            if value.simplified.dimensionality != self.units.simplified.dimensionality:
+                raise TraitError(
+                    "Input units (%s) are indimensional with (%s)"
+                    % ( value.units, self.units)
+                )
+            return value
         elif value is not None:
             return value * self.units
         else:

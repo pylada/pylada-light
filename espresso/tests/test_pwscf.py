@@ -187,5 +187,5 @@ def test_dimensional_trait_transform(espresso):
     espresso.system.ecutrho = 100 * eV
 
     assert abs(espresso.system.ecutrho - 100 * eV) < 1e-8
-    assert espresso.system.ecutrho.units == Ry
+    assert espresso.system.ecutrho.units == eV
     assert abs(espresso.system.namelist()['ecutrho'] - float((100 * eV).rescale(Ry))) < 1e-8

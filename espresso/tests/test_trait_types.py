@@ -20,11 +20,10 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 # -*- coding: utf-8 -*-
-import pylada  #  makes sure bohr_radius is in quantities
 from pytest import fixture, mark
 from pylada.espresso.trait_types import DimensionalTrait
 from quantities import bohr_radius, angstrom, eV
-from traitlets import HasTraits
+from traitlets import HasTraits, TraitError
 
 
 @fixture
@@ -41,14 +40,14 @@ def dimensional(Dimensional):
 
 def test_dimensional_has_default_value(dimensional):
     from numpy import all, abs
-    assert dimensional.dimensional.units == angstrom
+    assert dimensional.dimensional.simplified.dimensionality == angstrom.simplified.dimensionality
     assert all(abs(dimensional.dimensional - 1 * bohr_radius) < 1e-8)
 
 
 def test_dimensional_can_set_dimensional_value(dimensional):
     from numpy import all, abs
     dimensional.dimensional = 5 * bohr_radius
-    assert dimensional.dimensional.units == angstrom
+    assert dimensional.dimensional.simplified.dimensionality == angstrom.simplified.dimensionality
     assert all(abs(dimensional.dimensional - 5 * bohr_radius) < 1e-8)
 
 
@@ -69,12 +68,12 @@ def test_dimensional_with_none():
 def test_dimensional_can_set_values(dimensional, value, expected):
     from numpy import all, abs
     dimensional.dimensional = value
-    assert dimensional.dimensional.units == angstrom
+    assert dimensional.dimensional.simplified.dimensionality == angstrom.simplified.dimensionality
     assert all(abs(dimensional.dimensional - expected) < 1e-8)
 
 
 @mark.parametrize('value, exception', [
-    (5 * eV, ValueError),
+    (5 * eV, TraitError),
     ('a string', TypeError)
 ])
 def test_fail_on_incorrect_input(dimensional, value, exception):
