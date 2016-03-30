@@ -30,6 +30,7 @@ from ..tools import stateless, assign_attributes
 from . import Namelist
 from .card import Card
 from .pwscf_namelists import Control, System, Electrons, Ions, Cell, alias
+from .namelists import input_transform
 
 
 class Pwscf(HasTraits):
@@ -83,8 +84,8 @@ class Pwscf(HasTraits):
             - if stream is a string, then it should a path to a file
             - otherwise, stream is assumed to be a stream of some sort, with a `write` method
         """
-        from .structure_handling import add_structure
         from .. import error
+        from .namelists import InputTransform
         from .misc import write_pwscf_input
         from copy import copy
 
@@ -101,13 +102,29 @@ class Pwscf(HasTraits):
 
         cards = list(cards.values())
         f90namelist = namelist.namelist(structure=structure, **kwargs)
-        if structure is not None:
-            add_structure(structure, f90namelist, cards)
-            atomic_species = self._write_atomic_species_card(structure)
-            cards = [u for u in cards if u.name != 'atomic_species']
-            cards.append(atomic_species)
+
+        for transform in self.__class__.__dict__.values():
+            if isinstance(transform, InputTransform):
+                logger.debug("Transforming input using method %s" % transform.method.__name__)
+                transform.method(self, f90namelist, cards=cards, structure=structure, **kwargs)
 
         return write_pwscf_input(f90namelist, cards, stream)
+
+    @input_transform
+    def __add_structure_to_input(self, dictionary=None, cards=None, structure=None, **kwargs):
+        from .structure_handling import add_structure
+        if structure is None:
+            return
+
+        add_structure(structure, dictionary, cards)
+        atomic_species = self._write_atomic_species_card(structure)
+        # filter cards in-place: we need to modify the input sequence itself
+        for i, u in enumerate(list(cards)):
+            if u.name in 'atomic_species':
+                cards.pop(i)
+        cards.append(atomic_species)
+
+
 
     def read(self, filename, clear=True):
         """ Read from a file """
