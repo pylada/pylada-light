@@ -22,11 +22,14 @@
 
 # -*- coding: utf-8 -*-
 """ Sub-package containing specialized traitets """
-from traitlets import TraitType, Unicode
+import six
+from traitlets import TraitType, Unicode, CaselessStrEnum, Enum
+__all__ = ['CardNameTrait', 'DimensionalTrait', 'dimensional_trait_as_other', 'String',
+           'LowerCaseString', 'CaselessStringEnum']
 
 
 class CardNameTrait(TraitType):
-    """ CaselessStrEnum to which we can easily add allowed values """
+    """ CaselessStringEnum to which we can easily add allowed values """
 
     info_text = 'Pwscf cards'
     card_names = {'atomic_species', 'atomic_positions', 'k_points', 'cell_parameters',
@@ -55,7 +58,7 @@ class DimensionalTrait(TraitType):
             if value.simplified.dimensionality != self.units.simplified.dimensionality:
                 raise TraitError(
                     "Input units (%s) are indimensional with (%s)"
-                    % ( value.units, self.units)
+                    % (value.units, self.units)
                 )
             return value
         elif value is not None:
@@ -95,14 +98,43 @@ def dimensional_trait_as_other(name, units=None, other=float):
     return __dimensional_input_transform
 
 
-class LowerCaseUnicode(Unicode):
-    """ String that always lowercase """
+if six.PY2:
+    class String(TraitType):
+        """ String trait """
+
+        default_value = None
+        info_text = 'A string'
+
+        def validate(self, obj, value):
+            if value is None:
+                return None
+            return str(value)
+
+    class CaselessStringEnum(Enum):
+        """An enum of strings where the case should be ignored."""
+
+        def __init__(self, values, default_value=None, **metadata):
+            values = [str(value) for value in values]
+            super(CaselessStringEnum, self).__init__(values, default_value=default_value, **metadata)
+
+        def validate(self, obj, value):
+            value = str(value)
+            for v in self.values:
+                if v.lower() == value.lower():
+                    return v
+            self.error(obj, value)
+else:
+    String = Unicode
+    CaselessStringEnum = CaselessStrEnum
+
+
+class LowerCaseString(String):
+    """ String that are always lowercase """
 
     default_value = None
-    info_text = 'A lowercase unicode string'
+    info_text = 'A lowercase string'
 
     def validate(self, obj, value):
         if value is None:
             return None
-        result = super(LowerCaseUnicode, self).validate(obj, value)
-        return result.lower()
+        return super(LowerCaseString, self).validate(obj, value).lower()

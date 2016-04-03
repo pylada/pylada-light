@@ -20,19 +20,19 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 # -*- coding: utf-8 -*-
-from pytest import fixture, mark
+from pytest import fixture
 from pylada.espresso import Card
 
 
 @fixture
 def card_stream():
-    from io import StringIO
+    from six import StringIO
     return StringIO("ATOMIC_SPECIES\nAl 1 this.that")
 
 
 @fixture
 def subtitled_stream():
-    from io import StringIO
+    from six import StringIO
     return StringIO("K_POINTS tpiba\n2\n0 0 0 0.8\n0.5 0.5 0.5 0.2")
 
 
@@ -67,7 +67,7 @@ def test_read_subtitled_card(subtitled_stream):
 
 
 def test_goaround(card_stream):
-    from io import StringIO
+    from six import StringIO
     card, read_card = Card('ATOMIC_SPECIES'), Card('ATOMIC_SPECIES')
     card.read(card_stream)
     read_card.read(StringIO(str(card)))
@@ -77,7 +77,7 @@ def test_goaround(card_stream):
 
 
 def test_goaround_subtitled(subtitled_stream):
-    from io import StringIO
+    from six import StringIO
     card, read_card = Card('K_POINTS'), Card('K_POINTS')
     card.read(subtitled_stream)
     read_card.read(StringIO(str(card)))
@@ -87,7 +87,7 @@ def test_goaround_subtitled(subtitled_stream):
 
 
 def test_read_but_not_find(subtitled_stream, card_stream):
-    from io import StringIO
+    from six import StringIO
     card, read_card = Card('ATOMIC_SPECIES'), Card('K_POINTS')
     read_card.read(subtitled_stream)
     card.read(card_stream)
@@ -111,16 +111,14 @@ def test_card_name_must_be_in_enum():
 
 
 def test_set_card_name():
-    from traitlets import TraitError
-    from pytest import raises
     card = Card('ATOMIC_SPECIES')
     card.name = 'k_poinTs'
     assert card.name == 'k_points'
 
 
-def test_read_card(subtitled_stream, card_stream):
+def test_read_card_with_subtitle(subtitled_stream, card_stream):
     from pylada.espresso.card import read_cards
-    from io import StringIO
+    from six import StringIO
     stream = StringIO(subtitled_stream.read() + "\n" + card_stream.read())
     result = read_cards(stream)
     assert len(result) == 2
@@ -134,7 +132,7 @@ def test_read_card(subtitled_stream, card_stream):
 
 def test_read_card_with_namelist(subtitled_stream, card_stream):
     from pylada.espresso.card import read_cards
-    from io import StringIO
+    from six import StringIO
     stream = StringIO(subtitled_stream.read() + "\n&electrons\nbullshit = 1\n/\n"
                       + "\n" + card_stream.read())
     result = read_cards(stream)

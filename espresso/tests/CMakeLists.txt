@@ -29,6 +29,7 @@ if(tests)
       GLOB test_*.py dummy_pwscf.py extract.py fixtures.py
       INSTALL PREFIX "pylada.espresso"
       LABELS espresso
+      FAKE_INIT
   )
   install_python(DIRECTORY data/nonscf DESTINATION pylada/espresso/tests/data)
   if(NOT EXISTS "${PYTHON_BINARY_DIR}/pylada/espresso/tests/data/nonscf")

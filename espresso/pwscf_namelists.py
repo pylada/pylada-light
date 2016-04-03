@@ -25,9 +25,10 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['alias', 'Control', 'System', 'Electrons', 'Ions', 'Cell']
 from quantities import second, Ry, kilobar
-from traitlets import CaselessStrEnum, Unicode, Integer, Bool, Enum, Float
+from traitlets import Integer, Bool, Enum, Float
 from .namelists import input_transform
-from .trait_types import DimensionalTrait, dimensional_trait_as_other
+from .trait_types import DimensionalTrait, dimensional_trait_as_other, String as StringTrait, \
+     CaselessStringEnum
 from . import Namelist
 
 
@@ -47,13 +48,13 @@ def alias(method):
 
 class Control(Namelist):
     """ Control namelist """
-    calculation = CaselessStrEnum(['scf', 'nscf', 'bands', 'relax', 'md', 'vc-relax', 'vc-md'],
-                                  default_value=None, allow_none=True, help="Task to be performed")
-    title = Unicode(None, allow_none=True, help="Title of the calculation")
-    verbosity = CaselessStrEnum(['high', 'low'], None, allow_none=True,
-                                help="How much talk from Pwscf")
-    prefix = Unicode("pwscf", allow_none=False, help="Prefix for output files")
-    pseudo_dir = Unicode(None, allow_none=True, help="Directory with pseudo-potential files")
+    calculation = CaselessStringEnum(['scf', 'nscf', 'bands', 'relax', 'md', 'vc-relax', 'vc-md'],
+                                     default_value=None, allow_none=True, help="Task to be performed")
+    title = StringTrait(None, allow_none=True, help="Title of the calculation")
+    verbosity = CaselessStringEnum(['high', 'low'], None, allow_none=True,
+                                   help="How much talk from Pwscf")
+    prefix = StringTrait("pwscf", allow_none=False, help="Prefix for output files")
+    pseudo_dir = StringTrait(None, allow_none=True, help="Directory with pseudo-potential files")
     wf_collect = Bool(allow_none=True, default_value=None,
                       help="If true, saves wavefunctions to readable files")
     nstep = Integer(allow_none=True, default_value=None, min=0,
@@ -132,44 +133,44 @@ class Electrons(Namelist):
     diago_full_acc = Bool(allow_none=True, default_value=None,
                           help="Whether to diagonalize empty-states at the same level"
                           "as occupied states")
-    startingpot = CaselessStrEnum(['file', 'atomic'], default_value=None, allow_none=True,
-                                  help="Start from existing charge density file\n\n"
-                                  "Generally, pylada will handle this value on its own."
-                                  "Users are unlikely to need set it themselves.")
-    startingwfc = CaselessStrEnum(['atomic', 'atomic+random', 'random', 'file'],
-                                  default_value=None, allow_none=True,
-                                  help="Start from existing charge density file\n\n"
-                                  "When restarting/continuing a calculation, this parameter is "
-                                  "automatically set to 'file'.")
+    startingpot = CaselessStringEnum(['file', 'atomic'], default_value=None, allow_none=True,
+                                     help="Start from existing charge density file\n\n"
+                                     "Generally, pylada will handle this value on its own."
+                                     "Users are unlikely to need set it themselves.")
+    startingwfc = CaselessStringEnum(['atomic', 'atomic+random', 'random', 'file'],
+                                     default_value=None, allow_none=True,
+                                     help="Start from existing charge density file\n\n"
+                                     "When restarting/continuing a calculation, this parameter is "
+                                     "automatically set to 'file'.")
 
 
 class Ions(Namelist):
     """ Ions namelist """
-    ion_dynamics = CaselessStrEnum(['bfgs', 'damp', 'verlet', 'langevin', 'langevin-md', 'bfgs',
-                                    'beeman'], default_value=None, allow_none=True,
-                                   help="Algorithm for ion dynamics")
+    ion_dynamics = CaselessStringEnum(['bfgs', 'damp', 'verlet', 'langevin', 'langevin-md', 'bfgs',
+                                       'beeman'], default_value=None, allow_none=True,
+                                      help="Algorithm for ion dynamics")
     dynamics = alias(ion_dynamics)
-    ion_positions = CaselessStrEnum(['default', 'from_input'], default_value=None, allow_none=True,
-                                    help="When restarting, whether to read from ion positions "
-                                    "input or not")
+    ion_positions = CaselessStringEnum(['default', 'from_input'], default_value=None, allow_none=True,
+                                       help="When restarting, whether to read from ion positions "
+                                       "input or not")
     positions = alias(ion_positions)
-    pot_extrapolation = CaselessStrEnum(['none', 'atomic', 'first_order', 'second_order'],
-                                        default_value=None, allow_none=True,
-                                        help="Extrapolation of the potential from previous "
-                                        "ionic steps")
-    wfc_extrapolation = CaselessStrEnum(['none', 'first_order', 'second_order'],
-                                        default_value=None, allow_none=True,
-                                        help="Extrapolation of the wavefunctions from previous "
-                                        "ionic steps")
+    pot_extrapolation = CaselessStringEnum(['none', 'atomic', 'first_order', 'second_order'],
+                                           default_value=None, allow_none=True,
+                                           help="Extrapolation of the potential from previous "
+                                           "ionic steps")
+    wfc_extrapolation = CaselessStringEnum(['none', 'first_order', 'second_order'],
+                                           default_value=None, allow_none=True,
+                                           help="Extrapolation of the wavefunctions from previous "
+                                           "ionic steps")
     remove_rigid_rod = Bool(allow_none=True, default_value=None,
                             help="If true, removes spurious rotations during ion dynamics")
 
 
 class Cell(Namelist):
     """ Cells namelist """
-    cell_dynamics = CaselessStrEnum(['none', 'sd', 'damp-pr', 'damp-w', 'bfgs', 'pr', 'w'],
-                                    default_value=None, allow_none=True,
-                                    help="Algorithm for cell dynamics")
+    cell_dynamics = CaselessStringEnum(['none', 'sd', 'damp-pr', 'damp-w', 'bfgs', 'pr', 'w'],
+                                       default_value=None, allow_none=True,
+                                       help="Algorithm for cell dynamics")
     dynamics = alias(cell_dynamics)
     press = DimensionalTrait(kilobar, allow_none=True, default_value=None, help="External pressure")
     __set_press = dimensional_trait_as_other('press', press)
@@ -179,7 +180,7 @@ class Cell(Namelist):
     cell_factor = Float(allow_none=True, default_value=None, min=0e0,
                         help="Used when constructing pseudopotential tables")
     factor = alias(cell_factor)
-    cell_dofree = CaselessStrEnum(['all', 'x', 'y', 'z', 'xy', 'xz', 'yz', 'shape', 'volume',
-                                   '2Dxy', '2Dshape'], default_value=None, allow_none=True,
-                                  help="Degrees of freedom during relaxation")
+    cell_dofree = CaselessStringEnum(['all', 'x', 'y', 'z', 'xy', 'xz', 'yz', 'shape', 'volume',
+                                      '2Dxy', '2Dshape'], default_value=None, allow_none=True,
+                                     help="Degrees of freedom during relaxation")
     dofree = alias(cell_dofree)

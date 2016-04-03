@@ -37,7 +37,7 @@ def write_f90namelist(f90namelist, stream=None):
     """
     from f90nml import Namelist as F90Namelist
     from os.path import expanduser, expandvars, abspath
-    from io import StringIO
+    from six import StringIO
     if stream is None:
         result = StringIO()
         write_f90namelist(f90namelist, result)
@@ -71,7 +71,7 @@ def write_pwscf_input(f90namelist, cards, stream=None):
     """
     from f90nml import Namelist as F90Namelist
     from os.path import expanduser, expandvars, abspath
-    from io import StringIO
+    from six import StringIO
 
     card_order = ['atomic_species', 'atomic_positions', 'k_points', 'cell_parameters',
                   'constraints', 'occupations', 'atomic_forces']
@@ -95,12 +95,12 @@ def write_pwscf_input(f90namelist, cards, stream=None):
     def key_order(item, list_):
         return -1 if list_.count(item) == 0 else list_.index(item)
 
-    # reorders namelists
+    # reorders namelists
     f90namelist = F90Namelist(sorted(
         f90namelist.items(),
         key=lambda x: key_order(x[0], namelist_order)
     ))
-    # reorders cards 
+    # reorders cards
     cards.sort(key=lambda x: key_order(x.name, card_order))
 
     write_f90namelist(f90namelist, stream=stream)

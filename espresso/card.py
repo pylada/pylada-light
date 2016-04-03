@@ -25,13 +25,13 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['Card']
 from traitlets import HasTraits
-from .trait_types import CardNameTrait, LowerCaseUnicode
+from .trait_types import CardNameTrait, LowerCaseString
 from ..espresso import logger
 
 
 class Card(HasTraits):
     """ Defines a Pwscf card """
-    subtitle = LowerCaseUnicode(None, allow_none=True)
+    subtitle = LowerCaseString(None, allow_none=True)
     name = CardNameTrait(allow_none=False)
 
     def __init__(self, name, value=None, subtitle=None):

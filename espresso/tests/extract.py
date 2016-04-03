@@ -35,4 +35,4 @@ class Extract(object):
         path = join(self.directory, 'al.out')
         if not exists(path):
             return False
-        return open(path, 'r').read().rstrip().lstrip() == 'done'
+        return 'JOB IS DONE!' in open(path, 'r').read().rstrip().lstrip()

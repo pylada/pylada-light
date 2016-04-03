@@ -251,7 +251,7 @@ def __add_forces_to_input(cards, structure):
     for atom, force in zip(structure, forces):
         atomic_forces.value += "%s %18.15e %18.15e %18.15e\n" % (
             atom.type, force[0], force[1], force[2])
-    # filter cards in-place: we need to modify the input sequence itself
+    # filter cards in-place: we need to modify the input sequence itself
     for i, u in enumerate(list(cards)):
         if u.name in 'atomic_forces':
             cards.pop(i)

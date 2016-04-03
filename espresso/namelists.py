@@ -163,7 +163,8 @@ class Namelist(HasTraits):
     def names(self):
         """ All names of attributes that end up in the namelist """
         from itertools import chain
-        yield from chain(self.__inputs, self.trait_names())
+        for u in chain(self.__inputs, self.trait_names()):
+            yield u
 
     def __repr__(self):
         result = "%s(" % self.__class__.__name__

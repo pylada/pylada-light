@@ -82,9 +82,9 @@ def test_fail_on_incorrect_input(dimensional, value, exception):
         dimensional.dimensional = value
 
 def test_lowercasecard():
-    from pylada.espresso.trait_types import LowerCaseUnicode
+    from pylada.espresso.trait_types import LowerCaseString
     class LowerCase(HasTraits):
-        case = LowerCaseUnicode()
+        case = LowerCaseString()
     lower = LowerCase()
     assert lower.case is None
     lower.case = "AAaa"

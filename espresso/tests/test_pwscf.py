@@ -31,7 +31,7 @@ diamond_structure = pylada.espresso.tests.fixtures.diamond_structure
 @fixture
 def espresso():
     pwscf = Pwscf()
-    # Required for all writing because required by Pwscf
+    # Required for all writing because required by Pwscf
     pwscf.system.ecutwfc = 12.0
     return pwscf
 

@@ -83,10 +83,10 @@ def test_success(tmpdir, prefix):
     if prefix is None:
         prefix = 'pwscf'
 
-    # file does not exist
+    # file does not exist
     assert extract.success == False
 
-    # file does exist but does not contain JOB DONE
+    # file does exist but does not contain JOB DONE
     path = tmpdir.join("%s.out" % prefix)
     path.ensure(file=True)
     assert extract.success == False

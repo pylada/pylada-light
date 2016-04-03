@@ -57,7 +57,7 @@ def get_namelist(ibrav, **kwargs):
     (None, None, bohr_radius),
     ('A', None, angstrom),
     ([2.5], 'alat', 2.5 * bohr_radius),
-    # card takes precedence over celldm 
+    # card takes precedence over celldm
     ('A', 'bohr', bohr_radius),
     ([2.5], 'bohr', bohr_radius),
     ([2.5], 'angstrom', angstrom),

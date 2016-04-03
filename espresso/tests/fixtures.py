@@ -55,7 +55,7 @@ def check_aluminum_functional(tmpdir, espresso):
     assert espresso.control.outdir == str(tmpdir)
     assert espresso.control.pseudo_dir == str(tmpdir.join('pseudos'))
 
-    # atomic_species is a a private card, handled entirely by the functional 
+    # atomic_species is a a private card, handled entirely by the functional
     assert not hasattr(espresso, 'atomic_species')
     assert len(espresso.species) == 1
     assert 'Al' in espresso.species
@@ -156,3 +156,17 @@ def run_cellrelax(directory="cellshape"):
     pwscf.control.calculation = 'vc-relax'
     pwscf.cell.factor = 2.0
     pwscf(structure, outdir=directory)
+
+
+def run_with_restart(first="cellshape", second="restarting"):
+    """ Example of running relaxation with cell-shape """
+    from numpy.random import random
+    structure = diamond_structure()
+    pwscf = diamond_pwscf()
+
+    structure[1].pos += random(3) * 0.01 - 0.005
+    structure.cell += random((3, 3)) * 0.01 - 0.005
+    pwscf.control.calculation = 'vc-relax'
+    pwscf.cell.factor = 2.0
+    result = pwscf(structure, outdir=first)
+    result = pwscf(structure, outdir=second, restart=result)

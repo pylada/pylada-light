@@ -36,4 +36,4 @@ with NamedTemporaryFile(mode="w") as file:
 check_aluminum_functional(local(), pwscf)
 check_aluminum_structure(structure)
 pwscf.pseudos_do_exist(structure)
-print("done")
+print("JOB IS DONE!")

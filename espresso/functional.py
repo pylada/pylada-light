@@ -118,7 +118,7 @@ class Pwscf(HasTraits):
 
         add_structure(structure, dictionary, cards)
         atomic_species = self._write_atomic_species_card(structure)
-        # filter cards in-place: we need to modify the input sequence itself
+        # filter cards in-place: we need to modify the input sequence itself
         for i, u in enumerate(list(cards)):
             if u.name in 'atomic_species':
                 cards.pop(i)
@@ -136,7 +136,7 @@ class Pwscf(HasTraits):
         from os.path import expanduser, expandvars, abspath
         from .card import read_cards
 
-        # read namelists first
+        # read namelists first
         if clear:
             self.__namelists.clear()
             self.__cards = {}
@@ -157,7 +157,7 @@ class Pwscf(HasTraits):
             for key in newtrait.names():
                 setattr(trait, key, getattr(newtrait, key))
 
-        # Then read all cards
+        # Then read all cards
         for card in read_cards(filename):
             if card.name in self.trait_names():
                 getattr(self, card.name).subtitle = card.subtitle
@@ -269,7 +269,7 @@ class Pwscf(HasTraits):
                 return
 
         # if restarting, gets structure, sets charge density and wavefuntion at start
-        # otherwise start passes structure back to caller 
+        # otherwise start passes structure back to caller
         structure = self._restarting(structure, restart)
 
         # copies/creates file environment for calculation.
@@ -324,7 +324,7 @@ class Pwscf(HasTraits):
         if restart is None:
             return structure
 
-        # normalize: restart could be an Extract object, or a path
+        # normalize: restart could be an Extract object, or a path
         restart = self.Extract(restart)
         if not restart.success:
             logger.critical("Cannot restart from unsuccessful calculation")
@@ -368,7 +368,7 @@ class Pwscf(HasTraits):
         from .. import periodic_table, error
         from .card import Card
         result = Card('atomic_species', value="")
-        # Check peudo-files exist
+        # Check peudo-files exist
         for specie_name in set([u.type for u in structure]):
             if specie_name not in self.species:
                 msg = "No specie defined for %s: no way to get pseudopotential" % specie_name
