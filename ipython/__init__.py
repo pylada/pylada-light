@@ -47,8 +47,8 @@ def load_ipython_extension(ip):
             delete_completer
         import pylada
         # loads interactive files
-        pylada.__dict__.update((k, v) for k, v in pylada._config_files().items()
-                               if k[0] != '_')
+        pylada.__dict__.update(pylada.__exec_config_files(logger=logger))
+        pylada.__dict__.update(pylada.__exec_config_files("*.ipy", rcfile=True, logger=logger))
         # now loads extension
         __pylada_is_loaded__ = True
         pylada.interactive = ModuleType('interactive')
