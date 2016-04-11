@@ -39,10 +39,10 @@ def launch(self, event, jobfolders):
     import os
     import re
     import subprocess
-    from os.path import join, dirname, exists, basename
+    from os.path import exists, basename
     from os import remove
     from .. import get_shell
-    from ...misc import Changedir
+    from ...misc import local_path
     from ... import pbs_string, default_pbs, qsub_exe, default_comm
     from . import get_walltime, get_mppalloc, get_queues, scattered_script
     from pylada.misc import testValidProgram
@@ -79,17 +79,16 @@ def launch(self, event, jobfolders):
 
     def pbspaths(directory, jobname, suffix):
         """ creates filename paths. """
-        return join(join(directory, jobname),
-                    '{0}-pbs{1}'.format(event.prefix, suffix) if hasprefix
-                    else 'pbs{0}'.format(suffix))
+        suffix = '{0}-pbs{1}'.format(event.prefix, suffix) if hasprefix \
+            else 'pbs{0}'.format(suffix)
+        return str(directory.join(jobname, suffix))
     # now  loop over jobfolders
     pbsscripts = []
     for current, path in jobfolders:
         logger.critical("launch/scattered: current: %s  path: %s" % (current, path))
         # creates directory.
-        directory = dirname(path)
-        with Changedir(directory) as pwd:
-            pass
+        directory = local_path(path).dirname()
+        directory.ensure(dir=True)
         # loop over executable folders in current jobfolder
         for name, job in current.root.items():
             logger.critical('launch/scattered: current: %s' % current)
@@ -118,11 +117,11 @@ def launch(self, event, jobfolders):
 
             # avoid successful jobs.unless specifically requested
             if hasattr(job.functional, 'Extract') and not event.force:
-                p = join(directory, name)
-                extract = job.functional.Extract(p)
+                p = directory.join(name)
+                extract = job.functional.Extract(str(p))
                 if extract.success:
-                    print(("Job {0} completed successfully. "                             \
-                          "It will not be relaunched.".format(name)))
+                    print(("Job {0} completed successfully. "
+                           "It will not be relaunched.".format(name)))
                     continue
 
             # setup parameters for launching/running jobs
@@ -134,7 +133,7 @@ def launch(self, event, jobfolders):
             pbsargs['out'] = pbspaths(directory, name, 'out')
             pbsargs['name'] = name if len(name)                                      \
                 else "{0}-root".format(basename(path))
-            pbsargs['directory'] = directory
+            pbsargs['directory'] = str(directory)
             pbsargs['logging'] = 'critical'
             pbsargs['testValidProgram'] = testValidProgram
 
@@ -147,8 +146,7 @@ def launch(self, event, jobfolders):
             pbsscripts.append(ppath)
 
             # write pbs scripts
-            with Changedir(join(directory, name)) as pwd:
-                pass
+            directory.join(name).ensure(dir=True)
             if exists(pbsscripts[-1]):
                 remove(pbsscripts[-1])
             with open(pbsscripts[-1], "w") as file:
@@ -156,9 +154,11 @@ def launch(self, event, jobfolders):
                     else pbs_string.format(**pbsargs)
                 # peregrine takes back the option of "anynode"
                 string = string.replace("#PBS -l feature=anynode", "##PBS -l feature=anynode")
-                logger.critical("launch/scattered: ===== start pbsscripts[-1]: %s =====" % pbsscripts[-1])
+                logger.critical(
+                    "launch/scattered: ===== start pbsscripts[-1]: %s =====" % pbsscripts[-1])
                 logger.critical('%s' % string)
-                logger.critical("launch/scattered: ===== end pbsscripts[-1]: %s =====" % pbsscripts[-1])
+                logger.critical(
+                    "launch/scattered: ===== end pbsscripts[-1]: %s =====" % pbsscripts[-1])
                 lines = string.split('\n')
                 omitTag = '# omitted for testValidProgram: '
                 for line in lines:

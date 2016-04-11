@@ -109,7 +109,7 @@ def test_wildcard_indexing(keys, regex, collect):
 ])
 def test_more_complex_wildcard_indexing(keys, regex, path, collect, jobfolder):
     # add empty item to jobfolder
-    job = jobfolder / 'this' / '0' / 'another'
+    jobfolder / 'this' / '0' / 'another'
     # get subfolders
     subfolders = collect[path]
     assert set(subfolders[regex].keys()) == set(keys)
@@ -125,12 +125,12 @@ def test_more_complex_wildcard_indexing(keys, regex, path, collect, jobfolder):
 def test_regex_indexing(keys, regex, collect, jobfolder):
     collect.unix_re = False
     # add empty item to jobfolder
-    job = jobfolder / 'this' / '0' / 'another'
+    jobfolder / 'this' / '0' / 'another'
     assert set(collect[regex].keys()) == set(keys)
 
 
 def test_naked_end(jobfolder, functional, tmpdir, expected_results, collect):
-    job = jobfolder / 'this' / '0' / 'another'
+    jobfolder / 'this' / '0' / 'another'
     collect.naked_end = False
     for key, value in collect['*/1'].indiv.items():
         assert value == expected_results[key]

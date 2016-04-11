@@ -408,7 +408,7 @@ class JobFolder(object):
 
     def __setstate__(self, args):
         super(JobFolder, self).__setattr__("params", args[1])
-        d = self.__dict__.update(args[0])
+        self.__dict__.update(args[0])
 
     def items(self, prefix=''):
         """ Iterates over executable sub-folders.

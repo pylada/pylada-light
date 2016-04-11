@@ -158,9 +158,11 @@ def run_cellrelax(directory="cellshape"):
     pwscf(structure, outdir=directory)
 
 
-def run_with_restart(first="cellshape", second="restarting"):
+def run_with_restart(outdir="restarting"):
     """ Example of running relaxation with cell-shape """
+    from pylada.misc import local_path
     from numpy.random import random
+    outdir = local_path(outdir)
     structure = diamond_structure()
     pwscf = diamond_pwscf()
 
@@ -168,5 +170,5 @@ def run_with_restart(first="cellshape", second="restarting"):
     structure.cell += random((3, 3)) * 0.01 - 0.005
     pwscf.control.calculation = 'vc-relax'
     pwscf.cell.factor = 2.0
-    result = pwscf(structure, outdir=first)
-    result = pwscf(structure, outdir=second, restart=result)
+    result = pwscf(structure, outdir=outdir.join('first'))
+    result = pwscf(structure, outdir=outdir.join('second'), restart=result)

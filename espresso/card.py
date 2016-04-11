@@ -79,11 +79,13 @@ def read_cards(stream):
         `stream` can be a stream of a path (string). This funtion will avoid namelists, and read
         all cards, as defined by the :py:attr:`CardNameTrait.card_names`.
     """
-    from os.path import expandvars, expanduser
+    from ..misc import local_path
+    from py.path import local as Path
     if isinstance(stream, str):
-        path = expandvars(expanduser(stream))
-        logger.info("Reading cards from %s", path)
-        return read_cards(open(path, 'r'))
+        stream = local_path(stream)
+    if isinstance(stream, Path):
+        logger.info("Reading cards from %s", stream)
+        return read_cards(stream.open('r'))
 
     results = []
     in_namelist = False

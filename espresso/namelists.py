@@ -141,11 +141,12 @@ class Namelist(HasTraits):
     def read(self, filename, clear=False):
         """ Read input from file """
         from f90nml import read
-        from os.path import expanduser, expandvars
+        from ..misc import local_path
         if clear:
             self.__inputs.clear()
 
-        dictionary = read(expanduser(expandvars(filename)))
+        filename = local_path(filename)
+        dictionary = read(str(filename))
         for key, value in dictionary.items():
             setattr(self, key, value)
 

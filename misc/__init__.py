@@ -24,7 +24,7 @@
 __all__ = ['testValidProgram', 'copyfile', 'Changedir',
            'read_input', 'exec_input', 'load',
            'RelativePath', 'LockFile', 'open_exclusive', 'translate_to_regex',
-           'mkdtemp', 'Redirect']
+           'mkdtemp', 'Redirect', 'local_path']
 
 from types import ModuleType
 
@@ -36,6 +36,27 @@ testValidProgram = None
 """
 Validation test program name
 """
+
+
+def local_path(path=None, *args):
+    """ Returns a py.path, expanding environment variables """
+    from os.path import expandvars
+    from py.path import local
+    if path is None:
+        return local(*args)
+    if isinstance(path, str):
+        return local(expandvars(path), expanduser=True).join(*args)
+    return path.join(*args)
+
+
+def chdir(path=None, *args):
+    """ Context for changing directory
+
+        Ensures the directory exists first.
+    """
+    path = local_path(path, *args)
+    path.ensure(dir=True)
+    return path.as_cwd()
 
 
 def setTestValidProgram(pgm):
@@ -164,7 +185,7 @@ def copyfile(src, dest=None, nothrow=None, symlink=False, aslink=False, nocopyem
             if relpath(src, dirname(dest)).count("../") == relpath(src, '/').count("../"):
                 ln(src, realpath(dest))
             else:
-                with Changedir(dirname(dest)):
+                with chdir(local_path(dest).dirname):
                     ln(relpath(src, dirname(dest)), basename(dest))
         else:
             _copyfile_impl(src, dest)

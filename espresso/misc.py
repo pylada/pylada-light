@@ -36,8 +36,8 @@ def write_f90namelist(f90namelist, stream=None):
         Keywords are passed on to :py:method:`Namelist.namelist`
     """
     from f90nml import Namelist as F90Namelist
-    from os.path import expanduser, expandvars, abspath
     from six import StringIO
+    from ..misc import local_path
     if stream is None:
         result = StringIO()
         write_f90namelist(f90namelist, result)
@@ -45,7 +45,7 @@ def write_f90namelist(f90namelist, stream=None):
         return result.read()
 
     if isinstance(stream, str):
-        path = abspath(expanduser(expandvars(stream)))
+        path = local_path(stream)
         logger.log(10, "Writing fortran namelist to %s" % path)
         with open(path, 'w') as file:
             write_f90namelist(f90namelist, file)
@@ -70,7 +70,8 @@ def write_pwscf_input(f90namelist, cards, stream=None):
         - otherwise, strean is assumed to be a stream of some sort, with a `write` method
     """
     from f90nml import Namelist as F90Namelist
-    from os.path import expanduser, expandvars, abspath
+    from py.path import local as Path
+    from ..misc import local_path
     from six import StringIO
 
     card_order = ['atomic_species', 'atomic_positions', 'k_points', 'cell_parameters',
@@ -86,10 +87,10 @@ def write_pwscf_input(f90namelist, cards, stream=None):
         return result
 
     if isinstance(stream, str):
-        path = abspath(expanduser(expandvars(stream)))
-        logger.info("Writing Pwscf input to file %s", path)
-        with open(path, 'w') as file:
-            write_pwscf_input(f90namelist, cards, file)
+        stream = local_path(stream)
+    if isinstance(stream, Path):
+        logger.info("Writing Pwscf input to file %s", stream)
+        write_pwscf_input(f90namelist, cards, stream.open('w'))
         return
 
     def key_order(item, list_):

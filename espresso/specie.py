@@ -63,19 +63,19 @@ class Specie(HasTraits):
             1. $HOME/espresso/pseudo exists and the path points to a file there
             1. None
         """
-        from os.path import exists, join, abspath, expanduser, expandvars, isfile
-        from os import environ, getcwd
+        from ..misc import local_path
+        from os import environ
         if self.pseudo is None:
             return None
-        prefixes = [getcwd()]
+        prefixes = [local_path()]
         if pseudo_dir is not None:
-            prefixes.append(expanduser(expandvars(pseudo_dir)))
+            prefixes.append(local_path(pseudo_dir))
         if 'ESPRESSO_PSEUDO' in environ:
-            prefixes.append(environ['ESPRESSO_PSEUDO'])
-        prefixes.append(expanduser(join('~', 'espresso', 'pseudo')))
+            prefixes.append(local_path(environ['ESPRESSO_PSEUDO']))
+        prefixes.append(local_path('~', 'espresso', 'pseudo'))
         for prefix in prefixes:
-            path = join(prefix, self.pseudo)
-            if exists(path) and isfile(path):
+            path = prefix.join(self.pseudo)
+            if path.check(file=True):
                 return path
         return None
 

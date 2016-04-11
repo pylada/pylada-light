@@ -41,13 +41,12 @@ def stateless(function):
 
     @wraps(function)
     def wrapper(self, structure, outdir=None, **kwargs):
+        from ..misc import local_path
         from copy import deepcopy
-        from os import getcwd
-        from ..misc import RelativePath
         structure = deepcopy(structure)
         self = deepcopy(self)
-        outdir = getcwd() if outdir is None else RelativePath(outdir).path
-        return function(self, structure, outdir, **kwargs)
+        outdir = local_path(outdir)
+        return function(self, structure, str(outdir), **kwargs)
     return wrapper
 
 
@@ -215,11 +214,11 @@ def prep_symlink(outdir, workdir, filename=None):
     """
     from os import remove, symlink
     from os.path import samefile, lexists, abspath, join
-    from ..misc import Changedir
+    from ..misc import chdir
     if samefile(outdir, workdir):
         return
     if filename is None:
-        with Changedir(workdir):
+        with chdir(workdir):
             if lexists('workdir'):
                 try:
                     remove('workdir')
@@ -231,7 +230,7 @@ def prep_symlink(outdir, workdir, filename=None):
                 pass
         return
 
-    with Changedir(workdir):
+    with chdir(workdir):
         if lexists(filename):
             try:
                 remove(filename)

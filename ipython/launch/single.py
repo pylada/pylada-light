@@ -38,8 +38,8 @@ def launch_single(self, event, jobfolder):
     import subprocess
     from copy import deepcopy
     from os.path import dirname, join, basename, exists
-    from os import remove
-    from ...misc import Changedir
+    from IPython import get_ipython
+    from ...misc import local_path
     from ... import pbs_string, default_pbs, qsub_exe, default_comm,       \
         interactive
     from . import get_walltime, get_queues, get_mppalloc
@@ -101,8 +101,7 @@ def launch_single(self, event, jobfolder):
                                .format(pyscript, path, **pbsargs)
     pbsscript = pbspaths(directory, name, 'script')
 
-    with Changedir(join(directory, name)) as pwd:
-        pass
+    local_path(directory).join(name).ensure(dir=True)
     with open(pbsscript, "w") as file:
         string = pbs_string(**pbsargs) if hasattr(pbs_string, '__call__')          \
             else pbs_string.format(**pbsargs)
@@ -120,7 +119,6 @@ def launch_single(self, event, jobfolder):
 
 def completer(self, info, data):
     """ Completer for scattered launcher. """
-    from .. import jobfolder_file_completer
     from ... import queues, accounts, debug_queue
     if len(data) > 0:
         if data[-1] == "--walltime":

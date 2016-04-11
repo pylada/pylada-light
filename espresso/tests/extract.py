@@ -26,8 +26,8 @@ class Extract(object):
     """ Extracts from dummy Pwscf """
 
     def __init__(self, directory):
-        from os.path import expandvars, expanduser
-        self.directory = expandvars(expanduser(directory))
+        from pylada.misc import local_path
+        self.directory = str(local_path(directory))
 
     @property
     def success(self):

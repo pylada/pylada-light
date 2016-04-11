@@ -105,7 +105,7 @@ def test_bringup(tmpdir, espresso):
     espresso.add_specie('A', 'A.upf', mass=1)
     espresso.add_specie('B', 'B.upf', mass=2)
     espresso.add_specie('X', 'X.upf', mass=3)
-    espresso._bring_up(outdir=str(tmpdir.join('runhere')), structure=structure)
+    espresso._bring_up(outdir=tmpdir.join('runhere'), structure=structure)
     assert tmpdir.join('runhere', 'pwscf.in').check()
 
 

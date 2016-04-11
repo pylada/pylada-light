@@ -133,7 +133,7 @@ class Pwscf(HasTraits):
 
     def read(self, filename, clear=True):
         """ Read from a file """
-        from os.path import expanduser, expandvars, abspath
+        from ..misc import local_path
         from .card import read_cards
 
         # read namelists first
@@ -145,7 +145,7 @@ class Pwscf(HasTraits):
                 if hasattr(value, 'clear'):
                     value.clear()
 
-        filename = abspath(expandvars(expanduser(filename)))
+        filename = local_path(filename)
         logger.info("%s: Reading from file %s", self.__class__.__name__, filename)
         self.__namelists.read(filename)
 
@@ -199,8 +199,8 @@ class Pwscf(HasTraits):
             setattr(namelist, key, value)
 
     @stateless
-    @assign_attributes(ignore=['overwrite', 'comm'])
-    def iter(self, structure, outdir=None, comm=None, overwrite=False, restart=None, **kwargs):
+    @assign_attributes(ignore=['overwrite', 'comm', 'restart'])
+    def iter(self, structure, outdir=".", comm=None, overwrite=False, restart=None, **kwargs):
         """ Allows asynchronous Pwscf calculations
 
             This is a generator which yields two types of objects:
@@ -225,9 +225,9 @@ class Pwscf(HasTraits):
             :param comm:
                 Holds arguments for executing VASP externally.
             :param overwrite:
-                If True, will overwrite pre-existing results. 
+                If True, will overwrite pre-existing results.
                 If False, will check whether a successful calculation exists. If
-                one does, then does not execute. 
+                one does, then does not execute.
             :param kwargs:
                 Any attribute of the Pwscf instance can be overridden for
                 the duration of this call by passing it as keyword argument:
@@ -237,7 +237,7 @@ class Pwscf(HasTraits):
 
                 The above would call VASP_ with smearing of 0.5 eV (unless a
                 successfull calculation already exists, in which case the
-                calculations are *not* overwritten). 
+                calculations are *not* overwritten).
 
             :yields: A process and/or an extraction object, as described above.
 
@@ -249,28 +249,31 @@ class Pwscf(HasTraits):
                 This function is stateless. It expects that self and structure can
                 be deepcopied correctly.
 
-            .. warning:: 
+            .. warning::
 
                 This will never overwrite successfull Pwscf calculation, even if the
                 parameters to the call are different.
         """
+        from ..misc import local_path
         from .. import pwscf_program
         from ..process.program import ProgramProcess
 
+        outdir = local_path(outdir)
         logger.info('Running Pwscf in: %s' % outdir)
+        outdir.ensure(dir=True)
 
         # check for pre-existing and successful run.
         if not overwrite:
             # Check with this instance's Extract, cos it is this calculation we shall
             # do here. Derived instance's Extract might be checking for other stuff.
-            extract = self.Extract(outdir)
+            extract = self.Extract(str(outdir))
             if extract.success:
                 yield extract  # in which case, returns extraction object.
                 return
 
         # if restarting, gets structure, sets charge density and wavefuntion at start
         # otherwise start passes structure back to caller
-        structure = self._restarting(structure, restart)
+        structure = self._restarting(structure, restart, outdir)
 
         # copies/creates file environment for calculation.
         self._bring_up(structure, outdir, comm=comm, overwrite=overwrite)
@@ -289,11 +292,11 @@ class Pwscf(HasTraits):
         stdout = self.control.prefix + ".out"
         stderr = self.control.prefix + ".err"
         stdin = self.control.prefix + ".in"
-        yield ProgramProcess(program, cmdline=cmdline, outdir=outdir, onfinish=onfinish,
+        yield ProgramProcess(program, cmdline=cmdline, outdir=str(outdir), onfinish=onfinish,
                              stdin=stdin, stdout=stdout, stderr=stderr,
                              dompi=comm is not None)
         # yields final extraction object.
-        yield self.Extract(outdir)
+        yield self.Extract(str(outdir))
 
     def pseudos_do_exist(self, structure, verbose=False):
         """ True if it all pseudos exist
@@ -314,7 +317,7 @@ class Pwscf(HasTraits):
                 return False
         return True
 
-    def _restarting(self, structure, restart):
+    def _restarting(self, structure, restart, outdir):
         """ Steps to take when restarting
 
             if restarting, gets structure, sets charge density and wavefuntion at start. Otherwise
@@ -333,6 +336,7 @@ class Pwscf(HasTraits):
         chden = restart.abspath.join('charge-density.xml')
         if chden.check(file=True):
             logger.info("Restarting from charge density %s" % chden)
+            chden.copy(outdir.join(chden.basename))
             self.electrons.startingpot = 'file'
         elif self.electrons.startingpot == 'file':
             logger.warning("No charge density found, setting startingpot to atomic")
@@ -341,6 +345,7 @@ class Pwscf(HasTraits):
         wfcden = restart.abspath.join('%s.wfc1' % self.control.prefix)
         if wfcden.check(file=True):
             logger.info("Restarting from wavefunction file %s" % wfcden)
+            wfcden.copy(outdir.join(wfcden.basename))
             self.electrons.startingwfc = 'file'
         elif self.electrons.startingwfc == 'file':
             logger.warning("No wavefunction file found, setting startingwfc to atomic+random")
@@ -350,15 +355,13 @@ class Pwscf(HasTraits):
 
     def _bring_up(self, structure, outdir, **kwargs):
         """ Prepares for actual run """
-        from os.path import join
-        from ..misc.changedir import Changedir
-
+        from ..misc import chdir
         logger.info('Preparing directory to run Pwscf: %s ' % outdir)
 
-        with Changedir(outdir) as tmpdir:
+        with chdir(outdir):
             self.write(structure=structure,
-                       stream=join(tmpdir, "%s.in" % self.control.prefix),
-                       outdir=tmpdir, **kwargs)
+                       stream=outdir.join("%s.in" % self.control.prefix),
+                       outdir=outdir, **kwargs)
 
             self.pseudos_do_exist(structure, verbose=True)
 
@@ -393,20 +396,17 @@ class Pwscf(HasTraits):
                 self.add_specie(name, pseudo, mass=float(mass))
 
     def _bring_down(self, directory, structure):
-        from os.path import exists
-        from os import remove
-        from ..misc import Changedir
-
-        with Changedir(directory):
-            if exists('.pylada_is_running'):
-                remove('.pylada_is_running')
+        from ..misc import local_path
+        directory = local_path(directory)
+        if directory.join('.pylada_is_running').check(file=True):
+            directory.join('.pylada_is_running').remove()
 
     @classmethod
-    def Extract(class_, outdir):
+    def Extract(class_, outdir, **kwargs):
         from .extract import Extract
         if hasattr(outdir, 'success') and hasattr(outdir, 'directory'):
             return outdir
-        return Extract(outdir)
+        return Extract(outdir, **kwargs)
 
     def __repr__(self):
         from numpy import abs
@@ -468,6 +468,7 @@ class Pwscf(HasTraits):
 
         # Last yield should be an extraction object.
         if not program.success:
+            print(program)
             raise error.RuntimeError("Pwscf failed to execute correctly.")
 
         return program

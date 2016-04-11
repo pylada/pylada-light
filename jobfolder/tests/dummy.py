@@ -26,7 +26,7 @@ def Extract(outdir=None):
     from os import getcwd
     from collections import namedtuple
     from pickle import load
-    from pylada.misc import Changedir
+    from pylada.misc import local_path
 
     if outdir == None:
         outdir = getcwd()
@@ -35,21 +35,19 @@ def Extract(outdir=None):
     if not exists(outdir):
         return Extract(False, outdir, None, functional)
 
-    with Changedir(outdir) as pwd:
-        if not exists('OUTCAR'):
-            return Extract(False, outdir, None, functional)
-        with open('OUTCAR', 'rb') as file:
-            indiv, value = load(file)
+    outdir = local_path(outdir)
+    if not outdir.join('OUTCAR').check(file=True):
+        return Extract(False, str(outdir), None, functional)
+    indiv, value = load(outdir.join('OUTCAR').open('rb'))
 
     return Extract(True, outdir, indiv, functional)
 
 
 def functional(indiv, outdir=None, value=False, **kwargs):
-    from pylada.misc import Changedir
+    from pylada.misc import local_path
     from pickle import dump
-
-    with Changedir(outdir) as pwd:
-        dump((indiv, value), open('OUTCAR', 'wb'))
-
-    return Extract(outdir)
+    outdir = local_path(outdir)
+    outdir.ensure(dir=True)
+    dump((indiv, value), outdir.join('OUTCAR').open('wb'))
+    return Extract(str(outdir))
 functional.Extract = Extract

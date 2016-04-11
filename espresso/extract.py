@@ -92,9 +92,8 @@ class Extract(object):
     @property
     def abspath(self):
         """ Absolute path to directory """
-        from os.path import expandvars
-        from py.path import local
-        return local(expandvars(str(self.directory)), expanduser=True)
+        from ..misc import local_path
+        return local_path(self.directory)
 
     @property
     def input_path(self):

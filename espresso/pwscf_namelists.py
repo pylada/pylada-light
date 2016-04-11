@@ -76,10 +76,10 @@ class Control(Namelist):
     @input_transform
     def _set_outdir(self, dictionary, **kwargs):
         """ Sets output directory from input """
-        from os.path import expandvars, expanduser
+        from ..misc import local_path
         if 'outdir' not in kwargs:
             return
-        dictionary['outdir'] = expanduser(expandvars(kwargs['outdir']))
+        dictionary['outdir'] = str(local_path(kwargs['outdir']))
 
 
 class System(Namelist):

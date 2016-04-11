@@ -121,9 +121,8 @@ class RelativePath(object):
     @property
     def envvar(self):
         """ Fixed point for relative directory. """
-        from os import getcwd
         from os.path import expanduser, expandvars, normpath
-        from . import Changedir
+        from . import local_path
         from .. import global_root
         if self._envvar is None:
             if global_root is None:
@@ -132,8 +131,8 @@ class RelativePath(object):
                 return normpath(global_root)
             # Need to figure it out.
             try:
-                with Changedir(expanduser(global_root)) as pwd:
-                    return getcwd()
+                local_path(global_root).ensure(dir=True)
+                return str(local_path(global_root))
             except OSError as e:
                 raise IOError('Could not figure out directory {0}.\n'
                               'Caught error OSError {1.errno}: {1.message}'

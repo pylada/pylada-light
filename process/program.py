@@ -249,7 +249,7 @@ class ProgramProcess(Process):
     def _next(self):
         """ Starts an actual process. """
         from os import environ
-        from ..misc import Changedir
+        from ..misc import chdir
         from ..error import ValueError
         from .. import mpirun_exe, launch_program as launch
         from . import which
@@ -257,7 +257,7 @@ class ProgramProcess(Process):
         from pylada.misc import testValidProgram
 
         # Open stdout and stderr if necessary.
-        with Changedir(self.outdir) as cwd:
+        with chdir(self.outdir):
             if self.stdout is None:
                 file_out = None
             elif isinstance(self.stdout, str):

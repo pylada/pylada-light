@@ -995,14 +995,14 @@ class Vasp(AttrBlock):
         """
         from os.path import join
         from ..crystal import specieset
-        from ..misc.changedir import Changedir
+        from ..misc import chdir, local_path
         from . import files
 
         logger.info('vasp/functional bringup: outdir: %s ' % outdir)
         logger.debug('vasp/functional bringup: structure:\n%s' % repr(structure))
         logger.debug('vasp/functional bringup: kwargs: %s' % repr(kwargs))
 
-        with Changedir(outdir) as tmpdir:
+        with chdir(outdir):
             # creates INCAR file (and POSCAR via istruc).
             fpath = join(outdir, files.INCAR)
             logger.debug("vasp/functional bringup: incar fpath: %s " % fpath)
@@ -1020,25 +1020,23 @@ class Vasp(AttrBlock):
                     outLines = self.species[s].read_potcar()
                     potcar.writelines(outLines)
             # Add is running file marker.
-            with open('.pylada_is_running', 'w') as file:
-                pass
-
+            local_path(outdir).join('.pylada_is_running').check(file=True)
             self._copy_additional_files(outdir)
 
     def _copy_additional_files(self, outdir):
         """ Copy files from attribute files """
         from collections import Sequence
-        from ..misc import RelativePath, copyfile, Changedir
+        from ..misc import local_path, copyfile, chdir
         files = getattr(self, 'files', [])
         if files is None:
             return
         if isinstance(files, str) or not isinstance(files, Sequence):
             files = [files]
         files = [
-            RelativePath(getattr(filename, 'path', filename)).path
+            str(local_path(getattr(filename, 'path', filename)))
             for filename in files
         ]
-        with Changedir(outdir):
+        with chdir(outdir):
             for filename in files:
                 copyfile(filename)
 
@@ -1046,12 +1044,11 @@ class Vasp(AttrBlock):
         """ Copies contcar to outcar. """
         from os.path import exists
         from os import remove
-        from . import files
-        from ..misc import Changedir
+        from ..misc import chdir
 
         logger.info('vasp/functional bringdown: directory: %s ' % directory)
 
-        with Changedir(directory) as pwd:
+        with chdir(directory):
             with open('pylada.FUNCTIONAL', 'w') as fout:
                 fout.write(repr(self))
 

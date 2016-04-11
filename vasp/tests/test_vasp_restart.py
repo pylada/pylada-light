@@ -31,7 +31,7 @@ def test_istart():
     from tempfile import mkdtemp
     from pylada.vasp.files import WAVECAR
     from pylada.vasp import Vasp
-    from pylada.misc import Changedir
+    from pylada.misc import local_path
 
     Extract = namedtuple("Extract", ['directory', 'success'])
     a = Vasp()
@@ -50,8 +50,7 @@ def test_istart():
         assert loads(dumps(o)).value == 'auto'
 
         restartdir = join(directory, 'restart')
-        with Changedir(restartdir) as pwd:
-            pass
+        local_path(restartdir).ensure(dir=True)
         with open(join(restartdir, WAVECAR), 'w') as file:
             file.write('hello')
 
@@ -121,7 +120,7 @@ def test_icharg():
     from tempfile import mkdtemp
     from pylada.vasp.files import WAVECAR, CHGCAR
     from pylada.vasp import Vasp
-    from pylada.misc import Changedir
+    from pylada.misc import local_path
     from pylada.error import ValueError
 
     Extract = namedtuple("Extract", ['directory', 'success'])
@@ -141,8 +140,7 @@ def test_icharg():
         assert loads(dumps(o)).value == 'auto'
 
         restartdir = join(directory, 'restart')
-        with Changedir(restartdir) as pwd:
-            pass
+        local_path(restartdir).ensure(dir=True)
         with open(join(restartdir, CHGCAR), 'w') as file:
             file.write('hello')
         with open(join(restartdir, WAVECAR), 'w') as file:

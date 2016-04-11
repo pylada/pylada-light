@@ -119,10 +119,9 @@ class CallProcess(Process):
         from sys import executable, path as pypath
         from tempfile import NamedTemporaryFile
         from .program import ProgramProcess
-        from ..misc import Changedir
+        from ..misc import local_path
         # creates temp input script.
-        with Changedir(self.outdir) as outdir:
-            pass
+        local_path(self.outdir).ensure(dir=True)
         with NamedTemporaryFile(dir=self.outdir, suffix='.py', delete=False, mode='w') as stdin:
             if self.dompi:
                 params = self.params

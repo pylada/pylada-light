@@ -183,7 +183,7 @@ def record(self, cmdl):
 
 def completer(self, event):
     """ Completer for %record magic function. """
-    from pylada.opt import RelativeDirectory
+    from pylada.misc import local_path
     from pickle import load
     from os.path import isdir, exists
 
@@ -223,7 +223,7 @@ def completer(self, event):
         if '--file' in data:
             index = data.index('--file')
             assert len(data) > index + 1
-            path = RelativeDirectory(data[index + 1]).path
+            path = str(local_path(data[index + 1]))
             known.pop(index + 1)
         if exists(path):
             with open(path) as file:

@@ -241,7 +241,7 @@ def create_global_comm(nprocs, dir=None):
     from re import finditer
     from .. import mpirun_exe, modify_global_comm, do_multiple_mpi_programs,     \
         figure_out_machines as script, launch_program as launch
-    from ..misc import Changedir
+    from ..misc import local_path
     from ..error import ConfigError
     import pylada
     from ..process import logger
@@ -259,8 +259,7 @@ def create_global_comm(nprocs, dir=None):
         dir = getcwd()
 
     # each proc prints its name to the standard output.
-    with Changedir(dir) as pwd:
-        pass
+    local_path(dir).ensure(dir=True)
     try:
         with NamedTemporaryFile(delete=False, dir=dir) as file:
             file.write(script)

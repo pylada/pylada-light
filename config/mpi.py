@@ -136,8 +136,7 @@ def launch_program(cmdl, comm=None, formatter=None, env=None,
     from shlex import split as shlex_split
     from subprocess import Popen
     from pylada import machine_dependent_call_modifier
-    from pylada.misc import Changedir
-    from pylada.misc import testValidProgram
+    from pylada.misc import local_path
 
     # At this point formatter is {"program": vasp}
     # and cmdl is "mpirun -n {n} {placement} {program}"
@@ -163,9 +162,7 @@ def launch_program(cmdl, comm=None, formatter=None, env=None,
     cmdl = shlex_split(cmdl)
 
     # makes sure the directory exists:
-    if outdir is not None:
-        with Changedir(outdir) as cwd:
-            pass
+    local_path(outdir).ensure(dir=True)
 
     # Finally, start the process.
     popen = Popen(cmdl, stdout=stdout, stderr=stderr, stdin=stdin,
