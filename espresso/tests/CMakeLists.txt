@@ -32,11 +32,21 @@ if(tests)
       FAKE_INIT
   )
   install_python(DIRECTORY data/nonscf DESTINATION pylada/espresso/tests/data)
+  install_python(DIRECTORY data/cellshape DESTINATION pylada/espresso/tests/data)
+  install_python(DIRECTORY data/ions DESTINATION pylada/espresso/tests/data)
+  install_python(DIRECTORY features DESTINATION pylada/espresso/tests)
   if(NOT EXISTS "${PYTHON_BINARY_DIR}/pylada/espresso/tests/data/nonscf")
     file(MAKE_DIRECTORY "${PYTHON_BINARY_DIR}/pylada/espresso/tests")
     execute_process(COMMAND
         ${CMAKE_COMMAND} -E create_symlink "${CMAKE_CURRENT_SOURCE_DIR}/data"
         "${PYTHON_BINARY_DIR}/pylada/espresso/tests/data"
+    )
+  endif()
+  if(NOT EXISTS "${PYTHON_BINARY_DIR}/pylada/espresso/tests/features/single_run.feature")
+    file(MAKE_DIRECTORY "${PYTHON_BINARY_DIR}/pylada/espresso/tests")
+    execute_process(COMMAND
+        ${CMAKE_COMMAND} -E create_symlink "${CMAKE_CURRENT_SOURCE_DIR}/features"
+        "${PYTHON_BINARY_DIR}/pylada/espresso/tests/features"
     )
   endif()
 endif(tests)
