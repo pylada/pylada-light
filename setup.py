@@ -217,7 +217,7 @@ try:
         version="1.0",
 
         install_requires=['numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py', 'six',
-                          'traitlets', 'f90nml'],
+                          'traitlets', 'f90nml', 'pytest-bdd'],
         platforms=['GNU/Linux', 'Unix', 'Mac OS-X'],
 
         zip_safe=False,
