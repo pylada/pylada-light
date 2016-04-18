@@ -10,11 +10,18 @@ def pwscf():
     return Pwscf()
 
 
+@given(parsers.parse("mandatory attribute pwscf.system.ecutwfc is set to {value:f} {units:S}"))
+def set_ecutwfc(pwscf, value, units):
+    import quantities
+    pwscf.system.ecutwfc = value * getattr(quantities, units)
+
+
 @given(parsers.parse("pwscf.{namelist:w}.{attribute:w} is set to {value:f}"))
 def set_an_attribute0(pwscf, namelist, attribute, value):
     # equivalent to pwscf.namelist.attribute = value
     # with namelist and attribute replaced by their values
     setattr(getattr(pwscf, namelist), attribute, value)
+
 
 @when(parsers.parse("writing to {filename:S} without specifying a structure"))
 def writing_no_structure(pwscf, tmpdir, filename):
@@ -38,3 +45,11 @@ def check_float_attribute_exists(pwscf_out, namelist, attribute, value):
     assert hasattr(getattr(pwscf_out, namelist), attribute)
     actual = float(getattr(getattr(pwscf_out, namelist), attribute))
     assert abs(actual - value) < 1e-12
+
+
+@then(parsers.parse("wavefunction cutoff is equal to {value:f} {units:S}"))
+def check_ecutwfc(pwscf_out, value, units):
+    import quantities
+    from numpy import allclose
+    assert pwscf_out.system.ecutwfc.units == getattr(quantities, units)
+    assert allclose(float(pwscf_out.system.ecutwfc), value)

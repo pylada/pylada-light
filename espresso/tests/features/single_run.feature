@@ -8,10 +8,10 @@ Scenario: Writing a pwscf input file
     writing it's input)
 
     Given a Pwscf object
-    And pwscf.system.ecutwfc is set to 14.0
+    And mandatory attribute pwscf.system.ecutwfc is set to 14.0 Ry
     When writing to pwscf.in without specifying a structure
     Then the file pwscf.in appears and can be read
-    And pwscf.system.ecutwfc is equal to 14.0
+    And wavefunction cutoff is equal to 14.0 Ry
 
 
 Scenario: Writing a pwscf input file with an unknown parameter
@@ -22,10 +22,10 @@ Scenario: Writing a pwscf input file with an unknown parameter
     points and arrays of integers and floating points
 
     Given a Pwscf object
-    And pwscf.system.ecutwfc is set to 14.0
-    # And pwscf.electrons.whawha is set to 1.5
+    And mandatory attribute pwscf.system.ecutwfc is set to 14.0 Ry
+    And pwscf.electrons.whawha is set to 1.5
     When writing to pwscf.in without specifying a structure
     Then the file pwscf.in appears and can be read
-    And pwscf.system.ecutwfc is equal to 14.0
-    # And pwscf.electrons.whawha is equal to 1.5
+    And wavefunction cutoff is equal to 14.0 Ry
+    And pwscf.electrons.whawha is equal to 1.5
 
