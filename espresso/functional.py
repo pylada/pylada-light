@@ -199,7 +199,7 @@ class Pwscf(HasTraits):
             setattr(namelist, key, value)
 
     @stateless
-    @assign_attributes(ignore=['overwrite', 'comm', 'restart'])
+    @assign_attributes(ignore=['overwrite', 'comm', 'restart', 'program'])
     def iter(self, structure, outdir=".", comm=None, overwrite=False, restart=None, **kwargs):
         """ Allows asynchronous Pwscf calculations
 
@@ -207,7 +207,7 @@ class Pwscf(HasTraits):
 
             .. code:: python
 
-                yield Program(program="Vasp", outdir=outdir)
+                yield Program(program="pw.x", outdir=outdir)
                 yield Extract(outdir=outdir)
 
             - :py:class:`~pylada.process.program.ProgramProcess`: once started, this process will
@@ -279,7 +279,7 @@ class Pwscf(HasTraits):
         self._bring_up(structure, outdir, comm=comm, overwrite=overwrite)
 
         # figures out what program to call.
-        program = getattr(self, 'program', pwscf_program)
+        program = kwargs.get('program', getattr(self, 'program', pwscf_program))
         if program == None:
             raise RuntimeError('program was not set in the espresso functional')
         logger.info("Pwscf program: %s" % program)
