@@ -21,6 +21,7 @@
 ###############################
 
 from .process import Process
+from ..process import logger
 
 
 class ProgramProcess(Process):
@@ -202,6 +203,7 @@ class ProgramProcess(Process):
         if poll is None:
             return False
         # call callback.
+        logger.debug("program has onfinish %s", self.onfinish is not None)
         if self.onfinish is not None:
             try:
                 self.onfinish(process=self, error=(poll != 0))
@@ -236,9 +238,9 @@ class ProgramProcess(Process):
         return False
 
     def start(self, comm=None):
+        from ..onexit import add_callback
         self.comm = comm                # used for testValidProgram
         if not self.started:
-            from ..onexit import add_callback
             self._onexit_id = add_callback(self.__class__._onexit_callback, self)
         if super(ProgramProcess, self).start(comm):
             return True
@@ -253,7 +255,6 @@ class ProgramProcess(Process):
         from ..error import ValueError
         from .. import mpirun_exe, launch_program as launch
         from . import which
-        from ..process import logger
         from pylada.misc import testValidProgram
 
         # Open stdout and stderr if necessary.
@@ -279,8 +280,6 @@ class ProgramProcess(Process):
             self._stdio = file_out, file_err, file_in
 
         # creates commandline
-        logger.debug("process.program: self.program: %s" % self.program)
-
         program = which(self.program)
         logger.debug("process.program: program: %s" % program)
 
@@ -307,8 +306,8 @@ class ProgramProcess(Process):
             comm = None
             formatter = None
             logger.debug("process.program: next: no mpi: cmdline: \"%s\"" % cmdline)
-        logger.debug("process.program: self.outdir: %s" % self.outdir)
 
+        logger.debug("process.program: self.outdir: %s" % self.outdir)
         self.process = launch(cmdline, comm=comm, formatter=formatter,
                               env=environ, stdout=file_out, stderr=file_err,
                               stdin=file_in, outdir=self.outdir)
@@ -318,9 +317,9 @@ class ProgramProcess(Process):
 
     def _cleanup(self):
         """ Cleanup files and crap. """
+        from ..onexit import del_callback
         # Deletes onexit callback if it exists.
         if self._onexit_id is not None:
-            from ..onexit import del_callback
             del_callback(self._onexit_id)
             self._onexit_id = None
 
@@ -345,17 +344,19 @@ class ProgramProcess(Process):
         """ Waits for process to end, then cleanup. """
         from . import NotStarted
         if not hasattr(self, 'comm'):
+            logger.critical("Program was not started")
             raise NotStarted()
         if self.comm != None:                # used for testValidProgram
+            logger.debug("Wait for program end")
             super(ProgramProcess, self).wait()
             self.process.wait()
             self.poll()
 
     def _onexit_callback(self):
         """ Registers callback for killing a process. """
+        from ..onexit import del_callback
         # First deletes this callback from the list.
         if self._onexit_id is not None:
-            from ..onexit import del_callback
             del_callback(self._onexit_id)
             self._onexit_id = None
 
