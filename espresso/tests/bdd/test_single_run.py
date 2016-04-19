@@ -29,6 +29,11 @@ def aluminum():
     return result
 
 
+@given("a serial communicator")
+def serialcomm():
+    return {'n': 1}
+
+
 @pytest.fixture
 def passon():
     """ A container to pass information from when to then """
@@ -37,8 +42,20 @@ def passon():
 
 @when("iterating through the first step")
 def first_step(pwscf, tmpdir, aluminum, passon):
-    iterator = pwscf.iter(aluminum, tmpdir)
+    iterator = pwscf.iter(aluminum, tmpdir, program="/usr/bin/true")
     passon.extend([iterator, iterator.next()])
+
+
+@when("executing the program process")
+def execute_program(passon, serialcomm):
+    passon[-1].start({'n': 1})
+    passon[-1].wait()
+
+
+@when("iterating through the second step")
+def second_step(passon):
+    iterator = passon[0]
+    passon.append(iterator.next())
 
 
 @then("the yielded object is a ProgrammProcess")
@@ -46,6 +63,13 @@ def first_yield(passon):
     from pylada.process import ProgramProcess
     iterator, first_step = passon
     assert isinstance(first_step, ProgramProcess)
+
+
+@then("the yielded object is an Extract object")
+def second_yield(passon):
+    from pylada.espresso.extract import Extract
+    extract = passon[-1]
+    assert isinstance(extract, Extract)
 
 
 @then(parsers.parse("a valid {filename} exists"))
@@ -58,6 +82,27 @@ def check_pwscf_input(tmpdir, filename, pwscf):
     assert actual.kpoints.value.rstrip().lstrip() == pwscf.kpoints.value.rstrip().lstrip()
 
 
+@then("the extract object says the run is unsuccessful")
+def unsuccessfull_run(passon):
+    extract = passon[-1]
+    assert extract.success == False
+
+
 @then(parsers.parse("the marker file '{filename}' exists"))
 def check_marker_file(tmpdir, filename):
     assert tmpdir.join(filename).check(file=True)
+
+
+@then(parsers.parse("the output file '{filename}' exists"))
+def check_output_file(tmpdir, filename):
+    assert tmpdir.join(filename).check(file=True)
+
+
+@then(parsers.parse("the error file '{filename}' exists"))
+def check_error_file(tmpdir, filename):
+    assert tmpdir.join(filename).check(file=True)
+
+
+@then(parsers.parse("the marker file '{filename}' has been removed"))
+def check_marker_file_disappeared(tmpdir, filename):
+    assert tmpdir.join(filename).check(file=False)
