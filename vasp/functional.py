@@ -132,30 +132,31 @@ class Vasp(AttrBlock):
         self.restart = kwargs.get('restart', None)
         """ Calculation from which to restart. 
 
-        Depending on the values of :py:attr:`istart`, :py:attr:`icharg`, and
-        :py:attr:`istruc`, this calculation will copy the charge density,
-        wavefunctions, and structure from this object. It should be either
-        None, or an extraction object returned by a previous calculation (e.g.
-        :py:class:`~pylada.vasp.extract.Extract`):
+            Depending on the values of :py:attr:`istart`, :py:attr:`icharg`, and
+            :py:attr:`istruc`, this calculation will copy the charge density,
+            wavefunctions, and structure from this object. It should be either
+            None, or an extraction object returned by a previous calculation (e.g.
+            :py:class:`~pylada.vasp.extract.Extract`):
 
-        .. code-block:: python
+            .. code-block:: python
 
-           calc1 = vasp(structure)
-           calc2 = vasp(structure, restart=calc2, nonscf=True)
+               calc1 = vasp(structure)
+               calc2 = vasp(structure, restart=calc2, nonscf=True)
 
-        The snippet above performs a non-self-consistent calculation using the
-        first calculation. In this example, it is expected that
-        :py:attr:`istart`, :py:attr:`icharg`, and :py:attr:`istruc` are all set
-        to 'auto', in which case Pylada knows to do the right thing, e.g. copy
-        whatever is available, and nothing is ``vasp.restart is None``.
+            The snippet above performs a non-self-consistent calculation using the
+            first calculation. In this example, it is expected that
+            :py:attr:`istart`, :py:attr:`icharg`, and :py:attr:`istruc` are all set
+            to 'auto', in which case Pylada knows to do the right thing, e.g. copy
+            whatever is available, and nothing is ``vasp.restart is None``.
 
-        .. note::
+            .. note::
 
-           The calculation from which to restart needs be successful, otherwise
-           it is not considered.
+               The calculation from which to restart needs be successful, otherwise
+               it is not considered.
 
-        .. seealso:: :py:attr:`istart`, :py:attr:`istruc`, :py:attr:`icharg`
-    """
+            .. seealso:: :py:attr:`istart`, :py:attr:`istruc`, :py:attr:`icharg`
+
+        """
 
         self.program = kwargs.get('program', None)
         """ Path to vasp program. 
