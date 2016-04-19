@@ -42,11 +42,5 @@ if(tests)
         "${PYTHON_BINARY_DIR}/pylada/espresso/tests/data"
     )
   endif()
-  if(NOT EXISTS "${PYTHON_BINARY_DIR}/pylada/espresso/tests/features/single_run.feature")
-    file(MAKE_DIRECTORY "${PYTHON_BINARY_DIR}/pylada/espresso/tests")
-    execute_process(COMMAND
-        ${CMAKE_COMMAND} -E create_symlink "${CMAKE_CURRENT_SOURCE_DIR}/features"
-        "${PYTHON_BINARY_DIR}/pylada/espresso/tests/features"
-    )
-  endif()
+  add_subdirectory(bdd)
 endif(tests)
