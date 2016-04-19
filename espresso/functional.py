@@ -364,6 +364,7 @@ class Pwscf(HasTraits):
                        outdir=outdir, **kwargs)
 
             self.pseudos_do_exist(structure, verbose=True)
+            outdir.join('.pylada_is_running').ensure(file=True)
 
     def _write_atomic_species_card(self, structure):
         """ Creates atomic-species card """

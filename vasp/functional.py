@@ -1020,7 +1020,7 @@ class Vasp(AttrBlock):
                     outLines = self.species[s].read_potcar()
                     potcar.writelines(outLines)
             # Add is running file marker.
-            local_path(outdir).join('.pylada_is_running').check(file=True)
+            local_path(outdir).join('.pylada_is_running').ensure(file=True)
             self._copy_additional_files(outdir)
 
     def _copy_additional_files(self, outdir):

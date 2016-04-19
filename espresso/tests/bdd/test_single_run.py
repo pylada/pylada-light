@@ -3,6 +3,7 @@ import pytest
 
 scenarios("features/single_run.feature")
 
+
 @given(parsers.parse("a pwscf object setup as follows\n{text}"))
 def pwscf(text):
     from quantities import Ry
@@ -55,3 +56,8 @@ def check_pwscf_input(tmpdir, filename, pwscf):
     assert abs(actual.system.ecutwfc - pwscf.system.ecutwfc) < 1e-8
     assert actual.kpoints.subtitle == pwscf.kpoints.subtitle
     assert actual.kpoints.value.rstrip().lstrip() == pwscf.kpoints.value.rstrip().lstrip()
+
+
+@then(parsers.parse("the marker file '{filename}' exists"))
+def check_marker_file(tmpdir, filename):
+    assert tmpdir.join(filename).check(file=True)

@@ -1,6 +1,17 @@
-Feature: single run
+Feature: simple run
 
-    Setting up and running a single espresso calculation
+    Setting up and running a simple espresso calculation for aluminum
+
+Background:
+    Given a pwscf object setup as follows
+        pwscf.system.ecutwfc = 12.0*Ry
+        pwscf.kpoints.subtitle = None
+        pwscf.kpoints.value = "2\n"\
+            "0.25 0.25 0.75 3.0\n"\
+            "0.25 0.25 0.25 1.0\n"
+        pwscf.add_specie('Al', 'Al.pz-vbc.UPF')
+    And a fake pseudo 'Al.pz-vbc.UPF' in the working directory
+    And an aluminum structure
 
 Scenario: Launching a (fake) pwscf calculation and check input
 
@@ -14,15 +25,7 @@ Scenario: Launching a (fake) pwscf calculation and check input
         first step, executing it, and then returning the value of the second step.
         At the first iteration, all the input for pwscf should be present.
 
-    Given a pwscf object setup as follows
-        pwscf.system.ecutwfc = 12.0*Ry
-        pwscf.kpoints.subtitle = None
-        pwscf.kpoints.value = "2\n"\
-            "0.25 0.25 0.75 3.0\n"\
-            "0.25 0.25 0.25 1.0\n"
-        pwscf.add_specie('Al', 'Al.pz-vbc.UPF')
-    And a fake pseudo 'Al.pz-vbc.UPF' in the working directory
-    And an aluminum structure
     When iterating through the first step
     Then the yielded object is a ProgrammProcess
     And a valid pwscf.in exists
+    And the marker file '.pylada_is_running' exists
