@@ -34,7 +34,6 @@ if(tests)
   install_python(DIRECTORY data/nonscf DESTINATION pylada/espresso/tests/data)
   install_python(DIRECTORY data/cellshape DESTINATION pylada/espresso/tests/data)
   install_python(DIRECTORY data/ions DESTINATION pylada/espresso/tests/data)
-  install_python(DIRECTORY features DESTINATION pylada/espresso/tests)
   if(NOT EXISTS "${PYTHON_BINARY_DIR}/pylada/espresso/tests/data/nonscf")
     file(MAKE_DIRECTORY "${PYTHON_BINARY_DIR}/pylada/espresso/tests")
     execute_process(COMMAND
