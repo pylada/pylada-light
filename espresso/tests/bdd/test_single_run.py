@@ -42,8 +42,9 @@ def passon():
 
 @when("iterating through the first step")
 def first_step(pwscf, tmpdir, aluminum, passon):
+    from six import next
     iterator = pwscf.iter(aluminum, tmpdir, program="/usr/bin/true")
-    passon.extend([iterator, iterator.next()])
+    passon.extend([iterator, next(iterator)])
 
 
 @when("executing the program process")
@@ -54,8 +55,9 @@ def execute_program(passon, serialcomm):
 
 @when("iterating through the second step")
 def second_step(passon):
+    from six import next
     iterator = passon[0]
-    passon.append(iterator.next())
+    passon.append(next(iterator))
 
 
 @then("the yielded object is a ProgrammProcess")
