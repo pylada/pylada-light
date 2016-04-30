@@ -51,9 +51,9 @@ def true(tmpdir):
 
 
 @when("iterating through the first step")
-def first_step(pwscf, tmpdir, aluminum, passon):
+def first_step(pwscf, tmpdir, aluminum, passon, true):
     from six import next
-    iterator = pwscf.iter(aluminum, tmpdir, program="/usr/bin/true")
+    iterator = pwscf.iter(aluminum, tmpdir, program=str(true))
     passon.extend([iterator, next(iterator)])
 
 
