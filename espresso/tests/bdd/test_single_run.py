@@ -40,9 +40,19 @@ def passon():
     return []
 
 
+@pytest.fixture
+def true(tmpdir):
+    from sys import executable
+    from stat import S_IREAD, S_IWRITE, S_IEXEC
+    result = tmpdir.join("true.py")
+    result.write("#! %s\nfrom sys import exit\nexit(0)" % executable)
+    result.chmod(S_IREAD | S_IWRITE | S_IEXEC)
+    return result
+
+
 @when("iterating through the first step")
-def first_step(pwscf, tmpdir, aluminum, passon):
-    iterator = pwscf.iter(aluminum, tmpdir, program="/usr/bin/true")
+def first_step(pwscf, tmpdir, aluminum, passon, true):
+    iterator = pwscf.iter(aluminum, tmpdir, program=str(true))
     passon.extend([iterator, iterator.next()])
 
 
