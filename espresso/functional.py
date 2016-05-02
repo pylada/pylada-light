@@ -351,7 +351,7 @@ class Pwscf(HasTraits):
             logger.warning("No wavefunction file found, setting startingwfc to atomic+random")
             self.electrons.startingwfc = 'atomic+random'
 
-        return restart.initial_structure
+        return restart.structure
 
     def _bring_up(self, structure, outdir, **kwargs):
         """ Prepares for actual run """
