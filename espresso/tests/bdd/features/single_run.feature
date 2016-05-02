@@ -1,6 +1,9 @@
 Feature: simple run
 
-    Creates and launches a calculation. However, we do not actually launch the calculation. Instead
+    Creates and launches a calculation. The first scenario shows the standard way of using pwscf.
+    The only difference is that it mocks pwscf with a script that copies pre-computed output. This
+    ensure the test will run on platforms where pwscf is not available, while changing little as far
+    as pylada is concerned. The other scenario go into the details of what happens behind the scene:
     we check that the functional is an iterator with two steps:
 
     - the first step yields a ProgrammProcess object that can execute an external binary
@@ -20,6 +23,12 @@ Background:
         pwscf.add_specie('Al', 'Al.pz-vbc.UPF')
     And a fake pseudo 'Al.pz-vbc.UPF' in the working directory
     And an aluminum structure
+
+
+Scenario: Non-scf run
+
+    When running pwscf
+    Then the run is successful
 
 
 Scenario: check iteration through first step
