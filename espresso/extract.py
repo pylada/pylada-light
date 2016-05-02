@@ -222,6 +222,13 @@ class Extract(object):
             self.__cell(structure)
         return structure
 
+    @property
+    @make_cached
+    @grepper("Starting wfc from file", fail=False)
+    def started_from_wavefunctions_file(self, match):
+        """ True if restarted from wavefunction file """
+        return match is not None
+
     def __directory_hook__(self):
         """ Called whenever the directory changes. """
         self.uncache()
