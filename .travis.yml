@@ -16,7 +16,7 @@ script:
   - make lookup_dependencies # eigen and/or boost
   - make
   - ctest .. -V
-  - pip install --user git+git://github.com/$TRAVIS_REPO_SLUG@$TRAVIS_COMMIT
+  - pip install --user git+file://$(pwd)/..
   - python -c "import pylada; pylada.test()"
 notifications:
   slack:
