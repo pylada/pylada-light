@@ -99,7 +99,7 @@ def poscar(structure, file='POSCAR', vasp5=None, substitute=None, direct=True):
                 .format(dot(inv_cell, atom.pos).tolist()[0])
       freeze = getattr(atom, 'freeze', '')
       if selective_dynamics:
-        string += "  {1} {2} {3}\n"\
+        string += "  {0} {1} {2}\n"\
                     .format( 'T' if 'x' in freeze  != 0 else 'F', 
                              'T' if 'y' in freeze  != 0 else 'F', 
                              'T' if 'z' in freeze  != 0 else 'F' ) 
