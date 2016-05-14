@@ -22,6 +22,11 @@
 
 """ Contains basic data type and methods for crystal structures. """
 __docformat__ = "restructuredtext en"
+__all__ = ['Atom', 'Structure', 'space_group', 'cell_invariants', 'smith_normal_form', 'gruber',
+           'supercell', 'into_cell', 'into_voronoi', 'zero_centered', 'are_periodic_images',
+           'HFTransform', 'primitive', 'is_primitive', 'neighbors', 'coordination_shells',
+           'map_sites', 'iterator', 'specieset', 'transform', 'vasp_ordered', 'which_site']
+
 from .atom import Atom
 from .structure import Structure
 from ._space_group import space_group, cell_invariants
@@ -45,17 +50,6 @@ def transform(structure, rotation, translation=None):
     return result
 
 
-# __all__ = [ 'Structure', 'Atom', 'HFTransform', 'zero_centered', 'into_voronoi',
-#             'into_cell', 'third_order_cc', 'supercell', 'primitive', 'is_primitive', 'space_group',
-#             'transform', 'periodic_dnc', 'neighbors', 'coordination_shells',
-#             'splitconfigs', 'vasp_ordered', 'specieset', 'map_sites',
-#             'which_site', 'iterator' ]
-# from cppwrappers import Structure, Atom, HFTransform, zero_centered, into_voronoi,    \
-#                         into_cell, third_order_cc, supercell, primitive, is_primitive, space_group,   \
-#                         transform, periodic_dnc, neighbors, coordination_shells,      \
-#                         splitconfigs, map_sites
-# import iterator
-#
 def specieset(structure):
     """ Returns ordered set of species.
 
