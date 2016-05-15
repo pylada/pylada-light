@@ -1,0 +1,37 @@
+&control
+    prefix = 'pwscf'
+    outdir = '/private/var/folders/nm/dt02g3fd1bv0lk862vtvycnc0000gn/T/pytest-of-mdavezac/pytest-30/test_check_restarted_run0/second',
+/
+
+&system
+    ecutwfc = 12.0
+    ibrav = 0
+    celldm = 10.2
+    nat = 2
+    ntyp = 1
+/
+
+&electrons
+    startingwfc = 'file'
+/
+ATOMIC_SPECIES
+Si 1.0 Si.pz-vbc.UPF
+
+ATOMIC_POSITIONS alat
+Si 3.788779800000e-02 4.389063400000e-02 -7.705962000000e-03
+Si -8.916344800000e-02 -7.625391800000e-02 3.750669130000e-01
+
+K_POINTS
+2
+0.25 0.25 0.75 3.0
+0.25 0.25 0.25 1.0
+
+CELL_PARAMETERS alat
+-0.47850393 0.190599885 0.089913323
+0.147268726 -0.420145837 0.14945944
+0.420073018 0.457421551 0.592147578
+
+ATOMIC_FORCES
+Si -1.620000000000000e-05 -2.770000000000000e-05 6.010000000000000e-06
+Si 1.620000000000000e-05 2.770000000000000e-05 -6.010000000000000e-06
+

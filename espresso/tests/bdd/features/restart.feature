@@ -13,7 +13,6 @@ Background:
         pwscf.control.calculation = 'vc-relax'
         pwscf.cell.factor = 2.0
         pwscf.add_specie('Si', 'Si.pz-vbc.UPF')
-    # And a fake pseudo 'Si.pz-vbc.UPF' in the working directory
     And a distorted diamond structure
 
 
@@ -23,6 +22,7 @@ Scenario: Check restart input
     When we iterate through the second chain called to pwscf
     Then the structure on input is the output of the first call
     And the wavefunctions file has been copied over
+    And the save directory has been copied over
     And pwscf is told to start from the wavefunction file
 
 

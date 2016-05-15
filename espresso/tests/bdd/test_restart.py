@@ -21,14 +21,19 @@ def distorted_diamond():
     from numpy.random import random
     from pylada.espresso.tests.fixtures import diamond_structure
     structure = diamond_structure()
-    structure[1].pos += random(3) * 0.01 - 0.005
-    structure.cell += random((3, 3)) * 0.01 - 0.005
+    structure[1].pos += random(3) * 0.005 - 0.0025
+    structure.cell += random((3, 3)) * 0.005 - 0.0025
     return structure
 
 
 @given("we run pwscf once")
 def extract(tmpdir, distorted_diamond, pwscf):
-    return pwscf(distorted_diamond, tmpdir.join("first"))
+    from pylada.espresso.tests.bdd.fixtures import copyoutput, data_path
+    src = data_path("restarted", "first")
+    tmpdir.join("first", "Si.pz-vbc.UPF").ensure(file=True)
+    print("WTF", src)
+    program = copyoutput(tmpdir.join("first_copy.py"), src, tmpdir.join("first"))
+    return pwscf(distorted_diamond, tmpdir.join("first"), program=str(program))
 
 
 @when("we iterate through the second chain called to pwscf")
@@ -43,11 +48,16 @@ def iter_second_call(tmpdir, extract, pwscf, distorted_diamond):
 
 @when("we follow with a static calculation")
 def run_second(tmpdir, extract, pwscf, distorted_diamond, passon):
+    from pylada.espresso.tests.bdd.fixtures import copyoutput, data_path
     assert extract.input_path == tmpdir.join("first", "pwscf.in")
     assert extract.output_path == tmpdir.join("first", "pwscf.out")
     assert extract.success
     pwscf.control.calculation = None
-    passon.append(pwscf(distorted_diamond, tmpdir.join("second"), restart=extract))
+    src = data_path("restarted", "second")
+    tmpdir.join("second", "Si.pz-vbc.UPF").ensure(file=True)
+    program = copyoutput(tmpdir.join("second_copy.py"), src, tmpdir.join("second"))
+    passon.append(pwscf(distorted_diamond, tmpdir.join("second"), restart=extract,
+                        program=str(program)))
 
 
 @then("the structure on input is the output of the first call")
@@ -84,6 +94,13 @@ def check_wfcn(tmpdir, extract):
     expected_hash = tmpdir.join("first", "pwscf.wfc1").computehash()
     actual_hash = tmpdir.join("second", "pwscf.wfc1").computehash()
     assert expected_hash == actual_hash
+
+
+@then("the save directory has been copied over")
+def check_save_dir(tmpdir, extract):
+    save_dir = tmpdir.join("second", "%s.save" % extract.prefix)
+    assert save_dir.check(dir=True)
+    assert save_dir.join('charge-density.dat').check(file=True)
 
 
 @then("pwscf is told to start from the wavefunction file")
