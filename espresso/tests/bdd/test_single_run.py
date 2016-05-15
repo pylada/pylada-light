@@ -49,22 +49,6 @@ def true(tmpdir):
     result.chmod(S_IREAD | S_IWRITE | S_IEXEC)
     return result
 
-def copyoutput(tmpdir, src, dest):
-    from sys import executable
-    from stat import S_IREAD, S_IWRITE, S_IEXEC
-    result = tmpdir.join("copy.py")
-    result.write(
-        "#! %s\n" % executable
-        + "from py.path import local\n"
-        + "src = local('%s')\n" % src
-        + "dest = local('%s')\n" % dest
-        + "for u in src.listdir(lambda x: x.basename != 'pwscf.in'):\n"
-        + "  u.copy(dest)\n"
-    )
-    result.chmod(S_IREAD | S_IWRITE | S_IEXEC)
-    return result
-
-
 @when("iterating through the first step")
 def first_step(pwscf, tmpdir, aluminum, passon, true):
     from six import next
@@ -87,8 +71,8 @@ def second_step(passon):
 
 @when("running pwscf")
 def run_nonscf(tmpdir, aluminum, pwscf, passon):
-    from py.path import local
-    src = local(__file__).dirpath().dirpath().join("data", "nonscf")
+    from pylada.espresso.tests.bdd.fixtures import copyoutput, data_path
+    src = data_path("nonscf")
     program = copyoutput(tmpdir, src, tmpdir)
     passon.append(pwscf(aluminum, tmpdir, program=str(program)))
 

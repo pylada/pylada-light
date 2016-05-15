@@ -1,6 +1,6 @@
 if(tests)
   add_pytest(
-      GLOB test_*.py
+      GLOB test_*.py fixtures.py
       INSTALL PREFIX "pylada.espresso.tests.bdd"
       LABELS espresso
       FAKE_INIT
