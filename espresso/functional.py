@@ -323,6 +323,7 @@ class Pwscf(HasTraits):
             if restarting, gets structure, sets charge density and wavefuntion at start. Otherwise
             passes structure back to caller.
         """
+        from numpy import max, abs
         from .. import error
         if restart is None:
             return structure
@@ -333,11 +334,14 @@ class Pwscf(HasTraits):
             logger.critical("Cannot restart from unsuccessful calculation")
             raise error.RuntimeError("Cannot restart from unsuccessful calculation")
 
-        chden = restart.abspath.join('charge-density.xml')
-        if chden.check(file=True):
-            logger.info("Restarting from charge density %s" % chden)
-            chden.copy(outdir.join(chden.basename))
-            self.electrons.startingpot = 'file'
+        save_dir = restart.abspath.join('%s.save' % restart.prefix)
+        if save_dir.check(dir=True):
+            logger.info("Restarting from data in  %s" % save_dir)
+            save_dir.copy(outdir.join('%s.save' % self.control.prefix))
+            dist = (max(abs(restart.structure.cell - restart.initial_structure.cell))
+                    / max(abs(restart.structure.cell)))
+            if save_dir.join('charge-density.dat').check(file=True) and dist < 1e-3:
+                self.electrons.startingpot = 'file'
         elif self.electrons.startingpot == 'file':
             logger.warning("No charge density found, setting startingpot to atomic")
             self.electrons.startingpot = 'atomic'
