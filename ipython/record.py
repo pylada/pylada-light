@@ -81,20 +81,20 @@ def record(self, cmdl):
         args = parser.parse_args(cmdl.split())
     except SystemExit:
         if '-h' in cmdl:
-            print __doc__[__doc__.find('\n'):].replace('\n    ', '\n')
+            print(__doc__[__doc__.find('\n'):].replace('\n    ', '\n'))
         return
 
     if not (args.remove or args.list or args.load or args.view):
         args.update = True
     if args.namespace is not None and not args.load:
         parser.print_usage()
-        print "\n--namespace argument has no effect except when reloading record."
+        print("\n--namespace argument has no effect except when reloading record.")
         return
     if len(args.vars) == 0 and not (args.list or args.load or args.view):
         parser.print_usage()
-        print "\n*****************\n"\
+        print("\n*****************\n"\
               "At least on VAR argument required.\n"\
-              "*****************"
+              "*****************")
         return
 
     # open record file.
@@ -108,37 +108,37 @@ def record(self, cmdl):
             args.vars = attributes
         for var in args.vars:
             if var not in attributes:
-                print "Could not find {0} in {1}.".format(var, args.filename)
+                print("Could not find {0} in {1}.".format(var, args.filename))
                 continue
             try:
                 string = str(getattr(record, var))
             except:
-                print "{0} in record {1} is not printable.".format(var, args.filename)
+                print("{0} in record {1} is not printable.".format(var, args.filename))
                 continue
             else:
                 if len(string) > 30:
                     string = string[:25] + "..."
                 if "\n" in string:
                     string = string[:string.find('\n')] + "..."
-                print "{0} = {1}".format(var, string)
+                print("{0} = {1}".format(var, string))
     elif args.remove:
         # Remove argumenst from record.
         for var in set(args.vars):
             if var not in attributes:
-                print "{0} could not be found in record file {1}.".format(var, args.filename)
+                print("{0} could not be found in record file {1}.".format(var, args.filename))
                 continue
             value = getattr(record, var)
             delattr(record, var)
             try:
                 string = str(value)
             except:
-                print "Removing {0} from record {1}.".format(var, args.filename)
+                print("Removing {0} from record {1}.".format(var, args.filename))
             else:
                 if len(string) > 30:
                     string = string[:25] + "..."
                 if "\n" in string:
                     string = string[:string.find('\n')] + "..."
-                print "Removing {0}(={1}) from record {2}".format(var, string, args.filename)
+                print("Removing {0}(={1}) from record {2}".format(var, string, args.filename))
     elif args.load:
         if len(args.vars) == 0:
             args.vars = attributes
@@ -148,7 +148,7 @@ def record(self, cmdl):
             namespace = self.api.user_ns[args.namespace]
             if not isinstance(namespace, dict):
                 if not hasattr(namespace, '__dict__'):
-                    print "{0} is not a namespace or a dictionary.".format(args.namespace)
+                    print("{0} is not a namespace or a dictionary.".format(args.namespace))
                 namespace = namespace.__dict__
         else:
             self.api.user_ns[args.namespace] = ModuleType(name=args.namespace)
@@ -156,26 +156,26 @@ def record(self, cmdl):
         allattr = record._allattr()
         for key in args.vars:
             if key not in allattr:
-                print "Could not find {0} in {1}.".format(key, args.filename)
+                print("Could not find {0} in {1}.".format(key, args.filename))
                 continue
             namespace[key] = getattr(record, key)
             try:
                 string = str(namespace[key])
             except:
-                print "Reloaded {0} from record {1}.".format(key, args.filename)
+                print("Reloaded {0} from record {1}.".format(key, args.filename))
             else:
                 if len(string) > 30:
                     string = string[:25] + "..."
                 if "\n" in string:
                     string = string[:string.find('\n')] + "..."
-                print "Reloaded {0}(={2}) from record {1}.".format(key, args.filename, string)
+                print("Reloaded {0}(={2}) from record {1}.".format(key, args.filename, string))
         return
     else:
         # Add arguments to record.
         for key in set(args.vars):
             # checks value exists in user namespace.
             if key not in self.api.user_ns:
-                print "Could not find {0} in user namespace.".format(key)
+                print("Could not find {0} in user namespace.".format(key))
                 continue
             # checks the argument can be pickled.
             setattr(record, key, self.api.user_ns[key])
@@ -183,7 +183,7 @@ def record(self, cmdl):
 
 def completer(self, event):
     """ Completer for %record magic function. """
-    from pylada.opt import RelativeDirectory
+    from pylada.misc import local_path
     from pickle import load
     from os.path import isdir, exists
 
@@ -210,7 +210,7 @@ def completer(self, event):
 
     if '--file' not in data:
         result.append('--file')
-    options = set(['--list', '--view', '--load', '--remove', '--update'])
+    options = {'--list', '--view', '--load', '--remove', '--update'}
     if '-n' in data or '--namespace' in data and '--load' not in data:
         result.append('--load')
     elif '--load' in data and '-n' not in data and '--namespace' not in data:
@@ -223,7 +223,7 @@ def completer(self, event):
         if '--file' in data:
             index = data.index('--file')
             assert len(data) > index + 1
-            path = RelativeDirectory(data[index + 1]).path
+            path = str(local_path(data[index + 1]))
             known.pop(index + 1)
         if exists(path):
             with open(path) as file:

@@ -23,24 +23,23 @@
 
 def Extract(outdir=None):
     """ An extraction function for a dummy functional """
-    from os.path import exists
     from os import getcwd
     from collections import namedtuple
     from pickle import load
-    from pylada.misc import Changedir
+    from pylada.misc import local_path
 
     if outdir == None:
         outdir = getcwd()
     Extract = namedtuple('Extract', ['success', 'directory',
                                      'energy', 'structure', 'value', 'functional'])
-    if not exists(outdir):
-        return Extract(False, outdir, None, None, None, None)
-    with Changedir(outdir) as pwd:
-        if not exists('OUTCAR'):
-            return Extract(False, outdir, None, None, None, None)
-        with open('OUTCAR', 'r') as file:
-            structure, energy, value, functional = load(file)
-            return Extract(True, outdir, energy, structure, value, functional)
+    outdir = local_path(outdir)
+    if not outdir.check():
+        return Extract(False, str(outdir), None, None, None, None)
+    if not outdir.join('OUTCAR').check(file=True):
+        return Extract(False, str(outdir), None, None, None, None)
+    with local_path.join('OUTCAR').open('r') as file:
+        structure, energy, value, functional = load(file)
+        return Extract(True, outdir, energy, structure, value, functional)
 
 
 def functional(structure, outdir=None, value=False, **kwargs):
@@ -48,13 +47,13 @@ def functional(structure, outdir=None, value=False, **kwargs):
     from copy import deepcopy
     from pickle import dump
     from random import random
-    from pylada.misc import Changedir
+    from pylada.misc import local_path
 
     structure = deepcopy(structure)
     structure.value = value
-    with Changedir(outdir) as pwd:
-        with open('OUTCAR', 'w') as file:
-            dump((random(), structure, value, functional), file)
+    outdir = local_path(outdir)
+    outdir.ensure(dir=True)
+    dump((random(), structure, value, functional), outdir.join('OUTCAR').open('wb'))
 
     return Extract(outdir)
     return structure

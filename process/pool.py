@@ -156,7 +156,7 @@ class PoolProcess(JobFolderProcess):
             # Loop until all requisite number of processes is created,
             # or until run out of jobs, or until run out of comms.
             for name in jobs:
-                self._torun = self._torun - set([name])
+                self._torun = self._torun - {name}
                 nprocs = self._alloc.pop(name)
                 # checks folder is still valid.
                 if name not in self.jobfolder:
@@ -213,7 +213,7 @@ class PoolProcess(JobFolderProcess):
             """ Loops over possible combinations. """
             from random import choice
             key = choice(list(bins.keys()))
-            for u in xrange(min(bins[key], n // key), -1, -1):
+            for u in range(min(bins[key], n // key), -1, -1):
                 newbins = bins.copy()
                 del newbins[key]
                 newn = n - u * key
@@ -280,7 +280,7 @@ class PoolProcess(JobFolderProcess):
 
             Processes jobfolder from root, even if passed a child folder.
         """
-        running = set([n for n in self.process])
+        running = {n for n in self.process}
         for name, value in jobfolder.root.items():
             if name in running:
                 continue

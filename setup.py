@@ -216,7 +216,8 @@ try:
         name="pylada",
         version="1.0",
 
-        install_requires=['numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py'],
+        install_requires=['numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py', 'six',
+                          'traitlets', 'f90nml', 'pytest-bdd'],
         platforms=['GNU/Linux', 'Unix', 'Mac OS-X'],
 
         zip_safe=False,
@@ -250,11 +251,12 @@ try:
             'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
             'pylada.ewald.tests',
             'pylada.process', 'pylada.process.tests',
-            # 'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
-            # 'pylada.vasp.extract.tests', 'pylada.vasp.nlep', 'pylada.vasp.incar',
-            # 'pylada.vasp.incar.tests',
+            'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
+            'pylada.vasp.extract.tests', 'pylada.vasp.nlep', 'pylada.vasp.incar',
+            'pylada.vasp.incar.tests',
             'pylada.tools', 'pylada.tools.tests', 'pylada.tools.input',
-            'pylada.tools.input.tests'
+            'pylada.tools.input.tests',
+            'pylada.espresso', 'pylada.espresso.tests'
         ],
         package_dir={'': str(basename(package_dir))},
         include_package_data=True,

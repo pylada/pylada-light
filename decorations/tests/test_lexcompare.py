@@ -25,8 +25,8 @@ def test_lexcompare():
     from numpy import array
     from pylada.decorations._cutilities import _lexcompare
     from itertools import product
-    r = [u for u in product(range(3), range(4), range(5))]
-    for i in xrange(len(r)):
+    r = [u for u in product(list(range(3)), list(range(4)), list(range(5)))]
+    for i in range(len(r)):
         assert _lexcompare(array(r[i]), array(r[i])) == 0
         for j in range(i + 1, len(r)):
             assert _lexcompare(array(r[i]), array(r[j])) == -1

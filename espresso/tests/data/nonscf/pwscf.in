@@ -1,0 +1,31 @@
+&control
+    prefix = 'pwscf'
+    outdir = '/Users/mdavezac/workspaces/pylada-light/src/pylada-light/build/here',
+/
+
+&system
+    ecutwfc = 12.0
+    degauss = 0.06
+    smearing = 'marzari-vanderbilt'
+    occupations = 'smearing'
+    ibrav = 0
+    celldm = 7.5
+    nat = 1
+    ntyp = 1
+/
+
+&electrons
+/
+ATOMIC_SPECIES
+Al 1.0 Al.pz-vbc.UPF
+
+ATOMIC_POSITIONS alat
+Al 0.000000000000e+00 0.000000000000e+00 0.000000000000e+00
+
+K_POINTS automatic
+6 6 6 1 1 1
+CELL_PARAMETERS alat
+0.0 0.5 0.5
+0.5 0.0 0.5
+0.5 0.5 0.0
+

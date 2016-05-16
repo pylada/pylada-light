@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from fixtures import executable, jobfolders
+from pylada.process.tests.fixtures import executable, jobfolders
 from pytest import mark, fixture
 from pylada.process.pool import PoolProcess
 
@@ -44,7 +44,7 @@ def processalloc(job):
 def test_failures(tmpdir, executable, comm):
     """ Tests whether scheduling jobs works on known failure cases. """
     from pylada import default_comm
-    from functional import Functional
+    from pylada.process.tests.functional import Functional
     root = jobfolders(executable, 0, 8)
 
     def processalloc_test1(job):
@@ -54,7 +54,7 @@ def test_failures(tmpdir, executable, comm):
     program = PoolProcess(root, processalloc=processalloc_test1,
                           outdir=str(tmpdir))
     program._comm = comm
-    for i in xrange(10000):
+    for i in range(10000):
         jobs = program._getjobs()
         assert sum(program._alloc[u] for u in jobs) <= program._comm['n'],\
             (jobs, [program._alloc[u] for u in jobs])
@@ -70,10 +70,10 @@ def test_getjobs(comm, tmpdir, executable, nprocs, njobs):
         from random import randint
         return randint(1, comm['n'])
 
-    for j in xrange(100):
+    for j in range(100):
         program = PoolProcess(root, processalloc=processalloc, outdir=str(tmpdir))
         program._comm = comm
-        for i in xrange(1000):
+        for i in range(1000):
             jobs = program._getjobs()
             assert sum(program._alloc[u] for u in jobs) <= program._comm['n'],\
                 (jobs, [program._alloc[u] for u in jobs])

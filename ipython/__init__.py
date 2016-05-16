@@ -25,6 +25,9 @@
 __docformat__ = "restructuredtext en"
 __pylada_is_loaded__ = False
 """ Whether the Pylada plugin has already been loaded or not. """
+from pylada import logger
+logger = logger.getChild("ipython")
+""" Sub-logger for ipython """
 
 
 def load_ipython_extension(ip):
@@ -44,8 +47,8 @@ def load_ipython_extension(ip):
             delete_completer
         import pylada
         # loads interactive files
-        pylada.__dict__.update((k, v) for k, v in pylada._config_files().items()
-                               if k[0] != '_')
+        pylada.__dict__.update(pylada.__exec_config_files(logger=logger))
+        pylada.__dict__.update(pylada.__exec_config_files("*.ipy", rcfile=True, logger=logger))
         # now loads extension
         __pylada_is_loaded__ = True
         pylada.interactive = ModuleType('interactive')
@@ -151,24 +154,25 @@ def qdel(self, arg):
 
         >>> %qdel "anti-ferro"
     """
+    import six
     from pylada import qdel_exe
     arg = arg.lstrip().rstrip()
     if '--help' in arg.split() or '-h' in arg.split():
-        print qdel.__doc__
+        print(qdel.__doc__)
         return
     if len(arg) != 0:
         result = self.qstat(arg)
         if len(result) == 0:
-            print 'No jobs in queue'
+            print('No jobs in queue')
             return
         for u, name in zip(result.fields(0), result.fields(-1)):
-            print "cancelling %s." % (name)
+            print("cancelling %s." % (name))
         message = "Are you sure you want to cancel the jobs listed above? [y/n] "
     else:
         message = "Cancel all jobs? [y/n] "
     a = ''
     while a not in ['n', 'y']:
-        a = raw_input(message)
+        a = six.raw_input(message)
     if a == 'n':
         return
 
@@ -200,7 +204,7 @@ def qstat(self, arg):
     from pylada import ipython_qstat
     arg = arg.rstrip().lstrip()
     if len(arg) != 0 and '--help' in arg.split() or '-h' in arg.split():
-        print qstat.__doc__ + '\n' + ipython_qstat.__doc__
+        print(qstat.__doc__ + '\n' + ipython_qstat.__doc__)
         return
     result = ipython_qstat(self, arg)
     if len(arg) == 0:

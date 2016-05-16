@@ -21,6 +21,7 @@
 ###############################
 
 from .process import Process
+from ..process import logger
 
 
 class ProgramProcess(Process):
@@ -148,44 +149,44 @@ class ProgramProcess(Process):
             raise ValueError('cmdlmodifier should None or a callable')
         self.cmdlmodifier = cmdlmodifier
         """ A function to modify command-line parameters.
-    
-        This function is only invoked for mpirun programs.
-        It can be used to, say, make sure a program is launched only with an
-        even number of processes. It should add 'placement' to the dictionary.
-    """
+
+            This function is only invoked for mpirun programs.
+            It can be used to, say, make sure a program is launched only with an
+            even number of processes. It should add 'placement' to the dictionary.
+        """
         self._modcomm = None
         """ An optional modified communicator. 
 
-        Holds communicator optionally returned by commandline communicator.
-    """
+            Holds communicator optionally returned by commandline communicator.
+        """
         self.onfinish = onfinish
         """ Callback when the processes finishes. 
 
-        Called even on error. Should take two arguments:
-        
-          - process: holds this instance
-          - error: True if an error occured.
+            Called even on error. Should take two arguments:
 
-        It is called before the :py:meth:`_cleanup` method. In other words, the
-        process is passed as it is when the error is found.
-    """
+              - process: holds this instance
+              - error: True if an error occured.
+
+            It is called before the :py:meth:`_cleanup` method. In other words, the
+            process is passed as it is when the error is found.
+        """
         self.onfail = onfail
         """ Called if program fails. 
 
-        Some program, such as CRYSTAL, return error codes when unconverged.
-        However, does not necessarily mean the program failed to run. This
-        function is called when a failure occurs, to make sure it is real or
-        not. It should raise Fail if an error has occurred and return normally
-        otherwise.
-    """
+            Some program, such as CRYSTAL, return error codes when unconverged.
+            However, does not necessarily mean the program failed to run. This
+            function is called when a failure occurs, to make sure it is real or
+            not. It should raise Fail if an error has occurred and return normally
+            otherwise.
+        """
 
         self._onexit_id = None
         """ Id of the callback for cleaning up left-over jobs when python exits.
 
-        This job may be killed prior by, say, the resources manager, before it
-        actually ends. We may want to keep track of it to make sure the process
-        is killed.
-    """
+            This job may be killed prior by, say, the resources manager, before it
+            actually ends. We may want to keep track of it to make sure the process
+            is killed.
+        """
 
     def poll(self):
         """ Polls current job.
@@ -202,6 +203,7 @@ class ProgramProcess(Process):
         if poll is None:
             return False
         # call callback.
+        logger.debug("program has onfinish %s", self.onfinish is not None)
         if self.onfinish is not None:
             try:
                 self.onfinish(process=self, error=(poll != 0))
@@ -236,9 +238,9 @@ class ProgramProcess(Process):
         return False
 
     def start(self, comm=None):
+        from ..onexit import add_callback
         self.comm = comm                # used for testValidProgram
         if not self.started:
-            from ..onexit import add_callback
             self._onexit_id = add_callback(self.__class__._onexit_callback, self)
         if super(ProgramProcess, self).start(comm):
             return True
@@ -249,15 +251,14 @@ class ProgramProcess(Process):
     def _next(self):
         """ Starts an actual process. """
         from os import environ
-        from ..misc import Changedir
+        from ..misc import chdir
         from ..error import ValueError
         from .. import mpirun_exe, launch_program as launch
         from . import which
-        from pylada.misc import bugLev
         from pylada.misc import testValidProgram
 
         # Open stdout and stderr if necessary.
-        with Changedir(self.outdir) as cwd:
+        with chdir(self.outdir):
             if self.stdout is None:
                 file_out = None
             elif isinstance(self.stdout, str):
@@ -279,12 +280,8 @@ class ProgramProcess(Process):
             self._stdio = file_out, file_err, file_in
 
         # creates commandline
-        if bugLev >= 5:
-            print "process.program: self.program: %s" % (self.program,)
-
         program = which(self.program)
-        if bugLev >= 5:
-            print "process.program: program: %s" % (program,)
+        logger.debug("process.program: program: %s" % program)
 
         if self.dompi:
             if not hasattr(self, '_comm'):
@@ -293,12 +290,7 @@ class ProgramProcess(Process):
             formatter = {}
             cmdl = ' '.join(str(u) for u in self.cmdline)
             formatter['program'] = '{0} {1}'.format(program, cmdl)
-            if bugLev >= 5:
-                print "process.program: next: formatter: %s" % (formatter,)
-                print "process.program: next: self.cmdline: %s" % (self.cmdline,)
-                print "process.program: next: cmdl: \"%s\"" % (cmdl,)
-                print "process.program: next: formatter[pgm]: \"%s\"" \
-                    % (formatter['program'],)
+            logger.debug("process.program: next: cmdl: \"%s\"" % cmdl)
 
             # gives opportunity to modify the communicator before launching a
             # particular program.
@@ -306,32 +298,16 @@ class ProgramProcess(Process):
                 self._modcomm = self.cmdlmodifier(formatter, self._comm)
                 if self._modcomm is self._comm:
                     self._modcomm = None
-            if bugLev >= 5:
-                print "process.program: next: self._comm: %s" % (self._comm,)
-                print "process.program: next: self._modcomm: %s" % (self._modcomm,)
             comm = self._comm if self._modcomm is None else self._modcomm
             cmdline = mpirun_exe
-            if bugLev >= 5:
-                print "process.program: next: cmdline: \"%s\"" % (cmdline,)
-                print "process.program: next: comm: %s" % (comm,)
         else:
             cmdl = ' '.join(str(u) for u in self.cmdline)
             cmdline = '{0} {1}'.format(program, cmdl)
             comm = None
             formatter = None
-            if bugLev >= 5:
-                print "process.program: next: no mpi: cmdl: \"%s\"" % (cmdl,)
-                print "process.program: next: no mpi: cmdline: \"%s\"" % (cmdline,)
-                print "process.program: next: no mpi: comm: %s" % (comm,)
-        if bugLev >= 5:
-            print "process.program: cmdline: %s" % (cmdline,)
-            print "process.program: comm: %s" % (comm,)
-            print "process.program: formatter: %s" % (formatter,)
-            print "process.program: file_out: %s" % (file_out,)
-            print "process.program: file_err: %s" % (file_err,)
-            print "process.program: file_in: %s" % (file_in,)
-            print "process.program: self.outdir: %s" % (self.outdir,)
+            logger.debug("process.program: next: no mpi: cmdline: \"%s\"" % cmdline)
 
+        logger.debug("process.program: self.outdir: %s" % self.outdir)
         self.process = launch(cmdline, comm=comm, formatter=formatter,
                               env=environ, stdout=file_out, stderr=file_err,
                               stdin=file_in, outdir=self.outdir)
@@ -341,9 +317,9 @@ class ProgramProcess(Process):
 
     def _cleanup(self):
         """ Cleanup files and crap. """
+        from ..onexit import del_callback
         # Deletes onexit callback if it exists.
         if self._onexit_id is not None:
-            from ..onexit import del_callback
             del_callback(self._onexit_id)
             self._onexit_id = None
 
@@ -368,17 +344,19 @@ class ProgramProcess(Process):
         """ Waits for process to end, then cleanup. """
         from . import NotStarted
         if not hasattr(self, 'comm'):
+            logger.critical("Program was not started")
             raise NotStarted()
         if self.comm != None:                # used for testValidProgram
+            logger.debug("Wait for program end")
             super(ProgramProcess, self).wait()
             self.process.wait()
             self.poll()
 
     def _onexit_callback(self):
         """ Registers callback for killing a process. """
+        from ..onexit import del_callback
         # First deletes this callback from the list.
         if self._onexit_id is not None:
-            from ..onexit import del_callback
             del_callback(self._onexit_id)
             self._onexit_id = None
 

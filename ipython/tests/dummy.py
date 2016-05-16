@@ -21,7 +21,6 @@
 ###############################
 
 import random
-import uuid
 
 random.seed(12212)
 
@@ -31,14 +30,14 @@ def Extract(outdir=None):
     from os import getcwd
     from collections import namedtuple
     from pickle import load
-    from pylada.misc import Changedir
+    from pylada.misc import chdir
 
     if outdir == None:
         outdir = getcwd()
     Extract = namedtuple('Extract', ['success', 'directory', 'indiv', 'functional'])
     if not exists(outdir):
         return Extract(False, outdir, None, functional)
-    with Changedir(outdir) as pwd:
+    with chdir(outdir):
         if not exists('OUTCAR'):
             return Extract(False, outdir, None, functional)
         with open('OUTCAR', 'r') as file:
@@ -47,12 +46,10 @@ def Extract(outdir=None):
 
 
 def functional(indiv, outdir=None, value=False, **kwargs):
-    from pylada.misc import Changedir
+    from pylada.misc import local_path
     from pickle import dump
-
-    with Changedir(outdir) as pwd:
-        with open('OUTCAR', 'w') as file:
-            dump((indiv, value), file)
-
+    path = local_path(outdir)
+    path.ensure(dir=True)
+    dump((indiv, value), path.join('OUTCAR').open('wb'))
     return Extract(outdir)
 functional.Extract = Extract

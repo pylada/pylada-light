@@ -19,13 +19,18 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from pytest import fixture, mark
+from pylada import vasp_program
 
 
-def test(path):
-    from shutil import rmtree
-    from os.path import exists
-    from os import makedirs
-    from tempfile import mkdtemp
+@fixture
+def path():
+    from os.path import dirname
+    return dirname(__file__)
+
+
+@mark.skipif(vasp_program is None, reason="vasp not configured")
+def test(tmpdir, path):
     from numpy import abs
     from pylada.crystal import Structure
     from pylada.vasp import Vasp
@@ -45,20 +50,6 @@ def test(path):
     vasp.sigma = 0.01
     vasp.relaxation = "volume"
     vasp.add_specie = "Si", "{0}/pseudos/Si".format(path)
-    directory = mkdtemp()
-    if exists(directory) and directory == '/tmp/test':
-        rmtree(directory)
-    if not exists(directory):
-        makedirs(directory)
-    try:
-        result = epitaxial(vasp, structure, outdir=directory, epiconv=1e-5, comm=default_comm)
-        assert result.success
-        assert abs(result.stress[2, 2]) < 1.0
-    finally:
-        if directory != '/tmp/test':
-            rmtree(directory)
-        pass
-
-if __name__ == "__main__":
-    from sys import argv
-    test(argv[1])
+    result = epitaxial(vasp, structure, outdir=str(tmpdir), epiconv=1e-5, comm=default_comm)
+    assert result.success
+    assert abs(result.stress[2, 2]) < 1.0

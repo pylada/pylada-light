@@ -24,10 +24,11 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['AbstractMassExtract']
 
+import six
 from abc import ABCMeta, abstractmethod
 
 
-class AbstractMassExtract(object):
+class AbstractMassExtract(six.with_metaclass(ABCMeta, object)):
     """ Collects extraction methods from different job-folders. 
 
         Wraps around a root job folder and provides means to access it (or
@@ -44,7 +45,6 @@ class AbstractMassExtract(object):
         derived classes. It should yield for each executable folder a tuple
         consisting of the name of that folder and the relevant *something*.
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self, path=None, view=None, excludes=None, dynamic=False, ordered=True,
                  naked_end=None, unix_re=True):
@@ -260,7 +260,7 @@ class AbstractMassExtract(object):
         """ Returns __dir__ special to the extraction itself. """
         results = set([])
         for key, value in self.items():
-            results |= set([u for u in dir(value) if u[0] != '_'])
+            results |= {u for u in dir(value) if u[0] != '_'}
         return results
 
     def __dir__(self):
@@ -283,7 +283,7 @@ class AbstractMassExtract(object):
             except:
                 result.pop(key, None)
         if self.naked_end and len(result) == 1:
-            return result[result.keys()[0]]
+            return result[next(iter(result))]
         return ForwardingDict(dictionary=result, naked_end=self.naked_end)
 
     def __getitem__(self, name):

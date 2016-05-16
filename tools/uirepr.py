@@ -73,7 +73,7 @@ def add_to_imports(object, imports):
     if key in imports:
         imports[key].add(value)
     else:
-        imports[key] = set([value])
+        imports[key] = {value}
 
 
 def template_ui_repr(self, imports, name=None, defaults=None, exclude=None):
@@ -101,7 +101,7 @@ def template_ui_repr(self, imports, name=None, defaults=None, exclude=None):
         else:
             string = repr(value)
             if defaults is not None and key in defaults.__dict__                     \
-               and type(value) is type(defaults.__dict__[key])                       \
+               and isinstance(value, type(defaults.__dict__[key]))                       \
                and string == repr(defaults.__dict__[key]):
                    continue
             key = '{0}.{1}'.format(name, key)
@@ -128,7 +128,7 @@ def template_ui_repr(self, imports, name=None, defaults=None, exclude=None):
             pass
         else:
             default = getattr(defaults, key)
-            if type(getattr(self, key)) is type(default) and repr(default) == string:
+            if isinstance(getattr(self, key), type(default)) and repr(default) == string:
                 continue
         key = '{0}.{1}'.format(name, key)
         results[key] = string

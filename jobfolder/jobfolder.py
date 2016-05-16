@@ -22,6 +22,7 @@
 
 """ Submodule declaring the folder folders class. """
 __docformat__ = "restructuredtext en"
+from . import logger
 
 
 class JobFolder(object):
@@ -75,7 +76,6 @@ class JobFolder(object):
     @functional.setter
     def functional(self, value):
         from pickle import dumps, loads  # ascertains pickle-ability, copies functional
-        from pylada.misc import bugLev
 
         if value is not None and not hasattr(value, "__call__"):
             raise ValueError("folder.functional should be either None(no job) or a callable.")
@@ -86,8 +86,7 @@ class JobFolder(object):
             raise ValueError(
                 "Could not pickle functional. Caught Error:\n{0}".format(e))
 
-        if bugLev >= 1:
-            print 'jobfolder.functional.setter for name: ', self.name
+        logger.critical('jobfolder.functional.setter for name: %s ' % self.name)
         try:
             self._functional = loads(string)
         except Exception as e:
@@ -267,6 +266,8 @@ class JobFolder(object):
             result = result.children[name]
         return result
 
+    __truediv__ = __div__
+
     def subfolders(self):
         """ Sorted keys of the folders directly under this one. """
         return sorted(self.children.keys())
@@ -286,27 +287,23 @@ class JobFolder(object):
 
             >>> return self.functional(**self.params.copy().update(kwargs))
         """
-        from pylada.misc import bugLev
-
         if not self.is_executable:
             return None
         params = self.params.copy()
         params.update(kwargs)
-        if bugLev >= 1:
-            print 'jobfolder.compute: self: ', self
-            print 'jobfolder.compute: kwargs: ', kwargs
-            print 'jobfolder.compute: params: ', params
-            print 'jobfolder.compute: ===== start self.functional ====='
-            print self.functional
-            print 'jobfolder.compute: ===== end self.functional ====='
-            print 'jobfolder.compute: type(self.functional): ', type(self.functional)
-            print 'jobfolder.compute: before call'
+        logger.critical('jobfolder.compute: self: %s' % self)
+        logger.critical('jobfolder.compute: kwargs: %s', kwargs)
+        logger.critical('jobfolder.compute: params: %s', params)
+        logger.critical('jobfolder.compute: ===== start self.functional =====')
+        logger.critical(repr(self.functional))
+        logger.critical('jobfolder.compute: ===== end self.functional =====')
+        logger.critical('jobfolder.compute: type(self.functional): %s' % type(self.functional))
+        logger.critical('jobfolder.compute: before call')
 
         # This calls the dynamically compiled code
         # created by tools/makeclass: create_call_from_iter
         res = self.functional.__call__(**params)
-        if bugLev >= 1:
-            print 'jobfolder.compute: after call'
+        logger.critical('jobfolder.compute: after call')
 
         return res
 
@@ -411,7 +408,7 @@ class JobFolder(object):
 
     def __setstate__(self, args):
         super(JobFolder, self).__setattr__("params", args[1])
-        d = self.__dict__.update(args[0])
+        self.__dict__.update(args[0])
 
     def items(self, prefix=''):
         """ Iterates over executable sub-folders.

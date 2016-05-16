@@ -35,6 +35,7 @@ def launch(self, event, jobfolders):
 
 def launch_single(self, event, jobfolder):
     """ Launches a single jobfolder as a pbs array job """
+    import six
     import subprocess
     from copy import deepcopy
     from os.path import dirname, join, basename, exists
@@ -81,8 +82,8 @@ def launch_single(self, event, jobfolder):
             p = join(directory, name)
             extract = job.functional.Extract(p)
             if extract.success:
-                print "Job {0} completed successfully. "                               \
-                      "It will not be relaunched.".format(name)
+                print("Job {0} completed successfully. "                               \
+                      "It will not be relaunched.".format(name))
                 continue
         lines.append(name)
         nbjobs += 1
@@ -109,12 +110,12 @@ def launch_single(self, event, jobfolder):
     if exists(pbsscript):
         a = ''
         while a not in ['n', 'y']:
-            a = raw_input("PBS script {0} already exists.\n"
-                          "Only one array job per jobfolder can be launched at"
-                          "a time.\nAre you sure this job is not currently running"
-                          "[y/n]? ".format(pbsscript))
+            a = six.raw_input("PBS script {0} already exists.\n"
+                              "Only one array job per jobfolder can be launched at"
+                              "a time.\nAre you sure this job is not currently running"
+                              "[y/n]? ".format(pbsscript))
         if a == 'n':
-            print "Aborting."
+            print("Aborting.")
             return
         remove(pbsscript)
     with open(pbsscript, "w") as file:
@@ -122,8 +123,8 @@ def launch_single(self, event, jobfolder):
             else pbs_string.format(**pbsargs)
         file.write(string)
     assert exists(pbsscript)
-    print "Created pbsscript {0} for job-folder {1}."                            \
-          .format(pbsscript, path)
+    print("Created pbsscript {0} for job-folder {1}."                            \
+          .format(pbsscript, path))
 
     if event.nolaunch:
         return

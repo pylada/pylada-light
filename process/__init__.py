@@ -79,15 +79,17 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['Process', 'ProgramProcess', 'CallProcess', 'IteratorProcess',
            'JobFolderProcess', 'PoolProcess', 'Fail', 'which', 'DummyProcess']
+from pylada import logger
+logger = logger.getChild("process")
 
 from ..error import root
-from pool import PoolProcess
-from process import Process
-from call import CallProcess
-from program import ProgramProcess
-from iterator import IteratorProcess
-from jobfolder import JobFolderProcess
-from dummy import DummyProcess
+from .pool import PoolProcess
+from .process import Process
+from .call import CallProcess
+from .program import ProgramProcess
+from .iterator import IteratorProcess
+from .jobfolder import JobFolderProcess
+from .dummy import DummyProcess
 
 
 class ProcessError(root):

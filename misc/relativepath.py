@@ -121,9 +121,8 @@ class RelativePath(object):
     @property
     def envvar(self):
         """ Fixed point for relative directory. """
-        from os import getcwd
         from os.path import expanduser, expandvars, normpath
-        from . import Changedir
+        from . import local_path
         from .. import global_root
         if self._envvar is None:
             if global_root is None:
@@ -132,8 +131,8 @@ class RelativePath(object):
                 return normpath(global_root)
             # Need to figure it out.
             try:
-                with Changedir(expanduser(global_root)) as pwd:
-                    return getcwd()
+                local_path(global_root).ensure(dir=True)
+                return str(local_path(global_root))
             except OSError as e:
                 raise IOError('Could not figure out directory {0}.\n'
                               'Caught error OSError {1.errno}: {1.message}'
@@ -213,8 +212,8 @@ class RelativePath(object):
             TypeError("hook is not a function or bound method.")
         N = len(getargspec(value)[0])
         if ismethod(value):
-            assert value.im_self is not None,\
-                TypeError("hook callable cannot be an unbound method.")
+            if getattr(value, '__self__', getattr(value, 'im_self', None)) is None:
+                raise TypeError("hook callable cannot be an unbound method.")
             N -= 1
         assert N < 2, TypeError("hook callable cannot have more than one argument.")
         self._hook = value

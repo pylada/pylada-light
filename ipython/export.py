@@ -26,6 +26,7 @@ __docformat__ = "restructuredtext en"
 
 def export(self, event):
     """ Tars files from a calculation.  """
+    import six
     import argparse
     import tarfile
     from os import getcwd
@@ -88,8 +89,8 @@ def export(self, event):
     collect = shell.user_ns.get('collect', None)
     rootpath = getattr(collect, 'rootpath', None)
     if collect is None:
-        print "Could not find 'collect' object in user namespace."
-        print "Please load a job-dictionary."
+        print("Could not find 'collect' object in user namespace.")
+        print("Please load a job-dictionary.")
         return
 
     kwargs = args.__dict__.copy()
@@ -134,14 +135,14 @@ def export(self, event):
         args.filename = relpath(RelativePath(args.filename).path, getcwd())
         if exists(args.filename):
             if not isfile(args.filename):
-                print "{0} exists but is not a file. Aborting.".format(args.filename)
+                print("{0} exists but is not a file. Aborting.".format(args.filename))
                 return
             a = ''
             while a not in ['n', 'y']:
-                a = raw_input("File {0} already exists.\nOverwrite? [y/n] "
-                              .format(args.filename))
+                a = six.raw_input("File {0} already exists.\nOverwrite? [y/n] "
+                                  .format(args.filename))
             if a == 'n':
-                print "Aborted."
+                print("Aborted.")
                 return
 
         # figure out the type of the tarfile.
@@ -158,7 +159,7 @@ def export(self, event):
         for file in allfiles:
             tarme.add(file, arcname=relpath(file, directory))
         tarme.close()
-        print "Saved archive to {0}.".format(args.filename)
+        print("Saved archive to {0}.".format(args.filename))
 
 
 def completer(self, event):
@@ -178,10 +179,10 @@ def completer(self, event):
        or (len(event.symbol) > 0 and len(data) > 1 and data[-2] == "--with"):
         return []
 
-    data = set(data) - set(["export", "%export"])
-    result = set(['--incar', '--doscar', '--poscar', '--chgcar', '--contcar',
+    data = set(data) - {"export", "%export"}
+    result = {'--incar', '--doscar', '--poscar', '--chgcar', '--contcar',
                   '--potcar', '--wavecar', '--procar', '--list', '--down',
-                  '--from', '--with'])
+                  '--from', '--with'}
 
     if '--list' not in data:
         other = event.line.split()
@@ -189,15 +190,15 @@ def completer(self, event):
             i = other.index('--from')
             if i + 1 < len(other):
                 other.pop(i + 1)
-        other = [u for u in (set(other) - result - set(['export', '%export']))
+        other = [u for u in (set(other) - result - {'export', '%export'})
                  if u[0] != '-']
         if len(other) == 0:
             for file in chain(iglob('*.tar'), iglob('*.tar.gz'),
                               iglob('*.tgz'), iglob('*.bz'), iglob('*.bz2')):
                 result.add(file)
             relpath, tilde_expand, tilde_val = expand_user(data[-1])
-            result |= set([f.replace('\\', '/') + "/" for f in iglob(relpath + '*')
-                           if isdir(f)])
+            result |= {f.replace('\\', '/') + "/" for f in iglob(relpath + '*')
+                           if isdir(f)}
         elif len(other) == 1 and len(event.symbol) != 0:
             result.discard('--list')
             other = event.symbol
@@ -205,11 +206,11 @@ def completer(self, event):
                 other = other[:other.find('.')]
             string = "{0}*.tar {0}*.tar.gz {0}*.tgz {0}*.tar.bz"                     \
                      "{0}*.tar.bz2 {0}*/".format(other)
-            result |= set([u for u in iglob(string)])
+            result |= {u for u in iglob(string)}
             if isdir(other) and other[-1] != '/':
                 string = "{0}/*.tar {0}/*.tar.gz {0}/*.tgz {0}/*.tar.bz "              \
                          "{0}/*.tar.bz2 {0}*/".format(other)
-                result |= set([u for u in iglob(string)])
+                result |= {u for u in iglob(string)}
 
     result = result - data
     if '--down' in data:

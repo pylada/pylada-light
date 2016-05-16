@@ -26,7 +26,7 @@ __all__ = ["SpecialVaspParam", "ExtraElectron", "Algo", "Precision", "Ediff",
            "Encut", "FFTGrid", "Restart", "UParams", "IniWave", 'Ediffg', "EncutGW",
            "Incar", "Magmom", 'Npar', 'Boolean', 'Integer', 'Choices', 'PrecFock',
            "System", 'PartialRestart', 'Relaxation', 'Smearing', 'Lsorbit']
-from _params import SpecialVaspParam, ExtraElectron, Algo, Precision, Ediff,\
+from ._params import SpecialVaspParam, ExtraElectron, Algo, Precision, Ediff,\
     Encut, FFTGrid, PartialRestart, Restart, UParams, IniWave, Magmom,\
     Npar, Boolean, Integer, PrecFock, NonScf, Ediffg, Choices, \
     EncutGW, System, Relaxation, Smearing, Lsorbit

@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-from .process import Process
+from .process import IteratorProcess
 
 
 class SharedJobFolderProcess(IteratorProcess):
@@ -28,19 +28,18 @@ class SharedJobFolderProcess(IteratorProcess):
 
     def __init__(self, jobfolderpath, maxtrials=1, comm=None, nbpools=1, **kwargs):
         """ Initializes a process. """
-        from copy import deepcopy
-        super(JobFolderProcess, self).__init__(maxtrials, comm, **kwargs)
+        super(SharedJobFolderProcess, self).__init__(maxtrials, comm, **kwargs)
         self.nbpools = nbpools
         """ Number of pools over which to separate communicator. """
         self.jobfolderpath = jobfolderpath
         # start first process.
         self.poll()
 
-    def poll():
+    def poll(self, append=False):
         """ Polls current job. """
         from subprocess import Popen
         from shlex import split as split_cmd
-        from misc import Changedir
+        from misc import chdir
         from . import Program
         from pylada.misc import testValidProgram
 
@@ -74,7 +73,7 @@ class SharedJobFolderProcess(IteratorProcess):
                 raise IteratorProcess.StopIteration()
             self.nberrors += 1
         # Open stdout and stderr if necessary.
-        with Changedir(program.directory) as cwd:
+        with chdir(program.directory):
             file_out = open(program.stdout, "a" if append else "w") \
                 if program.stdout is not None else None
             file_err = open(program.stderr, "a" if append else "w") \

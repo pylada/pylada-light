@@ -19,4 +19,4 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-add_python_module("pylada.vasp.nlep" PYFILES "*.py")
+add_python_module("pylada.vasp.nlep" GLOB "*.py")

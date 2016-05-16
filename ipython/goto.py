@@ -37,18 +37,18 @@ def goto(self, cmdl):
     shell = get_shell(self)
 
     if interactive.jobfolder is None:
-        print "No current job-folders."
+        print("No current job-folders.")
         return
     if len(cmdl.split()) == 0:
         if interactive.jobfolder_path is None:
-            print "Current position in job folder:", interactive.jobfolder.name
+            print("Current position in job folder:", interactive.jobfolder.name)
         else:
-            print "Current position in job folder:", interactive.jobfolder.name
-            print "Filename of job-folder: ", interactive.jobfolder_path
+            print("Current position in job folder:", interactive.jobfolder.name)
+            print("Filename of job-folder: ", interactive.jobfolder_path)
         return
     args = cmdl.split()
     if len(args) > 1:
-        print "Invalid argument to goto {0}.".format(cmdl)
+        print("Invalid argument to goto {0}.".format(cmdl))
         return
 
     # if no argument, then print current job data.
@@ -68,7 +68,7 @@ def goto(self, cmdl):
     try:
         result = interactive.jobfolder[args[0]]
     except KeyError as e:
-        print e
+        print(e)
         return
 
     interactive.jobfolder = result
@@ -83,8 +83,8 @@ def goto(self, cmdl):
             if good:
                 break
     if not good:
-        print '**** Current job-folders and sub-folders are all off; '             \
-              'jobparams (except onoff) and collect will not work.'
+        print('**** Current job-folders and sub-folders are all off; '             \
+              'jobparams (except onoff) and collect will not work.')
         return
     if interactive.jobfolder_path is None:
         return
@@ -93,8 +93,8 @@ def goto(self, cmdl):
     if exists(dir):
         chdir(dir)
     else:
-        print "In {0}, but no corresponding directory on disk."                    \
-              .format(interactive.jobfolder.name.split('/')[-2])
+        print("In {0}, but no corresponding directory on disk."                    \
+              .format(interactive.jobfolder.name.split('/')[-2]))
     return
 
 
@@ -106,7 +106,7 @@ def iterate(self, event):
 
     args = event.split()
     if len(args) > 1:
-        print "Invalid argument {0}.".format(event)
+        print("Invalid argument {0}.".format(event))
         return
     elif len(args) == 0:
         if "_pylada_subjob_iterator" in interactive.__dict__:
@@ -115,9 +115,9 @@ def iterate(self, event):
             iterator = interactive.jobfolder.root.values()
         while True:
             try:
-                job = iterator.next()
+                job = next(iterator)
             except StopIteration:
-                print "Reached end of job list."
+                print("Reached end of job list.")
                 return
             if job.is_tagged:
                 continue
@@ -127,20 +127,20 @@ def iterate(self, event):
             interactive._pylada_subjob_iterated = []
         interactive._pylada_subjob_iterated.append(interactive.jobfolder.name)
         goto(self, job.name)
-        print "In job ", interactive.jobfolder.name
+        print("In job ", interactive.jobfolder.name)
     elif args[0] == "reset" or args[0] == "restart":
         # remove any prior iterator stuff.
         interactive.__dict__.pop("_pylada_subjob_iterator", None)
         interactive.__dict__.pop("_pylada_subjob_iterated", None)
-        print "In job ", interactive.jobfolder.name
+        print("In job ", interactive.jobfolder.name)
     elif args[0] == "back" or args[0] == "previous":
         if "_pylada_subjob_iterated" not in interactive.__dict__:
-            print "No previous job to go to. "
+            print("No previous job to go to. ")
         else:
             goto(self, interactive._pylada_subjob_iterated.pop(-1))
             if len(interactive._pylada_subjob_iterated) == 0:
                 del interactive._pylada_subjob_iterated
-            print "In job ", interactive.jobfolder.name
+            print("In job ", interactive.jobfolder.name)
 
 
 def completer(self, event):

@@ -37,18 +37,18 @@ def itercells(nmax, prune=-1):
     from numpy import zeros
     cell = zeros((3, 3), dtype="float64")
     # loop over all possible cells with less than 10 atoms.
-    for n, a in product(range(2, nmax + 1), range(1, nmax + 1)):
+    for n, a in product(list(range(2, nmax + 1)), list(range(1, nmax + 1))):
         if a > n or n % a != 0:
             continue
-        ndiv_a = n / a
+        ndiv_a = n // a
         cell[0, 0] = a
         for b in range(1, ndiv_a + 1):
             if ndiv_a % b != 0:
                 continue
             cell[1, 1] = b
-            c = ndiv_a / b
+            c = ndiv_a // b
             cell[2, 2] = c
-            for d, e, f in product(range(b), range(c), range(c)):
+            for d, e, f in product(list(range(b)), list(range(c)), list(range(c))):
                 cell[1, 0] = d
                 cell[2, 0] = e
                 cell[2, 1] = f

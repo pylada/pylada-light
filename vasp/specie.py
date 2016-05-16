@@ -67,7 +67,7 @@ def U(type=1, l=2, U=0e0, J=0e0):
     try:
         l = int(l)
     except:
-        raise ValueError, "Moment l should be 0|1|2|3|s|p|d|f."
+        raise ValueError("Moment l should be 0|1|2|3|s|p|d|f.")
     if l < 0 or l > 3:
         raise ValueError("Moment l should be 0|1|2|3|s|p|d|f.")
     if type != 1 and type != 2:
@@ -214,7 +214,7 @@ class Specie(object):
             r = re.compile("ENMAX\s+=\s+(\S+);\s+ENMIN")
             p = r.search(potcar.read())
             if p is None:
-                raise AssertionError, "Could not retrieve ENMAX from " + self.directory
+                raise AssertionError("Could not retrieve ENMAX from " + self.directory)
             return float(p.group(1)) * eV
 
     @property

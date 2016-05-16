@@ -88,7 +88,7 @@ class Objective(object):
     """
 
     def __init__(self, vasp, dft, gw, outdir="nlep_fit", comm=None, units=None):
-        from os import makedirs, getcwd
+        from os import makedirs
         from os.path import exists
         from shutil import rmtree
         from boost.mpi import world
@@ -126,7 +126,6 @@ class Objective(object):
 
     def _set_x0(self, args):
         """ Sets L{vasp} attribute from input vector. """
-        from numpy import array, multiply, sum
         i = 0
         args = args.copy() / self.units
         for symbol, specie in self.vasp.species.items():
@@ -150,12 +149,8 @@ class Objective(object):
     #@count_calls
     def __call__(self, args):
         import os
-        from os.path import join
         from boost.mpi import world
-        from numpy import array
-        from pylada.opt.changedir import Changedir
         from pylada.vasp import files
-        from pylada.vasp.extract import Extract
         # transfers parameters to vasp object
         self.x = args
         # performs calculation in new directory
@@ -165,7 +160,7 @@ class Objective(object):
         if (not os.path.isdir(this_outdir)):
             os.mkdir(this_outdir)
 
-        print "rank %d calling vasp in dir %s" % (world.rank, this_outdir)
+        print("rank %d calling vasp in dir %s" % (world.rank, this_outdir))
 
         if self.use_syscall:
             out = self.vasp\

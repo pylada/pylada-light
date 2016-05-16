@@ -19,6 +19,7 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from sys import version_info
 
 
 class Iterator(object):
@@ -50,13 +51,13 @@ class Iterator(object):
         # necessary cos we bypass calling next for the first time in this
         # instance's next.
         for iter in self.iterators[1:]:
-            iter.next()
+            next(iter)
 
         # allocate memory now so we don't have to do it everytime next is called.
         self.x = ones(self.size, dtype='int16')
         self._masks = ones((2, len(self.x)), dtype='bool')
 
-    def next(self):
+    def __next__(self):
         from numpy import logical_and
         from ..error import internal
 
@@ -74,11 +75,11 @@ class Iterator(object):
             # incrementing subiterators.
             if donext:
                 try:
-                    bitstring = iter.next()
+                    bitstring = next(iter)
                 except StopIteration:
                     iter.reset()
                     try:
-                        bitstring = iter.next()
+                        bitstring = next(iter)
                     except StopIteration:
                         raise internal('Cannot iterate over type {0}'.format(color))
                 else:
@@ -100,6 +101,9 @@ class Iterator(object):
 
         # otherwise, return a reference to the current x
         return self.x
+
+    if version_info.major == 2:
+        next = __next__
 
 
 def defects(lattice, cellsize, defects):
@@ -124,7 +128,7 @@ def defects(lattice, cellsize, defects):
     iterator = enumerate(defects.items())
     # first guy is special cos he will be locked in place to avoid unecessary
     # translations
-    i, (specie, n) = iterator.next()
+    i, (specie, n) = next(iterator)
     nsize = len([0 for u in lattice if u.nbflavors > 1]) * cellsize
     firstmask = zeros(nsize, dtype='bool')
     firstcolor = i + 1
@@ -155,7 +159,7 @@ def defects(lattice, cellsize, defects):
     xiterator = Iterator(len(mask), *args)
 
     # loop over groups directly, not sizes
-    for hfgroup in hf_groups(lattice, [cellsize]).next():
+    for hfgroup in next(hf_groups(lattice, [cellsize])):
         # actual results
         ingroup = []
         # stuff we do not want to see again
@@ -193,7 +197,7 @@ def defects(lattice, cellsize, defects):
             for j, (t, i) in enumerate(zip(transformations, invariants)):
                 if not i:
                     continue
-                if all(t == range(t.shape[0])):
+                if all(t == list(range(t.shape[0]))):
                     invariants[i] = False
             transformations = transformations[invariants]
 

@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from fixtures import executable, comm
+from pylada.process.tests.fixtures import executable, comm
 
 
 def test_process_functional(executable, comm, tmpdir):
@@ -33,7 +33,7 @@ def test_process_functional(executable, comm, tmpdir):
     from pylada.process import NotStarted
     from pylada.process.tests.functional import Functional
 
-    functional = Functional(executable, range(8))
+    functional = Functional(executable, list(range(8)))
     program = CallProcess(functional, outdir=str(tmpdir), dompi=False)
     # program not started. should fail.
     with raises(NotStarted):

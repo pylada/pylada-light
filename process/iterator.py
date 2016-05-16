@@ -208,9 +208,9 @@ class IteratorProcess(Process):
                                       outdir=self.outdir,
                                       **self.params)
         try:
-            result = self._iterator.next()
+            result = next(self._iterator)
             while hasattr(result, 'success'):
-                result = self._iterator.next()
+                result = next(self._iterator)
             return result
         except StopIteration:
             return None

@@ -53,6 +53,7 @@ def copy_folder(self, event):
         '--nodeepcopy' is used, then the functionals are shared between source
         and destination.
     """
+    import six
     from argparse import ArgumentParser
     from os.path import join, normpath, relpath
     from copy import deepcopy
@@ -81,7 +82,7 @@ def copy_folder(self, event):
 
     # gets current folder.
     if 'jobparams' not in shell.user_ns:
-        print 'No jobfolder currently loaded.'
+        print('No jobfolder currently loaded.')
         return
     jobparams = shell.user_ns['jobparams']
 
@@ -89,7 +90,7 @@ def copy_folder(self, event):
     if args.destination[0] != ['/']:
         destination = normpath(join(cjf.name, args.destination))
         if destination[0] != '/':
-            print 'Incorrect destination', destination
+            print('Incorrect destination', destination)
             return
     else:
         destination = normpath(args.destination)
@@ -98,15 +99,15 @@ def copy_folder(self, event):
     if args.source[0] != ['/']:
         source = normpath(join(cjf.name, args.source))
         if source[0] != '/':
-            print 'Incorrect source', source
+            print('Incorrect source', source)
             return
     else:
         source = normpath(args.source)
     if source not in cjf:
-        print 'Source', source, 'does not exist'
+        print('Source', source, 'does not exist')
         return
     if destination == source:
-        print 'Source and destination are the same'
+        print('Source and destination are the same')
         return
     rootsource = source
     pairs = []
@@ -120,7 +121,7 @@ def copy_folder(self, event):
                 continue
             pairs.append((source, join(destination, relpath(source, rootsource))))
     if len(pairs) == 0:
-        print "Nothing to copy."
+        print("Nothing to copy.")
         return
 
     # now performs actual copy
@@ -134,13 +135,12 @@ def copy_folder(self, event):
             jobdest = jobdest / name
         # something already exists here
         if jobdest.is_executable and not args.force:
-            print 'Copying', jobsource.name, 'to', jobdest.name
+            print('Copying', jobsource.name, 'to', jobdest.name)
             a = ''
             while a not in ['n', 'y']:
-                a = raw_input('{0} already exists. Overwrite? [y/n]'
-                              .format(jobdest.name))
+                a = six.raw_input('{0} already exists. Overwrite? [y/n]'.format(jobdest.name))
             if a == 'n':
-                print jobdest.name, 'not overwritten.'
+                print(jobdest.name, 'not overwritten.')
                 continue
         # now copies folder items.
         for key, value in jobdest.__dict__.items():
@@ -178,6 +178,7 @@ def delete_folder(self, event):
           This magic function does not check whether job-folders are 'on' or
           'off'. The recursive option should be used with care.
     """
+    import six
     from argparse import ArgumentParser
     from os.path import join, normpath
     from ..interactive import jobfolder as cjf
@@ -204,17 +205,16 @@ def delete_folder(self, event):
     else:
         folder = normpath(args.folder)
     if folder not in cjf:
-        print "Folder", folder, "does not exist."
+        print("Folder", folder, "does not exist.")
         return
     # deletes jobfolder recursively.
     if args.recursive:
         if not args.force:
             a = ''
             while a not in ['n', 'y']:
-                a = raw_input("Delete {0} and its subfolders? [y/n]"
-                              .format(cjf[folder].name))
+                a = six.raw_input("Delete {0} and its subfolders? [y/n]".format(cjf[folder].name))
             if a == 'n':
-                print cjf[folder].name, "not deleted."
+                print(cjf[folder].name, "not deleted.")
                 return
         jobfolder = cjf[folder]
         if jobfolder.parent is None:
@@ -229,9 +229,9 @@ def delete_folder(self, event):
         if not args.force:
             a = ''
             while a not in ['n', 'y']:
-                a = raw_input("Delete {0}? [y/n]".format(cjf[folder].name))
+                a = six.raw_input("Delete {0}? [y/n]".format(cjf[folder].name))
             if a == 'n':
-                print cjf[folder].name, "not deleted."
+                print(cjf[folder].name, "not deleted.")
                 return
         jobfolder = cjf[folder]
         if len(jobfolder.children) == 0 and jobfolder.parent is not None:

@@ -24,9 +24,6 @@
 ###############################
 
 
-def raw_input(*args): return 'y'
-
-
 def test(shell):
     from tempfile import mkdtemp
     from shutil import rmtree
@@ -101,13 +98,13 @@ def test(shell):
             job.compute(outdir=join(directory, name))
 
         shell.magic("explore results".format(directory))
-        assert set(['/this/0/', '/that/1/', '/that/2/']) \
+        assert {'/this/0/', '/that/1/', '/that/2/'} \
             == set(shell.user_ns['collect'].keys())
         shell.magic("explore errors".format(directory))
         assert len(shell.user_ns['collect']) == 0
         shell.magic("explore all".format(directory))
         shell.magic("explore errors".format(directory))
-        assert set(shell.user_ns['collect'].keys()) == set(['/this/1/'])
+        assert set(shell.user_ns['collect'].keys()) == {'/this/1/'}
 
     finally:
         if directory != '/tmp/test':
@@ -116,12 +113,16 @@ def test(shell):
 
 if __name__ == "__main__":
     from IPython.core.interactiveshell import InteractiveShell
-    import __builtin__
+    import six
+
+    def raw_input(*args):
+        return 'y'
+
     try:
-        saveri = __builtin__.raw_input
-        __builtin__.raw_input = raw_input
+        saveri = six.raw_input
+        six.raw_input = raw_input
         shell = InteractiveShell.instance()
         shell.magic("load_ext pylada")
         test(shell)
     finally:
-        __builtin__.raw_input = saveri
+        six.raw_input = saveri

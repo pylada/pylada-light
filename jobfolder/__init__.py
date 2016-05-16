@@ -37,6 +37,8 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['JobFolder', 'walk_through', 'save', 'load', 'MassExtract',
            'AbstractMassExtract', 'JobParams']
+from pylada import logger
+logger = logger.getChild("jobfolder")
 
 from .jobfolder import JobFolder
 from .manipulator import JobParams
@@ -70,7 +72,7 @@ def save(jobfolder, path='jobfolder.dict', overwrite=False, timeout=None):
     path = RelativePath(path).path
     if exists(path) and not overwrite:
         if is_interactive:
-            print path, "exists. Please delete first if you want to save the job folder."
+            print(path, "exists. Please delete first if you want to save the job folder.")
             return
         else:
             raise IOError(
@@ -78,7 +80,7 @@ def save(jobfolder, path='jobfolder.dict', overwrite=False, timeout=None):
     with open_exclusive(path, "wb", timeout=timeout) as file:
         dump(jobfolder, file)
     if is_interactive:
-        print "Saved job folder to {0}.".format(path)
+        print("Saved job folder to {0}.".format(path))
 
 
 def load(path='jobfolder.dict', timeout=None):
@@ -105,5 +107,5 @@ def load(path='jobfolder.dict', timeout=None):
     with open_exclusive(path, "rb", timeout=timeout) as file:
         result = load_pickle(file)
     if is_interactive:
-        print "Loaded job list from {0}.".format(path)
+        print("Loaded job list from {0}.".format(path))
     return result

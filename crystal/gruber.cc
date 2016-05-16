@@ -142,7 +142,7 @@ struct Gruber {
                  types::t_real a11, types::t_real a12, types::t_real a20, types::t_real a21,
                  types::t_real a22) {
     if(itermax != 0 and iterations >= itermax)
-      throw std::runtime_error("Infinite loop");
+      throw std::runtime_error("Reached maximum iterations");
     types::rMatrix3d update;
     update << a00, a01, a02, a10, a11, a12, a20, a21, a22;
     rinv *= update;

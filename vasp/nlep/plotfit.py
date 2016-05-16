@@ -29,7 +29,7 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import sys
 
-import plotbs
+from . import plotbs
 from run_input import cations, anions
 
 
@@ -39,8 +39,8 @@ def main():
     plot_dft = False
 
     if (len(sys.argv) < 3):
-        print "plot_fig <dir> <base OUTCAR name> [-fcn]"
-        print "-fcn triggers 4 character names"
+        print("plot_fig <dir> <base OUTCAR name> [-fcn]")
+        print("-fcn triggers 4 character names")
         sys.exit()
 
     total_dir = sys.argv[1]
@@ -106,7 +106,7 @@ def main():
             cat = map_ion(cat)
             args = "proc1.py --skipln --bend=%d %s/%s/%s%s_%s   --matchvbm=%d,%d --bend=%d %s/%s%s_%s" % (
                 bend_idx_gw, basedir, subdir1, cat1, an1, name1, vb_idx_gw, vb_idx_nlep, bend_idx_nlep, total_dir, cat, an, name)
-            print args
+            print(args)
             args = args.split()
     #        plt.subplot(ncat, nan, ifig)
             ax = fig.add_subplot(ncat, nan, ifig)

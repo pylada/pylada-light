@@ -23,16 +23,16 @@
 """ Holds base classes and mixins for extraction objects. """
 __docformat__ = "restructuredtext en"
 __all__ = ['AbstractExtractBase', 'search_factory']
+import six
 from abc import ABCMeta, abstractproperty
 
 
-class AbstractExtractBase(object):
-    """ Abstract base class for extraction classes. 
+class AbstractExtractBase(six.with_metaclass(ABCMeta, object)):
+    """ Abstract base class for extraction classes.
 
         Defines a number of members common to all extraction classes:
           - directory: root directory where output should exist.
     """
-    __metaclass__ = ABCMeta
 
     def __init__(self, directory=None):
         """ Initializes an extraction base class.
@@ -41,10 +41,9 @@ class AbstractExtractBase(object):
               directory : str or None
                 Root directory for extraction. If None, will use current working directory.
         """
-        from pylada.misc import bugLev
+        from ..tools import logger
 
-        if bugLev >= 5:
-            print 'tools/extract: AbstractExtractBase: object: ', object
+        logger.debug('tools/extract: AbstractExtractBase: object: %s' % object)
         object.__init__(self)
 
         from os import getcwd

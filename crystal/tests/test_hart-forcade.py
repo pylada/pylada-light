@@ -35,7 +35,7 @@ def test_indices():
     a = HFTransform(unitcell, supercell)
     assert all(abs(a.transform - [[1, 1, -1], [0, 2, 0], [0, 0, 2]]) < 1e-8)
     assert all(abs(a.quotient - [1, 2, 2]) < 1e-8)
-    for i in xrange(20):
+    for i in range(20):
         vec = dot(supercell, array(
             [randint(-20, 20), randint(-20, 20), randint(-20, 20)], dtype="float64"))
         vec += [0, -0.5, 0.5]
@@ -67,7 +67,7 @@ def test_supercell_indices():
         assert all(indices <= a.quotient)
         assert index == a.flatten_indices(*indices)
         all_indices.add(index)
-        for i in xrange(20):
+        for i in range(20):
             vec = dot(supercell.cell, array(
                 [randint(-20, 20), randint(-20, 20), randint(-20, 20)], dtype="float64"))
             vec += atom.pos
@@ -128,7 +128,7 @@ def test_deformed_b5(u):
         all_indices.add(index)
         assert str(concatenate((indices, [atom.site]))) not in others
         others.add(str(concatenate((indices, [atom.site]))))
-        for i in xrange(20):
+        for i in range(20):
             vec = dot(supercell.cell, array(
                 [randint(-20, 20), randint(-20, 20), randint(-20, 20)], dtype="float64"))
             vec += atom.pos - lattice[atom.site].pos

@@ -34,9 +34,9 @@ def test_relax():
     assert Relaxation("cellshape").value == "cellshape"
     assert Relaxation("ionic").value == "ionic"
     assert Relaxation("volume").value == "volume"
-    assert set(Relaxation("ionic cellshape").value.split()) == set(["cellshape", 'ionic'])
+    assert set(Relaxation("ionic cellshape").value.split()) == {"cellshape", 'ionic'}
     assert set(Relaxation("ionic cellshape volume").value.split()
-               ) == set(["cellshape", 'ionic', 'volume'])
+               ) == {"cellshape", 'ionic', 'volume'}
     try:
         set(Relaxation("ionic volume").value.split())
     except:
@@ -54,43 +54,43 @@ def test_relax():
     assert repr(Relaxation('cellshape volume ionic', 60, 2, 50))\
         == "Relaxation('ionic cellshape volume', 60, 2, 50.0)"
 
-    assert Relaxation(None).incar_string(vasp=vasp, structure=range(5)) is None
-    assert Relaxation('static').incar_string(vasp=vasp, structure=range(5))\
+    assert Relaxation(None).incar_string(vasp=vasp, structure=list(range(5))) is None
+    assert Relaxation('static').incar_string(vasp=vasp, structure=list(range(5)))\
         == 'ISIF = 2\nIBRION = -1'
-    assert Relaxation('ionic', 60).incar_string(vasp=vasp, structure=range(5))\
+    assert Relaxation('ionic', 60).incar_string(vasp=vasp, structure=list(range(5)))\
         == 'ISIF = 2\nNSW = 60\nIBRION = 2'
-    assert Relaxation('cellshape', 60).incar_string(vasp=vasp, structure=range(5))\
+    assert Relaxation('cellshape', 60).incar_string(vasp=vasp, structure=list(range(5)))\
         == 'ISIF = 5\nNSW = 60\nIBRION = 2'
-    assert Relaxation('cellshape ionic', 60).incar_string(vasp=vasp, structure=range(5))\
+    assert Relaxation('cellshape ionic', 60).incar_string(vasp=vasp, structure=list(range(5)))\
         == 'ISIF = 4\nNSW = 60\nIBRION = 2'
-    assert Relaxation('cellshape ionic volume', 60, 3).incar_string(vasp=vasp, structure=range(5))\
+    assert Relaxation('cellshape ionic volume', 60, 3).incar_string(vasp=vasp, structure=list(range(5)))\
         == 'ISIF = 3\nNSW = 60\nIBRION = 3'
-    assert Relaxation('cellshape ionic volume', 60, 3, 20).incar_string(vasp=vasp, structure=range(5))\
+    assert Relaxation('cellshape ionic volume', 60, 3, 20).incar_string(vasp=vasp, structure=list(range(5)))\
         == 'ISIF = 3\nNSW = 60\nPOTIM = 20.0\nIBRION = 3'
 
     vasp = Vasp(1e-4, 1e-5)
-    assert Relaxation(None).incar_string(vasp=vasp, structure=range(5)) is None
-    assert Relaxation('static').incar_string(vasp=vasp, structure=range(5))\
+    assert Relaxation(None).incar_string(vasp=vasp, structure=list(range(5))) is None
+    assert Relaxation('static').incar_string(vasp=vasp, structure=list(range(5)))\
         == 'ISIF = 2\nIBRION = -1'
     try:
-        Relaxation('ionic', 60).incar_string(vasp=vasp, structure=range(5))
+        Relaxation('ionic', 60).incar_string(vasp=vasp, structure=list(range(5)))
     except:
         pass
     else:
         raise RuntimeError()
     vasp = Vasp(1e-4, -1e-5)
-    assert Relaxation('ionic', 60).incar_string(vasp=vasp, structure=range(5)) \
+    assert Relaxation('ionic', 60).incar_string(vasp=vasp, structure=list(range(5))) \
         == 'ISIF = 2\nNSW = 60\nIBRION = 2'
     vasp = Vasp(-1e-4, 1e-5)
     try:
-        Relaxation('ionic', 60).incar_string(vasp=vasp, structure=range(5))
+        Relaxation('ionic', 60).incar_string(vasp=vasp, structure=list(range(5)))
     except:
         pass
     else:
         raise RuntimeError()
     vasp = Vasp(-1e-6, 1e-4)
-    assert Relaxation('cellshape ionic volume', 60, 3, 20).incar_string(vasp=vasp, structure=range(5))\
+    assert Relaxation('cellshape ionic volume', 60, 3, 20).incar_string(vasp=vasp, structure=list(range(5)))\
         == 'ISIF = 3\nNSW = 60\nPOTIM = 20.0\nIBRION = 3'
     assert loads(dumps(Relaxation('cellshape ionic volume', 60, 3, 20)))\
-        .incar_string(vasp=vasp, structure=range(5))\
+        .incar_string(vasp=vasp, structure=list(range(5)))\
         == 'ISIF = 3\nNSW = 60\nPOTIM = 20.0\nIBRION = 3'

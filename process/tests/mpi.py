@@ -26,7 +26,7 @@ def test():
     from pylada.process.mpi import Communicator, MPISizeError
 
     root = Communicator(n=32)
-    for i in xrange(4):
+    for i in range(4):
         root.machines["node0{0}".format(i)] = 8
 
     newcomm = root.lend(5)

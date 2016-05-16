@@ -44,7 +44,7 @@ class ExtractSingle(object):
 
         try:
             with open(outdir, 'r') as file:
-                line = file.next()
+                line = next(file)
                 regex = search("pi to order (\d+) is approximately (\S+), "
                                "Error is (\S+) "
                                "\s*-- slept (\S+) seconds at each iteration -- "
@@ -57,20 +57,20 @@ class ExtractSingle(object):
                 self.sleep = float(regex.group(4))
                 self.comm = {'n': int(regex.group(5))}
 
-                line = file.next()
+                line = next(file)
                 if line[:line.find(':')].rstrip().lstrip() != 'sysname':
                     self.success = False
                     return
                 self.system = line[line.find(':') + 1:].rstrip().lstrip()
-                line = file.next()
+                line = next(file)
                 self.nodename = line[line.find(':') + 1:].rstrip().lstrip()
-                line = file.next()
+                line = next(file)
                 self.release = line[line.find(':') + 1:].rstrip().lstrip()
-                line = file.next()
+                line = next(file)
                 self.compilation = line[line.find(':') + 1:].rstrip().lstrip()
-                line = file.next()
+                line = next(file)
                 self.version = line[line.find(':') + 1:].rstrip().lstrip()
-                line = file.next()
+                line = next(file)
                 self.machine = line[line.find(':') + 1:].rstrip().lstrip()
         except:
             self.success = False

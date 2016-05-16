@@ -21,27 +21,16 @@
 ###############################
 
 """ Miscellaneous ressources. """
-__all__ = ['bugLev', 'testValidProgram', 'copyfile', 'Changedir',
+__all__ = ['testValidProgram', 'copyfile', 'Changedir',
            'read_input', 'exec_input', 'load',
            'RelativePath', 'LockFile', 'open_exclusive', 'translate_to_regex',
-           'mkdtemp', 'Redirect']
+           'mkdtemp', 'Redirect', 'local_path']
 
 from types import ModuleType
 
-from changedir import Changedir
-from relativepath import RelativePath
-from lockfile import LockFile, open_exclusive
-
-bugLev = 0
-"""
-global debug level
-"""
-
-
-def setBugLev(lev):
-    global bugLev
-    bugLev = lev
-
+from .changedir import Changedir
+from .relativepath import RelativePath
+from .lockfile import LockFile, open_exclusive
 
 testValidProgram = None
 """
@@ -49,11 +38,32 @@ Validation test program name
 """
 
 
+def local_path(path=None, *args):
+    """ Returns a py.path, expanding environment variables """
+    from os.path import expandvars
+    from py.path import local
+    if path is None:
+        return local(*args)
+    if isinstance(path, str):
+        return local(expandvars(path), expanduser=True).join(*args)
+    return path.join(*args)
+
+
+def chdir(path=None, *args):
+    """ Context for changing directory
+
+        Ensures the directory exists first.
+    """
+    path = local_path(path, *args)
+    path.ensure(dir=True)
+    return path.as_cwd()
+
+
 def setTestValidProgram(pgm):
     import os
     global testValidProgram
     if pgm == None:
-        testValidPgm = None
+        testValidProgram = None
     else:
         testValidProgram = os.path.expanduser(pgm)
 
@@ -175,7 +185,7 @@ def copyfile(src, dest=None, nothrow=None, symlink=False, aslink=False, nocopyem
             if relpath(src, dirname(dest)).count("../") == relpath(src, '/').count("../"):
                 ln(src, realpath(dest))
             else:
-                with Changedir(dirname(dest)) as cwd:
+                with chdir(local_path(dest).dirname):
                     ln(relpath(src, dirname(dest)), basename(dest))
         else:
             _copyfile_impl(src, dest)
@@ -241,10 +251,10 @@ def exec_input(script, global_dict=None, local_dict=None,
     from numpy.linalg import norm, det
     from .. import crystal
     from . import Input
+    from pylada import logger
     import quantities
 
-    if bugLev >= 5:
-        print "misc/init: exec_input: entry"
+    logger.debug("misc/init: exec_input: entry")
     # Add some names to execution environment.
     if global_dict is None:
         global_dict = {}
@@ -259,10 +269,9 @@ def exec_input(script, global_dict=None, local_dict=None,
     if local_dict is None:
         local_dict = {}
     # Executes input script.
-    if bugLev >= 5:
-        print 'misc/init: exec_input: ========== start script =========='
-        print script
-        print 'misc/init: exec_input: ========== end script =========='
+    logger.debug('misc/init: exec_input: ========== start script ==========')
+    logger.debug(script)
+    logger.debug('misc/init: exec_input: ========== end script ==========')
     exec(script, global_dict, local_dict)
 
     # Makes sure expected paths are absolute.
@@ -304,7 +313,7 @@ def load(data, *args, **kwargs):
         if exists(join(directory, data)):
             kwargs["directory"] = dirname(join(directory, data))
             result = {}
-            execfile(join(directory, data), {}, result)
+            exec(compile(open(join(directory, data)).read(), join(directory, data), 'exec'), {}, result)
             return result["init"](*args, **kwargs)
     raise IOError("Could not find data ({0}).".format(data))
 
@@ -325,7 +334,7 @@ def import_dictionary(self, modules=None):
     avoids = ['__builtin__', 'quantities.quantity']
     if self.__class__.__module__ not in avoids:
         if self.__class__.__module__ not in modules:
-            modules[self.__class__.__module__] = set([self.__class__.__name__])
+            modules[self.__class__.__module__] = {self.__class__.__name__}
         else:
             modules[self.__class__.__module__].add(self.__class__.__name__)
     if not hasattr(self, '__dict__'):
@@ -337,7 +346,7 @@ def import_dictionary(self, modules=None):
         if module_ in modules:
             modules[module_].add(class_)
         else:
-            modules[module_] = set([class_])
+            modules[module_] = {class_}
     return modules
 
 
@@ -475,8 +484,8 @@ class Redirect:
         """ Creates a redirection context. """
         from collections import Sequence
         from ..error import input as InputError
-        units = set(units) if isinstance(units, Sequence) else set([units])
-        if len(units - set(['in', 'out', 'err'])) != 0:
+        units = set(units) if isinstance(units, Sequence) else {units}
+        if len(units - {'in', 'out', 'err'}) != 0:
             raise InputError('Redirect: input should be one of "in", "out", "err".')
         self.units = units
         self.filename = filename

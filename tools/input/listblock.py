@@ -99,20 +99,21 @@ class ListBlock(BaseKeyword, list):
                 self.append(key, value)
             except:
                 from sys import exc_info
+                from six import reraise
                 type, value, traceback = exc_info()
                 message = 'ERROR when reading {0}.'.format(key)
                 if value is None:
                     type.args = type.args, message
                 else:
                     value = value, message
-                raise type, value, traceback
+                reraise(type, value, traceback)
 
     def __ui_repr__(self, imports, name=None, defaults=None, exclude=None):
         """ Dumps representation to string. """
         from ..uirepr import add_to_imports
 
         result = super(ListBlock, self).__repr__()
-        indent = ' '.join('' for i in xrange(result.find('(') + 1))
+        indent = ' '.join('' for i in range(result.find('(') + 1))
         add_to_imports(self, imports)
 
         for item in self:
@@ -137,5 +138,5 @@ class ListBlock(BaseKeyword, list):
         uirepr = self.__ui_repr__({})
         # special case for python 2
         if hasattr(uirepr, 'itervalues'):
-            return uirepr.itervalues().next()
-        return self.__ui_repr__({}).values().next()
+            return next(uirepr.itervalues())
+        return next(iter(self.__ui_repr__({}).values()))

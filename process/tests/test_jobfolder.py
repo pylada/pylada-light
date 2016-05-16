@@ -23,7 +23,7 @@
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 from pytest import fixture, mark
-from fixtures import comm, executable, jobfolders
+from pylada.process.tests.fixtures import comm, executable, jobfolders
 
 
 @fixture
@@ -89,13 +89,13 @@ def test_completes(program, comm, tmpdir, root):
     save(root, str(tmpdir.join('dict.dict')), overwrite=True)
     extract = MassExtract(str(tmpdir.join('dict.dict')))
     assert all(extract.success.values())
-    order = array(extract.order.values()).flatten()
+    order = array(list(extract.order.values())).flatten()
     assert all(arange(8) - order == 0)
-    pi = array(extract.pi.values()).flatten()
+    pi = array(list(extract.pi.values())).flatten()
     expected = [0.0, 3.2, 3.162353, 3.150849, 3.146801, 3.144926, 3.143907,
                 3.143293]
     assert all(abs(pi - array(expected)) < 1e-5)
-    error = array(extract.error.values()).flatten()
+    error = array(list(extract.error.values())).flatten()
     expected = [3.141593, 0.05840735, 0.02076029, 0.009256556, 0.005207865,
                 0.00333321, 0.002314774, 0.001700664]
     assert all(abs(error - array(expected)) < 1e-5)

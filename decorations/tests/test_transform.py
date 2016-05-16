@@ -33,11 +33,11 @@ def get_cell(n=5):
 
 def get_many_cells(n):
     from numpy import dot
-    for i in xrange(1, n):
+    for i in range(1, n):
         yield [[i, 0, 0], [0, 0.5, 0.5], [0, -0.5, 0.5]]
-    for i in xrange(1, n):
+    for i in range(1, n):
         yield [[i, 0, 0], [0, i, 0], [0, 0, 1]]
-    for i in xrange(1, n):
+    for i in range(1, n):
         yield [[i, 0, 0], [0, i, 0], [0, 0, i]]
     yield dot([[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]], [[1, 0, 0], [0, 1, 0], [0, 0, 2]])
 
@@ -193,7 +193,7 @@ def test_zinc_blende_lattice():
     assert transforms.lattice[1].equivto == 0
     assert transforms.lattice[1].nbflavors == 2
     assert transforms.lattice[1].index == 1
-    assert all(all(a == b) for a, b in zip(transforms.flavors, (range(1), range(1))))
+    assert all(all(a == b) for a, b in zip(transforms.flavors, (list(range(1)), list(range(1)))))
     assert all(not hasattr(atom, 'nbflavors') for atom in lattice)
 
 
@@ -215,7 +215,7 @@ def test_zinc_blende_lattice_diff_occupations():
     assert transforms.lattice[1].equivto == 1
     assert transforms.lattice[1].nbflavors == 3
     assert transforms.lattice[1].index == 1
-    assert all(all(a == b) for a, b in zip(transforms.flavors, (range(1), range(2))))
+    assert all(all(a == b) for a, b in zip(transforms.flavors, (list(range(1)), list(range(2)))))
 
 
 def test_spinel():
@@ -229,7 +229,7 @@ def test_spinel():
     transforms = Transforms(lattice)
     assert len([u for u in transforms.lattice if u.asymmetric]) == 3
     assert all([transforms.lattice[i].asymmetric for i in [0, 4, 6]])
-    assert all([not transforms.lattice[i].asymmetric for i in range(1, 4) + [5] + range(7, 14)])
+    assert all([not transforms.lattice[i].asymmetric for i in list(range(1, 4)) + [5] + list(range(7, 14))])
     assert all([transforms.lattice[i].equivto == 0 for i in range(4)])
     assert all([transforms.lattice[i].equivto == 4 for i in range(4, 6)])
     assert all([transforms.lattice[i].equivto == 6 for i in range(6, 14)])
@@ -252,12 +252,12 @@ def test_inverse_spinel():
     transforms = Transforms(lattice)
     assert len([u for u in transforms.lattice if u.asymmetric]) == 3
     assert all([transforms.lattice[i].asymmetric for i in [0, 1, 4]])
-    assert all([not transforms.lattice[i].asymmetric for i in range(2, 4) + range(5, 14)])
-    assert all([transforms.lattice[i].equivto == 0 for i in [0] + range(6, 13)])
-    assert all([transforms.lattice[i].equivto == 1 for i in range(1, 4) + [13]])
+    assert all([not transforms.lattice[i].asymmetric for i in list(range(2, 4)) + list(range(5, 14))])
+    assert all([transforms.lattice[i].equivto == 0 for i in [0] + list(range(6, 13))])
+    assert all([transforms.lattice[i].equivto == 1 for i in list(range(1, 4)) + [13]])
     assert all([transforms.lattice[i].equivto == 4 for i in [4, 5]])
-    assert all([transforms.lattice[i].nbflavors == 1 for i in [0] + range(6, 13)])
-    assert all([transforms.lattice[i].nbflavors == 2 for i in range(1, 4) + [13]])
+    assert all([transforms.lattice[i].nbflavors == 1 for i in [0] + list(range(6, 13))])
+    assert all([transforms.lattice[i].nbflavors == 2 for i in list(range(1, 4)) + [13]])
     assert all([transforms.lattice[i].nbflavors == 2 for i in [4, 5]])
     index = 0
     for i, atom in enumerate(transforms.lattice):
@@ -281,7 +281,7 @@ def test_toarray():
     transforms = Transforms(lattice)
     lattice = transforms.lattice
 
-    for u in xrange(11):
+    for u in range(11):
         structure = supercell(lattice, get_cell())
         for atom in structure:
             atom.type = choice(atom.type)
@@ -313,18 +313,18 @@ def test_labelexchange():
         atom.type = s
     hft = HFTransform(lattice, structure)
     x = transforms.toarray(hft, structure)
-    results = [21112222221111123331111231122131L,  # <- this is x
-               21112222221111122221111321133121L,
-               21112222221111123332222132211232L,
-               21112222221111121112222312233212L,
-               21112222221111122223333123311323L,
-               21112222221111121113333213322313L,
-               12221111112222213331111231122131L,
-               12221111112222212221111321133121L,
-               12221111112222213332222132211232L,
-               12221111112222211112222312233212L,
-               12221111112222212223333123311323L,
-               12221111112222211113333213322313L]
+    results = [21112222221111123331111231122131,  # <- this is x
+               21112222221111122221111321133121,
+               21112222221111123332222132211232,
+               21112222221111121112222312233212,
+               21112222221111122223333123311323,
+               21112222221111121113333213322313,
+               12221111112222213331111231122131,
+               12221111112222212221111321133121,
+               12221111112222213332222132211232,
+               12221111112222211112222312233212,
+               12221111112222212223333123311323,
+               12221111112222211113333213322313]
     permutations = transforms.label_exchange(hft)
     for a, b in zip(permutations(x), results[1:]):
         assert int(str(a)[1:-1].replace(' ', '')) == b

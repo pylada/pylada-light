@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from fixtures import comm, executable
+from pylada.process.tests.fixtures import comm, executable
 
 
 def test_iterator(executable, tmpdir, comm):
@@ -33,7 +33,7 @@ def test_iterator(executable, tmpdir, comm):
     from pylada.process import Fail, NotStarted
     from pylada.process.tests.functional import Functional
 
-    functional = Functional(executable, range(8))
+    functional = Functional(executable, list(range(8)))
     program = IteratorProcess(functional, outdir=str(tmpdir))
     # program not started. should fail.
     with raises(NotStarted):

@@ -77,7 +77,7 @@ def split1(fn, ax, col, skipln, gwk,  first_vband_idx, my_vband_idx, bstart, ben
 
             all_kpt.append(kpt)
             if (nband > 0 and nband != ib):
-                print "problem: found different number bands at different k points"
+                print("problem: found different number bands at different k points")
             nband = ib
         lastLn = ln
         ln = f.readline()
@@ -97,8 +97,8 @@ def split1(fn, ax, col, skipln, gwk,  first_vband_idx, my_vband_idx, bstart, ben
         g2x_idx = gw_g2x
         g2l_idx = gw_g2l
     else:
-        g2x_idx = range(0, 10)
-        g2l_idx = range(10, 20)
+        g2x_idx = list(range(0, 10))
+        g2l_idx = list(range(10, 20))
 
     for b in range(0, nband):
         g2x.append([])
@@ -136,7 +136,7 @@ def split1(fn, ax, col, skipln, gwk,  first_vband_idx, my_vband_idx, bstart, ben
         bstart = 0
     if (bend == None):
         bend = nband
-    print bstart, bend, offset
+    print(bstart, bend, offset)
     for b in range(bstart, bend):
         vals = [e + offset for e in g2x[b]]
         ax.plot(kg2x, vals, color=col)
@@ -148,14 +148,14 @@ def split1(fn, ax, col, skipln, gwk,  first_vband_idx, my_vband_idx, bstart, ben
 
 def real_main(argv, fig, ax, ifig=0):
     if (len(argv) == 1):
-        print "proc1.py <[options] band structure file>*"
-        print "bs file is actual OUTCAR"
-        print "options: --notgwk. WITHOUT this, we assume kpoints of interest are as in Stephan Lany's GW data"
-        print "--notgwk will assume a run of only g2x (kpoints 0-9) and g2l (kpoint 10-19)"
-        print "--skipln parses OUTCAR to match GW data. necessary for plotting bs from fitting data"
-        print "--matchvbm=<n1><n2> says band n2 for this data file is same as band n1 for the first data file given"
-        print "--bstart=<n1>  and --bend=<n2>  plots only bands from n1 to n2.  These options stay in effect until overridden"
-        print "eg:"
+        print("proc1.py <[options] band structure file>*")
+        print("bs file is actual OUTCAR")
+        print("options: --notgwk. WITHOUT this, we assume kpoints of interest are as in Stephan Lany's GW data")
+        print("--notgwk will assume a run of only g2x (kpoints 0-9) and g2l (kpoint 10-19)")
+        print("--skipln parses OUTCAR to match GW data. necessary for plotting bs from fitting data")
+        print("--matchvbm=<n1><n2> says band n2 for this data file is same as band n1 for the first data file given")
+        print("--bstart=<n1>  and --bend=<n2>  plots only bands from n1 to n2.  These options stay in effect until overridden")
+        print("eg:")
         sys.exit()
 
 #    fig = plt.figure(ifig)
@@ -171,7 +171,7 @@ def real_main(argv, fig, ax, ifig=0):
     first_vband_idx = None
     for i in range(1, len(argv)):
         fn = argv[i]
-        print fn
+        print(fn)
         if (fn == "--notgwk"):
             gwk = False
         elif (fn == "--skipln"):
@@ -180,7 +180,7 @@ def real_main(argv, fig, ax, ifig=0):
             # expecting "--matchvbm=<first vb idx>,<this vb idx>"
             stuff = fn[11:len(fn)].split(",")
             if (len(stuff) != 2):
-                print "cannot parse %s", fn
+                print("cannot parse %s", fn)
             my_vband_idx = int(stuff[1])
             first_vband_idx = int(stuff[0])
         elif (fn[0:8] == "--bstart"):

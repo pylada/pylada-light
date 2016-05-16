@@ -45,10 +45,10 @@ def test_tree():
     assert a[1] == ('other', 'a')
     assert a['other'] == 'a'
     iterator = a.keys()
-    assert iterator.next() == 'key'
-    assert iterator.next() == 'other'
+    assert next(iterator) == 'key'
+    assert next(iterator) == 'other'
     try:
-        iterator.next()
+        next(iterator)
     except StopIteration:
         pass
     else:

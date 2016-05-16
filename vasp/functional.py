@@ -3,14 +3,14 @@
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
 #
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
+#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to
+#  submit large numbers of jobs on supercomputers. It provides a python interface to physical input,
+#  such as crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential
+#  programs. It is able to organise and launch computational jobs on PBS and SLURM.
 #
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
+#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU
+#  General Public License as published by the Free Software Foundation, either version 3 of the
+#  License, or (at your option) any later version.
 #
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
@@ -21,14 +21,14 @@
 ###############################
 
 # -*- coding: utf-8 -*-
-""" Sub-package containing the functional. """
+""" Sub-package containing the vasp functional. """
 __docformat__ = "restructuredtext en"
 __all__ = ['Vasp']
+from pylada.vasp import logger
 from ..tools import stateless, assign_attributes
 from ..tools.input import AttrBlock
 from ..misc import add_setter
 from .extract import Extract as ExtractVasp
-from pylada.misc import bugLev
 from pylada.misc import testValidProgram
 
 
@@ -117,10 +117,6 @@ class Vasp(AttrBlock):
             LMaxMix, LVHar, EdiffPerAtom, EdiffgPerAtom, NonScf
         from ..tools.input import TypedKeyword, ChoiceKeyword
         super(Vasp, self).__init__()
-        if bugLev >= 5:
-            print "vasp/functional.Vasp.__init__: species: ", species
-            print "vasp/functional.Vasp.__init__: kpoints: ", kpoints
-            print "vasp/functional.Vasp.__init__: kwargs: ", kwargs
 
         self.species = species if species is not None else {}
         """ Species in the system.
@@ -136,30 +132,31 @@ class Vasp(AttrBlock):
         self.restart = kwargs.get('restart', None)
         """ Calculation from which to restart. 
 
-        Depending on the values of :py:attr:`istart`, :py:attr:`icharg`, and
-        :py:attr:`istruc`, this calculation will copy the charge density,
-        wavefunctions, and structure from this object. It should be either
-        None, or an extraction object returned by a previous calculation (e.g.
-        :py:class:`~pylada.vasp.extract.Extract`):
+            Depending on the values of :py:attr:`istart`, :py:attr:`icharg`, and
+            :py:attr:`istruc`, this calculation will copy the charge density,
+            wavefunctions, and structure from this object. It should be either
+            None, or an extraction object returned by a previous calculation (e.g.
+            :py:class:`~pylada.vasp.extract.Extract`):
 
-        .. code-block:: python
+            .. code-block:: python
 
-           calc1 = vasp(structure)
-           calc2 = vasp(structure, restart=calc2, nonscf=True)
+               calc1 = vasp(structure)
+               calc2 = vasp(structure, restart=calc2, nonscf=True)
 
-        The snippet above performs a non-self-consistent calculation using the
-        first calculation. In this example, it is expected that
-        :py:attr:`istart`, :py:attr:`icharg`, and :py:attr:`istruc` are all set
-        to 'auto', in which case Pylada knows to do the right thing, e.g. copy
-        whatever is available, and nothing is ``vasp.restart is None``.
+            The snippet above performs a non-self-consistent calculation using the
+            first calculation. In this example, it is expected that
+            :py:attr:`istart`, :py:attr:`icharg`, and :py:attr:`istruc` are all set
+            to 'auto', in which case Pylada knows to do the right thing, e.g. copy
+            whatever is available, and nothing is ``vasp.restart is None``.
 
-        .. note::
+            .. note::
 
-           The calculation from which to restart needs be successful, otherwise
-           it is not considered.
+               The calculation from which to restart needs be successful, otherwise
+               it is not considered.
 
-        .. seealso:: :py:attr:`istart`, :py:attr:`istruc`, :py:attr:`icharg`
-    """
+            .. seealso:: :py:attr:`istart`, :py:attr:`istruc`, :py:attr:`icharg`
+
+        """
 
         self.program = kwargs.get('program', None)
         """ Path to vasp program. 
@@ -307,7 +304,7 @@ class Vasp(AttrBlock):
 
             .. _CONTCAR: http://cms.mpi.univie.ac.at/vasp/guide/node60.html
         """
-        self.isym = ChoiceKeyword(values=range(-1, 3))
+        self.isym = ChoiceKeyword(values=list(range(-1, 3)))
         """ Symmetry scheme.
 
             .. seealso:: ISYM_
@@ -838,8 +835,7 @@ class Vasp(AttrBlock):
             if hasattr(self, key):
                 setattr(self, key, value)
 
-    def __call__(self, structure, outdir=None, comm=None, overwrite=False,
-                 **kwargs):
+    def __call__(self, structure, outdir=None, comm=None, overwrite=False, **kwargs):
         """ Calls vasp program and waits until completion.
 
             This function makes a blocking call to the VASP_ external program. It
@@ -850,20 +846,6 @@ class Vasp(AttrBlock):
 
             :returns: An extraction object of type :py:attr:`Extract`.
         """
-        import os
-        import sys
-        import traceback
-
-        # NEVER CALLED!
-        # print 'functional __call__ A: ===== start stack trace'
-        #traceback.print_stack( file=sys.stdout)
-        # print 'functional __call__ A: ===== end stack trace'
-
-        if bugLev >= 5:
-            print "vasp/functional __call__: outdir: ", outdir
-            print "vasp/functional __call__: structure:\n", structure
-            print "vasp/functional __call__: comm: ", comm
-
         for program in self.iter(structure, outdir=outdir, comm=comm, overwrite=overwrite, **kwargs):
             # iterator may yield the result from a prior successful run.
             if getattr(program, 'success', False):
@@ -875,17 +857,11 @@ class Vasp(AttrBlock):
             # This next line starts the asynchronous call to the external VASP
             # program.
 
-            if bugLev >= 5:
-                print "vasp/functional __call__: before start"
             program.start(comm)
 
-            if bugLev >= 5:
-                print "vasp/functional __call__: before wait"
             # This next lines waits until the VASP program is finished.
             program.wait()
 
-            if bugLev >= 5:
-                print "vasp/functional __call__: after wait"
         # Last yield should be an extraction object.
         if not program.success:
             raise RuntimeError("Vasp failed to execute correctly.")
@@ -896,18 +872,20 @@ class Vasp(AttrBlock):
     def iter(self, structure, outdir=None, comm=None, overwrite=False, **kwargs):
         """ Allows asynchronous vasp calculations
 
-            This is a generator which yields two types of objects: 
+            This is a generator which is equivalent to the following:
 
-               - :py:class:`~pylada.process.program.ProgramProcess`: once started,
-                 this process will run an actual VASP_ calculation.
-               - :py:attr:`Extract`: once the program has been runned, and
-                 extraction object is yielded, in order that the results of the run
-                 can be analyzed. 
+            .. code:: python
 
-            In a new calculation, an instance of each type will be yielded, in the
-            order of their description above. It is expected that program is runned
-            first, using the first object, before looping to the second object. 
-            Thie generator function makes it possible to run different instances of
+                yield Program(program="Vasp", outdir=outdir)
+                yield Extract(outdir=outdir)
+
+            - :py:class:`~pylada.process.program.ProgramProcess`: once started, this process will
+               run an actual VASP_ calculation.
+            - :py:attr:`Extract`: once the program has been runned, and extraction object is
+              yielded, in order that the results of the run can be analyzed.
+
+
+            This generator function makes it possible to run different instances of
             VASP_ simultaneously. It also makes it possible to create more complex
             calculations which necessitate more than one actual call to VASP_ (see
             :py:class:`~pylada.vasp.relax.iter_relax`), while retaining the ability
@@ -923,9 +901,9 @@ class Vasp(AttrBlock):
             you want to understand this looping business. The benefit of this
             approach can be seen in :py:class:`~pylada.vasp.relax.iter_relax` (more
             complex calculations) and
-            :py:class:`pylada.process.jobfolder.JobFolderProcess`. 
+            :py:class:`pylada.process.jobfolder.JobFolderProcess`.
 
-            :param structure:  
+            :param structure:
                 :py:class:`~pylada.crystal.Structure` structure to compute.
             :param outdir:
                 Output directory where the results should be stored.  This
@@ -964,16 +942,11 @@ class Vasp(AttrBlock):
                 This will never overwrite successfull VASP calculation, even if the
                 parameters to the call are different.
         """
-        ###from .. import vasp_program
         from ..process.program import ProgramProcess
         from .extract import Extract as ExtractVasp
-        import os
-        import sys
-        import traceback
 
-        if bugLev >= 5:
-            print 'vasp/functional iter: outdir: %s' % (outdir,)
-            print 'vasp/functional iter: structure:\n%s' % (structure,)
+        logger.info('vasp/functional iter: outdir: %s' % outdir)
+        logger.debug('vasp/functional iter: structure:\n%s' % repr(structure))
 
         # check for pre-existing and successful run.
         if not overwrite:
@@ -992,9 +965,6 @@ class Vasp(AttrBlock):
         if (vaspProgram == None):
             import pylada
             vaspProgram = pylada.vasp_program
-        if bugLev >= 5:
-            print 'vasp/functional iter: vaspProgram: %s' % (vaspProgram,)
-            print 'vasp/functional iter: testValidProgram: %s' % (testValidProgram,)
         if vaspProgram == None:
             raise RuntimeError('program was not set in the vasp functional')
 
@@ -1026,57 +996,48 @@ class Vasp(AttrBlock):
         """
         from os.path import join
         from ..crystal import specieset
-        from ..misc.changedir import Changedir
+        from ..misc import chdir, local_path
         from . import files
-        import os
 
-        if bugLev >= 5:
-            print 'vasp/functional bringup: outdir: ', outdir
-            print 'vasp/functional bringup: structure:\n%s' % (structure,)
-            print 'vasp/functional bringup: kwargs: ', kwargs
+        logger.info('vasp/functional bringup: outdir: %s ' % outdir)
+        logger.debug('vasp/functional bringup: structure:\n%s' % repr(structure))
+        logger.debug('vasp/functional bringup: kwargs: %s' % repr(kwargs))
 
-        with Changedir(outdir) as tmpdir:
+        with chdir(outdir):
             # creates INCAR file (and POSCAR via istruc).
             fpath = join(outdir, files.INCAR)
-            if bugLev >= 5:
-                print "vasp/functional bringup: incar fpath: ", fpath
+            logger.debug("vasp/functional bringup: incar fpath: %s " % fpath)
             self.write_incar(structure, path=fpath, outdir=outdir, **kwargs)
 
             # creates kpoints file
-            if bugLev >= 5:
-                print "vasp/functional bringup: files.KPOINTS: ", files.KPOINTS
+            logger.debug("vasp/functional bringup: files.KPOINTS: %s " % files.KPOINTS)
             with open(files.KPOINTS, "w") as kp_file:
                 self.write_kpoints(kp_file, structure)
 
             # creates POTCAR file
-            if bugLev >= 5:
-                print "vasp/functional bringup: files.POTCAR: ", files.POTCAR
+            logger.debug("vasp/functional bringup: files.POTCAR: %s " % files.POTCAR)
             with open(files.POTCAR, 'w') as potcar:
                 for s in specieset(structure):
                     outLines = self.species[s].read_potcar()
                     potcar.writelines(outLines)
             # Add is running file marker.
-            with open('.pylada_is_running', 'w') as file:
-                pass
-            if bugLev >= 5:
-                print 'vasp/functional bringup: is_run dir: %s' % (os.getcwd(),)
-
+            local_path(outdir).join('.pylada_is_running').ensure(file=True)
             self._copy_additional_files(outdir)
 
     def _copy_additional_files(self, outdir):
         """ Copy files from attribute files """
         from collections import Sequence
-        from ..misc import RelativePath, copyfile, Changedir
+        from ..misc import local_path, copyfile, chdir
         files = getattr(self, 'files', [])
         if files is None:
             return
         if isinstance(files, str) or not isinstance(files, Sequence):
             files = [files]
         files = [
-            RelativePath(getattr(filename, 'path', filename)).path
+            str(local_path(getattr(filename, 'path', filename)))
             for filename in files
         ]
-        with Changedir(outdir):
+        with chdir(outdir):
             for filename in files:
                 copyfile(filename)
 
@@ -1084,18 +1045,11 @@ class Vasp(AttrBlock):
         """ Copies contcar to outcar. """
         from os.path import exists
         from os import remove
-        from . import files
-        from ..misc import Changedir
-        import os
-        import sys
-        import traceback
+        from ..misc import chdir
 
-        if bugLev >= 5:
-            print 'vasp/functional bringdown: directory: ', directory
-            print 'vasp/functional bringdown: initial structure:\n%s' \
-                % (structure,)
+        logger.info('vasp/functional bringdown: directory: %s ' % directory)
 
-        with Changedir(directory) as pwd:
+        with chdir(directory):
             with open('pylada.FUNCTIONAL', 'w') as fout:
                 fout.write(repr(self))
 
@@ -1108,10 +1062,9 @@ class Vasp(AttrBlock):
         from ..misc import RelativePath
         from .files import INCAR
 
-        if bugLev >= 5:
-            print "vasp/functional write_incar: path: ", path
-            print "vasp/functional write_incar: structure:\n%s" % (structure,)
-            print "vasp/functional write_incar: kwargs: ", kwargs
+        logger.debug("vasp/functional write_incar: path: %s " % path)
+        logger.debug("vasp/functional write_incar: structure:\n%s" % repr(structure))
+        logger.debug("vasp/functional write_incar: kwargs: %s" % repr(kwargs))
 
         # check what type path is.
         # if not a file, opens one an does recurrent call.
@@ -1130,10 +1083,7 @@ class Vasp(AttrBlock):
         # At this point (vasp==self)._input is a map of the incar parameters.
         # The values may be primitives or callables.
         # Example: self._input['foobar'] = 'FOOBARED'
-
         map = self.output_map(structure=structure, vasp=self, **kwargs)
-        # The resulting map is a map of the incar parameters.
-        # The values may be primitives or callables.
 
         length = max(len(u) for u in map)
         for key, value in map.items():
@@ -1143,11 +1093,8 @@ class Vasp(AttrBlock):
 
     def write_kpoints(self, file, structure, kpoints=None):
         """ Writes kpoints to a stream. """
-
-        if bugLev >= 5:
-            print "vasp/functional write_kpoints: file: ", file
-            print "vasp/functional write_kpoints: structure:\n%s" % (structure,)
-            print "vasp/functional write_kpoints: kpoints: ", kpoints
+        logger.info("vasp/functional write_kpoints: file: %s " % file)
+        logger.debug("vasp/functional write_kpoints: kpoints: %s " % kpoints)
 
         if kpoints == None:
             kpoints = self.kpoints

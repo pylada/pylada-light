@@ -31,6 +31,9 @@ endif()
 add_python_module("pylada.crystal" CPP GLOB *.py cutilities.pyx _space_group.pyx _primitive.pyx
   _coordination_shells.pyx _map_sites.pyx)
 target_link_libraries(pylada.crystal.cutilities-cython cutilities)
+if(TARGET Lookup-Eigen3)
+  add_dependencies(cutilities Lookup-Eigen3)
+endif()
 
 add_subdirectory(defects)
 add_subdirectory(tests)

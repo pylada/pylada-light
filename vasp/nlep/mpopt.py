@@ -40,7 +40,7 @@ def get_result_size(sys_input, run_input):
 
 def test_objective(args, sys_input):
     #  eigs, pc, pressure, occs = test_objective(args, sys_input)
-    print "test_objective called: ", args
+    print("test_objective called: ", args)
 #  eigs = (1.0 + args[0]) * sys_input.gw_in.qp_eigenvalues
     eigs = sys_input.gw_in.qp_eigenvalues
     pc = sys_input.dft_in.partial_charges
@@ -54,7 +54,7 @@ def wprint(*args):
     s = "rank " + str(world.rank)
     for a in args:
         s = s + " " + str(a)
-    print s
+    print(s)
 
 
 def array_function_calcs(x, raweigs, rawpc, pressure, rawoccs, sys_input, run_input, special_pc=None, ignore_weights=False):
@@ -211,7 +211,7 @@ def report_result(args, result, msg, evals_file):
     s = "rank %d calculating fit to data at x= " % (world.rank)
     for a in args:
         s += "%.12e " % a
-    print s
+    print(s)
     evals_file.write("%s\n" % s)
     evals_file.flush()
 
@@ -221,7 +221,7 @@ def report_result(args, result, msg, evals_file):
         s += " %e " % r
         sum += r * r
     s += "   %e %e" % (sum, math.sqrt(sum))
-    print s
+    print(s)
 
     evals_file.write("%s\n" % s)
     evals_file.flush()
@@ -233,7 +233,7 @@ def report_bad_result(args, result, evals_file):
     s = "rank %d out of bounds at x = " % (world.rank)
     for a in args:
         s += "%.12e " % a
-    print s
+    print(s)
     evals_file.write("%s\n" % s)
     evals_file.flush()
 
@@ -243,7 +243,7 @@ def report_bad_result(args, result, evals_file):
         s += " %e " % r
         sum += r * r
     s += "   %e %e" % (sum, math.sqrt(sum))
-    print s
+    print(s)
 
     evals_file.write("%s\n" % s)
     evals_file.flush()
@@ -252,17 +252,17 @@ def report_bad_result(args, result, evals_file):
 def simple_printout(eigs, pc, pressure, occs):
     import numpy as np
     dims = np.shape(eigs)
-    print "---------------------------------------"
-    print "eigs = [%d X %d]" % (dims[0], dims[1])
+    print("---------------------------------------")
+    print("eigs = [%d X %d]" % (dims[0], dims[1]))
     for i in range(0, dims[0]):
         s = ""
         for j in range(0, dims[1]):
             s += "%f " % eigs[i][j]
-        print s
-    print "pc = ", pc
-    print "occs = ", occs
-    print "pressure = ", pressure
-    print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        print(s)
+    print("pc = ", pc)
+    print("occs = ", occs)
+    print("pressure = ", pressure)
+    print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
 
 def create_sys_dirs(systems, run_control):
@@ -402,7 +402,7 @@ def job_main(job_comm, run_input,  systems, vasp_comm):
     # otherwise randomize starting point for each job_comm
     x0 = systems.getx()
     ranges = systems.get_ranges()
-    print "ranges = ", ranges
+    print("ranges = ", ranges)
 
     if (job_comm.rank == 0 and (run_input.random_start == None or run_input.random_start == False)):
         x0 = systems.getx()
@@ -420,8 +420,8 @@ def job_main(job_comm, run_input,  systems, vasp_comm):
         #  objective.x = broadcast(job_comm, x0, 0)
         #  if world.rank == 0: print "x0: ", x0
 
-    print "rank %d    x0 = " % world.rank, x0
-    print "rank %d    ranges = " % world.rank, ranges
+    print("rank %d    x0 = " % world.rank, x0)
+    print("rank %d    ranges = " % world.rank, ranges)
 
 ##########
     # need fix.
@@ -434,11 +434,11 @@ def job_main(job_comm, run_input,  systems, vasp_comm):
             # Somehow leastsq expects a function, but never a functor!!
             if (job_comm.rank == 0):
                 # print some stuff:
-                print "epsfcn = ", run_input.epsfcn
-                print "xtol = ", run_input.xtol
-                print "ftol = ", run_input.ftol
-                print "factor = ", run_input.step_factor
-                print "Calling scipy least squares fitter"
+                print("epsfcn = ", run_input.epsfcn)
+                print("xtol = ", run_input.xtol)
+                print("ftol = ", run_input.ftol)
+                print("factor = ", run_input.step_factor)
+                print("Calling scipy least squares fitter")
                 x0, cov_x, infodict, mesg, ier\
                     = leastsq(array_function_multi, x0, maxfev=run_input.max_functional_eval,
                               full_output=1, xtol=run_input.xtol, ftol=run_input.ftol,
@@ -446,21 +446,21 @@ def job_main(job_comm, run_input,  systems, vasp_comm):
 
                 # computes/print optimal results.
 #        result = objective.final(x0)
-                print "rank %d minimum value of sum of squares:" % world.rank, np.linalg.norm(infodict["fvec"])
-                print "for: ", x0
-                print "after %i function calls." % (infodict["nfev"])
-                print "with warning flag: ", ier, mesg
+                print("rank %d minimum value of sum of squares:" % world.rank, np.linalg.norm(infodict["fvec"]))
+                print("for: ", x0)
+                print("after %i function calls." % (infodict["nfev"]))
+                print("with warning flag: ", ier, mesg)
         # least square via lmmin (parallel finite difference derivative)
         elif run_input.optimizer == "lmmin":
             import liblmmin as lm
             npar = len(x0)
             ndat = systems.get_result_size(run_input)
-            print "Calling lmmin fd-parallel least squares fitter with epsfcn = ", run_input.epsfcn
+            print("Calling lmmin fd-parallel least squares fitter with epsfcn = ", run_input.epsfcn)
             x0 = np.array([float(xi) for xi in x0])
             lm.lmmin_py(job_comm, array_function_multi2, npar, x0, ndat, run_input.epsfcn)
-            print "lmmin_py returned!"
+            print("lmmin_py returned!")
         else:
-            print "YOU DID NOT SPECIFY A FITTING METHOD"
+            print("YOU DID NOT SPECIFY A FITTING METHOD")
 
     for s in systems.systems:
         s.evals_file.close()
@@ -493,10 +493,10 @@ def main(system_params=None):
     from pylada.vasp import Vasp
     import os
     from os import path
-    from nlep import Objective
+    from .nlep import Objective
     from pylada.vasp.nlep.postprocessing import find_best, load_test, prepare_analog_fit
 
-    print "mpi rank %d of %d" % (world.rank, world.size)
+    print("mpi rank %d of %d" % (world.rank, world.size))
 
     # Things which need to be put into dictionary of input script.
 #  global_dict = { "Extract": Extract, "ExtractGW": ExtractGW, "Vasp": Vasp, "nlep": nlep, "U": U }
@@ -507,7 +507,7 @@ def main(system_params=None):
 
     load_from_analogs = run_input.load_from_analogs
     # create systems
-    from systems import setup_systems
+    from .systems import setup_systems
     systems = setup_systems(run_input, system_params)
 
     if (run_input.nbjobs == -1):
@@ -528,7 +528,7 @@ def main(system_params=None):
 
     # creates objective functions from systems
     for s in systems.systems:
-        print s.outdir
+        print(s.outdir)
         s.objective = Objective(s.input.vasp, s.input.dft_in, s.input.gw_in,
                                 outdir=s.outdir, comm=vasp_comm, units=run_input.units)
 
@@ -543,10 +543,10 @@ def main(system_params=None):
 
     # only serial vasp so far, but lmmin is a parallel fitter
     if (job_comm.rank != 0 and run_input.optimizer != "lmmin"):
-        print "rank %d superfluous, returning; beware barrier" % world.rank
+        print("rank %d superfluous, returning; beware barrier" % world.rank)
         return
 
-    print "world rank %d    job %d     local rank %d    working dir %s" % (world.rank, color, job_comm.rank, run_control.outdir)
+    print("world rank %d    job %d     local rank %d    working dir %s" % (world.rank, color, job_comm.rank, run_control.outdir))
 
     job_main(job_comm, run_input, systems, vasp_comm)
 
@@ -558,6 +558,6 @@ if __name__ == '__main__':
         from boost.mpi import world, abort
         import traceback
         from sys import stderr
-        print >> stderr, "Final exception encountered by process: ", world.rank
+        print("Final exception encountered by process: ", world.rank, file=stderr)
         traceback.print_exc(file=stderr)
         abort(0)

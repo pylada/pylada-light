@@ -364,11 +364,11 @@ def minimize_broken_bonds(bulk=None, slab=None, vacuum=None, charge=None, minimi
     no_broken = count_broken_bonds(bulk=bulk, slab=slab)
 
     if no_broken == 1.:
-        print "Nothing to do your slab is already there :)"
+        print("Nothing to do your slab is already there :)")
         return slab
 
     elif no_broken == 0.:
-        print "Nothing to do your slab is already there :)"
+        print("Nothing to do your slab is already there :)")
         return slab
 
     else:
@@ -418,7 +418,7 @@ def is_polar(slab=None, charge=None, tol=1e-2):
     """
 
     moment = dipole_moment(slab=slab, charge=charge)
-    print "dipole_moment=", moment
+    print("dipole_moment=", moment)
 
     if abs(moment) < tol:
         return False  # NON POLAR

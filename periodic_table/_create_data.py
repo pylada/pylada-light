@@ -199,7 +199,7 @@ def _pettifor_numbers():
 
 def _download_files():
     """ Downloads data from webelements.com. """
-    import urllib
+    import urllib.request, urllib.parse, urllib.error
     from os import makedirs
     from os.path import exists, join
 
@@ -226,35 +226,35 @@ def _download_files():
     if not exists("elements"):
         makedirs("elements")
     for name in atom_list:
-        file = urllib.urlopen("http://www.webelements.com/{0}".format(name.lower()))
+        file = urllib.request.urlopen("http://www.webelements.com/{0}".format(name.lower()))
         string = file.read()
         file.close()
         with open(join("elements", name), "w") as out:
             out.write(string)
-        file = urllib.urlopen("http://www.webelements.com/{0}/atoms.html".format(name.lower()))
+        file = urllib.request.urlopen("http://www.webelements.com/{0}/atoms.html".format(name.lower()))
         string = file.read()
         file.close()
         with open(join("elements", name + "_atoms.html"), "w") as out:
             out.write(string)
-        file = urllib.urlopen("http://www.webelements.com/{0}/electronegativity.html"
+        file = urllib.request.urlopen("http://www.webelements.com/{0}/electronegativity.html"
                               .format(name.lower()))
         string = file.read()
         file.close()
         with open(join("elements", name + "_electronegativity.html"), "w") as out:
             out.write(string)
-        file = urllib.urlopen("http://www.webelements.com/{0}/atom_sizes.html"
+        file = urllib.request.urlopen("http://www.webelements.com/{0}/atom_sizes.html"
                               .format(name.lower()))
         string = file.read()
         file.close()
         with open(join("elements", name + "_atom_sizes.html"), "w") as out:
             out.write(string)
-        file = urllib.urlopen("http://www.webelements.com/{0}/thermochemistry.html"
+        file = urllib.request.urlopen("http://www.webelements.com/{0}/thermochemistry.html"
                               .format(name.lower()))
         string = file.read()
         file.close()
         with open(join("elements", name + "_thermochemistry.html"), "w") as out:
             out.write(string)
-        file = urllib.urlopen("http://www.webelements.com/{0}/physics.html"
+        file = urllib.request.urlopen("http://www.webelements.com/{0}/physics.html"
                               .format(name.lower()))
         string = file.read()
         file.close()
@@ -266,7 +266,7 @@ def _create_elements_py(filename="_elements.py"):
     """ Gets data from webelements.com and creates _elements.py. """
     import re
     from pickle import dumps
-    import urllib
+    import urllib.request, urllib.parse, urllib.error
     from os.path import exists, join
     from BeautifulSoup import BeautifulSoup, HTMLParseError
     from ..physics import a0
@@ -303,7 +303,7 @@ def _create_elements_py(filename="_elements.py"):
 
         # first opens and reads file.
         if not exists(join("elements", name)):
-            file = urllib.urlopen("http://www.webelements.com/{0}".format(name.lower()))
+            file = urllib.request.urlopen("http://www.webelements.com/{0}".format(name.lower()))
             string = file.read()
             file.close()
         else:
@@ -322,13 +322,13 @@ def _create_elements_py(filename="_elements.py"):
             .parent.prettify()
         found = re_atomweight.search(atom.atomic_weight)
         if found is None:
-            print name
+            print(name)
         else:
             atom.atomic_weight = float(found.group(1))
 
         # ionization stuff
         if not exists(join("elements", name + "_atoms.html")):
-            file = urllib.urlopen("http://www.webelements.com/{0}/atoms.html".format(name.lower()))
+            file = urllib.request.urlopen("http://www.webelements.com/{0}/atoms.html".format(name.lower()))
             string = file.read()
             file.close()
         else:
@@ -350,7 +350,7 @@ def _create_elements_py(filename="_elements.py"):
 
         # electronegativities.
         if not exists(join("elements", name + "_electronegativity.html")):
-            file = urllib.urlopen("http://www.webelements.com/{0}/electronegativity.html"
+            file = urllib.request.urlopen("http://www.webelements.com/{0}/electronegativity.html"
                                   .format(name.lower()))
             string = file.read()
             file.close()
@@ -392,7 +392,7 @@ def _create_elements_py(filename="_elements.py"):
 
         # atom sizes
         if not exists(join("elements", name + "_atom_sizes.html")):
-            file = urllib.urlopen("http://www.webelements.com/{0}/atom_sizes.html"
+            file = urllib.request.urlopen("http://www.webelements.com/{0}/atom_sizes.html"
                                   .format(name.lower()))
             string = file.read()
             file.close()
@@ -442,7 +442,7 @@ def _create_elements_py(filename="_elements.py"):
 
         # thermochemistry
         if not exists(join("elements", name + "_thermochemistry.html")):
-            file = urllib.urlopen("http://www.webelements.com/{0}/thermochemistry.html"
+            file = urllib.request.urlopen("http://www.webelements.com/{0}/thermochemistry.html"
                                   .format(name.lower()))
             string = file.read()
             file.close()
@@ -471,7 +471,7 @@ def _create_elements_py(filename="_elements.py"):
 
         # physics
         if not exists(join("elements", name + "_physics.html")):
-            file = urllib.urlopen("http://www.webelements.com/{0}/physics.html"
+            file = urllib.request.urlopen("http://www.webelements.com/{0}/physics.html"
                                   .format(name.lower()))
             string = file.read()
             file.close()

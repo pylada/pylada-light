@@ -47,23 +47,25 @@ def test_uparams():
         .add_atom(-y,    -y,    -x, "X")
     Vasp = namedtuple('Vasp', ['species'])
     Specie = namedtuple('Specie', ['U'])
-    vasp = Vasp({'A': Specie([U(2, 0, 0.5)]), 'B': Specie(
-        [U(2, 0, -0.5), nlep(2, 1, -1.0)]), 'X': Specie([])})
+    vasp = Vasp({
+        'A': Specie([U(2, 0, 0.5)]),
+        'B': Specie([U(2, 0, -0.5), nlep(2, 1, -1.0)]),
+        'X': Specie([])})
     a =\
         """\
 LDAU = .TRUE.
 LDAUPRINT = 0
 LDAUTYPE = 2
 
-LDUL1= 0 -1 0
-LDUU1=   5.0000000000e-01   0.0000000000e+00  -5.0000000000e-01
+LDUL1= 0 0 -1
+LDUU1=   5.0000000000e-01  -5.0000000000e-01   0.0000000000e+00
 LDUJ1=   0.0000000000e+00   0.0000000000e+00   0.0000000000e+00
 LDUO1= 1 1 1
 
-LDUL2= -1 -1 1
-LDUU2=   0.0000000000e+00   0.0000000000e+00  -1.0000000000e+00
+LDUL2= -1 1 -1
+LDUU2=   0.0000000000e+00  -1.0000000000e+00   0.0000000000e+00
 LDUJ2=   0.0000000000e+00   0.0000000000e+00   0.0000000000e+00
-LDUO2= 1 1 2
+LDUO2= 1 2 1
 """
     assert a == UParams('off').incar_string(vasp=vasp, structure=structure)
     vasp = Vasp({'A': Specie([U(2, 0, 0.5)]), 'B': Specie(
@@ -74,15 +76,15 @@ LDAU = .TRUE.
 LDAUPRINT = 1
 LDAUTYPE = 2
 
-LDUL1= 0 -1 0
-LDUU1=   5.0000000000e-01   0.0000000000e+00  -5.0000000000e-01
+LDUL1= 0 0 -1
+LDUU1=   5.0000000000e-01  -5.0000000000e-01   0.0000000000e+00
 LDUJ1=   0.0000000000e+00   0.0000000000e+00   0.0000000000e+00
 LDUO1= 1 1 1
 
-LDUL2= -1 -1 2
-LDUU2=   0.0000000000e+00   0.0000000000e+00  -1.0000000000e+00
-LDUJ2=   0.0000000000e+00   0.0000000000e+00  -3.0000000000e+00
-LDUO2= 1 1 3
+LDUL2= -1 2 -1
+LDUU2=   0.0000000000e+00  -1.0000000000e+00   0.0000000000e+00
+LDUJ2=   0.0000000000e+00  -3.0000000000e+00   0.0000000000e+00
+LDUO2= 1 3 1
 """
     assert a == UParams('on').incar_string(vasp=vasp, structure=structure)
     vasp = Vasp({'A': Specie([]), 'B': Specie([]), 'X': Specie([])})

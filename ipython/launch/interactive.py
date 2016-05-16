@@ -45,8 +45,8 @@ def launch(self, event, jobfolders):
     try:
         kwargs = get_shell(self).ev(event.kwargs)
     except:
-        print "Could not process keyword arguments."
-        print event.kwargs
+        print("Could not process keyword arguments.")
+        print(event.kwargs)
         return
     if event.nbprocs != 0:
         comm = deepcopy(default_comm)
@@ -64,9 +64,9 @@ def launch(self, event, jobfolders):
                 p = join(dirname(path), name)
                 extract = job.functional.Extract(p)
                 if extract.success:
-                    print "Job {0} completed successfully. It will not be relaunched.".format(name)
+                    print("Job {0} completed successfully. It will not be relaunched.".format(name))
                     continue
-            print "Working on {0} in {1}.".format(name, path)
+            print("Working on {0} in {1}.".format(name, path))
             kwargs["outdir"] = join(dirname(path), name)
             if event.force:
                 kwargs['overwrite'] = True

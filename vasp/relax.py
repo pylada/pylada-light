@@ -33,10 +33,10 @@
 """
 __docformat__ = "restructuredtext en"
 __all__ = ['relax', 'iter_relax', 'Relax', 'epitaxial', 'iter_epitaxial', 'RelaxExtract']
+from ..vasp import logger
 from ..tools.makeclass import makeclass, makefunc
 from .functional import Vasp
 from .extract import Extract, MassExtract
-from pylada.misc import bugLev
 
 
 class RelaxExtract(Extract):
@@ -91,16 +91,10 @@ class RelaxExtract(Extract):
         """
         from os.path import join, exists
         is_run = exists(join(self.directory, '.pylada_is_running'))
-        if bugLev >= 5:
-            print 'vasp/relax: is_running A: dir: %s  is_run: %s' \
-                % (self.directory, is_run,)
         if not is_run:
             for value in self.details.values():
                 if value.is_running:
                     is_run = True
-                if bugLev >= 5:
-                    print 'vasp/relax: is_running B: value: %s  val.is_running: %s' \
-                        % (value, value.is_running,)
         return is_run
 
 
@@ -189,37 +183,19 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
     from ..misc import RelativePath
     from ..error import ExternalRunFailed
 
-    if bugLev >= 5:
-        print "vasp/relax: iter_relax: entry.  type(vasp): %s" % (type(vasp),)
-        # Shows type: pylada.tools.SuperCall
-        print 'vasp/relax: iter_relax: entry. === start vasp:\n%s' % (vasp,)
-        print '===== end vasp'
-        print 'vasp/relax: iter_relax: entry. structure:\n%s' % (structure,)
-        print 'vasp/relax: iter_relax: type(structure): %s' % (type(structure),)
-        print 'vasp/relax: iter_relax: entry.  outdir: %s' % (outdir,)
-        print 'vasp/relax: iter_relax: entry.  first_trial: %s' % (first_trial,)
-        print 'vasp/relax: iter_relax: entry.  maxcalls: %s' % (maxcalls,)
-        print 'vasp/relax: iter_relax: entry.  keepsteps: %s' % (keepsteps,)
-        print 'vasp/relax: iter_relax: entry.  nofail: %s' % (nofail,)
-        print 'vasp/relax: iter_relax: entry.  convergence: %s' % (convergence,)
-        print 'vasp/relax: iter_relax: entry.  minrelsteps: %s' % (minrelsteps,)
-        print 'vasp/relax: iter_relax: entry.  kwargs: %s' % (kwargs,)
-
-        for item in vasp.__dict__.items():
-            print '  vasp/relax: iter_relax: entry.  vasp item: %s' % (item,)
-        # Shows __dict__ containing
-        #   key: '_class',  value = <class 'pylada.vasp.relax.Relax'>
-        #   key: '_object', value = generated source code from inputCif.py, like:
-        #     from pylada.vasp.relax import Relax
-        #     from quantities.quantity import Quantity
-        #     relax = Relax()
-        #     relax.addgrid        = True
-        #     relax.ediff          = 6e-05
-        #     relax.encut          = 340.0
-        #     relax.first_trial    = {'kpoints': '\n0\nAuto\n10', 'encut': 0.9}
-        #     relax.ibrion         = 2
-        #     ...
-        #     relax.species        = {'Ni': Specie(...), ...}
+    logger.debug("vasp/relax: iter_relax: entry.  type(vasp): %s" % (type(vasp)))
+    logger.debug('vasp/relax: iter_relax: entry. === start vasp:\n%s' % repr(vasp))
+    logger.debug('===== end vasp')
+    logger.debug('vasp/relax: iter_relax: entry. structure:\n%s' % structure)
+    logger.debug('vasp/relax: iter_relax: type(structure): %s' % type(structure))
+    logger.debug('vasp/relax: iter_relax: entry.  outdir: %s' % outdir)
+    logger.debug('vasp/relax: iter_relax: entry.  first_trial: %s' % first_trial)
+    logger.debug('vasp/relax: iter_relax: entry.  maxcalls: %s' % maxcalls)
+    logger.debug('vasp/relax: iter_relax: entry.  keepsteps: %s' % keepsteps)
+    logger.debug('vasp/relax: iter_relax: entry.  nofail: %s' % nofail)
+    logger.debug('vasp/relax: iter_relax: entry.  convergence: %s' % convergence)
+    logger.debug('vasp/relax: iter_relax: entry.  minrelsteps: %s' % minrelsteps)
+    logger.debug('vasp/relax: iter_relax: entry.  kwargs: %s' % kwargs)
 
     # make this function stateless.
     vasp = deepcopy(vasp)
@@ -227,8 +203,7 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
     if first_trial is None:
         first_trial = {}
     outdir = getcwd() if outdir is None else RelativePath(outdir).path
-    if bugLev >= 5:
-        print "vasp/relax: iter_relax: final outdir: %s\n" % (outdir,)
+    logger.debug("vasp/relax: iter_relax: final outdir: %s\n" % outdir)
     # .../mos2_024000/mos2_024000.cif/non-magnetic
 
     # convergence criteria and behavior.
@@ -245,39 +220,18 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
         params.update(first_trial)
     else:
         params = kwargs
-    if bugLev >= 5:
-        print "vasp/relax: iter_relax: kwargs: %s\n" % (kwargs,)
-        print "vasp/relax: iter_relax: params: %s\n" % (params,)
-        print "vasp/relax: iter_relax: vasp.relaxation: %s\n" % (vasp.relaxation,)
-    # params: {'comm': {'placement': '', 'ppn': 4, 'n': 8}}
 
     # defaults to vasp.relaxation
     relaxation = kwargs.pop('relaxation', vasp.relaxation)
-    if bugLev >= 5:
-        print "vasp/relax: iter_relax: relaxation a: %s  type: %s\n" \
-            % (relaxation, type(relaxation),)
-        # Shows string: cellshape ionic volume
     # could be that relaxation comes from vasp.relaxation which is a tuple.
     if isinstance(relaxation, tuple):
         vasp = deepcopy(vasp)
         vasp.relaxation = relaxation
         relaxation = relaxation[0]
-    if bugLev >= 5:
-        print "vasp/relax: iter_relax: relaxation b: %s  type: %s\n" \
-            % (relaxation, type(relaxation),)
-        # Shows: cellshape ionic volume, type: str
     # cellshape ionic volume
 
     # performs cellshape relaxation calculations.
-    if bugLev >= 5:
-        print "vasp/relax: iter_relax: beg cellshape.  nb_steps: %d  maxcalls: %d" \
-            % (nb_steps, maxcalls,)
     while (maxcalls <= 0 or nb_steps < maxcalls) and relaxation.find("cellshape") != -1:
-        if bugLev >= 5:
-            # Once per output dir like .../relax_cellshape/0, 1, 2, ...
-            print 'vasp/relax: iter_relax: relax cellshape loop head'
-            print '    params: %s' % (params,)
-
         # Invokes vasp/functional.Vasp.__init__
         # and vasp/functional: iter, which calls bringup,
         # which calls write_incar, write_kpoints, etc.
@@ -290,32 +244,19 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
                     relaxation=relaxation,
                     **params
                 ):
-            if bugLev >= 5:
-                # For each iteration of the outer while loop, shows one pair:
-                #   <pylada.process.program.ProgramProcess object at 0x1569f50>
-                #   Extract("/.../non-magnetic/relax_cellshape/0, 1, 2, ...")
-                print "vasp/relax: iter_relax: cellshape: fulldir: %s  yield u: %s" \
-                    % (fulldir, u,)
             yield u
 
         output = vasp.Extract(join(outdir, join("relax_cellshape", str(nb_steps))))
-        if bugLev >= 5:
-            print "vasp/relax: iter_relax: relax cellshape output: %s" % (output,)
         if not output.success:
             ExternalRunFailed("VASP calculations did not complete.")
         relaxed_structure = output.structure
 
         nb_steps += 1
-        if bugLev >= 5:
-            print 'vasp/relax: iter_relax cellshape nb_steps: %s' % (nb_steps,)
-            print '    first_trial: %s' % (first_trial,)
         if nb_steps == 1 and len(first_trial) != 0:
             params = kwargs
             continue
         # check for convergence.
         isConv = is_converged(output)
-        if bugLev >= 5:
-            print "vasp/relax: iter_relax: relax cellshape isConv: %s" % (isConv,)
         if isConv:
             break
 
@@ -324,12 +265,7 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
         raise ExternalRunFailed("Could not converge cell-shape in {0} iterations.".format(maxcalls))
 
     # performs ionic calculation.
-    if bugLev >= 5:
-        print "vasp/relax: iter_relax: beg ionic.  nb_steps: %d  maxcalls: %d" \
-            % (nb_steps, maxcalls,)
     while (maxcalls <= 0 or nb_steps < maxcalls + 1) and relaxation.find("ionic") != -1:
-        if bugLev >= 5:
-            print "vasp/relax: iter_relax: relax ionic loop head"
         fulldir = join(outdir, join("relax_ions", str(nb_steps)))
         for u in vasp.iter\
                 (
@@ -339,33 +275,19 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
                     restart=output,
                     **params
                 ):
-            if bugLev >= 5:
-                # Shows a pair:
-                #   <pylada.process.program.ProgramProcess object at 0x2651fd0>
-                #   Extract(".../non-magnetic/relax_ions/3")
-                print "vasp/relax: iter_relax: ions fulldir: %s  yield u: %s" \
-                    % (fulldir, u,)
             yield u
 
         output = vasp.Extract(join(outdir, join("relax_ions", str(nb_steps))))
-        if bugLev >= 5:
-            # Shows:  Extract(".../non-magnetic/relax_ions/3")
-            print "vasp/relax: iter_relax: relax ionic output: %s" % (output,)
         if not output.success:
             ExternalRunFailed("VASP calculations did not complete.")
         relaxed_structure = output.structure
 
         nb_steps += 1
-        if bugLev >= 5:
-            # Shows 4 (3 for cellshape, 1 for ionic)
-            print "vasp/relax: iter_relax: relax ionic nb_steps: %s" % (nb_steps,)
         if nb_steps == 1 and len(first_trial) != 0:
             params = kwargs
             continue
         # check for convergence.
         isConv = is_converged(output)
-        if bugLev >= 5:
-            print "vasp/relax: iter_relax: relax ionic isConv: %s" % (isConv,)
         if isConv:
             break
 
@@ -377,18 +299,9 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
 
     # gwmod: same while loop as above, but with relaxation="gwcalc"
     # performs gwcalc calculation, at most once
-    if bugLev >= 5:
-        print 'vasp/relax: iter_relax: before gwcalc.  nb_steps: %d' % (nb_steps,)
-        print 'vasp/relax: iter_relax: before gwcalc.  maxcalls: %d' % (maxcalls,)
-        print 'vasp/relax: iter_relax: before gwcalc.  relaxation: %s' \
-            % (relaxation,)
-        # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
     if (maxcalls <= 0 or nb_steps < maxcalls + 2) \
             and relaxation.find("relgw") != -1:
 
-        if bugLev >= 5:
-            print "vasp/relax: iter_relax: relax gwcalc start"
         fulldir = join(outdir, join("relax_gwcalc", str(nb_steps)))
         for u in vasp.iter\
                 (
@@ -398,26 +311,14 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
                     restart=output,
                     **params
                 ):
-            if bugLev >= 5:
-                # Shows a pair:
-                #   <pylada.process.program.ProgramProcess object at 0x2651fd0>
-                #   Extract(".../non-magnetic/relax_gwcalc/3")
-                print "vasp/relax: iter_relax: gwcalc fulldir: %s  yield u: %s" \
-                    % (fulldir, u,)
             yield u
 
         output = vasp.Extract(join(outdir, join("relax_gwcalc", str(nb_steps))))
-        if bugLev >= 5:
-            # Shows:  Extract(".../non-magnetic/relax_gwcalc/3")
-            print "vasp/relax: iter_relax: relax gwcalc output: %s" % (output,)
         if not output.success:
             ExternalRunFailed("VASP calculations did not complete.")
         relaxed_structure = output.structure
 
         nb_steps += 1
-        if bugLev >= 5:
-            # Shows 4 (3 for cellshape, 1 for gwcalc)
-            print "vasp/relax: iter_relax: relax gwcalc nb_steps: %s" % (nb_steps,)
 
     # Does not perform static calculation if convergence not reached.
     if nofail == False and is_converged(output) == False:
@@ -436,39 +337,12 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
                 restart=output,
                 **kwargs
             ):
-        if bugLev >= 5:
-            print "vasp/relax: iter_relax: static yield u: %s" % (u,)
         yield u
 
     output = vasp.Extract(outdir)
-    if bugLev >= 5:
-        print "vasp/relax: iter_relax: static output: %s" % (output,)
     if not output.success:
         ExternalRunFailed(
             "VASP calculations did not complete.")
-
-    # nomodoutcar
-    # Caution: this edits OUTCAR, overwrites OUTCAR, rewrites OUTCAR.
-    # replace initial structure with that with which this function was called.
-    # with output.__outcar__() as file:
-    #  filename = file.name
-    #  string = sub(  '#+ INITIAL STRUCTURE #+\n((.|\n)*)\n#+ END INITIAL STRUCTURE #+',
-    #                 """################ INITIAL STRUCTURE ################\n"""\
-    #                 """from {0.__class__.__module__} import {0.__class__.__name__}\n"""\
-    #                 """structure = {1}\n"""\
-    #                 """################ END INITIAL STRUCTURE ################\n"""\
-    #                 .format(structure, repr(structure).replace('\n', '\n            ')),
-    #                 file.read() )
-    #with open(filename, 'w') as file: file.write(string)
-    # if bugLev >= 1:
-    #  print 'vasp/relax iter_relax static: cwd: ', getcwd()
-    #  print 'vasp.iter_relax: filename: \"%s\"' % (filename,)
-    #  print 'vasp/relax iter_relax static: write initial structure:\n%s' \
-    #    % (structure,)
-    #  print 'vasp.iter_relax: initial structure written'
-    #  print 'vasp.iter_relax: ===== string start ====='
-    #  print string
-    #  print 'vasp.iter_relax: ===== string end ====='
 
     if output.success and (not keepsteps):
         rmtree(join(outdir, "cellshape"))
@@ -484,11 +358,6 @@ iter_relax.Extract = RelaxExtract
 relax = makefunc('relax', iter_relax, module='pylada.vasp.relax')
 Relax = makeclass('Relax', Vasp, iter_relax, None, module='pylada.vasp.relax',
                   doc='Functional form of the :py:class:`pylada.vasp.relax.iter_relax` method.')
-
-if bugLev >= 5:
-    print "  vasp/relax: relax: ", relax
-    print "  vasp/relax: Relax: ", Relax
-
 
 def _get_is_converged(vasp, structure, convergence=None, minrelsteps=-1, **kwargs):
     """ Returns convergence function. """
@@ -687,15 +556,6 @@ def iter_epitaxial(vasp, structure, outdir=None, direction=[0, 0, 1], epiconv=1e
                      file.read())
     with open(filename, 'w') as file:
         file.write(string)
-    if bugLev >= 5:
-        print 'vasp/relax iter_epitaxial static: cwd: ', getcwd()
-        print 'vasp.iter_epitaxial: filename: \"%s\"' % (filename,)
-        print 'vasp/relax iter_epitaxial static: write initial structure:\n%s' \
-            % (structure,)
-        print 'vasp.iter_epitaxial: initial structure written'
-        print 'vasp/relax iter_epitaxial static: cwd: ', getcwd()
-        print 'vasp/relax iter_epitaxial static: write initial structure:\n%s' \
-            % (structure,)
 
     # yields final extraction object.
     yield iter_epitaxial.Extract(outdir)

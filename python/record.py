@@ -31,10 +31,10 @@ class Record(object):
 
     def __init__(self, path=None):
         """ Initializes an on-disk object. """
-        from .opt import RelativeDirectory
+        from ..misc import local_path
         if path is None:
             path = ".pylada_record"
-        self.__dict__['path'] = RelativeDirectory(path).path
+        self.__dict__['path'] = str(local_path(path))
         """ Path to on-disk file. """
 
     def __getattr__(self, name):
@@ -44,7 +44,7 @@ class Record(object):
         from .opt import LockFile
         if not exists(self.path):
             raise AttributeError("Attribute {0} does not exist.".format(name))
-        with LockFile(self.path) as lock:
+        with LockFile(self.path):
             with open(self.path, 'r') as file:
                 keys = load(file)
                 if name not in keys:
@@ -60,7 +60,7 @@ class Record(object):
             dumps(value)
         except:
             raise RuntimeError("{0} is not a pickle-able object.".format(name))
-        with LockFile(self.path) as lock:
+        with LockFile(self.path):
             if exists(self.path):
                 with open(self.path, 'r') as file:
                     dummy = load(file)
@@ -68,7 +68,7 @@ class Record(object):
             else:
                 dictionary = {}
             dictionary[name] = value
-            with open(self.path, 'w') as file:
+            with open(self.path, 'wb') as file:
                 dump(set(dictionary.keys()), file)
                 dump(("This is a record.", dictionary), file)
 
@@ -79,14 +79,14 @@ class Record(object):
         from .opt import LockFile
         if not exists(self.path):
             return
-        with LockFile(self.path) as lock:
+        with LockFile(self.path):
             with open(self.path, 'r') as file:
                 dummy = load(file)
                 dummy, dictionary = load(file)
             if name not in dictionary:
                 return
             dictionary.pop(name)
-            with open(self.path, 'w') as file:
+            with open(self.path, 'wb') as file:
                 dump(set(dictionary.keys()), file)
                 dump(("This is a record.", dictionary), file)
 
@@ -99,7 +99,7 @@ class Record(object):
         from os.path import exists
         from pickle import load
         from .opt import LockFile
-        with LockFile(self.path) as lock:
+        with LockFile(self.path):
             if not exists(self.path):
                 return []
             with open(self.path, 'r') as file:

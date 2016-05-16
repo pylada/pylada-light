@@ -28,8 +28,8 @@ def test_ndimiterator_against_product():
 
     limits = 1, 3, 4, 5
     iterator = NDimIterator(*limits)
-    for expected in product(*(range(1, u + 1) for u in limits)):
-        actual = iterator.next()
+    for expected in product(*(list(range(1, u + 1)) for u in limits)):
+        actual = next(iterator)
         assert getattr(actual, 'dtype', 'float') == 'intc'
         assert len(actual) == len(expected)
         assert all(actual == expected)

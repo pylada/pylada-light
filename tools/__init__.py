@@ -27,6 +27,8 @@ __all__ = ['stateless', 'assign_attributes', 'check_success',
            'create_directory', 'prep_symlink', 'add_pyladarunning_marker',
            'remove_pyladarunning_marker', 'remove_workdir_link',
            'add_section_to_file', 'get_section_from_file', 'OnFinish']
+from pylada import logger
+logger.getChild("tools")
 
 
 def stateless(function):
@@ -39,13 +41,12 @@ def stateless(function):
 
     @wraps(function)
     def wrapper(self, structure, outdir=None, **kwargs):
+        from ..misc import local_path
         from copy import deepcopy
-        from os import getcwd
-        from ..misc import RelativePath
         structure = deepcopy(structure)
         self = deepcopy(self)
-        outdir = getcwd() if outdir is None else RelativePath(outdir).path
-        return function(self, structure, outdir, **kwargs)
+        outdir = local_path(outdir)
+        return function(self, structure, str(outdir), **kwargs)
     return wrapper
 
 
@@ -126,19 +127,13 @@ def make_cached(method):
 
     @wraps(method)
     def wrapped(*args, **kwargs):
-        from pylada.misc import bugLev
-        if bugLev >= 5:
-            print 'tools/init make_cached entry: method: %s' % (method.__name__,)
+        logger.debug('tools/init make_cached entry: method: %s' % method.__name__)
         if not hasattr(args[0], '_properties_cache'):
             setattr(args[0], '_properties_cache', {})
         cache = getattr(args[0], '_properties_cache')
         if method.__name__ not in cache:
             cache[method.__name__] = method(*args, **kwargs)
-            if bugLev >= 5:
-                print 'tools/init make_cached: set method: %s' % (method.__name__,)
-        else:
-            if bugLev >= 5:
-                print 'tools/init make_cached: use method: %s' % (method.__name__,)
+        logger.debug('tools/init make_cached: set method: %s' % method.__name__)
         return cache[method.__name__]
     return wrapped
 
@@ -219,11 +214,11 @@ def prep_symlink(outdir, workdir, filename=None):
     """
     from os import remove, symlink
     from os.path import samefile, lexists, abspath, join
-    from ..misc import Changedir
+    from ..misc import chdir
     if samefile(outdir, workdir):
         return
     if filename is None:
-        with Changedir(workdir) as cwd:
+        with chdir(workdir):
             if lexists('workdir'):
                 try:
                     remove('workdir')
@@ -235,7 +230,7 @@ def prep_symlink(outdir, workdir, filename=None):
                 pass
         return
 
-    with Changedir(workdir) as cwd:
+    with chdir(workdir):
         if lexists(filename):
             try:
                 remove(filename)
@@ -263,11 +258,9 @@ def remove_workdir_link(outdir):
 def add_pyladarunning_marker(outdir):
     """ Creates a marker file in output directory. """
     from os.path import join
-    from pylada.misc import bugLev
     file = open(join(outdir, '.pylada_is_running'), 'w')
     file.close()
-    if bugLev >= 5:
-        print 'tools/init: add_run_mark: is_run outdir: %s' % (outdir,)
+    logger.debug('tools/init: add_run_mark: is_run outdir: %s' % outdir)
 
 
 def remove_pyladarunning_marker(outdir):
@@ -280,8 +273,7 @@ def remove_pyladarunning_marker(outdir):
             remove(path)
         except OSError:
             pass
-    if bugLev >= 5:
-        print 'tools/init: rem_run_mark: is_run outdir: %s' % (outdir,)
+    logger.debug('tools/init: rem_run_mark: is_run outdir: %s' % outdir)
 
 
 def add_section_to_file(outdir, filename, marker, string, append=True):

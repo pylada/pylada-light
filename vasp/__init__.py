@@ -39,6 +39,8 @@
 """
 __docformat__ = "restructuredtext en"
 __all__ = ['Vasp', 'Extract', 'Specie', 'MassExtract', 'relax', 'emass', 'read_input', 'exec_input']
+from pylada import logger
+logger.getChild("vasp")
 from .extract import Extract, MassExtract
 from .specie import Specie
 from .functional import Vasp
@@ -59,7 +61,7 @@ def read_input(filepath="input.py", namespace=None):
     """
     from ..misc import read_input
     from . import specie
-    from relax import Epitaxial, Relax
+    from .relax import Epitaxial, Relax
 
     # names we need to create input.
     input_dict = {"Vasp": Vasp, "U": specie.U, "nlep": specie.nlep, 'Extract': Extract,

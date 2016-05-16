@@ -39,17 +39,16 @@ def launch(self, event, jobfolders):
     import os
     import re
     import subprocess
-    from os.path import join, dirname, exists, basename
+    from os.path import exists, basename
     from os import remove
     from .. import get_shell
-    from ...misc import Changedir
+    from ...misc import local_path
     from ... import pbs_string, default_pbs, qsub_exe, default_comm
     from . import get_walltime, get_mppalloc, get_queues, scattered_script
-    from pylada.misc import bugLev
     from pylada.misc import testValidProgram
+    from ..ipython import logger
 
-    if bugLev >= 1:
-        print "launch/scattered: event: %s" % (event,)
+    logger.critical("launch/scattered: event: %s" % event)
     shell = get_shell(self)
 
     pbsargs = deepcopy(dict(default_comm))
@@ -67,13 +66,11 @@ def launch(self, event, jobfolders):
     # Set pbsargs['queue'], pbsargs['account']
     if not get_queues(shell, event, pbsargs):
         return
-    if bugLev >= 1:
-        print "launch/scattered: pbsargs: %s" % (pbsargs,)
+    logger.critical("launch/scattered: pbsargs: %s" % pbsargs)
 
     # gets python script to launch in pbs.
     pyscript = scattered_script.__file__
-    if bugLev >= 1:
-        print "launch/scattered: pyscript: %s" % (pyscript,)
+    logger.critical("launch/scattered: pyscript: %s" % pyscript)
     if pyscript[-1] == 'c':
         pyscript = pyscript[:-1]   # change .pyc to .py
 
@@ -82,28 +79,23 @@ def launch(self, event, jobfolders):
 
     def pbspaths(directory, jobname, suffix):
         """ creates filename paths. """
-        return join(join(directory, jobname),
-                    '{0}-pbs{1}'.format(event.prefix, suffix) if hasprefix
-                    else 'pbs{0}'.format(suffix))
+        suffix = '{0}-pbs{1}'.format(event.prefix, suffix) if hasprefix \
+            else 'pbs{0}'.format(suffix)
+        return str(directory.join(jobname, suffix))
     # now  loop over jobfolders
     pbsscripts = []
     for current, path in jobfolders:
-        if bugLev >= 1:
-            print "launch/scattered: current: %s  path: %s" \
-                % (current, path,)
+        logger.critical("launch/scattered: current: %s  path: %s" % (current, path))
         # creates directory.
-        directory = dirname(path)
-        with Changedir(directory) as pwd:
-            pass
+        directory = local_path(path).dirname()
+        directory.ensure(dir=True)
         # loop over executable folders in current jobfolder
         for name, job in current.root.items():
-            if bugLev >= 1:
-                #      if True:
-                print 'launch/scattered: current: %s' % (current,)
-                print 'launch/scattered: current.root: %s' % (current.root,)
-                print 'launch/scattered: name: %s' % (name,)
-                print 'launch/scattered: job: %s' % (job,)
-                print 'launch/scattered: job.is_tagged: %s' % (job.is_tagged,)
+            logger.critical('launch/scattered: current: %s' % current)
+            logger.critical('launch/scattered: current.root: %s' % current.root)
+            logger.critical('launch/scattered: name: %s' % name)
+            logger.critical('launch/scattered: job: %s' % job)
+            logger.critical('launch/scattered: job.is_tagged: %s' % job.is_tagged)
 
             # avoid jobfolder which are off
             if job.is_tagged:
@@ -119,17 +111,17 @@ def launch(self, event, jobfolders):
                 # 'RHQ' is the status that the job is indeed in the queue, 'C' job completed and being removed from the queue
                 # if needed, a prefix can be used to distinguish two jobs with the same name
                 if len(set(status) & set('RHQ')) > 0:
-                    print "Job %s is in the queue, will not be re-queued" % name
+                    print(("Job %s is in the queue, will not be re-queued" % name))
                     continue
             #######
 
             # avoid successful jobs.unless specifically requested
             if hasattr(job.functional, 'Extract') and not event.force:
-                p = join(directory, name)
-                extract = job.functional.Extract(p)
+                p = directory.join(name)
+                extract = job.functional.Extract(str(p))
                 if extract.success:
-                    print "Job {0} completed successfully. "                             \
-                          "It will not be relaunched.".format(name)
+                    print(("Job {0} completed successfully. "
+                           "It will not be relaunched.".format(name)))
                     continue
 
             # setup parameters for launching/running jobs
@@ -141,22 +133,20 @@ def launch(self, event, jobfolders):
             pbsargs['out'] = pbspaths(directory, name, 'out')
             pbsargs['name'] = name if len(name)                                      \
                 else "{0}-root".format(basename(path))
-            pbsargs['directory'] = directory
-            pbsargs['bugLev'] = bugLev
+            pbsargs['directory'] = str(directory)
+            pbsargs['logging'] = 'critical'
             pbsargs['testValidProgram'] = testValidProgram
 
             pbsargs['scriptcommand']                                                 \
-                = "{0} --bugLev {bugLev} --testValidProgram {testValidProgram} --nbprocs {n} --ppn {ppn} --jobid={1} {2}"                   \
+                = "{0} --logging {logging} --testValidProgram {testValidProgram} --nbprocs {n} --ppn {ppn} --jobid={1} {2}"                   \
                 .format(pyscript, name, path, **pbsargs)
             ppath = pbspaths(directory, name, 'script')
-            if bugLev >= 1:
-                print "launch/scattered: ppath: \"%s\"" % (ppath,)
-                print "launch/scattered: pbsargs: \"%s\"" % (pbsargs,)
+            logger.critical("launch/scattered: ppath: \"%s\"" % ppath)
+            logger.critical("launch/scattered: pbsargs: \"%s\"" % pbsargs)
             pbsscripts.append(ppath)
 
             # write pbs scripts
-            with Changedir(join(directory, name)) as pwd:
-                pass
+            directory.join(name).ensure(dir=True)
             if exists(pbsscripts[-1]):
                 remove(pbsscripts[-1])
             with open(pbsscripts[-1], "w") as file:
@@ -164,12 +154,11 @@ def launch(self, event, jobfolders):
                     else pbs_string.format(**pbsargs)
                 # peregrine takes back the option of "anynode"
                 string = string.replace("#PBS -l feature=anynode", "##PBS -l feature=anynode")
-                if bugLev >= 1:
-                    print "launch/scattered: ===== start pbsscripts[-1]: %s =====" \
-                        % (pbsscripts[-1],)
-                    print '%s' % (string,)
-                    print "launch/scattered: ===== end pbsscripts[-1]: %s =====" \
-                        % (pbsscripts[-1],)
+                logger.critical(
+                    "launch/scattered: ===== start pbsscripts[-1]: %s =====" % pbsscripts[-1])
+                logger.critical('%s' % string)
+                logger.critical(
+                    "launch/scattered: ===== end pbsscripts[-1]: %s =====" % pbsscripts[-1])
                 lines = string.split('\n')
                 omitTag = '# omitted for testValidProgram: '
                 for line in lines:
@@ -180,39 +169,15 @@ def launch(self, event, jobfolders):
                     file.write(line + '\n')
             assert exists(pbsscripts[-1])
 
-            # exploremod
-            #   import subprocess
-            #   if not event.nolaunch:
-            #   move launch here:
-            #
-            #   if bugLev >= 1:
-            #     print ...
-            #
-            #   proc = subprocess.Popen(
-            #     [qsub_exe, pbsscripts[-1]],
-            #     shell=False,
-            #     cwd=wkDir,
-            #     stdin=subprocess.PIPE,
-            #     stdout=subprocess.PIPE,
-            #     stderr=subprocess.PIPE,
-            #     bufsize=10*1000*1000)
-            #   (stdout, stderr) = proc.communicate()
-            #   parse stdout to get jobNumber
-            #   job.jobNumber = jobNumber
-            #
-            #   if bugLev >= 1:
-            #     print ...
-
-        print "Created {0} scattered jobs from {1}.".format(len(pbsscripts), path)
+        print(("Created {0} scattered jobs from {1}.".format(len(pbsscripts), path)))
 
     if event.nolaunch:
         return
     # otherwise, launch.
     for script in pbsscripts:
-        if bugLev >= 1:
-            print "launch/scattered: launch: shell: %s" % (shell,)
-            print "launch/scattered: launch: qsub_exe: %s" % (qsub_exe,)
-            print "launch/scattered: launch: script: \"%s\"" % (script,)
+        logger.critical("launch/scattered: launch: shell: %s" % shell)
+        logger.critical("launch/scattered: launch: qsub_exe: %s" % qsub_exe)
+        logger.critical("launch/scattered: launch: script: \"%s\"" % script)
 
         if testValidProgram != None:
             cmdLine = '/bin/bash ' + script
@@ -229,9 +194,9 @@ def launch(self, event, jobfolders):
                 # xxx: all subprocess: set stderr, stdout
         if os.path.getsize(nmerr) != 0:
             with open(nmerr) as fin:
-                print 'launch/scattered: stderr: %s' % (fin.read(),)
+                print('launch/scattered: stderr: %s' % (fin.read(),))
         with open(nmout) as fin:
-            print 'launch/scattered: stdout: %s' % (fin.read(),)
+            print('launch/scattered: stdout: %s' % (fin.read(),))
 
 
 def completer(self, info, data):

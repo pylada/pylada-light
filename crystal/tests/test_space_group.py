@@ -53,7 +53,7 @@ def test_fcc():
     assert len(ops) == 48
     for op in ops:
         assert op.shape == (4, 3)
-        assert all(abs(op[3, :]) < 1e-8)
+        assert all(abs(op[3,:]) < 1e-8)
 
         other = transform(structure, op)
         assert all(abs(dot(op[:3], structure.cell) - other.cell) < 1e-8)
@@ -130,13 +130,13 @@ def test_b5(u):
 
     # try random rotation, translations, atom swap
     structure[0], structure[-1] = structure[-1], structure[0]
-    for u in xrange(10):
+    for u in range(10):
         axis = random_sample((3,))
         axis /= norm(axis)
         rotation = rotation_matrix(pi * random(), axis)
         translation = random_sample((3,))
         other = transform(structure, rotation, translation)
-        for u in xrange(10):
+        for u in range(10):
             l, m = randint(0, len(structure) - 1), randint(0, len(structure) - 1)
             a, b = other[l], other[m]
             other[l], other[m] = b, a
@@ -155,7 +155,7 @@ def test_b5(u):
                 pos = dot(op[:3], atom.pos) + op[3]
                 j = which_site(pos, other, invcell)
                 if j == -1:
-                    print(i, z)
+                    print((i, z))
                     print(atom)
                     print(op)
                     print(pos)

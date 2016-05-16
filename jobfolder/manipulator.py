@@ -66,7 +66,7 @@ class JobParams(AbstractMassExtract):
                 if is_interactive:
                     from .. import interactive
                     if interactive.jobfolder is None:
-                        print "No current job-folder."
+                        print("No current job-folder.")
                         return
                     return interactive.jobfolder.root
                 else:
@@ -91,7 +91,7 @@ class JobParams(AbstractMassExtract):
         for name, job in self.items():
             result[name] = "off" if job.is_tagged else "on"
         if self.naked_end and len(result) == 1:
-            return result[result.keys()[0]]
+            return result[next(iter(result))]
         return result
 
     @onoff.setter
@@ -124,7 +124,7 @@ class JobParams(AbstractMassExtract):
         for k, j in self.items():
             result[k] = j
         if self.naked_end and len(result) == 1:
-            return result[result.keys()[0]]
+            return result[next(iter(result))]
         return ForwardingDict(dictionary=result, naked_end=self.naked_end,
                               only_existing=self.only_existing, readonly=False)
 
@@ -145,7 +145,7 @@ class JobParams(AbstractMassExtract):
             except:
                 result.pop(key, None)
         if self.naked_end and len(result) == 1:
-            return result[result.keys()[0]]
+            return result[next(iter(result))]
         if len(result) == 0:
             raise AttributeError("Attribute {0} not found in {1} instance."
                                  .format(name, self.__class__.__name__))
@@ -210,7 +210,7 @@ class JobParams(AbstractMassExtract):
         result = set()
         for name, job in self.items():
             if not job.is_tagged:
-                result |= set([u for u in dir(job) if u[0] != '_'])
+                result |= {u for u in dir(job) if u[0] != '_'}
         return result
 
     def __setitem__(self, name, jobfolder):
@@ -241,6 +241,7 @@ class JobParams(AbstractMassExtract):
             .. warning:: The right-hand-side is *always* deep-copied_.
               .. _deep-copied:: http://docs.python.org/library/copy.html
         """
+        import six
         from .. import is_interactive
         from copy import deepcopy
 
@@ -252,25 +253,26 @@ class JobParams(AbstractMassExtract):
         if name in self.jobfolder and is_interactive:
             a = ''
             while a not in ['n', 'y']:
-                a = raw_input(
+                a = six.raw_input(
                     "Modifying existing folder parameters {0}.\nIs this OK? [y/n] ".format(name))
             if a == 'n':
-                print "Aborting."
+                print("Aborting.")
                 return
         self.jobfolder[name] = deepcopy(jobfolder)
 
     def __delitem__(self, name):
         """ Deletes items from job-folder. """
+        import six
         from .. import is_interactive
         if is_interactive:
-            print "Deleting the following jobs:"
+            print("Deleting the following jobs:")
             for key in self[name].keys():
-                print key
+                print(key)
             a = ''
             while a != 'n' and a != 'y':
-                a = raw_input('Ok? [y/n] ')
+                a = six.raw_input('Ok? [y/n] ')
             if a == 'n':
-                print "Aborting."
+                print("Aborting.")
                 return
         for key in self[name].keys():
             del self.jobfolder.root[key]
@@ -291,28 +293,29 @@ class JobParams(AbstractMassExtract):
             .. warning: New jobs are always added at the root of the job-folder.
               Make sure the jobs bear the names you want.
         """
+        import six
         from .jobfolder import JobFolder
         from .. import is_interactive
         keys = jobfolder.keys()
         if is_interactive:
             if len(keys) == 0:
-                print "Empty input job-folder. Aborting."
+                print("Empty input job-folder. Aborting.")
                 return
             add = [k for k in keys if k in self]
             if len(add) > 0:
-                print "Adding the following jobfolderionaries:"
+                print("Adding the following jobfolderionaries:")
                 for key in add:
-                    print key
+                    print(key)
             update = [k for k in keys if k in self]
             if len(update) > 0:
-                print "Updating the following jobfolderionaries:"
+                print("Updating the following jobfolderionaries:")
                 for key in update:
-                    print key
+                    print(key)
             a = ''
             while a != 'n' and a != 'y':
-                a = raw_input("Is the above OK? [n/y] ")
+                a = six.raw_input("Is the above OK? [n/y] ")
             if a == 'n':
-                print "Aborting."
+                print("Aborting.")
                 return
         rootadd = jobfolder
         if isinstance(rootadd, JobParams):

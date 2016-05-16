@@ -178,7 +178,7 @@ def crystal(structure, file='fort.34',
             None (default), then checks for ''spacegroup'' attributes. If that
             does not exist, uses :py:function:`~pylada.crystal.space_group`.
     """
-    from StringIO import StringIO
+    from io import StringIO
     from numpy import zeros
     from quantities import angstrom
     from ..periodic_table import find as find_specie

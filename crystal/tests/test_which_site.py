@@ -52,6 +52,6 @@ def test_position_to_atomic_site_correspondence(u):
     assert which_site(lattice[6].pos + [0.5, -0.5, 2], lattice) == 6
     for i, atom in enumerate(lattice):
         assert which_site(atom.pos, lattice) == i
-        for j in xrange(10):
+        for j in range(10):
             newpos = dot(lattice.cell, randint(10, size=(3,)) - 5)
             assert which_site(atom.pos + newpos, lattice) == i, (atom.pos, newpos, i)

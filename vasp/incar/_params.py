@@ -26,8 +26,8 @@ __all__ = ["SpecialVaspParam", "ExtraElectron", "Algo", "Precision", "Ediff",
            "Ediffg", "Encut", "EncutGW", "FFTGrid", "Restart", "UParams", "IniWave",
            "Magmom", 'Npar', 'Boolean', 'Integer', 'Choices', 'PrecFock', 'NonScf',
            "System", 'PartialRestart', 'Relaxation', 'Smearing', 'Lsorbit']
+from ...vasp import logger
 from quantities import eV
-from pylada.misc import bugLev
 
 
 class SpecialVaspParam(object):
@@ -337,7 +337,7 @@ class Ediff(SpecialVaspParam):
     def __init__(self, value):
         """ Creates *per atom* tolerance. """
         super(Ediff, self).__init__(value)
-        print "vasp/incar/_params: Ediff.const: value: %s" % (value,)
+        print("vasp/incar/_params: Ediff.const: value: %s" % (value,))
 
     def incar_string(self, **kwargs):
         if self.value is None:
@@ -345,7 +345,7 @@ class Ediff(SpecialVaspParam):
         if self.value < 0:
             return "EDIFF = {0} ".format(-self.value)
         res = "EDIFF = {0} ".format(self.value * float(len(kwargs["structure"])))
-        print "vasp/incar/_params: Ediff.incar_string: res: %s" % (res,)
+        print("vasp/incar/_params: Ediff.incar_string: res: %s" % (res,))
         return res
 
     def __repr__(self):
@@ -506,13 +506,10 @@ class PartialRestart(SpecialVaspParam):
         if self.value is None or self.value.success == False:
             if kwargs['vasp'].nonscf:
                 kwargs['vasp'].icharg = 12
-            if bugLev >= 5:
-                print 'vasp/incar/_params: PartialRestart: no luck'
-            return None
+            logger.critical('vasp/incar/_params: PartialRestart: no luck')
         else:
-            if bugLev >= 5:
-                print 'vasp/incar/_params: PartialRestart: self.val.dir: %s' \
-                    % (self.value.directory,)
+            logger.critical('vasp/incar/_params: PartialRestart: self.val.dir: %s' %
+                             self.value.directory)
             ewave = exists(join(self.value.directory, files.WAVECAR))
             if ewave:
                 ewave = getsize(join(self.value.directory, files.WAVECAR)) > 0
@@ -559,21 +556,19 @@ class Restart(PartialRestart):
 
     def incar_string(self, **kwargs):
         from os.path import join
+        from os import getcwd
         from ...misc import copyfile
         from .. import files
-        import os
 
         result = super(Restart, self).incar_string(**kwargs)
         if self.value is not None and self.value.success:
             copyfile(join(self.value.directory, files.CONTCAR), files.POSCAR,
                      nothrow='same exists', symlink=getattr(kwargs["vasp"], 'symlink', False),
                      nocopyempty=True)
-        if bugLev >= 5:
-            print 'vasp/incar/_params: Restart CONTCAR: self.val.dir: %s' \
-                % (self.value.directory,)
-            print 'vasp/incar/_params: Restart: os.getcwd():  %s' \
-                % (os.getcwd(),)
-            print 'vasp/incar/_params: Restart: result: %s' % (result,)
+            logger.critical('vasp/incar/_params: Restart CONTCAR: self.val.dir: %s' %
+                             self.value.directory)
+        logger.debug('vasp/incar/_params: Restart: getcwd():  %s' % getcwd())
+        logger.debug('vasp/incar/_params: Restart: result: %s' % result)
         return result
 
 
@@ -609,7 +604,7 @@ class NonScf(SpecialVaspParam):
 
 
 class UParams(SpecialVaspParam):
-    """ Sets U, nlep, and enlep parameters. 
+    """ Sets U, nlep, and enlep parameters.
 
         The U, nlep, and enlep parameters of the atomic species are set at the
         same time as the pseudo-potentials. This object merely sets up the incar
@@ -644,60 +639,40 @@ class UParams(SpecialVaspParam):
 
     def incar_string(self, **kwargs):
         from ...crystal import specieset
-        if bugLev >= 5:
-            print 'vasp/incar/_params: UParams.incar_string:'
+        from ... import error
         types = specieset(kwargs['structure'])
         species = kwargs['vasp'].species
         # existence and sanity check
         has_U, which_type = False, None
         for type in types:
             specie = species[type]
-            if bugLev >= 5:
-                print '    check: type: %s  specie: %s  specie.U: %s  len: %s' \
-                    % (type, specie, specie.U, len(specie.U),)
             if len(specie.U) == 0:
                 continue
             if len(specie.U) > 4:
-                raise AssertionError, "More than 4 channels for U/NLEP parameters"
+                raise error.ValueError("More than 4 channels for U/NLEP parameters")
             has_U = True
             # checks consistency.
             which_type = specie.U[0]["type"]
-            if bugLev >= 5:
-                print '    check: which_type: %s' % (which_type,)
             for l in specie.U[1:]:
-                assert which_type == l["type"], \
-                    AssertionError("LDA+U/NLEP types are not consistent across species.")
+                if which_type != l["type"]:
+                    raise error.ValueError("LDA+U/NLEP types are not consistent across species.")
         if not has_U:
             return "# no LDA+U/NLEP parameters"
 
         # Prints LDA + U parameters
         result = "LDAU = .TRUE.\nLDAUPRINT = {0}\nLDAUTYPE = {1}\n".format(self.value, which_type)
-        if bugLev >= 5:
-            print '    self.value: %s' % (self.value,)
-            print '    which_type: %s' % (which_type,)
-            print '    result: %s' % (result,)
 
         for i in range(max(len(species[type].U) for type in types)):
-            line = "LDUL{0}=".format(i + 1), "LDUU{0}=".format(i +
-                                                               1), "LDUJ{0}=".format(i + 1), "LDUO{0}=".format(i + 1)
-            if bugLev >= 5:
-                print '      i: %s  line: %s' % (i, line,)
+            line = "LDUL{0}=".format(i + 1),\
+                    "LDUU{0}=".format(i + 1),\
+                    "LDUJ{0}=".format(i + 1),\
+                    "LDUO{0}=".format(i + 1)
             for type in types:
                 specie = species[type]
                 a = -1, 0e0, 0e0, 1
-                if bugLev >= 5:
-                    print '        type: %s  specie: %s  len: %d' \
-                        % (type, specie, len(specie.U),)
                 if len(specie.U) <= i:
                     pass
                 else:
-                    if bugLev >= 5:
-                        print '          func: %s' % (specie.U[i]["func"],)
-                        print '          l: %s' % (specie.U[i]["l"],)
-                        print '          U: %s' % (specie.U[i]["U"],)
-                        print '          J: %s' % (specie.U[i]["J"],)
-                        print '          U0: %s' % (specie.U[i]["U0"],)
-                        print '          U1: %s' % (specie.U[i]["U1"],)
                     if specie.U[i]["func"] == "U":
                         a = [specie.U[i]["l"], specie.U[i]["U"], specie.U[i]["J"], 1]
                     elif specie.U[i]["func"] == "nlep":
@@ -705,9 +680,7 @@ class UParams(SpecialVaspParam):
                     elif specie.U[i]["func"] == "enlep":
                         a = [specie.U[i]["l"], specie.U[i]["U0"], specie.U[i]["U1"], 3]
                     else:
-                        raise RuntimeError, "Debug Error."
-                if bugLev >= 5:
-                    print '        a: %s' % (a,)
+                        raise RuntimeError("Debug Error.")
                 if hasattr(a[1], "rescale"):
                     a[1] = a[1].rescale("eV")
                 if hasattr(a[2], "rescale"):
@@ -716,13 +689,7 @@ class UParams(SpecialVaspParam):
                        "{0[1]} {1[1]:18.10e}". format(line, a),\
                        "{0[2]} {1[2]:18.10e}".format(line, a),\
                        "{0[3]} {1[3]}".        format(line, a)
-                if bugLev >= 5:
-                    print '        line: %s' % (line,)
             result += "\n{0}\n{1}\n{2}\n{3}\n".format(*line)
-            if bugLev >= 5:
-                print '      result: %s' % (result,)
-        if bugLev >= 5:
-            print '    final result: %s' % (result,)
         return result
 
     def __repr__(self):
@@ -999,7 +966,7 @@ class Relaxation(SpecialVaspParam):
             result[0] = result[0].lstrip()
             if self.nsw == 50 and self.ibrion is None and self.potim is None:
                 result[1] = None
-        for i in xrange(4):
+        for i in range(4):
             if result[-1] is None:
                 result = result[:-1]
         if len(result) == 1:
@@ -1072,8 +1039,8 @@ class Relaxation(SpecialVaspParam):
                 elif (not ionic) and (not cellshape) and volume:
                     isif = 7
                 elif ionic and (not cellshape) and volume:
-                    raise RuntimeError, "VASP does not allow relaxation of atomic position "\
-                                        "and volume at constant cell-shape.\n"
+                    raise RuntimeError("VASP does not allow relaxation of atomic position "
+                                       "and volume at constant cell-shape.\n")
                 if nsw == 0:
                     raise ValueError("Cannot set nsw < 1 and perform strain relaxations.")
                 elif nsw is None:

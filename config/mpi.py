@@ -64,15 +64,16 @@ def machine_dependent_call_modifier(formatter=None, comm=None, env=None):
 
         :return: ignored
     """
-    from pylada.misc import bugLev
+    import logging
+    from pylada import logger
     if len(getattr(comm, 'machines', [])) != 0:
         nfile = comm.nodefile()
         formatter['placement'] = "-machinefile {0}".format(nfile)
-        if bugLev >= 5:
-            print "config/mpi: machine_dep_call_mod: nodefile: \"%s\"" % (nfile,)
+        logger.debug("config/mpi: machine_dep_call_mod: nodefile: \"%s\"" % nfile)
+        if logger.isEnabledFor(logging.debug):
             with open(nfile) as fin:
-                print "config/mpi: machine_dep_call_mod: nodefile contents: \"%s\"" \
-                    % (fin.read(),)
+                fin.write("config/mpi: machine_dep_call_mod: nodefile contents: \"%s\"" %
+                          fin.read())
 
 
 def modify_global_comm(communicator):
@@ -135,17 +136,7 @@ def launch_program(cmdl, comm=None, formatter=None, env=None,
     from shlex import split as shlex_split
     from subprocess import Popen
     from pylada import machine_dependent_call_modifier
-    from pylada.misc import Changedir
-    from pylada.misc import bugLev
-    from pylada.misc import testValidProgram
-
-    if bugLev >= 5:
-        print "config/mpi: launch_program: entry"
-        print "  parm cmdl: %s  type: %s" % (cmdl, type(cmdl),)
-        print "  parm comm: %s  type: %s" % (comm, type(comm),)
-        print "  parm formatter: %s  type: %s" % (formatter, type(formatter),)
-        print "  parm env: %s  type: %s" % (env, type(env),)
-        print "  parm outdir: %s  type: %s" % (outdir, type(outdir),)
+    from pylada.misc import local_path
 
     # At this point formatter is {"program": vasp}
     # and cmdl is "mpirun -n {n} {placement} {program}"
@@ -155,17 +146,10 @@ def launch_program(cmdl, comm=None, formatter=None, env=None,
     # number of processes.
     if comm is not None and formatter is not None:
         formatter.update(comm)
-    if bugLev >= 5:
-        print "config/mpi: launch_program: comm mod formatter: %s" % (formatter,)
 
     # Set in formatter: 'placement': '-machinefile /home.../pylada_commtempfile'
     # Stuff that will depend on the supercomputer.
     machine_dependent_call_modifier(formatter, comm, env)
-    if bugLev >= 5:
-        print "config/mpi: launch_program: mach mod formatter: %s" % (formatter,)
-
-    if bugLev >= 5:
-        print "config/mpi: launch_program: plac formatter: %s" % (formatter,)
 
     # if a formatter exists, then use it on the cmdl string.
     if formatter is not None:
@@ -175,28 +159,14 @@ def launch_program(cmdl, comm=None, formatter=None, env=None,
         cmdl = cmdl.format(**comm)
 
     # Split command from string to list
-    if bugLev >= 1:
-        print "config/mpi: launch_program: final full cmdl: \"%s\"" % (cmdl,)
     cmdl = shlex_split(cmdl)
-    if bugLev >= 1:
-        print "config/mpi: launch_program: final split cmdl: %s" % (cmdl,)
-        print "config/mpi: launch_program: final stdout: %s" % (stdout,)
-        print "config/mpi: launch_program: final stderr: %s" % (stderr,)
-        print "config/mpi: launch_program: final stdin: %s" % (stdin,)
-        print "config/mpi: launch_program: final outdir: \"%s\"" % (outdir,)
-        print "config/mpi: launch_program: final env: %s" % (env,)
 
     # makes sure the directory exists:
-    if outdir is not None:
-        with Changedir(outdir) as cwd:
-            pass
+    local_path(outdir).ensure(dir=True)
 
     # Finally, start the process.
     popen = Popen(cmdl, stdout=stdout, stderr=stderr, stdin=stdin,
                   cwd=outdir, env=env)
-    if bugLev >= 1:
-        print "config/mpi: launch_program: popen: %s" % (popen,)
-        print "config/mpi: launch_program: popen.pid: %s" % (popen.pid,)
     popen.wait()
     #if testValidProgram: popen.wait()
     return popen
@@ -397,17 +367,4 @@ names = comm.gather( hostname, root=0)
 if rank == 0:
   for nm in names:
     print "PYLADA MACHINE HOSTNAME:", nm
-
-#if bugLev >= 5:
-#  fname = os.getenv("HOME") + "/temp.figure_out_machines.%03d" % (rank,)
-#  fdebug = open( fname, "w")
-#  print >> fdebug, \
-#    "config/mpi.py: figure_out_machines: size: %d  rank: %d  hostname: %s" \
-#    % (size, rank, hostname,)
-#
-#  if rank == 0:
-#    for nm in names:
-#      print >> fdebug, "config/mpi.py: figure_out_machines: nm: %s" % (nm,)
-#  fdebug.close()
-
 '''

@@ -19,20 +19,20 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from pytest import fixture
 
 
-def test_magmom():
-    from pickle import loads, dumps
+@fixture
+def structure():
     from pylada.crystal import Structure
-    from pylada.vasp import Vasp
 
     u = 0.25
     x, y = u, 0.25 - u
     structure = Structure([[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]]) \
-        .add_atom(5.000000e-01, 5.000000e-01, 5.000000e-01, "Mg") \
-        .add_atom(5.000000e-01, 2.500000e-01, 2.500000e-01, "Mg") \
-        .add_atom(2.500000e-01, 5.000000e-01, 2.500000e-01, "Mg") \
-        .add_atom(2.500000e-01, 2.500000e-01, 5.000000e-01, "Mg") \
+        .add_atom(5.000000e-01, 5.000000e-01, 5.000000e-01, "Mg", magmom=-1e0) \
+        .add_atom(5.000000e-01, 2.500000e-01, 2.500000e-01, "Mg", magmom=-1e0) \
+        .add_atom(2.500000e-01, 5.000000e-01, 2.500000e-01, "Mg", magmom=-1e0) \
+        .add_atom(2.500000e-01, 2.500000e-01, 5.000000e-01, "Mg", magmom=-1e0) \
         .add_atom(8.750000e-01, 8.750000e-01, 8.750000e-01, "Al") \
         .add_atom(1.250000e-01, 1.250000e-01, 1.250000e-01, "Al") \
         .add_atom(     x,     x,     x, "O") \
@@ -43,45 +43,66 @@ def test_magmom():
         .add_atom(    -x,    -y,    -y, "O") \
         .add_atom(    -y,    -x,    -y, "O") \
         .add_atom(-y,    -y,    -x, "O")
+    return structure
 
-    for atom in structure:
-        if atom.type == 'Mg':
-            atom.magmom = -1e0
 
-    vasp = Vasp()
+@fixture
+def vasp():
+    from pylada.vasp import Vasp
+    return Vasp()
+
+
+def test_none(vasp, structure):
     vasp.magmom = None
     assert vasp.magmom is None
     assert vasp._input['magmom'].keyword == 'MAGMOM'
     assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure) is None
 
-    # ispin == 1
+
+def test_ispin_disables_magmom(vasp, structure):
     vasp.magmom = True
     vasp.ispin = 1
     assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure) is None
-    # ispins == 2, magmom == False
+
+
+def test_magmom_disables_isping(vasp, structure):
     vasp.ispin = 2
     vasp.magmom = None
     assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure) is None
     vasp.magmom = False
     assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure) is None
-    # now for real print
+
+
+def test_computed_magmom(vasp, structure):
+    vasp.ispin = 2
     vasp.magmom = True
     assert 'MAGMOM' in vasp._input['magmom'].output_map(vasp=vasp, structure=structure)
-    print vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM']
-    assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure)[
-        'MAGMOM'] == '4*-1.0 2*0.0 8*0.0'
-    # now print a string directly.
+    actual = vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM']
+    assert actual == '2*0.0 4*-1.0 8*0.0'
+
+
+def test_magmom_from_string(vasp, structure):
+    vasp.ispin = 2
     vasp.magmom = 'hello'
     assert vasp.magmom == 'hello'
     assert 'MAGMOM' in vasp._input['magmom'].output_map(vasp=vasp, structure=structure)
     assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM'] == 'hello'
 
-    # check repr
+
+def test_repr(vasp, structure):
+    vasp.ispin = 2
+    vasp.magmom = 'hello'
     assert repr(vasp._input['magmom']) == "Magmom(value='hello')"
-    # check pickling
+
+
+def test_pickling(vasp, structure):
+    from pickle import loads, dumps
+    vasp.ispin = 2
+    vasp.magmom = 'hello'
     assert repr(loads(dumps(vasp._input['magmom']))) == "Magmom(value='hello')"
 
-    # more tests.
+
+def test_complex_magmom(vasp, structure):
     for atom, mag in zip(structure, [1, -1, 1, 1]):
         if atom.type == 'Mg':
             atom.magmom = mag
@@ -89,7 +110,8 @@ def test_magmom():
         if atom.type == 'Al':
             atom.magmom = mag
 
+    vasp.ispin = 2
     vasp.magmom = True
     assert 'MAGMOM' in vasp._input['magmom'].output_map(vasp=vasp, structure=structure)
-    assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure)[
-        'MAGMOM'] == '1.0 -1.0 2*1.0 2*0.0 8*0.0'
+    actual = vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM']
+    assert actual == '2*0.0 1.0 -1.0 2*1.0 8*0.0'

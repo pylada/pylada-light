@@ -68,7 +68,7 @@ def symmetrically_inequivalent_sites(lattice, type):
             # finds index of transformed position, using translation quivalents.
             for t, other in enumerate(sites):
                 if norm(into_cell(pos, lattice.cell, invcell)) < 1e-12:
-                    print t
+                    print(t)
                     break
             # removes equivalent site and index from lists if necessary
             if t != i and t < len(sites):
@@ -241,7 +241,7 @@ def interstitials(structure, lattice, interstitials):
 
 def _cationic_species(structure):
     """ Returns list of cationic species. """
-    return list(set([a.type for a in structure if a.type not in ['O', 'S', 'Se', 'Te']]))
+    return list({a.type for a in structure if a.type not in ['O', 'S', 'Se', 'Te']})
 
 
 def iterdefects(structure, lattice, defects, tolerance=0.25):
@@ -471,7 +471,7 @@ def band_filling(defect, host, vbm=None, cbm=None, potal=None, ntype=None, **kwa
 
     if defect.eigenvalues.ndim == 3:
         dummy = multiply(defect.eigenvalues - cbm,
-                         defect.multiplicity[newaxis, :, newaxis])
+                         defect.multiplicity[newaxis,:, newaxis])
         dummy = multiply(dummy, defect.occupations)
     elif defect.eigenvalues.ndim == 2:
         dummy = multiply(defect.eigenvalues - cbm, defect.multiplicity[:, newaxis])
@@ -482,7 +482,7 @@ def band_filling(defect, host, vbm=None, cbm=None, potal=None, ntype=None, **kwa
 
     if defect.eigenvalues.ndim == 3:
         dummy = multiply(vbm - defect.eigenvalues,
-                         defect.multiplicity[newaxis, :, newaxis])
+                         defect.multiplicity[newaxis,:, newaxis])
         dummy = multiply(dummy, 1e0 - defect.occupations)
     elif defect.eigenvalues.ndim == 2:
         dummy = multiply(vbm - defect.eigenvalues, defect.multiplicity[:, newaxis])
@@ -496,9 +496,9 @@ def band_filling(defect, host, vbm=None, cbm=None, potal=None, ntype=None, **kwa
         return result_p.rescale(eV)
     else:
         if float(result_n) * float(result_p) > 1E-12:
-            print "### WARNING: set ntype=True or False explitly for band filling correction."
-            print "    band filling for ntype: {0}".format(result_n.rescale(eV))
-            print "    band filling for ptype: {0}".format(result_p.rescale(eV))
+            print("### WARNING: set ntype=True or False explitly for band filling correction.")
+            print("    band filling for ntype: {0}".format(result_n.rescale(eV)))
+            print("    band filling for ptype: {0}".format(result_p.rescale(eV)))
         return result.rescale(eV)
 
 
@@ -630,7 +630,7 @@ def potential_alignment(defect, host, maxdiff=None, first_shell=False, tolerance
 
     if not any(acceptable):
         # if some one try to use maxdiff = 0.0000000001, @&#(@&#(#@^@
-        print "WARNING: maxdiff is too small! Jump to maxdiff=None"
+        print("WARNING: maxdiff is too small! Jump to maxdiff=None")
         # return to the default one, which accept all the atomic sites except the
         # defect sites
         acceptable = list(raw_acceptable)
@@ -809,7 +809,7 @@ def equiv_bins(n, N):
         return
     if n == 0:
         yield [0 for x in range(N)]
-    for u in xrange(n, 0, -1):
+    for u in range(n, 0, -1):
         for f in equiv_bins(n - u, N - 1):
             result = array([x for x in chain([u], f)])
             if all(result[0:-1] - result[1:] >= 0):

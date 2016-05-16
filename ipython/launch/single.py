@@ -38,8 +38,8 @@ def launch_single(self, event, jobfolder):
     import subprocess
     from copy import deepcopy
     from os.path import dirname, join, basename, exists
-    from os import remove
-    from ...misc import Changedir
+    from IPython import get_ipython
+    from ...misc import local_path
     from ... import pbs_string, default_pbs, qsub_exe, default_comm,       \
         interactive
     from . import get_walltime, get_queues, get_mppalloc
@@ -76,15 +76,15 @@ def launch_single(self, event, jobfolder):
     job = interactive.jobfolder
     name = interactive.jobfolder.name[1:]
     if job.functional is None:
-        print "Current jobfolder does not contain any calculation."
+        print("Current jobfolder does not contain any calculation.")
         return
     # avoid successful jobs.unless specifically requested
     if hasattr(job.functional, 'Extract') and not event.force:
         p = join(directory, name)
         extract = job.functional.Extract(p)
         if extract.success:
-            print "Job {0} completed successfully. "                                 \
-                  "It will not be relaunched.".format(name)
+            print("Job {0} completed successfully. "                                 \
+                  "It will not be relaunched.".format(name))
             return
     # now creates script
     pbsargs['n'] = get_mppalloc(shell, event, False)
@@ -101,15 +101,14 @@ def launch_single(self, event, jobfolder):
                                .format(pyscript, path, **pbsargs)
     pbsscript = pbspaths(directory, name, 'script')
 
-    with Changedir(join(directory, name)) as pwd:
-        pass
+    local_path(directory).join(name).ensure(dir=True)
     with open(pbsscript, "w") as file:
         string = pbs_string(**pbsargs) if hasattr(pbs_string, '__call__')          \
             else pbs_string.format(**pbsargs)
         file.write(string)
     assert exists(pbsscript)
-    print "Created pbsscript {0} for job-folder {1}."                            \
-          .format(pbsscript, path)
+    print("Created pbsscript {0} for job-folder {1}."                            \
+          .format(pbsscript, path))
 
     if event.nolaunch:
         return
@@ -120,7 +119,6 @@ def launch_single(self, event, jobfolder):
 
 def completer(self, info, data):
     """ Completer for scattered launcher. """
-    from .. import jobfolder_file_completer
     from ... import queues, accounts, debug_queue
     if len(data) > 0:
         if data[-1] == "--walltime":

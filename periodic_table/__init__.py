@@ -20,12 +20,12 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-""" Physical quantities of elements. 
+""" Physical quantities of elements.
 
     Atomic quantities can be used as in:
 
     .. python::
-    
+
       import pylada.periodic_table
       periodic_table.Au.atomic_weight
       periodic_table.Gold.atomic_weight
@@ -36,8 +36,8 @@
 __docformat__ = "restructuredtext en"
 
 
-from _create_data import *
-from _element import Element
+from ._create_data import *
+from ._element import Element
 
 from numpy import array
 from quantities import cm, m, g, J, pm, K as Kelvin, mol, angstrom,\
@@ -3596,16 +3596,16 @@ def find(**kwargs):
           Find specie according to name. If the input is a string of two
           characters or less, tries and finds according to symbol.
     """
-    from ..error import input, ValueError
+    from .. import error
     if len(kwargs) != 1:
-        raise input('Expected one and only one keyword argument.')
+        raise error.input('Expected one and only one keyword argument.')
 
     if 'atomic_number' in kwargs:
         n = int(kwargs['atomic_number'])
         for specie in iterate():
             if specie.atomic_number == n:
                 return specie
-        raise ValueError('Could not find specie with atomic number {0}.'
+        raise error.ValueError('Could not find specie with atomic number {0}.'
                          .format(n))
     if 'symbol' in kwargs:
         symbol = str(kwargs['symbol']).replace('\n', '').rstrip().lstrip()
@@ -3614,18 +3614,18 @@ def find(**kwargs):
         elif len(symbol) == 2:
             symbol = symbol[0].upper() + symbol[1].lower()
         else:
-            raise input('Symbol cannot be longuer than two characters.')
+            raise error.input('Symbol cannot be longuer than two characters.')
         if symbol not in globals():
-            raise ValueError('Unknown specie with symbol {0}.'.format(symbol))
+            raise error.ValueError('Unknown specie with symbol {0}.'.format(symbol))
         return globals()[symbol]
     if 'name' in kwargs:
         name = str(kwargs['name']).replace('\n', '').rstrip().lstrip()
         if len(name) == 0:
-            raise input('Name string is empty.')
+            raise error.input('Name string is empty.')
         elif len(name) <= 2:
             return find(symbol=name)
         name = name.lower()
         for specie in iterate():
             if name == specie.name.lower():
                 return specie
-        raise ValueError('Unknown specie named {0}.'.format(name))
+        raise error.ValueError('Unknown specie named {0}.'.format(name))
