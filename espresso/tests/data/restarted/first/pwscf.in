@@ -1,0 +1,40 @@
+&control
+    calculation = 'vc-relax'
+    prefix = 'pwscf'
+    outdir = '/private/var/folders/nm/dt02g3fd1bv0lk862vtvycnc0000gn/T/pytest-of-mdavezac/pytest-30/test_check_restarted_run0/first',
+/
+
+&system
+    ecutwfc = 12.0
+    ibrav = 0
+    celldm = 10.2
+    nat = 2
+    ntyp = 1
+/
+
+&electrons
+/
+
+&ions
+/
+
+&cell
+    cell_factor = 2.0
+/
+ATOMIC_SPECIES
+Si 1.0 Si.pz-vbc.UPF
+
+ATOMIC_POSITIONS alat
+Si 0.000000000000e+00 0.000000000000e+00 0.000000000000e+00
+Si 2.488699287645e-01 2.489540971266e-01 2.544030990201e-01
+
+K_POINTS
+2
+0.25 0.25 0.75 3.0
+0.25 0.25 0.25 1.0
+
+CELL_PARAMETERS alat
+0.00306838745875 0.496515957386 0.502165027022
+0.49549885434 -0.000983204203448 0.50216398253
+0.501319266602 0.503070626792 -0.000907683203096
+

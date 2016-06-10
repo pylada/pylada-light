@@ -48,66 +48,108 @@
 """
 __docformat__ = "restructuredtext en"
 __all__ = [
-        "load_ipython_extension", "unload_ipython_extension",
-        "error", @which_packages@
-]
-import error
-import physics
-from ipython import load_ipython_extension, unload_ipython_extension
+    "load_ipython_extension", "unload_ipython_extension",
+    "error", "crystal", "physics", "misc", "tools", "ewald", "decorations",
+    "periodic_table", "vasp", "process", "jobfolder", "logger", "espresso", "physics"]
 
-version_info = (@Pylada_VERSION_MAJOR@, @Pylada_VERSION_MINOR@)
+from collections import namedtuple
+version_info = namedtuple('version_info', ['major', 'minor'])\
+    (int("@Pylada_VERSION_MAJOR@"), int("@Pylada_VERSION_MINOR@"))
 """ Tuple containing version info. """
 version = "{0[0]}.{0[1]}".format(version_info)
 """ String containing version info. """
 
 
-# reads stuff from global configuration files.
-# doing it in a function makes it easier to keep the pylada namespace clean.
-def _config_files(dointeractive=False):
-  from os.path import exists, expanduser, expandvars, dirname, join
-  from glob import iglob
-  from os import environ
+def __find_config_files(pattern="*.py", rcfile=False):
+    """ Finds configuration files
 
-  # pattern to distinguish files to run only in interactive mode.
-  # these files are loaded by the pylada-ipython extension itself.
-  pattern = "*.py" if not dointeractive else "ipy_*.py"
-  # dictionary with stuff we want defined when reading config files.
-  global_dict = {"pyladamodules": __all__}
-  local_dict = {}
-  # first configuration files installed with pylada.
-  for filename in iglob(join(join(dirname(__file__), "config"), pattern)):
-    if dointeractive == False and filename[:4] == 'ipy_': continue
-    execfile(filename, global_dict, local_dict)
+        Looks for files with a given pattern in the following directory:
 
-  # then configuration files installed in a global config directory.
-  if "PYLADA_CONFIG_DIR" in environ:
-    for directory in environ["PYLADA_CONFIG_DIR"].split(':'):
-      for filename in iglob(join(directory, pattern)):
-        if dointeractive == False and filename[:4] == 'ipy_': continue
-        execfile(filename, global_dict, local_dict)
+        - config subdirectory of the pylada package
+        - directory pointed to by the "PYLADA_CONFIG_DIR" environment variable, if it exists
+        - in "~/.pylada" if it exist and is a directory
+    """
+    from os.path import expandvars, expanduser
+    from py.path import local
+    from os import environ
+    filenames = local(__file__).dirpath("config").listdir(fil=pattern, sort=True)
+    if 'LADA_CONFIG_DIR' in environ:
+        configdir = expandvars(expanduser(environ["LADA_CONFIG_DIR"]))
+        filenames += local(configdir).listdir(fil=pattern, sort=True)
+    pylada = local(expanduser("~/.pylada"))
+    if pylada.isdir():
+        filenames += pylada.listdir(fil=pattern, sort=True)
+    elif rcfile and pylada.check(file=True):
+        filenames += [pylada]
+    return filenames
 
-  # then user configuration file.
-  if exists(expandvars(expanduser('~/.pylada'))):
-    execfile(expandvars(expanduser('~/.pylada')), global_dict, local_dict)
-  return local_dict
+
+def __exec_config_files(pattern="*.py", rcfile=False, logger=None):
+    """ Executes all config files with given pattern """
+    global_dict = {"pyladamodules": __all__}
+    local_dict = {}
+    for filename in __find_config_files(pattern, rcfile):
+        if logger != None:
+            logger.debug("Reading configuration file %s" % filename)
+        exec(compile(filename.read(), str(filename), 'exec'), global_dict, local_dict)
+
+    return {k: v for k, v in local_dict.items() if k[0] != '_'}
+
+
+def __setup_logger():
+    """ Logger is set up before anything else is done """
+    from os import environ
+    import logging
+    import sys
+    local_dict = __exec_config_files("logging.py")
+    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p',
+                        stream=sys.stdout)
+    logging_level = environ.get('LADA_LOGGING_LEVEL', local_dict['logging_level'])
+    try:
+        level = int(logging_level)
+    except:
+        pass
+    else:
+        logging_level = level
+    root_logger = local_dict['root_logger']
+    logger = logging.getLogger(root_logger)
+    if hasattr(logging, 'upper'):
+        logging.setLevel(logging_level.upper())
+    else:
+        logger.setLevel(logging_level)
+    for filename in __find_config_files("logging.py"):
+        logger.debug("Read configuration file %s" % filename)
+    return logger
+
+# import logger first, so we can print config files
+logger = __setup_logger()
 
 # does actual config call.
-locals().update((k, v) for k, v in _config_files().iteritems() if k[0] != '_')
+locals().update(__exec_config_files(rcfile=True, logger=logger))
+
+# import submodules
+from . import error, crystal, physics, misc, tools, ewald, decorations, periodic_table, vasp, \
+    process, jobfolder, logger, espresso
 
 # Add a function to easily run the tests
 try:
-    from nose.tools import nottest
-except ImportError: pass
+    from pytest import mark
+except ImportError:
+    pass
 else:
-    # Make sure this function is not run by nosetest, to avoid infinit
+    # Make sure this function is not run by pytest, to avoid infinit
     # recursion
-    @nottest
+    @mark.skipif(True, "Helper function to aggregate tests")
     def test(**kwargs):
-        """ Run all pylada nose tests
+        """ Run all pylada python tests
 
-            Does not include some C++ only tests, nor tests that require
-            external programs such as vasp. Those should be run via ctest.
+            Does not tests that require external programs such as vasp. Those should be run via
+            ctest.
         """
         from os.path import dirname
-        from nose import runmodule
-        return runmodule(dirname(__file__), **kwargs)
+        from pytest import main
+        return main(dirname(__file__), **kwargs)
+
+
+# Make this an IPython module
+from .ipython import load_ipython_extension, unload_ipython_extension

@@ -1,0 +1,36 @@
+&control
+    calculation = 'relax'
+    prefix = 'pwscf'
+    outdir = '/Users/mdavezac/workspaces/pylada-light/src/pylada-light/build/here',
+/
+
+&system
+    ecutwfc = 12.0
+    ibrav = 0
+    celldm = 10.2
+    nat = 2
+    ntyp = 1
+/
+
+&electrons
+/
+
+&ions
+/
+ATOMIC_SPECIES
+Si 1.0 Si.pz-vbc.UPF
+
+ATOMIC_POSITIONS alat
+Si 0.000000000000e+00 0.000000000000e+00 0.000000000000e+00
+Si 2.452331768923e-01 2.452767094875e-01 2.545317493074e-01
+
+K_POINTS
+2
+0.25 0.25 0.75 3.0
+0.25 0.25 0.25 1.0
+
+CELL_PARAMETERS alat
+0.0 0.5 0.5
+0.5 0.0 0.5
+0.5 0.5 0.0
+

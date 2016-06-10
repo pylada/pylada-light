@@ -39,9 +39,6 @@ Jobdict class
    .. autoattribute:: root
 
    .. automethod:: __iter__
-   .. automethod:: iteritems
-   .. automethod:: itervalues
-   .. automethod:: iterkeys
    .. automethod:: items
    .. automethod:: values
    .. automethod:: keys

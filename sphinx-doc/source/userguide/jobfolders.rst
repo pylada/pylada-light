@@ -172,11 +172,8 @@ current directory.
 
    Executable olders can be iterated the same way dictionaries can, with
    :py:meth:`~jobfolder.JobFolder.keys`,
-   :py:meth:`~jobfolder.JobFolder.iterkeys`, 
    :py:meth:`~jobfolder.JobFolder.values`, 
-   :py:meth:`~jobfolder.JobFolder.itervalues`, 
-   :py:meth:`~jobfolder.JobFolder.items`, 
-   :py:meth:`~jobfolder.JobFolder.iteritems`.
+   :py:meth:`~jobfolder.JobFolder.items`
 
 Saving and loading folders
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

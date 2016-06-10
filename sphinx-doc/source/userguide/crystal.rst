@@ -262,7 +262,7 @@ respect to the group of periodic images it belongs to [HF]_.
 >>> # create smith transform.
 >>> st = SmithTransform(conventional)
 >>> # loop over random periodic images
->>> for i in xrange(10):
+>>> for i in range(10):
 >>>   #
 >>>   # create a vector with respect to its corresponding lattice site.
 >>>   pos  = conventional[2].pos - lattice[ conventional[2].site ].pos
@@ -470,7 +470,7 @@ Now follows the code for the shell generator_.
 >>>     if index in result: result[index].append(i)
 >>>     else: result[index] = [i]
 >>>
->>>   for key, layer in sorted(result.iteritems(), key=itemgetter(0)):
+>>>   for key, layer in sorted(result.items(), key=itemgetter(0)):
 >>>     def inner_layer_iterator():
 >>>       """ Iterates over atoms in a single layer. """
 >>>       for index in layer: yield structure[index]
@@ -522,7 +522,7 @@ parameter.
 Finally, the rest of the code is concerned with making the outer and inner
 loops possible. 
 
->>> for key, layer in sorted(result.iteritems(), key=itemgetter(0)):
+>>> for key, layer in sorted(result.items(), key=itemgetter(0)):
 >>>   def inner_layer_iterator():
 >>>     """ Iterates over atoms in a single layer. """
 >>>     for index in layer: yield structure[index]

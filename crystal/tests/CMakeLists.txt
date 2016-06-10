@@ -25,18 +25,5 @@
 ###############################
 
 if(tests)
-
-    # Makes tests in this directory a submodule of pylada.crystal
-    # Adds an empty __init__.py and compiles a test extension
-    add_python_module("pylada.crystal.tests"
-        INSTALL FAKE_INIT
-        EXTENSION atom_self
-        MAIN atom_self.cc
-        LABELS crystal
-    )
-
-    add_nose_tests(test_*.py
-        INSTALL "pylada.crystal.tests"
-        LABELS crystal
-    )
+    add_pytest(test_*.py INSTALL PREFIX "pylada.crystal" FAKE_INIT LABELS crystal)
 endif(tests)

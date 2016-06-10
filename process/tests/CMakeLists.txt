@@ -23,32 +23,34 @@
 if(tests AND mpi4py_FOUND)
 
     # Add fake executable to tests
+    # In order to setup the right permission, we configure to one place then copy it to the next.
     configure_file(pifunctional.in.py
         "${CMAKE_CURRENT_BINARY_DIR}/pifunctional.py")
     file(COPY  "${CMAKE_CURRENT_BINARY_DIR}/pifunctional.py"
         DESTINATION "${PYTHON_BINARY_DIR}/pylada/process/tests"
         FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
     )
+    install(FILES "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py"
+      PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+      DESTINATION "${PYTHON_PKG_DIR}/pylada/process/tests"
+    )
     set(fake_exec "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py")
 
     if(MPIEXEC)
         add_test(pifunctional ${MPIEXEC} -n 4 ${fake_exec} --order 4)
-        set_tests_properties(pifunctional
-            PROPERTIES LABELS "python;mpi;process")
+        set_tests_properties(pifunctional PROPERTIES LABELS "python;mpi;process")
     endif()
 
-    add_python_module("pylada.process.tests"
-        PYFILES functional.py 
-        INSTALL 
+    add_pytest(
+        globalcomm.py mpi.py placement.py
+        functional.py fixtures.py test_call.py test_iterator.py test_program.py
+        LABELS process
+        INSTALL PREFIX "pylada.process"
         FAKE_INIT
     )
-    add_nose_tests(test_*.py
-        EXCLUDE test_pool.py test_jobfolder.py
-        INSTALL "pylada.process.tests"
-        LABELS process
-    )
-    add_nose_tests(test_pool.py test_jobfolder.py
-        INSTALL "pylada.process.tests"
+
+    add_pytest(test_pool.py test_jobfolder.py
+        INSTALL PREFIX "pylada.process"
         LABELS process;jobfolder
     )
 

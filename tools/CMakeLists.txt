@@ -19,6 +19,6 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-add_python_module("pylada.tools" PYFILES "*.py")
+add_python_module("pylada.tools" GLOB "*.py")
 add_subdirectory(input)
 add_subdirectory(tests)

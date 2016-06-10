@@ -25,11 +25,4 @@ configure_file (
     "${PROJECT_BINARY_DIR}/python/__init__.py"
 )
 
-add_python_module("pylada"
-    EXTENSION cppwrappers
-    PYFILES "*.py" "${PROJECT_BINARY_DIR}/python/__init__.py"
-    EXCLUDE "*.in.py"
-    HEADERS "*.h" "*.hpp"
-)
-
-add_subdirectory(tests)
+add_python_module("pylada" record.py onexit.py "${PROJECT_BINARY_DIR}/python/__init__.py")

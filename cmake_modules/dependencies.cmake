@@ -1,37 +1,18 @@
 include(PackageLookup)
-lookup_package(Boost 1.33 REQUIRED)
 set(PYLADA_WITH_EIGEN3 1)
-lookup_package(Eigen3 REQUIRED
-    ARGUMENTS
-        # Default use hg. This should be more portable.
-        URL http://bitbucket.org/eigen/eigen/get/3.2.1.tar.gz
-        MD5 a0e0a32d62028218b1c1848ad7121476
-        TIMEOUT 60
-)
+lookup_package(Eigen3 REQUIRED)
 
 find_package(CoherentPython REQUIRED)
 include(PythonPackage)
-function(find_or_fail package)
-    find_python_package(${package})
-    if(NOT ${package}_FOUND)
-        message("*********")
-        message("${package} required")
-        message("It can likely be installed with pip")
-        message("*********")
-        message(FATAL_ERROR "Aborting")
-    endif()
-endfunction()
-
-# first looks for python package, second for linkage/include stuff
-find_or_fail(numpy)
-find_package(Numpy REQUIRED)
-find_or_fail(quantities)
+include(PythonPackageLookup)
 
 # Create local python environment
 # If it exists, most cookoff functions will use LOCAL_PYTHON_EXECUTABLE rather
 # than PYTHON_EXECUTABLE. In practice, this means that packages installed in
 # the build tree can be found.
 include(EnvironmentScript)
+add_to_python_path("${PROJECT_BINARY_DIR}/python")
+add_to_python_path("${EXTERNAL_ROOT}/python")
 set(LOCAL_PYTHON_EXECUTABLE "${PROJECT_BINARY_DIR}/localpython.sh")
 create_environment_script(
     PYTHON
@@ -40,11 +21,17 @@ create_environment_script(
 )
 
 if(tests)
-    include(PythonPackageLookup)
-    add_to_python_path("${EXTERNAL_ROOT}/python")
-    lookup_python_package(nose)
-    lookup_python_package(nose_parameterized)
+    lookup_python_package(pytest)
     # Not required per se but usefull for testing process
     find_python_package(mpi4py)
     find_program(MPIEXEC NAMES mpiexec mpirun)
 endif()
+
+find_python_package(numpy)
+find_python_package(quantities)
+# only needed for build. So can install it locally in build dir.
+lookup_python_package(cython)
+# Finds additional info, like libraries, include dirs...
+# no need check numpy features, it's all handled by cython.
+set(no_numpy_feature_tests TRUE)
+find_package(Numpy REQUIRED)

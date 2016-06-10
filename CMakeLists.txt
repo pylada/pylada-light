@@ -34,9 +34,12 @@ include(FortranCInterface)
 FortranCInterface_HEADER(${PROJECT_BINARY_DIR}/FCMangle.h
                          MACRO_NAMESPACE "FC_"
                          SYMBOL_NAMESPACE "FC_" )
+
+include(AddCPP11Flags)
+
 option(tests "Compile tests." on)
 option(external_program_tests
-    "Allow tests which run external programs (vasp, crystal...)" on)
+    "Allow tests which run external programs (vasp, crystal...)" off)
 if(tests)
   enable_testing()
 endif(tests)
@@ -45,64 +48,39 @@ endif(tests)
 include(dependencies)
 
 include_directories("${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
-foreach(name Boost EIGEN3)
-    if(NOT "${${name}_INCLUDE_DIR}" STREQUAL "" AND ${name}_INCLUDE_DIR)
-        include_directories(${${name}_INCLUDE_DIR})
-    endif()
-endforeach()
-
-option(tests               "Compile tests."                             on)
-option(external_program_tests "Allow tests which run external programs (vasp, crystal...)" on)
-if(tests)
-  enable_testing()
-endif(tests)
-
-# Easily add python modules
-include(PythonModule)
-# Easily add node tests
-if(tests)
-    include(nose)
+if(EIGEN3_INCLUDE_DIR)
+  include_directories(${EIGEN3_INCLUDE_DIR})
 endif()
 
+# Adds cmake function to create python modules
+include(PythonModule)
+if(tests)
+  include(AddPyTest)
+  setup_pytest("${EXTERNAL_ROOT}/python" "${PROJECT_BINARY_DIR}/py.test.sh")
+endif()
 
 # required for (at least) crystal
+add_subdirectory(errors)
 add_subdirectory(crystal)
 add_subdirectory(python)
-add_subdirectory(math)
-add_subdirectory(errors)
 add_subdirectory(physics)
 add_subdirectory(misc)
-
-# additional requirements for (at least) vasp
-add_subdirectory(vasp)
-add_subdirectory(config)
 add_subdirectory(tools)
-add_subdirectory(process)
-
-# enum is for defects
-add_subdirectory(enum)
-
-# Add documentation target: make documentation
-include(sphinx)
-# with the above, ewald and jobfolder and ipython don't need anything else:
 add_subdirectory(ewald)
+add_subdirectory(decorations)
+add_subdirectory(config)
+add_subdirectory(periodic_table)
+add_subdirectory(vasp)
+add_subdirectory(process)
 add_subdirectory(jobfolder)
 add_subdirectory(ipython)
+add_subdirectory(espresso)
 
-# after all that, turns out nrelmatdb uses this:
-add_subdirectory(periodic_table)
+# Add documentation target: make documentation
+# include(sphinx)
+# with the above, ewald and jobfolder and ipython don't need anything else:
+#
 
-#add_custom_target(doc 
+#add_custom_target(doc
 #      COMMAND make html
 #      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx-doc)
-
-  
-message (STATUS ${PROJECT_SOURCE_DIR})
-message (STATUS ${PROJECT_BINARY_DIR})
-# Create general configuration file for C stuff
-configure_file (
- "${PROJECT_SOURCE_DIR}/PyladaConfig.h.in"
- "${PROJECT_BINARY_DIR}/PyladaConfig.h"
-)
-
-
