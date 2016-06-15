@@ -79,8 +79,8 @@ def test_HubbardU_and_NLEP_parameters():
   assert map['LDAU'] == '.TRUE.'
   assert map['LDAUTYPE'] == '2'
   assert all(abs(array(map['LDUJ'].split(), dtype='float64')) < 1e-8)
-  assert all(abs(array(map['LDUU'].split(), dtype='float64')-[0.5, 0, 0.6]) < 1e-8)
-  assert all(abs(array(map['LDUL'].split(), dtype='float64')-[0, -1, 1]) < 1e-8)
+  assert all(abs(array(map['LDUU'].split(), dtype='float64') - [0.5, 0.6, 0]) < 1e-8)
+  assert all(abs(array(map['LDUL'].split(), dtype='float64') - [0, 1, -1]) < 1e-8)
   
 
   # now tries NLEP
@@ -93,25 +93,25 @@ def test_HubbardU_and_NLEP_parameters():
   map = o.output_map(vasp=a, structure=structure)
   assert map['LDAU'] == '.TRUE.'
   assert map['LDAUTYPE'] == '2'
-  assert all(abs(array(map['LDUL1'].split(), dtype='float64')-[0, -1, 0]) < 1e-8)
-  assert all(abs(array(map['LDUU1'].split(), dtype='float64')-[0.5, 0, -0.5]) < 1e-8)
-  assert all(abs(array(map['LDUJ1'].split(), dtype='float64')-[0, 0, 0]) < 1e-8)
-  assert all(abs(array(map['LDUO1'].split(), dtype='float64')-[1, 1, 1]) < 1e-8)
-  assert all(abs(array(map['LDUL2'].split(), dtype='float64')-[-1, -1, 1]) < 1e-8)
-  assert all(abs(array(map['LDUU2'].split(), dtype='float64')-[0, 0, -1.0]) < 1e-8)
-  assert all(abs(array(map['LDUJ2'].split(), dtype='float64')-[0, 0, 0]) < 1e-8)
-  assert all(abs(array(map['LDUO2'].split(), dtype='float64')-[1, 1, 2]) < 1e-8)
+  assert all(abs(array(map['LDUL1'].split(), dtype='float64') - [0, 0, -1]) < 1e-8)
+  assert all(abs(array(map['LDUU1'].split(), dtype='float64') - [0.5, -0.5, 0]) < 1e-8)
+  assert all(abs(array(map['LDUJ1'].split(), dtype='float64') - [0, 0, 0]) < 1e-8)
+  assert all(abs(array(map['LDUO1'].split(), dtype='float64') - [1, 1, 1]) < 1e-8)
+  assert all(abs(array(map['LDUL2'].split(), dtype='float64') - [-1, 1, -1]) < 1e-8)
+  assert all(abs(array(map['LDUU2'].split(), dtype='float64') - [0, -1.0, 0]) < 1e-8)
+  assert all(abs(array(map['LDUJ2'].split(), dtype='float64') - [0, 0, 0]) < 1e-8)
+  assert all(abs(array(map['LDUO2'].split(), dtype='float64') - [1, 2, 1]) < 1e-8)
 
   a.species = {'A': Specie([U(2, 0, 0.5)]), 'B': Specie([U(2, 0, -0.5), nlep(2, 2, -1.0, -3.0)]), 'X': Specie([])}
   a.ldau = True
   map = o.output_map(vasp=a, structure=structure)
   assert map['LDAU'] == '.TRUE.'
   assert map['LDAUTYPE'] == '2'
-  assert all(abs(array(map['LDUL1'].split(), dtype='float64')-[0, -1, 0]) < 1e-8)
-  assert all(abs(array(map['LDUU1'].split(), dtype='float64')-[0.5, 0, -0.5]) < 1e-8)
-  assert all(abs(array(map['LDUJ1'].split(), dtype='float64')-[0, 0, 0]) < 1e-8)
-  assert all(abs(array(map['LDUO1'].split(), dtype='float64')-[1, 1, 1]) < 1e-8)
-  assert all(abs(array(map['LDUL2'].split(), dtype='float64')-[-1, -1, 2]) < 1e-8)
-  assert all(abs(array(map['LDUU2'].split(), dtype='float64')-[0, 0, -1.0]) < 1e-8)
-  assert all(abs(array(map['LDUJ2'].split(), dtype='float64')-[0, 0, -3.0]) < 1e-8)
-  assert all(abs(array(map['LDUO2'].split(), dtype='float64')-[1, 1, 3]) < 1e-8)
+  assert all(abs(array(map['LDUL1'].split(), dtype='float64') - [0, 0, -1]) < 1e-8)
+  assert all(abs(array(map['LDUU1'].split(), dtype='float64') - [0.5, -0.5, 0]) < 1e-8)
+  assert all(abs(array(map['LDUJ1'].split(), dtype='float64') - [0, 0, 0]) < 1e-8)
+  assert all(abs(array(map['LDUO1'].split(), dtype='float64') - [1, 1, 1]) < 1e-8)
+  assert all(abs(array(map['LDUL2'].split(), dtype='float64') - [-1, 2, -1]) < 1e-8)
+  assert all(abs(array(map['LDUU2'].split(), dtype='float64') - [0, -1.0, 0]) < 1e-8)
+  assert all(abs(array(map['LDUJ2'].split(), dtype='float64') - [0, -3.0, 0]) < 1e-8)
+  assert all(abs(array(map['LDUO2'].split(), dtype='float64') - [1, 3, 1]) < 1e-8)

@@ -66,7 +66,7 @@ def test_magmom():
   vasp.magmom = True
   assert 'MAGMOM' in vasp._input['magmom'].output_map(vasp=vasp, structure=structure)
   print vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM']
-  assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM'] == '4*-1.0 2*0.0 8*0.0'
+  assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM'] == '2*0.0 4*-1.0 8*0.0'
   # now print a string directly.
   vasp.magmom = 'hello'
   assert vasp.magmom == 'hello'
@@ -86,4 +86,4 @@ def test_magmom():
 
   vasp.magmom = True
   assert 'MAGMOM' in vasp._input['magmom'].output_map(vasp=vasp, structure=structure)
-  assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM'] == '1.0 -1.0 2*1.0 2*0.0 8*0.0'
+  assert vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM'] == '2*0.0 1.0 -1.0 2*1.0 8*0.0'
