@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 project (Pylada C CXX Fortran)
-set (Pylada_VERSION_MAJOR 0)
-set (Pylada_VERSION_MINOR 1)
+set (Pylada_VERSION_MAJOR 1)
+set (Pylada_VERSION_MINOR 0)
 
 
 ########################################################################
