@@ -20,10 +20,13 @@
    <http://www.gnu.org/licenses/>.
 ******************************/
 
-#include <Eigen/Dense>
 #include "crystal/cutilities.h"
-#include "crystal/types.h"
 #include "crystal/fuzzy.h"
+#include "crystal/types.h"
+#include <Eigen/Dense>
+#include <cstdlib>
+#include <exception>
+#include <utility>
 
 namespace pylada {
 namespace details {
