@@ -25,6 +25,7 @@
 #include "crystal/types.h"
 #include <Eigen/Dense>
 #include <cstdlib>
+#include <stdexcept>
 #include <exception>
 #include <utility>
 
