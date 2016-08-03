@@ -25,8 +25,8 @@ script:
   - make lookup_dependencies # eigen
   - make
   - ctest .. -V
-  - [ "$TRAVIS_PULL_REQUEST" -eq "false" ] && pip install --user git+git://github.com/$TRAVIS_REPO_SLUG@$TRAVIS_COMMIT
-  - [ "$TRAVIS_PULL_REQUEST" -eq "false" ] && python -c "import pylada; pylada.test()"
+  - if [ "$TRAVIS_PULL_REQUEST" -eq "false" ] ; then ; pip install --user git+git://github.com/$TRAVIS_REPO_SLUG@$TRAVIS_COMMIT; fi
+  - if [ "$TRAVIS_PULL_REQUEST" -eq "false" ] ; then ; python -c "import pylada; pylada.test()"; fi
 notifications:
   slack:
     matrix:
