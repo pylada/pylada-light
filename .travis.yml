@@ -2,7 +2,7 @@ language: cpp
 compiler:
   - gcc
 before_install:
-  - ../.travis/setup.sh
+  - .travis/setup.sh
 script:
   - mkdir build
   - cd build
