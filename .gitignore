@@ -7,3 +7,5 @@ data/test/
 *build*/
 pkg_install/
 dist/
+notebooks/tmp
+notebooks/dummy.py
