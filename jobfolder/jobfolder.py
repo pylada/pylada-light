@@ -86,7 +86,7 @@ class JobFolder(object):
             raise ValueError(
                 "Could not pickle functional. Caught Error:\n{0}".format(e))
 
-        logger.critical('jobfolder.functional.setter for name: %s ' % self.name)
+        logger.debug('jobfolder.functional.setter for name: %s ' % self.name)
         try:
             self._functional = loads(string)
         except Exception as e:
@@ -291,14 +291,14 @@ class JobFolder(object):
             return None
         params = self.params.copy()
         params.update(kwargs)
-        logger.critical('jobfolder.compute: self: %s' % self)
-        logger.critical('jobfolder.compute: kwargs: %s', kwargs)
-        logger.critical('jobfolder.compute: params: %s', params)
-        logger.critical('jobfolder.compute: ===== start self.functional =====')
-        logger.critical(repr(self.functional))
-        logger.critical('jobfolder.compute: ===== end self.functional =====')
-        logger.critical('jobfolder.compute: type(self.functional): %s' % type(self.functional))
-        logger.critical('jobfolder.compute: before call')
+        logger.info('jobfolder.compute: self: %s' % self)
+        logger.info('jobfolder.compute: kwargs: %s', kwargs)
+        logger.info('jobfolder.compute: params: %s', params)
+        logger.debug('jobfolder.compute: ===== start self.functional =====')
+        logger.debug(repr(self.functional))
+        logger.debug('jobfolder.compute: ===== end self.functional =====')
+        logger.info('jobfolder.compute: type(self.functional): %s' % type(self.functional))
+        logger.info('jobfolder.compute: before call')
 
         # This calls the dynamically compiled code
         # created by tools/makeclass: create_call_from_iter

@@ -506,9 +506,9 @@ class PartialRestart(SpecialVaspParam):
         if self.value is None or self.value.success == False:
             if kwargs['vasp'].nonscf:
                 kwargs['vasp'].icharg = 12
-            logger.critical('vasp/incar/_params: PartialRestart: no luck')
+            logger.warning('vasp/incar/_params: PartialRestart: no luck')
         else:
-            logger.critical('vasp/incar/_params: PartialRestart: self.val.dir: %s' %
+            logger.warning('vasp/incar/_params: PartialRestart: self.val.dir: %s' %
                              self.value.directory)
             ewave = exists(join(self.value.directory, files.WAVECAR))
             if ewave:
@@ -565,7 +565,7 @@ class Restart(PartialRestart):
             copyfile(join(self.value.directory, files.CONTCAR), files.POSCAR,
                      nothrow='same exists', symlink=getattr(kwargs["vasp"], 'symlink', False),
                      nocopyempty=True)
-            logger.critical('vasp/incar/_params: Restart CONTCAR: self.val.dir: %s' %
+            logger.warning('vasp/incar/_params: Restart CONTCAR: self.val.dir: %s' %
                              self.value.directory)
         logger.debug('vasp/incar/_params: Restart: getcwd():  %s' % getcwd())
         logger.debug('vasp/incar/_params: Restart: result: %s' % result)

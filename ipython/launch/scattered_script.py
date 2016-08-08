@@ -97,23 +97,23 @@ def main():
     print(('  ipy/lau/scattered_script: jobfolder: %s' % jobfolder))
     print(('  ipy/lau/scattered_script: options: %s' % options))
     for name in options.names:
-        logger.critical('ipy/lau/scattered_script: testValidProgram: %s' % testValidProgram)
-        logger.critical('ipy/lau/scattered_script: name: %s' % name)
-        logger.critical('ipy/lau/scattered_script: jobfolder[name]: %s' % jobfolder[name])
-        logger.critical('ipy/lau/scattered_script: type(jobfolder[name]): %s' %
+        logger.info('ipy/lau/scattered_script: testValidProgram: %s' % testValidProgram)
+        logger.info('ipy/lau/scattered_script: name: %s' % name)
+        logger.info('ipy/lau/scattered_script: jobfolder[name]: %s' % jobfolder[name])
+        logger.info('ipy/lau/scattered_script: type(jobfolder[name]): %s' %
                          type(jobfolder[name]))
-        logger.critical(
+        logger.info(
             'ipy/lau/scattered_script: jobfolder[name].compute: %s' % jobfolder[name].compute)
-        logger.critical(
+        logger.info(
             'ipy/lau/scattered_script: type(jobfolder[name].compute): %s' \
             % type(jobfolder[name].compute))
-        logger.critical('ipy/lau/scattered_script: before compute for name: %s' % name)
+        logger.info('ipy/lau/scattered_script: before compute for name: %s' % name)
 
         comm = pylada.default_comm
         if testValidProgram != None:
             comm = None
         jobfolder[name].compute(comm=comm, outdir=name)
-        logger.critical('ipy/lau/scattered_script: after compute for name: %s' % name)
+        logger.info('ipy/lau/scattered_script: after compute for name: %s' % name)
 
 if __name__ == "__main__":
     main()

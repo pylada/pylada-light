@@ -48,13 +48,13 @@ def launch(self, event, jobfolders):
     from . import get_walltime, get_mppalloc, get_queues, scattered_script
     from .. import logger, Pylada
 
-    logger.critical("launch/scattered: event: %s" % event)
     if not hasattr(pylada, 'ipython_qstat'):
         logger.warning("Missing ipython_qstat function: cannot check for jobs already in queue")
         qstat = lambda x: []
     else:
         qstat = lambda x: Pylada.qstat(self, x)
 
+    logger.info("launch/scattered: event: %s" % event)
     shell = get_shell(self)
 
     pbsargs = deepcopy(dict(default_comm))
@@ -72,11 +72,11 @@ def launch(self, event, jobfolders):
     # Set pbsargs['queue'], pbsargs['account']
     if not get_queues(shell, event, pbsargs):
         return
-    logger.critical("launch/scattered: pbsargs: %s" % pbsargs)
+    logger.info("launch/scattered: pbsargs: %s" % pbsargs)
 
     # gets python script to launch in pbs.
     pyscript = scattered_script.__file__
-    logger.critical("launch/scattered: pyscript: %s" % pyscript)
+    logger.info("launch/scattered: pyscript: %s" % pyscript)
     if pyscript[-1] == 'c':
         pyscript = pyscript[:-1]   # change .pyc to .py
 
@@ -91,17 +91,17 @@ def launch(self, event, jobfolders):
     # now  loop over jobfolders
     pbsscripts = []
     for current, path in jobfolders:
-        logger.critical("launch/scattered: current: %s  path: %s" % (current, path))
+        logger.info("launch/scattered: current: %s  path: %s" % (current, path))
         # creates directory.
         directory = local_path(path).dirpath()
         directory.ensure(dir=True)
         # loop over executable folders in current jobfolder
         for name, job in current.root.items():
-            logger.critical('launch/scattered: current: %s' % current)
-            logger.critical('launch/scattered: current.root: %s' % current.root)
-            logger.critical('launch/scattered: name: %s' % name)
-            logger.critical('launch/scattered: job: %s' % job)
-            logger.critical('launch/scattered: job.is_tagged: %s' % job.is_tagged)
+            logger.info('launch/scattered: current: %s' % current)
+            logger.info('launch/scattered: current.root: %s' % current.root)
+            logger.info('launch/scattered: name: %s' % name)
+            logger.info('launch/scattered: job: %s' % job)
+            logger.info('launch/scattered: job.is_tagged: %s' % job.is_tagged)
 
             # avoid jobfolder which are off
             if job.is_tagged:
@@ -146,8 +146,8 @@ def launch(self, event, jobfolders):
                 = "{0} --logging {logging} --testValidProgram {testValidProgram} --nbprocs {n} --ppn {ppn} --jobid={1} {2}"                   \
                 .format(pyscript, name, path, **pbsargs)
             ppath = pbspaths(directory, name, 'script')
-            logger.critical("launch/scattered: ppath: \"%s\"" % ppath)
-            logger.critical("launch/scattered: pbsargs: \"%s\"" % pbsargs)
+            logger.info("launch/scattered: ppath: \"%s\"" % ppath)
+            logger.info("launch/scattered: pbsargs: \"%s\"" % pbsargs)
             pbsscripts.append(ppath)
 
             # write pbs scripts
@@ -159,10 +159,10 @@ def launch(self, event, jobfolders):
                     else pbs_string.format(**pbsargs)
                 # peregrine takes back the option of "anynode"
                 string = string.replace("#PBS -l feature=anynode", "##PBS -l feature=anynode")
-                logger.critical(
+                logger.info(
                     "launch/scattered: ===== start pbsscripts[-1]: %s =====" % pbsscripts[-1])
-                logger.critical('%s' % string)
-                logger.critical(
+                logger.info('%s' % string)
+                logger.info(
                     "launch/scattered: ===== end pbsscripts[-1]: %s =====" % pbsscripts[-1])
                 lines = string.split('\n')
                 omitTag = '# omitted for testValidProgram: '
@@ -180,9 +180,9 @@ def launch(self, event, jobfolders):
         return
     # otherwise, launch.
     for script in pbsscripts:
-        logger.critical("launch/scattered: launch: shell: %s" % shell)
-        logger.critical("launch/scattered: launch: qsub_exe: %s" % qsub_exe)
-        logger.critical("launch/scattered: launch: script: \"%s\"" % script)
+        logger.info("launch/scattered: launch: shell: %s" % shell)
+        logger.info("launch/scattered: launch: qsub_exe: %s" % qsub_exe)
+        logger.info("launch/scattered: launch: script: \"%s\"" % script)
 
         if testValidProgram != None:
             cmdLine = '/bin/bash ' + script

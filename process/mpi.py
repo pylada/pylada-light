@@ -246,10 +246,10 @@ def create_global_comm(nprocs, dir=None):
     import pylada
     from ..process import logger
 
-    logger.critical('process/mpi: create_global_comm: entry')
-    logger.critical('process/mpi: create_global_comm: nprocs: %s' % nprocs)
-    logger.critical('process/mpi: create_global_comm: dir: \"%s\"' % dir)
-    logger.critical('process/mpi: create_global_comm: script: \"%s\"' % script)
+    logger.debug('process/mpi: create_global_comm: entry')
+    logger.debug('process/mpi: create_global_comm: nprocs: %s' % nprocs)
+    logger.debug('process/mpi: create_global_comm: dir: \"%s\"' % dir)
+    logger.debug('process/mpi: create_global_comm: script: \"%s\"' % script)
 
     if not do_multiple_mpi_programs:
         return

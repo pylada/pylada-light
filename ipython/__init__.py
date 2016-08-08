@@ -109,7 +109,8 @@ class Pylada(Magics):
         """
         import pylada
         if not hasattr(pylada, 'ipython_qstat'):
-            raise RuntimeError("Missing ipython_qstat function: cannot use %qstat")
+            logger.warning("Missing ipython_qstat function: cannot use %qstat")
+            return []
 
         ipython_qstat = pylada.ipython_qstat
         arg = arg.rstrip().lstrip()
