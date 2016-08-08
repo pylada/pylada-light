@@ -266,12 +266,10 @@ default_pbs = {
 
 
 pbs_string =  '''#!/bin/bash
-#PBS -A {account}
 #PBS -q {queue}
 #PBS -m n
 #PBS -l walltime={walltime}
 #PBS -l nodes={nnodes}
-#PBS -l feature=24core
 #PBS -e {err}
 #PBS -o {out}
 #PBS -N {name}
@@ -279,67 +277,9 @@ pbs_string =  '''#!/bin/bash
 
 cd {directory}
 
-echo config/mpi.py pbs_string: header: {header}
-echo config/mpi.py pbs_string: scriptcommand: python {scriptcommand}
-echo config/mpi.py pbs_string: footer: {footer}
-
-echo config/mpi.py pbs_string: directory: {directory}
-echo config/mpi.py pbs_string: which python A: $(which python)
-
-
-module load epel/6.3
-module load python/2.7.4/impi-intel
-
-. /nopt/nrel/ecom/cid/pylada/5.0.006/virtipy/bin/activate
-
-
-export PYTHONPATH=$PYTHONPATH:/nopt/nrel/ecom/cid/pylada/5.0.006/pinstall/lib64/python2.7/site-packages
-
-
-echo ''
-echo config/mpi.py pbs_string: which python B: $(which python)
-
-echo ''
-echo config/mpi.py pbs_string: module list:
-module list 2>&1
-
-echo ''
-echo config/mpi.py: PATH: $PATH
-
-echo ''
-echo config/mpi.py: PYTHONPATH: $PYTHONPATH
-
-echo ''
-echo config/mpi.py === begin printenv
-printenv
-echo config/mpi.py === end printenv
-
-echo ''
-echo config/mpi.py === begin sorted printenv
-printenv | sort
-echo config/mpi.py === end sorted printenv
-
-echo config/mpi.py === begin cat nodefile
-cat $PBS_NODEFILE
-echo config/mpi.py === end cat nodefile
-
-python -c 'import argparse'
-echo config/mpi.py pbs_string: after test argparse
-
-python -c 'import numpy'
-echo config/mpi.py pbs_string: after test numpy
-
-python -c 'import quantities'
-echo config/mpi.py pbs_string: after test quantities
-
-python -c 'import mpi4py'
-echo config/mpi.py pbs_string: after test mpi4py
-
-
 {header}
 python {scriptcommand}
 {footer}
-
 
 '''
 """ Default pbs/slurm script. """
