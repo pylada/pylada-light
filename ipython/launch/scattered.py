@@ -41,13 +41,20 @@ def launch(self, event, jobfolders):
     import subprocess
     from os.path import exists, basename
     from os import remove
+    import pylada
     from .. import get_shell
     from ...misc import local_path, testValidProgram
     from ... import pbs_string, default_pbs, qsub_exe, default_comm
     from . import get_walltime, get_mppalloc, get_queues, scattered_script
-    from .. import logger
+    from .. import logger, Pylada
 
     logger.critical("launch/scattered: event: %s" % event)
+    if not hasattr(pylada, 'ipython_qstat'):
+        logger.warning("Missing ipython_qstat function: cannot check for jobs already in queue")
+        qstat = lambda x: []
+    else:
+        qstat = lambda x: Pylada.qstat(self, x)
+
     shell = get_shell(self)
 
     pbsargs = deepcopy(dict(default_comm))
@@ -102,17 +109,16 @@ def launch(self, event, jobfolders):
 
             # added by Peter Graf
             # avoid jobfolder which is already in the queue:
-            from pylada.ipython import qstat
-            qstuff = qstat(self, name)
+            qstuff = qstat(name)
             if (len(qstuff) > 0 and not event.force):
                 status = [x.split()[2] for x in qstuff]
                 # status is a list like ['Q'], ['R'], ['H'], ['C'], ['R', 'C'], etc
-                # 'RHQ' is the status that the job is indeed in the queue, 'C' job completed and being removed from the queue
-                # if needed, a prefix can be used to distinguish two jobs with the same name
+                # 'RHQ' is the status that the job is indeed in the queue, 'C' job completed and
+                # being removed from the queue if needed, a prefix can be used to distinguish two
+                # jobs with the same name
                 if len(set(status) & set('RHQ')) > 0:
                     print(("Job %s is in the queue, will not be re-queued" % name))
                     continue
-            #######
 
             # avoid successful jobs.unless specifically requested
             if hasattr(job.functional, 'Extract') and not event.force:
