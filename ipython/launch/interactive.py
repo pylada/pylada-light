@@ -57,6 +57,8 @@ def launch(self, event, jobfolders):
     for current, path in jobfolders:
         # start computations.
         for job in current.values():
+            if job.is_tagged:
+                continue
             name = str(job.name)
             if name[0] == '/':
                 name = name[1:]
