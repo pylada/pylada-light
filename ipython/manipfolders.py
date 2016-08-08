@@ -242,7 +242,7 @@ def delete_folder(self, event):
 
 
 def copy_completer(self, event):
-    from IPython import TryNext
+    from IPython.core.error import TryNext
     from pylada import interactive
 
     line = event.line.split()[1:]
@@ -279,7 +279,7 @@ def copy_completer(self, event):
 
 
 def delete_completer(self, event):
-    from IPython import TryNext
+    from IPython.core.error import TryNext
     from pylada import interactive
 
     line = event.line.split()[1:]

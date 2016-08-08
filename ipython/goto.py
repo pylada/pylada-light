@@ -144,7 +144,7 @@ def iterate(self, event):
 
 
 def completer(self, event):
-    from IPython import TryNext
+    from IPython.core.error import TryNext
     from pylada import interactive
     if len(event.line.split()) > 2:
         raise TryNext()
