@@ -149,7 +149,7 @@ def completer(self, info):
 
 def get_mppalloc(shell, event, withdefault=True):
     """ Gets mpp allocation. """
-    from ..ipython import logger
+    from .. import logger
 
     logger.critical("launch/init: shell: %s" % shell)
     logger.critical("launch/init: event: %s" % event)

@@ -42,11 +42,10 @@ def launch(self, event, jobfolders):
     from os.path import exists, basename
     from os import remove
     from .. import get_shell
-    from ...misc import local_path
+    from ...misc import local_path, testValidProgram
     from ... import pbs_string, default_pbs, qsub_exe, default_comm
     from . import get_walltime, get_mppalloc, get_queues, scattered_script
-    from pylada.misc import testValidProgram
-    from ..ipython import logger
+    from .. import logger
 
     logger.critical("launch/scattered: event: %s" % event)
     shell = get_shell(self)
