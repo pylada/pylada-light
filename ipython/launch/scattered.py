@@ -86,7 +86,7 @@ def launch(self, event, jobfolders):
     for current, path in jobfolders:
         logger.critical("launch/scattered: current: %s  path: %s" % (current, path))
         # creates directory.
-        directory = local_path(path).dirname()
+        directory = local_path(path).dirpath()
         directory.ensure(dir=True)
         # loop over executable folders in current jobfolder
         for name, job in current.root.items():
