@@ -65,7 +65,7 @@ def assign_attributes(setothers=None, ignore=None):
         def wrapper(self, structure, outdir=None, comm=None, **kwargs):
             # if other keyword arguments are present, then they are assumed to be
             # attributes of self, with value to be changed before launch.
-            for key in kwargs.keys():
+            for key in list(kwargs.keys()):
                 if key in ignore:
                     continue
                 # direct attributes.
