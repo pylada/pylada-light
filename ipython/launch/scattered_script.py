@@ -65,7 +65,7 @@ def main():
         return
 
     from pylada import logger
-    logger.setLevel(level=options.logger.upper())
+    logger.setLevel(level=options.logging.upper())
 
     from pylada.misc import setTestValidProgram
     tstPgm = options.testValidProgram
