@@ -115,7 +115,7 @@ class Pylada(Magics):
         ipython_qstat = pylada.ipython_qstat
         arg = arg.rstrip().lstrip()
         if len(arg) != 0 and '--help' in arg.split() or '-h' in arg.split():
-            print(qstat.__doc__ + '\n' + ipython_qstat.__doc__)
+            print(ipython_qstat.__doc__ + '\n' + ipython_qstat.__doc__)
             return
 
         result = ipython_qstat(self, arg)
