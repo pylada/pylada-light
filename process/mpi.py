@@ -260,9 +260,10 @@ def create_global_comm(nprocs, dir=None):
 
     # each proc prints its name to the standard output.
     local_path(dir).ensure(dir=True)
+    filename = None
     try:
         with NamedTemporaryFile(delete=False, dir=dir) as file:
-            file.write(script)
+            file.write(str(script).encode('utf-8'))
             filename = file.name
 
         formatter = Communicator(n=nprocs).copy()
@@ -284,7 +285,7 @@ def create_global_comm(nprocs, dir=None):
         logger.debug("process.mpi: === start stderr ===\n%s\n=== end ===" % stderr)
         logger.debug("process.mpi: *** start process.communicate ***")
     finally:
-        if exists(filename):
+        if filename is not None and exists(filename):
             try:
                 remove(filename)
             except:
