@@ -64,7 +64,6 @@ def main():
     except SystemExit:
         return
 
-    from pylada.misc import setBugLev
     from pylada.ipython import logger
     logger.basicConfig(level=options.logger.upper())
 
