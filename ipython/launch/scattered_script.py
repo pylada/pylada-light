@@ -39,7 +39,7 @@ def main():
 
     parser = ArgumentParser(prog="runone", description=re.sub("\\s+", " ", __doc__[1:]))
 
-    parser.add_argument('--logging', dest="logging", default=0, type=int,
+    parser.add_argument('--logging', dest="logging", default="critical", type=str,
                         help="Debug level.")
     parser.add_argument('--testValidProgram', dest="testValidProgram",
                         default=None, type=str,
