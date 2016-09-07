@@ -64,8 +64,8 @@ def main():
     except SystemExit:
         return
 
-    from pylada.ipython import logger
-    logger.basicConfig(level=options.logger.upper())
+    from pylada import logger
+    logger.setLevel(level=options.logger.upper())
 
     from pylada.misc import setTestValidProgram
     tstPgm = options.testValidProgram
