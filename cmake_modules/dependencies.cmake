@@ -22,6 +22,7 @@ create_environment_script(
 
 if(tests)
     lookup_python_package(pytest)
+    lookup_python_package(runipy)
     lookup_python_package(pytest_bdd PIPNAME pytest-bdd)
     # Not required per se but usefull for testing process
     find_python_package(mpi4py)

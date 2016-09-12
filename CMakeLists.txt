@@ -77,11 +77,7 @@ add_subdirectory(jobfolder)
 add_subdirectory(ipython)
 add_subdirectory(espresso)
 
-# Add documentation target: make documentation
-# include(sphinx)
-# with the above, ewald and jobfolder and ipython don't need anything else:
-#
+if(tests)
+  add_subdirectory(notebooks)
+endif()
 
-#add_custom_target(doc
-#      COMMAND make html
-#      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sphinx-doc)
