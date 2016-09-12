@@ -66,7 +66,6 @@ def check_vasp(other):
 def test_read_from_incar(tmpdir, vasp, structure):
     from pylada.vasp import read_incar
     vasp.write_incar(path=str(tmpdir.join('INCAR')), structure=structure)
-    print(tmpdir.join('INCAR').read())
     other = read_incar(str(tmpdir.join('INCAR')))
     check_vasp(other)
 
