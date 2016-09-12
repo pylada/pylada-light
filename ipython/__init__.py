@@ -29,62 +29,187 @@ from pylada import logger
 logger = logger.getChild("ipython")
 """ Sub-logger for ipython """
 
+from IPython.core.magic import magics_class, line_magic, Magics
+
+
+@magics_class
+class Pylada(Magics):
+
+    @line_magic
+    def savefolders(self, line):
+        from .savefolders import savefolders
+        return savefolders(self, line)
+
+    @line_magic
+    def explore(self, line):
+        from .explore import explore
+        return explore(self, line)
+
+    @line_magic
+    def goto(self, line):
+        from .goto import goto
+        return goto(self, line)
+
+    @line_magic
+    def listfolders(self, line):
+        from .listfolders import listfolders
+        return listfolders(self, line)
+
+    @line_magic
+    def fl(self, line):
+        """ Alias for %listfolders """
+        from .listfolders import listfolders
+        return listfolders(self, line)
+
+    @line_magic
+    def showme(self, line):
+        from .showme import showme
+        return showme(self, line)
+
+    @line_magic
+    def launch(self, line):
+        from .launch import launch
+        return launch(self, line)
+
+    @line_magic
+    def export(self, line):
+        from .export import export
+        return export(self, line)
+
+    @line_magic
+    def copyfolder(self, line):
+        from .manipfolders import copy_folder
+        return copy_folder(self, line)
+
+    @line_magic
+    def deletefolder(self, line):
+        from .manipfolders import delete_folder
+        return delete_folder(self, line)
+
+    @line_magic
+    def qstat(self, arg):
+        """ SList of user's jobs. 
+
+            The actual print-out and functionality will depend on the user-specified
+            function :py:func:`pylada.ipython_qstat`. However, in general %qstat should
+            work as follows:
+
+            >>> %qstat
+            [ 'id something something jobname' ]
+
+            It returns an SList_ of all the users jobs, with the job-id as the first
+            column and the job-name ass the last. The results can be filtered using
+            SList_'s grep, or directly as in:
+
+            >>> %qstat hello
+            [ 'id something something hellorestofname' ]
+
+            .. _SList: http://ipython.org/ipython-doc/stable/api/generated/IPython.utils.text.html#slist
+
+        """
+        import pylada
+        if not hasattr(pylada, 'ipython_qstat'):
+            logger.warning("Missing ipython_qstat function: cannot use %qstat")
+            return []
+
+        ipython_qstat = pylada.ipython_qstat
+        arg = arg.rstrip().lstrip()
+        if len(arg) != 0 and '--help' in arg.split() or '-h' in arg.split():
+            print(self.qstat.__doc__ + '\n' + ipython_qstat.__doc__)
+            return
+
+        result = ipython_qstat(self, arg)
+        if len(arg) == 0:
+            return result
+
+        return result.grep(arg, field=-1)
+
+    @line_magic
+    def qdel(self, arg):
+        """ Cancel jobs which grep for whatever is in arg.
+
+            For instance, the following cancels all jobs with "anti-ferro" in their
+            name. The name is the last column in qstat.
+
+            >>> %qdel "anti-ferro"
+        """
+
+        import pylada
+        if not hasattr(pylada, 'ipython_qstat'):
+            raise RuntimeError("Missing ipython_qstat function: cannot use %qdel")
+
+        import six
+        from pylada import qdel_exe
+        arg = arg.lstrip().rstrip()
+        if '--help' in arg.split() or '-h' in arg.split():
+            print(qdel.__doc__)
+            return
+
+        if len(arg) != 0:
+            result = self.qstat(arg)
+            if len(result) == 0:
+                print('No jobs in queue')
+                return
+            for u, name in zip(result.fields(0), result.fields(-1)):
+                print("cancelling %s." % (name))
+                message = "Are you sure you want to cancel the jobs listed above? [y/n] "
+        else:
+            message = "Cancel all jobs? [y/n] "
+            a = ''
+            while a not in ['n', 'y']:
+                a = six.raw_input(message)
+                if a == 'n':
+                    return
+
+        result = qstat(self, arg)
+        for u, name in zip(result.fields(0), result.fields(-1)):
+            # xxx use subprocess
+            self.shell.system('{0} {1}'.format(qdel_exe, u))
+
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
+    from IPython.core.magic import register_line_magic
     global __pylada_is_loaded__
-    if not __pylada_is_loaded__:
-        from types import ModuleType
-        from sys import modules
-        from .savefolders import savefolders
-        from .explore import explore, completer as explore_completer
-        from .goto import goto, completer as goto_completer
-        from .listfolders import listfolders
-        from .showme import showme, completer as showme_completer
-        from .launch import launch, completer as launch_completer
-        from .export import export, completer as export_completer
-        from .manipfolders import copy_folder, copy_completer, delete_folder,      \
-            delete_completer
-        import pylada
-        # loads interactive files
-        pylada.__dict__.update(pylada.__exec_config_files(logger=logger))
-        pylada.__dict__.update(pylada.__exec_config_files("*.ipy", rcfile=True, logger=logger))
-        # now loads extension
-        __pylada_is_loaded__ = True
-        pylada.interactive = ModuleType('interactive')
-        pylada.interactive.jobfolder = None
-        pylada.interactive.jobfolder_path = None
-        pylada.is_interactive = True
-        modules['pylada.interactive'] = pylada.interactive
-        ip.define_magic('savefolders', savefolders)
-        ip.define_magic('explore', explore)
-        ip.define_magic('goto', goto)
-        ip.define_magic('listfolders', listfolders)
-        ip.define_magic('fl', listfolders)  # shorter alias to listfolders.
-        ip.define_magic('showme', showme)
-        ip.define_magic('launch', launch)
-        ip.define_magic('export', export)
-        ip.define_magic('copyfolder', copy_folder)
-        ip.define_magic('deletefolder', delete_folder)
-        ip.set_hook('complete_command', explore_completer, str_key='%explore')
-        ip.set_hook('complete_command', goto_completer, str_key='%goto')
-        ip.set_hook('complete_command', showme_completer, str_key='%showme')
-        ip.set_hook('complete_command', launch_completer, str_key='%launch')
-        ip.set_hook('complete_command', export_completer, str_key='%export')
-        ip.set_hook('complete_command', copy_completer, str_key='%copyfolder')
-        ip.set_hook('complete_command', delete_completer, str_key='%deletefolder')
-        if pylada.ipython_verbose_representation is not None:
-            pylada.verbose_representation = pylada.ipython_verbose_representation
-        if hasattr(pylada, 'ipython_qstat'):
-            ip.define_magic('qstat', qstat)
-            ip.define_magic('qdel', qdel)
-
-            def dummy(*args, **kwargs): return []
-            ip.set_hook('complete_command', dummy, str_key='%qdel')
-            ip.set_hook('complete_command', dummy, str_key='%qstat')
-        if getattr(pylada, 'jmol_program', None) is not None:
-            from pylada.ipython.jmol import jmol
-            ip.define_magic('jmol', jmol)
+    if __pylada_is_loaded__:
+        return
+    from IPython import get_ipython
+    from types import ModuleType
+    from sys import modules
+    from .explore import completer as explore_completer
+    from .goto import completer as goto_completer
+    from .showme import completer as showme_completer
+    from .launch import completer as launch_completer
+    from .export import completer as export_completer
+    from .manipfolders import copy_completer, delete_completer
+    import pylada
+    # loads interactive files
+    pylada.__dict__.update(pylada.__exec_config_files(logger=logger))
+    pylada.__dict__.update(pylada.__exec_config_files("*.ipy", rcfile=True, logger=logger))
+    # now loads extension
+    __pylada_is_loaded__ = True
+    pylada.interactive = ModuleType('interactive')
+    pylada.interactive.jobfolder = None
+    pylada.interactive.jobfolder_path = None
+    pylada.is_interactive = True
+    modules['pylada.interactive'] = pylada.interactive
+    ip.register_magics(Pylada)
+    ip.set_hook('complete_command', explore_completer, str_key='%explore')
+    ip.set_hook('complete_command', goto_completer, str_key='%goto')
+    ip.set_hook('complete_command', showme_completer, str_key='%showme')
+    ip.set_hook('complete_command', launch_completer, str_key='%launch')
+    ip.set_hook('complete_command', export_completer, str_key='%export')
+    ip.set_hook('complete_command', copy_completer, str_key='%copyfolder')
+    ip.set_hook('complete_command', delete_completer, str_key='%deletefolder')
+    if pylada.ipython_verbose_representation is not None:
+        pylada.verbose_representation = pylada.ipython_verbose_representation
+    if hasattr(pylada, 'ipython_qstat'):
+        def dummy(*args, **kwargs): return []
+        ip.set_hook('complete_command', dummy, str_key='%qdel')
+        ip.set_hook('complete_command', dummy, str_key='%qstat')
+    # if getattr(pylada, 'jmol_program', None) is not None:
+    #     from pylada.ipython.jmol import jmol
+    #     register_line_magic(jmol)
 
 
 def unload_ipython_extension(ip):
@@ -144,69 +269,3 @@ def qdel_completer(self, info):
         Too slow. Disabled.
     """
     return self.magic("%qstat {0}".format(info.symbol)).fields(-1)
-
-
-def qdel(self, arg):
-    """ Cancel jobs which grep for whatever is in arg.
-
-        For instance, the following cancels all jobs with "anti-ferro" in their
-        name. The name is the last column in qstat.
-
-        >>> %qdel "anti-ferro"
-    """
-    import six
-    from pylada import qdel_exe
-    arg = arg.lstrip().rstrip()
-    if '--help' in arg.split() or '-h' in arg.split():
-        print(qdel.__doc__)
-        return
-    if len(arg) != 0:
-        result = self.qstat(arg)
-        if len(result) == 0:
-            print('No jobs in queue')
-            return
-        for u, name in zip(result.fields(0), result.fields(-1)):
-            print("cancelling %s." % (name))
-        message = "Are you sure you want to cancel the jobs listed above? [y/n] "
-    else:
-        message = "Cancel all jobs? [y/n] "
-    a = ''
-    while a not in ['n', 'y']:
-        a = six.raw_input(message)
-    if a == 'n':
-        return
-
-    result = qstat(self, arg)
-    for u, name in zip(result.fields(0), result.fields(-1)):
-        # xxx use subprocess
-        self.shell.system('{0} {1}'.format(qdel_exe, u))
-
-
-def qstat(self, arg):
-    """ SList of user's jobs. 
-
-        The actual print-out and functionality will depend on the user-specified
-        function :py:func:`pylada.ipython_qstat`. However, in general %qstat should
-        work as follows:
-
-        >>> %qstat
-        [ 'id something something jobname' ]
-
-        It returns an SList_ of all the users jobs, with the job-id as the first
-        column and the job-name ass the last. The results can be filtered using
-        SList_'s grep, or directly as in:
-
-        >>> %qstat hello
-        [ 'id something something hellorestofname' ]
-
-        .. _SList: http://ipython.org/ipython-doc/stable/api/generated/IPython.utils.text.html#slist
-    """
-    from pylada import ipython_qstat
-    arg = arg.rstrip().lstrip()
-    if len(arg) != 0 and '--help' in arg.split() or '-h' in arg.split():
-        print(qstat.__doc__ + '\n' + ipython_qstat.__doc__)
-        return
-    result = ipython_qstat(self, arg)
-    if len(arg) == 0:
-        return result
-    return result.grep(arg, field=-1)

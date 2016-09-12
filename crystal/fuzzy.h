@@ -25,6 +25,8 @@
 
 #include "crystal/types.h"
 #include <type_traits>
+#include <cstdlib>
+#include <cmath>
 
 namespace pylada {
 

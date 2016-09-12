@@ -12,6 +12,19 @@ database modules
 
 Constructed by Peter Graf from Mayeul d'Avezac's pylada
 
+Usage
+-----
+
+There are some IPython notebooks in the notebooks subdirectory. And documentation can be found
+[online](http://pylada.github.io/pylada-light/), though somewhat out of date. Notably, it does not
+describe the PWSCF wrapper.
+
+For more examples, look at the tests in each subfolder, and at the BDD scenarios in the
+espresso/tests/bdd/features folder.
+
+Finally, do join us on [slack](pylada.slack.com). Send one of the authors an email if you need
+access.
+
 Installation
 ------------
 

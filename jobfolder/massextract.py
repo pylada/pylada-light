@@ -77,7 +77,7 @@ class MassExtract(AbstractMassExtract):
     def rootpath(self):
         """ Root of the directory tree where computational results can be found. """
         from .. import is_interactive
-        if self._jobfolder is None and self._rootpath is None and is_interactive:
+        if self._rootpath is None and is_interactive:
             from .. import interactive
             if interactive.jobfolder_path is None:
                 print("No current path to job-dictionary.")

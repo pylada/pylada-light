@@ -57,23 +57,31 @@ class JobParams(AbstractMassExtract):
         super(JobParams, self).__init__(**kwargs)
 
     @property
-    def jobfolder(self):
-        """ Root of the job-folder this instance wraps. """
+    def current(self):
+        """ Current job-folder """
         from . import load
         from .. import is_interactive
-        if self._jobfolder is None:
-            if self._rootpath is None:
-                if is_interactive:
-                    from .. import interactive
-                    if interactive.jobfolder is None:
-                        print("No current job-folder.")
-                        return
-                    return interactive.jobfolder.root
-                else:
-                    raise RuntimeError('No job-folder.')
-            else:
-                self._jobfolder = load(self.rootpath, timeout=30)
-        return self._jobfolder.root
+        if self._jobfolder is not None:
+            return self._jobfolder
+
+        if self._rootpath is not None:
+            self._jobfolder = load(self.rootpath, timeout=30)
+            return self._jobfolder
+
+        if not is_interactive:
+            raise RuntimeError('No job-folder.')
+
+        from .. import interactive
+        if interactive.jobfolder is None:
+            print("No current job-folder.")
+            return
+
+        return interactive.jobfolder
+
+    @property
+    def jobfolder(self):
+        """ Root of the job-folder this instance wraps. """
+        return self.current.root
 
     @property
     def addattr(self):

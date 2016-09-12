@@ -41,14 +41,20 @@ def launch(self, event, jobfolders):
     import subprocess
     from os.path import exists, basename
     from os import remove
+    import pylada
     from .. import get_shell
-    from ...misc import local_path
+    from ...misc import local_path, testValidProgram
     from ... import pbs_string, default_pbs, qsub_exe, default_comm
     from . import get_walltime, get_mppalloc, get_queues, scattered_script
-    from pylada.misc import testValidProgram
-    from ..ipython import logger
+    from .. import logger, Pylada
 
-    logger.critical("launch/scattered: event: %s" % event)
+    if not hasattr(pylada, 'ipython_qstat'):
+        logger.warning("Missing ipython_qstat function: cannot check for jobs already in queue")
+        qstat = lambda x: []
+    else:
+        qstat = lambda x: Pylada.qstat(self, x)
+
+    logger.info("launch/scattered: event: %s" % event)
     shell = get_shell(self)
 
     pbsargs = deepcopy(dict(default_comm))
@@ -66,11 +72,11 @@ def launch(self, event, jobfolders):
     # Set pbsargs['queue'], pbsargs['account']
     if not get_queues(shell, event, pbsargs):
         return
-    logger.critical("launch/scattered: pbsargs: %s" % pbsargs)
+    logger.info("launch/scattered: pbsargs: %s" % pbsargs)
 
     # gets python script to launch in pbs.
     pyscript = scattered_script.__file__
-    logger.critical("launch/scattered: pyscript: %s" % pyscript)
+    logger.info("launch/scattered: pyscript: %s" % pyscript)
     if pyscript[-1] == 'c':
         pyscript = pyscript[:-1]   # change .pyc to .py
 
@@ -85,17 +91,17 @@ def launch(self, event, jobfolders):
     # now  loop over jobfolders
     pbsscripts = []
     for current, path in jobfolders:
-        logger.critical("launch/scattered: current: %s  path: %s" % (current, path))
+        logger.info("launch/scattered: current: %s  path: %s" % (current, path))
         # creates directory.
-        directory = local_path(path).dirname()
+        directory = local_path(path).dirpath()
         directory.ensure(dir=True)
         # loop over executable folders in current jobfolder
         for name, job in current.root.items():
-            logger.critical('launch/scattered: current: %s' % current)
-            logger.critical('launch/scattered: current.root: %s' % current.root)
-            logger.critical('launch/scattered: name: %s' % name)
-            logger.critical('launch/scattered: job: %s' % job)
-            logger.critical('launch/scattered: job.is_tagged: %s' % job.is_tagged)
+            logger.info('launch/scattered: current: %s' % current)
+            logger.info('launch/scattered: current.root: %s' % current.root)
+            logger.info('launch/scattered: name: %s' % name)
+            logger.info('launch/scattered: job: %s' % job)
+            logger.info('launch/scattered: job.is_tagged: %s' % job.is_tagged)
 
             # avoid jobfolder which are off
             if job.is_tagged:
@@ -103,17 +109,16 @@ def launch(self, event, jobfolders):
 
             # added by Peter Graf
             # avoid jobfolder which is already in the queue:
-            from pylada.ipython import qstat
-            qstuff = qstat(self, name)
+            qstuff = qstat(name)
             if (len(qstuff) > 0 and not event.force):
                 status = [x.split()[2] for x in qstuff]
                 # status is a list like ['Q'], ['R'], ['H'], ['C'], ['R', 'C'], etc
-                # 'RHQ' is the status that the job is indeed in the queue, 'C' job completed and being removed from the queue
-                # if needed, a prefix can be used to distinguish two jobs with the same name
+                # 'RHQ' is the status that the job is indeed in the queue, 'C' job completed and
+                # being removed from the queue if needed, a prefix can be used to distinguish two
+                # jobs with the same name
                 if len(set(status) & set('RHQ')) > 0:
                     print(("Job %s is in the queue, will not be re-queued" % name))
                     continue
-            #######
 
             # avoid successful jobs.unless specifically requested
             if hasattr(job.functional, 'Extract') and not event.force:
@@ -141,8 +146,8 @@ def launch(self, event, jobfolders):
                 = "{0} --logging {logging} --testValidProgram {testValidProgram} --nbprocs {n} --ppn {ppn} --jobid={1} {2}"                   \
                 .format(pyscript, name, path, **pbsargs)
             ppath = pbspaths(directory, name, 'script')
-            logger.critical("launch/scattered: ppath: \"%s\"" % ppath)
-            logger.critical("launch/scattered: pbsargs: \"%s\"" % pbsargs)
+            logger.info("launch/scattered: ppath: \"%s\"" % ppath)
+            logger.info("launch/scattered: pbsargs: \"%s\"" % pbsargs)
             pbsscripts.append(ppath)
 
             # write pbs scripts
@@ -154,10 +159,10 @@ def launch(self, event, jobfolders):
                     else pbs_string.format(**pbsargs)
                 # peregrine takes back the option of "anynode"
                 string = string.replace("#PBS -l feature=anynode", "##PBS -l feature=anynode")
-                logger.critical(
+                logger.info(
                     "launch/scattered: ===== start pbsscripts[-1]: %s =====" % pbsscripts[-1])
-                logger.critical('%s' % string)
-                logger.critical(
+                logger.info('%s' % string)
+                logger.info(
                     "launch/scattered: ===== end pbsscripts[-1]: %s =====" % pbsscripts[-1])
                 lines = string.split('\n')
                 omitTag = '# omitted for testValidProgram: '
@@ -175,9 +180,9 @@ def launch(self, event, jobfolders):
         return
     # otherwise, launch.
     for script in pbsscripts:
-        logger.critical("launch/scattered: launch: shell: %s" % shell)
-        logger.critical("launch/scattered: launch: qsub_exe: %s" % qsub_exe)
-        logger.critical("launch/scattered: launch: script: \"%s\"" % script)
+        logger.info("launch/scattered: launch: shell: %s" % shell)
+        logger.info("launch/scattered: launch: qsub_exe: %s" % qsub_exe)
+        logger.info("launch/scattered: launch: script: \"%s\"" % script)
 
         if testValidProgram != None:
             cmdLine = '/bin/bash ' + script

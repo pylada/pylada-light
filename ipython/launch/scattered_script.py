@@ -39,7 +39,7 @@ def main():
 
     parser = ArgumentParser(prog="runone", description=re.sub("\\s+", " ", __doc__[1:]))
 
-    parser.add_argument('--logging', dest="logging", default=0, type=int,
+    parser.add_argument('--logging', dest="logging", default="critical", type=str,
                         help="Debug level.")
     parser.add_argument('--testValidProgram', dest="testValidProgram",
                         default=None, type=str,
@@ -64,9 +64,8 @@ def main():
     except SystemExit:
         return
 
-    from pylada.misc import setBugLev
-    from pylada.ipython import logger
-    logger.basicConfig(level=options.logger.upper())
+    from pylada import logger
+    logger.setLevel(level=options.logging.upper())
 
     from pylada.misc import setTestValidProgram
     tstPgm = options.testValidProgram
@@ -97,23 +96,23 @@ def main():
     print(('  ipy/lau/scattered_script: jobfolder: %s' % jobfolder))
     print(('  ipy/lau/scattered_script: options: %s' % options))
     for name in options.names:
-        logger.critical('ipy/lau/scattered_script: testValidProgram: %s' % testValidProgram)
-        logger.critical('ipy/lau/scattered_script: name: %s' % name)
-        logger.critical('ipy/lau/scattered_script: jobfolder[name]: %s' % jobfolder[name])
-        logger.critical('ipy/lau/scattered_script: type(jobfolder[name]): %s' %
+        logger.info('ipy/lau/scattered_script: testValidProgram: %s' % testValidProgram)
+        logger.info('ipy/lau/scattered_script: name: %s' % name)
+        logger.info('ipy/lau/scattered_script: jobfolder[name]: %s' % jobfolder[name])
+        logger.info('ipy/lau/scattered_script: type(jobfolder[name]): %s' %
                          type(jobfolder[name]))
-        logger.critical(
+        logger.info(
             'ipy/lau/scattered_script: jobfolder[name].compute: %s' % jobfolder[name].compute)
-        logger.critical(
+        logger.info(
             'ipy/lau/scattered_script: type(jobfolder[name].compute): %s' \
             % type(jobfolder[name].compute))
-        logger.critical('ipy/lau/scattered_script: before compute for name: %s' % name)
+        logger.info('ipy/lau/scattered_script: before compute for name: %s' % name)
 
         comm = pylada.default_comm
         if testValidProgram != None:
             comm = None
         jobfolder[name].compute(comm=comm, outdir=name)
-        logger.critical('ipy/lau/scattered_script: after compute for name: %s' % name)
+        logger.info('ipy/lau/scattered_script: after compute for name: %s' % name)
 
 if __name__ == "__main__":
     main()

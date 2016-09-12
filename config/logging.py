@@ -1,2 +1,2 @@
-logging_level = 'INFO'
+logging_level = 'WARNING'
 root_logger = 'pylada'

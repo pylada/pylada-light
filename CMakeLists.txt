@@ -49,8 +49,9 @@ include(dependencies)
 
 include_directories("${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
 if(EIGEN3_INCLUDE_DIR)
-  include_directories(${EIGEN3_INCLUDE_DIR})
+  include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 endif()
+include_directories(SYSTEM ${NUMPY_INCLUDE_DIR})
 
 # Adds cmake function to create python modules
 include(PythonModule)
