@@ -20,6 +20,33 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
+from pytest import fixture, mark
+
+
+@fixture
+def structure():
+    from pylada.crystal import Structure
+    cell = [[0, 0.5, 0.5], [0.5, 0, 0.5], [0.5, 0.5, 0]]
+    return Structure(cell, scale=5.43, name='has a name')\
+        .add_atom(0, 0, 0, "Si")\
+        .add_atom(0.25, 0.25, 0.25, "Si")
+
+
+@fixture
+def vasp():
+    from os.path import join, dirname
+    from pylada.vasp import Vasp
+    vasp = Vasp()
+    vasp.kpoints = "Automatic generation\n0\nMonkhorst\n2 2 2\n0 0 0"
+    vasp.precision = "accurate"
+    vasp.ediff = 1e-5
+    vasp.encut = 1
+    vasp.ismear = "metal"
+    vasp.sigma = 0.06
+    vasp.relaxation = "volume"
+    vasp.add_specie = "Si", join(dirname(__file__), 'pseudos', 'Si')
+    return vasp
+
 
 def test_bool():
     from pickle import loads, dumps
@@ -214,3 +241,24 @@ def test_typed():
         pass
     else:
         raise Exception()
+
+
+
+@mark.parametrize("inval, outval, strval", [
+    (None, True, ".TRUE."),
+    (True, True, ".TRUE."),
+    (False, False, ".FALSE."),
+    (0.15, 0.15, "0.15"),
+    (10, 10, "10"),
+    ("hello", "hello", "hello"),
+    ([1, 2], [1, 2], "1 2"),
+    ((1, 2), (1, 2), "1 2"),
+])
+def test_add_keyword(vasp, structure, tmpdir, inval, outval, strval):
+    from re import match
+    vasp.add_keyword("attribute", inval)
+    assert vasp.attribute == outval
+    vasp.write_incar(structure, path=str(tmpdir.join("INCAR")))
+    with open(str(tmpdir.join("INCAR")), "r") as file:
+        text = file.read()
+    assert match("ATTRIBUTE\s*=\s*" + strval, text) is not None

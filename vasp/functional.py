@@ -1087,8 +1087,13 @@ class Vasp(AttrBlock):
 
         length = max(len(u) for u in map)
         for key, value in map.items():
-            outLine = '{0: >{length}} = {1}\n'.format(
-                key.upper(), value, length=length)
+            if value is True:
+                outLine = '{0: >{length}} = .TRUE.\n'.format(key.upper(), length=length)
+            elif value is False:
+                outLine = '{0: >{length}} = .FALSE.\n'.format(key.upper(), length=length)
+            else:
+                outLine = '{0: >{length}} = {1}\n'.format(key.upper(), value, length=length)
+
             path.write(outLine)
 
     def write_kpoints(self, file, structure, kpoints=None):
