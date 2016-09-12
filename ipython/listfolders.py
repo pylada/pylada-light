@@ -55,7 +55,6 @@ def listfolders(self, arg):
                 continue
             if all(fnmatch(u, v) for u, v in zip(names, dirs)):
                 result.add('/'.join(names[:len(dirs)]))
-        for i, string in enumerate(result):
-            print(string, end=' ')
-            if (i + 1) % 6 == 0:
-                print('\n')
+
+        for strings in [result[i:min(i+6, len(result))] for i in range(1, len(result), 6)]:
+            print(" ".join(strings))
