@@ -47,17 +47,17 @@ class Communicator(dict):
         super(Communicator, self).update(keywords)
         self._nodefile = None
         """ Path to temporary node file.
-        
-        None if no temporary node file yet.
-    """
+
+            None if no temporary node file yet.
+        """
         self.machines = {}
         """ Holds map of machines this communicator can access. """
         self.parent = None
         """ Reference to parent communicator from which machines are acquired. 
-    
-        If None, then this should be :py:data:`pylada.default_comm`, eg the very
-        first communicator setup at the start of the application.
-    """
+
+            If None, then this should be :py:data:`pylada.default_comm`, eg the very
+            first communicator setup at the start of the application.
+        """
 
     def lend(self, nprocs):
         """ Lend n processes from this communicator. 
