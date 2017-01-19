@@ -25,7 +25,7 @@ __all__ = ['qstat']
 from pylada import pylada_with_slurm
 
 if pylada_with_slurm:
-    def qstat(self, arg):
+    def ipython_qstat(self, arg):
         """ squeue --user=`whoami` -o "%7i %.3C %3t  --   %50j" """
         from subprocess import Popen, PIPE
         from IPython.genutils import SList
@@ -38,7 +38,7 @@ if pylada_with_slurm:
         result = SList([u[1:-1] for u in result[1:]])
         return result.grep(str(arg[1:-1]))
 else:
-    def qstat(self, arg):
+    def ipython_qstat(self, arg):
         """ Prints jobs of current user. """
         from subprocess import Popen, PIPE
         from getpass import getuser

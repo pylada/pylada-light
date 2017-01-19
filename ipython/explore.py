@@ -141,9 +141,7 @@ def explore(self, cmdl):
                 if is_run:
                     job.tag()
 
-                # Vladan changed Jun 23,2014: jobs which are in the queue are not errors either.
-                from pylada.ipython import qstat
-                qstuff = qstat(self, name)
+                qstuff = self.qstat(name)
                 is_inqueue = len(qstuff) > 0
                 if is_inqueue:
                     job.tag()
