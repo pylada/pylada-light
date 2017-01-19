@@ -183,7 +183,7 @@ def generate_bitstrings(lattice, sizerange):
                     if not i:
                         continue
                     if all(t == list(range(t.shape[0]))):
-                        invariants[i] = False
+                        invariants[j] = False
                 transformations = transformations[invariants]
 
                 outgroup = set()
