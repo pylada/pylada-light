@@ -71,9 +71,8 @@ def map_sites(mapper, mappee, cmp=None, double tolerance=1e-12):
     sites = array([into_cell(site.pos, cell, invcell) for site in mapper]) / scale_ratio
     for atom in mappee:
         distances = array([norm(into_voronoi(atom.pos - site, cell, invcell)) for site in sites])
-        found_sites = nonzero(distances < dist_tolerance)
-        if cmp is not None:
-            found_sites = [index for index in found_sites if cmp(mapper[index], atom)]
+        found_sites = nonzero(distances < dist_tolerance)[0]
+        found_sites = [index for index in found_sites if cmp(mapper[index], atom)]
         if len(found_sites) == 0:
             atom.site = None
             allmapped = False
