@@ -2,6 +2,8 @@
 sudo apt-get install build-essential
 sudo apt-get install -q gfortran openmpi-bin openmpi-common libopenmpi-dev
 sudo apt-get install python-scipy python-numpy
+sudo pip install --upgrade pip
+sudo pip install --upgrade setuptools
 sudo pip install --upgrade numpy
 sudo pip install --no-cache ipython
 sudo pip install --no-cache quantities
