@@ -255,10 +255,10 @@ def test_typed():
     ((1, 2), (1, 2), "1 2"),
 ])
 def test_add_keyword(vasp, structure, tmpdir, inval, outval, strval):
-    from re import match
+    from re import search
     vasp.add_keyword("attribute", inval)
     assert vasp.attribute == outval
     vasp.write_incar(structure, path=str(tmpdir.join("INCAR")))
     with open(str(tmpdir.join("INCAR")), "r") as file:
         text = file.read()
-    assert match("ATTRIBUTE\s*=\s*" + strval, text) is not None
+    assert search("\nATTRIBUTE\s*=\s*" + strval + "\n", text) is not None
