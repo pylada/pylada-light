@@ -173,6 +173,7 @@ class ExtractBase(object):
     @property
     def initial_structure(self):
         """ Structure at start of calculations. """
+        from re import compile
         from numpy import array, dot
         from numpy.linalg import inv
         from ...crystal import Structure
