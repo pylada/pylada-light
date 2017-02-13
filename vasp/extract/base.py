@@ -173,6 +173,7 @@ class ExtractBase(object):
     @property
     def initial_structure(self):
         """ Structure at start of calculations. """
+        from six import next
         from re import compile
         from numpy import array, dot
         from numpy.linalg import inv
@@ -187,7 +188,7 @@ class ExtractBase(object):
                     break
             data = []
             for i in range(3):
-                data.append(file.next().split())
+                data.append(next(file).split())
             try:
                 for i in range(3):
                     result.cell[:, i] = array(data[i][:3], dtype='float64')
