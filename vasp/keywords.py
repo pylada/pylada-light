@@ -1037,7 +1037,7 @@ class LDAU(BoolKeyword):
                 result['LDUJ{0}'.format(i + 1)] = ' '.join(lduj)
                 result['LDUO{0}'.format(i + 1)] = ' '.join(lduo)
         else:
-            ldul, lduu, lduj = [], [], []
+            ldaul, ldauu, ldauj = [], [], []
             for type in types:
                 specie = species[type]
                 a = -1, 0e0, 0e0, 1
@@ -1049,12 +1049,12 @@ class LDAU(BoolKeyword):
                     a[1] = a[1].rescale("eV")
                 if hasattr(a[2], "rescale"):
                     a[2] = a[2].rescale("eV")
-                ldul.append('{0[0]}'.format(a))
-                lduu.append('{0[1]:18.10e}'.format(a))
-                lduj.append('{0[2]:18.10e}'.format(a))
-            result['LDUL'] = ' '.join(ldul)
-            result['LDUU'] = ' '.join(lduu)
-            result['LDUJ'] = ' '.join(lduj)
+                ldaul.append('{0[0]}'.format(a))
+                ldauu.append('{0[1]:18.10e}'.format(a))
+                ldauj.append('{0[2]:18.10e}'.format(a))
+            result['LDAUL'] = ' '.join(ldaul)
+            result['LDAUU'] = ' '.join(ldauu)
+            result['LDAUJ'] = ' '.join(ldauj)
         return result
 
 

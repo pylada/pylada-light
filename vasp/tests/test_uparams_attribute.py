@@ -98,9 +98,9 @@ def test_enabled_U(vasp, Specie, structure):
     map = vasp.output_map(vasp=vasp, structure=structure)
     assert map['LDAU'] == '.TRUE.'
     assert map['LDAUTYPE'] == '2'
-    assert all(abs(array(map['LDUJ'].split(), dtype='float64')) < 1e-8)
-    assert all(abs(array(map['LDUU'].split(), dtype='float64') - [0.5, 0, 0]) < 1e-8)
-    assert all(abs(array(map['LDUL'].split(), dtype='float64') - [0, -1, -1]) < 1e-8)
+    assert all(abs(array(map['LDAUJ'].split(), dtype='float64')) < 1e-8)
+    assert all(abs(array(map['LDAUU'].split(), dtype='float64') - [0.5, 0, 0]) < 1e-8)
+    assert all(abs(array(map['LDAUL'].split(), dtype='float64') - [0, -1, -1]) < 1e-8)
 
 
 def test_enabled_complex_U(vasp, Specie, structure):
@@ -113,9 +113,9 @@ def test_enabled_complex_U(vasp, Specie, structure):
     map = vasp.output_map(vasp=vasp, structure=structure)
     assert map['LDAU'] == '.TRUE.'
     assert map['LDAUTYPE'] == '2'
-    assert all(abs(array(map['LDUJ'].split(), dtype='float64')) < 1e-8)
-    assert all(abs(array(map['LDUU'].split(), dtype='float64') - [0.5, 0.6, 0]) < 1e-8)
-    assert all(abs(array(map['LDUL'].split(), dtype='float64') - [0, 1, -1]) < 1e-8)
+    assert all(abs(array(map['LDAUJ'].split(), dtype='float64')) < 1e-8)
+    assert all(abs(array(map['LDAUU'].split(), dtype='float64') - [0.5, 0.6, 0]) < 1e-8)
+    assert all(abs(array(map['LDAUL'].split(), dtype='float64') - [0, 1, -1]) < 1e-8)
 
 
 def test_disabled_nlep(vasp, Specie, structure):
