@@ -52,7 +52,7 @@ def launch(self, event, jobfolders):
         logger.warning("Missing ipython_qstat function: cannot check for jobs already in queue")
         qstat = lambda x: []
     else:
-        qstat = lambda x: Pylada.qstat(self, x)
+        qstat = lambda x: self.qstat(x)
 
     logger.info("launch/scattered: event: %s" % event)
     shell = get_shell(self)

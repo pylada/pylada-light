@@ -161,7 +161,7 @@ class Pylada(Magics):
                 if a == 'n':
                     return
 
-        result = qstat(self, arg)
+        result = self.qstat(arg)
         for u, name in zip(result.fields(0), result.fields(-1)):
             # xxx use subprocess
             self.shell.system('{0} {1}'.format(qdel_exe, u))

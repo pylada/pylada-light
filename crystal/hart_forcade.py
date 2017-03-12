@@ -93,7 +93,7 @@ class HFTransform(object):
         """
         return self.flatten_indices(*self.indices(pos), site=site)
 
-    def indices(self, pos):
+    def indices(self, pos, tolerance=1e-6):
         """ indices of input atomic position in cyclic Z-group
 
             :param pos:
@@ -107,8 +107,8 @@ class HFTransform(object):
         if len(pos) != len(self.quotient):
             raise error.ValueError("Incorrect vector size")
         pos = dot(self.transform, pos)
-        integer_pos = round(pos + 1e-8).astype('intc')
-        if not allclose(integer_pos, pos, 1e-12):
+        integer_pos = round(pos + 0.5 * tolerance).astype('intc')
+        if not allclose(integer_pos, pos, tolerance):
             raise error.ValueError("Position is not on the lattice")
         result = zeros(len(pos), dtype='intc')
         for i in range(len(pos)):

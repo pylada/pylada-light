@@ -236,6 +236,8 @@ class AttrBlock(BaseKeyword):
             _tree.update(dummy)
         elif getattr(_value, 'raw', None) is not None:
             _tree[_key] = str(_value.raw)
+        elif isinstance(_value, str):
+            _tree[_key] = _value
         elif hasattr(_value, '__iter__'):
             _tree[_key] = ' '.join(str(u) for u in _value)
         else:

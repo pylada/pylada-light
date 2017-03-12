@@ -44,6 +44,7 @@ def vasp():
     vasp.sigma = 0.06
     vasp.relaxation = "volume"
     vasp.add_specie = "Si", join(dirname(__file__), 'pseudos', 'Si')
+    vasp.add_keyword('gga', 'PS')
     return vasp
 
 
@@ -61,6 +62,7 @@ def check_vasp(other):
     assert other.nsw == 50
     assert other.relaxation == 'volume'
     assert other.system == 'has a name'
+    assert other.gga == 'PS'
 
 
 def test_read_from_incar(tmpdir, vasp, structure):

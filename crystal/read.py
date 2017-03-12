@@ -261,6 +261,7 @@ def castep(file):
 
 def crystal(file='fort.34'):
     """ Reads CRYSTAL's external format. """
+    from six import next
     from numpy import array, abs, zeros, any, dot
     from numpy.linalg import inv
     from ..crystal import which_site
@@ -284,7 +285,7 @@ def crystal(file='fort.34'):
         dimensionality, centering, type = [int(u) for u in line.split()[:3]]
     # read cell
     try:
-        cell = array([file.next().split()[:3] for i in range(3)],
+        cell = array([next(file).split()[:3] for i in range(3)],
                      dtype='float64').T
     except StopIteration:
         raise error.IOError('Premature end of stream.')
@@ -298,7 +299,7 @@ def crystal(file='fort.34'):
         raise error.IOError('Premature end of stream.')
     for i in range(N):
         try:
-            op = array([file.next().split()[:3] for j in range(4)],
+            op = array([next(file).split()[:3] for j in range(4)],
                        dtype='float64')
         except StopIteration:
             raise error.IOError('Premature end of stream.')
@@ -315,7 +316,7 @@ def crystal(file='fort.34'):
 
     for i in range(N):
         try:
-            line = file.next().split()
+            line = next(file).split()
         except StopIteration:
             raise error.IOError('Premature end of stream.')
         else:
