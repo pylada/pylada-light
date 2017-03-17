@@ -66,7 +66,7 @@ def into_voronoi(position, cell, inverse=None):
     center -= floor(center)
 
     result = center
-    n = norm(center)
+    n = norm(dot(cell, center))
     for i in range(-1, 2, 1):
         for j in range(-1, 2, 1):
             for k in range(-1, 2, 1):
