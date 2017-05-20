@@ -58,7 +58,7 @@ def primitive(structure, double tolerance=1e-8):
     from numpy.linalg import inv, det
     from numpy import all, abs, array, dot, allclose, round
     from . import gruber, into_cell, into_voronoi, into_cell
-    from .. import error
+    from .. import error, logger
 
     if len(structure) == 0:
         raise error.ValueError("Empty structure")
@@ -71,6 +71,7 @@ def primitive(structure, double tolerance=1e-8):
 
     translations = __translations(result, tolerance)
     if len(translations) == 0:
+        logger.debug("Found no inner translations: structure is primitive")
         for a, b in zip(result, structure):
             a.pos[:] = b.pos[:]
         return result
@@ -110,9 +111,6 @@ def primitive(structure, double tolerance=1e-8):
     if abs(structure.volume - volume) < tolerance:
         raise error.RuntimeError("Found translation but no primitive cell.")
 
-    if allclose(gruber(structure.cell), gruber(new_cell), tolerance):
-        return structure.copy()
-
     # now creates new lattice.
     result.clear()
     result.cell = gruber(new_cell)
@@ -126,18 +124,13 @@ def primitive(structure, double tolerance=1e-8):
             result.append(site.copy())
             result[-1].pos = pos
 
-    if len(structure) == len(result) != 0:
-        result.cell[:] = structure.cell[:]
-        for a, b in zip(result, structure):
-            a.pos[:] = b.pos[:]
-        return result
-
     if len(structure) % len(result) != 0:
         raise error.RuntimeError("Nb of atoms in output not multiple of input.")
 
     if abs(len(structure) * result.volume - len(result) * structure.volume) > tolerance:
         raise error.RuntimeError("Size and volumes do not match.")
 
+    logger.debug("Primitive structure found with %i/%i atoms" % (len(result), len(structure)))
     return result;
 
 def is_primitive(structure, double tolerance = 1e-12):
