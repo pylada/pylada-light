@@ -54,6 +54,7 @@ cdef __translations(structure, double tolerance):
 
 
 def primitive(structure, double tolerance=1e-8):
+    """ Tries to compute the primitive cell of the input structure """
     from numpy.linalg import inv, det
     from numpy import all, abs, array, dot, allclose, round
     from . import gruber, into_cell, into_voronoi, into_cell
@@ -70,6 +71,8 @@ def primitive(structure, double tolerance=1e-8):
 
     translations = __translations(result, tolerance)
     if len(translations) == 0:
+        for a, b in zip(result, structure):
+            a.pos[:] = b.pos[:]
         return result
 
     # adds original translations.
@@ -107,6 +110,9 @@ def primitive(structure, double tolerance=1e-8):
     if abs(structure.volume - volume) < tolerance:
         raise error.RuntimeError("Found translation but no primitive cell.")
 
+    if allclose(gruber(structure.cell), gruber(new_cell), tolerance):
+        return structure.copy()
+
     # now creates new lattice.
     result.clear()
     result.cell = gruber(new_cell)
@@ -119,6 +125,12 @@ def primitive(structure, double tolerance=1e-8):
         else:
             result.append(site.copy())
             result[-1].pos = pos
+
+    if len(structure) == len(result) != 0:
+        result.cell[:] = structure.cell[:]
+        for a, b in zip(result, structure):
+            a.pos[:] = b.pos[:]
+        return result
 
     if len(structure) % len(result) != 0:
         raise error.RuntimeError("Nb of atoms in output not multiple of input.")

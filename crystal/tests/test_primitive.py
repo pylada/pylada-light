@@ -32,6 +32,7 @@ def itercells(nmax, prune=-1):
         :param prune:
             Yields cell only if random number between 0 and 1 is larger than this parameter.
     """
+
     from itertools import product
     from random import random
     from numpy import zeros
@@ -66,7 +67,7 @@ def test_lattice_is_primitive():
 
     lattice = Structure(0.0, 0.5, 0.5,
                         0.5, 0.0, 0.5,
-                        0.5, 0.5, 0.0, scale=2.0, m=True ) \
+                        0.5, 0.5, 0.0, scale=2.0, m=True) \
         .add_atom(0, 0, 0, "As")                           \
         .add_atom(0.25, 0.25, 0.25, ['In', 'Ga'], m=True)
 
@@ -83,7 +84,7 @@ def test_primitive(cell):
 
     lattice = Structure(0.0, 0.5, 0.5,
                         0.5, 0.0, 0.5,
-                        0.5, 0.5, 0.0, scale=2.0, m=True ) \
+                        0.5, 0.5, 0.0, scale=2.0, m=True) \
         .add_atom(0, 0, 0, "As")                           \
         .add_atom(0.25, 0.25, 0.25, ['In', 'Ga'], m=True)
 
@@ -101,3 +102,24 @@ def test_primitive(cell):
         assert atom.type == lattice[atom.site].type
         assert getattr(lattice[atom.site], 'm', False) == getattr(atom, 'm', False)
         assert (getattr(atom, 'm', False) or atom.site == 0)
+
+
+def test_noop_if_primitive():
+    from numpy import allclose
+    from pylada.crystal import Structure, primitive, is_primitive
+    original = Structure(4.18742, 2.09371, 2.09376,
+                         -1.36476e-06, -3.62642, -1.20883,
+                         -1.58443e-05, -1.77396e-05, -10.0923,
+                         scale=1, name="icsd_042545.cif")\
+            .add_atom(4.18743, -2.41762, -1.94751, "Bi")\
+            .add_atom(4.18746, -2.41763, -8.1448, "Bi")\
+            .add_atom(2.09376, -1.20883, -10.0923, "Se")\
+            .add_atom(6.28117, -3.62644, -6.57868, "Se")\
+            .add_atom(2.09372, -1.20882, -3.51363, "Se")
+    assert is_primitive(original)
+    p = primitive(original)
+
+    assert allclose(p.cell, original.cell)
+    for a, b in zip(p, original):
+        assert allclose(a.pos, b.pos)
+        assert a.type == b.type
