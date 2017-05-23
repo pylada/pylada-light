@@ -1,5 +1,4 @@
-###############################
-#  This file is part of PyLaDa.
+############################### This file is part of PyLaDa.
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
 #
@@ -26,4 +25,6 @@
 
 if(tests)
     add_pytest(test_*.py INSTALL PREFIX "pylada.crystal" FAKE_INIT LABELS crystal)
+    file(COPY issue20.poscar DESTINATION "${PYTHON_BINARY_DIR}/pylada/crystal/tests")
+    install(FILES issue20.poscar DESTINATION "${PYTHON_PKG_DIR}/pylada/crystal/tests/")
 endif(tests)
