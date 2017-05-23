@@ -101,7 +101,9 @@ def primitive(structure, double tolerance=1e-8):
                     trial[:, 2] = second
                     trial[:, 1] = third
                     if det(trial) < 0e0:
-                        raise error.RuntimeError("Negative volume")
+                        msg = "Negative volume"
+                        logger.error(msg)
+                        raise error.RuntimeError(msg)
                 integer_cell = dot(inv(trial), cell)
                 if allclose(integer_cell, round(integer_cell + 1e-7), 1e-8):
                     new_cell = trial
@@ -109,7 +111,9 @@ def primitive(structure, double tolerance=1e-8):
 
     # Found the new cell with smallest volume (e.g. primivite)
     if abs(structure.volume - volume) < tolerance:
-        raise error.RuntimeError("Found translation but no primitive cell.")
+        msg = "Found translation but no primitive cell."
+        logger.error(msg)
+        raise error.RuntimeError(msg)
 
     # now creates new lattice.
     result.clear()
@@ -125,10 +129,14 @@ def primitive(structure, double tolerance=1e-8):
             result[-1].pos = pos
 
     if len(structure) % len(result) != 0:
-        raise error.RuntimeError("Nb of atoms in output not multiple of input.")
+        msg = "Nb of atoms in output not multiple of input."
+        logger.error(msg)
+        raise error.RuntimeError(msg)
 
     if abs(len(structure) * result.volume - len(result) * structure.volume) > tolerance:
-        raise error.RuntimeError("Size and volumes do not match.")
+        msg = "Size and volumes do not match."
+        logger.error(msg)
+        raise error.RuntimeError(msg)
 
     logger.debug("Primitive structure found with %i/%i atoms" % (len(result), len(structure)))
     return result;
