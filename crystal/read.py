@@ -41,7 +41,7 @@ def poscar(path="POSCAR", types=None):
     from numpy.linalg import det
     from quantities import angstrom
     from . import Structure
-    from .. import error
+    from .. import error, logger
 
     # if types is not none, converts to a list of strings.
     if types is not None:
@@ -80,8 +80,8 @@ def poscar(path="POSCAR", types=None):
         vol = det(cell)
         if scale < 1.E-8:
             scale = abs(scale / vol) ** (1.0 / 3)
-        print(result)
-        print(scale)
+        logger.info(result)
+        logger.info("scale: ", scale)
         result.scale = scale * angstrom
         # checks for vasp 5 input.
         is_vasp_5 = True
