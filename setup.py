@@ -45,6 +45,7 @@ class Build(dBuild):
             cmake_cache_line('PYTHON_EXECUTABLE', executable, 'PATH'),
             cmake_cache_line('PYTHON_BINARY_DIR', package_dir, 'PATH'),
             cmake_cache_line('CMAKE_BUILD_TYPE', 'Release', 'STRING'),
+            cmake_cache_line('CMAKE_OSX_DEPLOYMENT_TARGET', '10.9', 'STRING'),
             '\n',
         ]
 
@@ -59,10 +60,8 @@ class Build(dBuild):
         current_dir = getcwd()
         mkpath(build_dir)
         command_line = self.configure_cmdl(join(build_dir, 'Variables.cmake'))
-        log.info(
-            "CMake: configuring with variables in %s "
-            % join(build_dir, 'Variables.cmake')
-        )
+        log.info("CMake: configuring with variables in %s " % join(
+            build_dir, 'Variables.cmake'))
         cmake = cmake_executable()
 
         try:
@@ -102,7 +101,6 @@ class Build(dBuild):
 
 
 class Install(dInstall):
-
     def run(self):
         from distutils import log
         self.distribution.run_command('build')
@@ -113,10 +111,7 @@ class Install(dInstall):
         log.info("CMake: Installing package to %s" % pkg)
         try:
             chdir(build_dir)
-            self.spawn([cmake,
-                        '-DPYTHON_PKG_DIR=\'%s\'' % pkg,
-                        '..'
-                        ])
+            self.spawn([cmake, '-DPYTHON_PKG_DIR=\'%s\'' % pkg, '..'])
             self.spawn([cmake, '--build', '.', '--target', 'install'])
         finally:
             chdir(current_cwd)
@@ -131,15 +126,14 @@ class Install(dInstall):
 
 
 class BuildExt(dBuildExt):
-
     def __init__(self, *args, **kwargs):
         dBuildExt.__init__(self, *args, **kwargs)
 
-    def run(self): pass
+    def run(self):
+        pass
 
 
 class BuildDistEgg(dBuildDistEgg):
-
     def __init__(self, *args, **kwargs):
         dBuildDistEgg.__init__(self, *args, **kwargs)
 
@@ -155,7 +149,6 @@ class BuildDistEgg(dBuildDistEgg):
 
 
 class EggInfo(dEggInfo):
-
     def __init__(self, *args, **kwargs):
         dEggInfo.__init__(self, *args, **kwargs)
 
@@ -185,7 +178,6 @@ class EggInfo(dEggInfo):
 
 
 class Develop(dDevelop):
-
     def run(self):
         if not self.uninstall:
             build = self.distribution.get_command_obj("build")
@@ -194,7 +186,6 @@ class Develop(dDevelop):
 
 
 class SDist(dSDist):
-
     def __init__(self, *args, **kwargs):
         dSDist.__init__(self, *args, **kwargs)
 
@@ -209,58 +200,58 @@ class SDist(dSDist):
         finally:
             dist.ext_modules, dist.ext_package = old_values[:2]
             dist.packages, dist.package_dir = old_values[2:]
+
+
 try:
     cwd = getcwd()
     chdir(source_dir)
     setup(
         name="pylada",
         version="1.0",
-
-        install_requires=['numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py', 'six',
-                          'traitlets', 'f90nml', 'pytest-bdd'],
+        install_requires=[
+            'numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py',
+            'six', 'traitlets', 'f90nml', 'pytest-bdd'
+        ],
         platforms=['GNU/Linux', 'Unix', 'Mac OS-X'],
-
         zip_safe=False,
         cmdclass={
-            'build': Build, 'install': Install,
-            'build_ext': BuildExt, 'bdist_egg': BuildDistEgg,
-            'egg_info': EggInfo, 'develop': Develop
+            'build': Build,
+            'install': Install,
+            'build_ext': BuildExt,
+            'bdist_egg': BuildDistEgg,
+            'egg_info': EggInfo,
+            'develop': Develop
         },
-
         author=["Peter Graf"],
         author_email="peter.graf@nrel.gov",
         description="Productivity environment for Density Functional Theory",
         license="GPL-2",
         url="https://github.com/pylada/pylada",
-        ext_modules=[Extension(u, []) for u in [
-            'pylada.crystal.cutilities',
-            'pylada.crystal.defects.cutilities',
-            'pylada.decorations._cutilities',
-            'pylada.ewald',
-        ]],
+        ext_modules=[
+            Extension(u, []) for u in [
+                'pylada.crystal.cutilities',
+                'pylada.crystal.defects.cutilities',
+                'pylada.decorations._cutilities',
+                'pylada.ewald',
+            ]
+        ],
         ext_package='pylada',
         packages=[
-            'pylada',
-            'pylada.physics',
-            'pylada.jobfolder', 'pylada.jobfolder.tests',
-            'pylada.crystal', 'pylada.crystal.tests',
-            'pylada.crystal.defects',
-            'pylada.decorations', 'pylada.decorations.tests',
-            'pylada.misc',
-            'pylada.config',
+            'pylada', 'pylada.physics', 'pylada.jobfolder',
+            'pylada.jobfolder.tests', 'pylada.crystal', 'pylada.crystal.tests',
+            'pylada.crystal.defects', 'pylada.decorations',
+            'pylada.decorations.tests', 'pylada.misc', 'pylada.config',
             'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
-            'pylada.ewald.tests',
-            'pylada.process', 'pylada.process.tests',
+            'pylada.ewald.tests', 'pylada.process', 'pylada.process.tests',
             'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
-            'pylada.vasp.extract.tests', 'pylada.vasp.nlep', 'pylada.vasp.incar',
-            'pylada.vasp.incar.tests',
-            'pylada.tools', 'pylada.tools.tests', 'pylada.tools.input',
-            'pylada.tools.input.tests',
-            'pylada.espresso', 'pylada.espresso.tests'
+            'pylada.vasp.extract.tests', 'pylada.vasp.nlep',
+            'pylada.vasp.incar', 'pylada.vasp.incar.tests', 'pylada.tools',
+            'pylada.tools.tests', 'pylada.tools.input',
+            'pylada.tools.input.tests', 'pylada.espresso',
+            'pylada.espresso.tests'
         ],
         package_dir={'': str(basename(package_dir))},
         include_package_data=True,
-
         keywords="Physics",
         classifiers=[
             'Development Status :: 0 - Beta',
@@ -274,7 +265,6 @@ try:
             'Topic :: Software Development :: Libraries :: Python Modules',
             'Topic :: Software Development :: Libraries :: Application Frameworks',
         ],
-        long_description=long_description
-    )
+        long_description=long_description)
 finally:
     chdir(cwd)
