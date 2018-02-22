@@ -25,6 +25,7 @@ __docformat__ = "restructuredtext en"
 __all__ = ['write_f90namelist', 'write_pwscf_input']
 from ..espresso import logger
 
+
 def write_f90namelist(f90namelist, stream=None):
     """ Writes namelist to file or string, or stream
 
@@ -50,15 +51,7 @@ def write_f90namelist(f90namelist, stream=None):
         with open(path, 'w') as file:
             write_f90namelist(f90namelist, file)
         return
-
-    for key, value in f90namelist.items():
-        if isinstance(value, list):
-            for g_vars in value:
-                f90namelist.write_nmlgrp(key, g_vars, stream)
-        elif isinstance(value, F90Namelist):
-            f90namelist.write_nmlgrp(key, value, stream)
-        else:
-            raise RuntimeError("Can only write namelists that consist of namelists")
+    f90namelist.write(stream)
 
 
 def write_pwscf_input(f90namelist, cards, stream=None):
@@ -74,8 +67,10 @@ def write_pwscf_input(f90namelist, cards, stream=None):
     from ..misc import local_path
     from six import StringIO
 
-    card_order = ['atomic_species', 'atomic_positions', 'k_points', 'cell_parameters',
-                  'constraints', 'occupations', 'atomic_forces']
+    card_order = [
+        'atomic_species', 'atomic_positions', 'k_points', 'cell_parameters',
+        'constraints', 'occupations', 'atomic_forces'
+    ]
     """ Write cards in this order """
     namelist_order = ['control', 'system', 'electrons', 'ions', 'cell']
     """ Order of the namelists """
@@ -97,10 +92,10 @@ def write_pwscf_input(f90namelist, cards, stream=None):
         return -1 if list_.count(item) == 0 else list_.index(item)
 
     # reorders namelists
-    f90namelist = F90Namelist(sorted(
-        f90namelist.items(),
-        key=lambda x: key_order(x[0], namelist_order)
-    ))
+    f90namelist = F90Namelist(
+        sorted(
+            f90namelist.items(),
+            key=lambda x: key_order(x[0], namelist_order)))
     # reorders cards
     cards.sort(key=lambda x: key_order(x.name, card_order))
 
