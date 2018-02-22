@@ -48,37 +48,61 @@ def test_encut():
 
     a.encut = 1e0
     assert abs(a.encut - 1e0) < 1e-8
-    assert abs(float(o.output_map(structure=structure, vasp=a)['encut']) - 245.345) < 1e-8
-    assert abs(float(eval(repr(o), d).output_map(
-        structure=structure, vasp=a)['encut']) - 245.345) < 1e-8
-    assert abs(float(loads(dumps(o)).output_map(
-        structure=structure, vasp=a)['encut']) - 245.345) < 1e-8
+    assert abs(
+        float(o.output_map(structure=structure, vasp=a)['encut']) - 245.345
+    ) < 1e-8
+    assert abs(
+        float(
+            eval(repr(o), d).output_map(structure=structure, vasp=a)['encut'])
+        - 245.345) < 1e-8
+    assert abs(
+        float(
+            loads(dumps(o)).output_map(structure=structure, vasp=a)['encut']) -
+        245.345) < 1e-8
     assert abs(eval(repr(o), d).value - 1.0) < 1e-8
     assert abs(loads(dumps(o)).value - 1.0) < 1e-8
     a.encut = 0.8
     assert abs(a.encut - 0.8) < 1e-8
-    assert abs(float(o.output_map(structure=structure, vasp=a)['encut']) - 245.345 * 0.8) < 1e-8
-    assert abs(float(eval(repr(o), d).output_map(
-        structure=structure, vasp=a)['encut']) - 245.345 * 0.8) < 1e-8
-    assert abs(float(loads(dumps(o)).output_map(
-        structure=structure, vasp=a)['encut']) - 245.345 * 0.8) < 1e-8
+    assert abs(
+        float(o.output_map(structure=structure, vasp=a)['encut']) -
+        245.345 * 0.8) < 1e-8
+    assert abs(
+        float(
+            eval(repr(o), d).output_map(structure=structure, vasp=a)['encut'])
+        - 245.345 * 0.8) < 1e-8
+    assert abs(
+        float(
+            loads(dumps(o)).output_map(structure=structure, vasp=a)['encut']) -
+        245.345 * 0.8) < 1e-8
     assert abs(eval(repr(o), d).value - 0.8) < 1e-8
     assert abs(loads(dumps(o)).value - 0.8) < 1e-8
     a.encut = 200
     assert abs(a.encut - 200) < 1e-8
-    assert abs(float(o.output_map(structure=structure, vasp=a)['encut']) - 200) < 1e-8
-    assert abs(float(eval(repr(o), d).output_map(
-        structure=structure, vasp=a)['encut']) - 200) < 1e-8
-    assert abs(float(loads(dumps(o)).output_map(structure=structure, vasp=a)['encut']) - 200) < 1e-8
+    assert abs(
+        float(o.output_map(structure=structure, vasp=a)['encut']) - 200) < 1e-8
+    assert abs(
+        float(
+            eval(repr(o), d).output_map(structure=structure, vasp=a)['encut'])
+        - 200) < 1e-8
+    assert abs(
+        float(
+            loads(dumps(o)).output_map(structure=structure, vasp=a)['encut']) -
+        200) < 1e-8
     assert abs(eval(repr(o), d).value - 200) < 1e-8
     assert abs(loads(dumps(o)).value - 200) < 1e-8
     a.encut = 200 * eV
     assert abs(a.encut - 200 * eV) < 1e-8
     assert a.encut.units == eV
-    assert abs(float(o.output_map(structure=structure, vasp=a)['encut']) - 200) < 1e-8
-    assert abs(float(eval(repr(o), d).output_map(
-        structure=structure, vasp=a)['encut']) - 200) < 1e-8
-    assert abs(float(loads(dumps(o)).output_map(structure=structure, vasp=a)['encut']) - 200) < 1e-8
+    assert abs(
+        float(o.output_map(structure=structure, vasp=a)['encut']) - 200) < 1e-8
+    assert abs(
+        float(
+            eval(repr(o), d).output_map(structure=structure, vasp=a)['encut'])
+        - 200) < 1e-8
+    assert abs(
+        float(
+            loads(dumps(o)).output_map(structure=structure, vasp=a)['encut']) -
+        200) < 1e-8
     assert abs(eval(repr(o), d).value - 200 * eV) < 1e-8
     assert abs(loads(dumps(o)).value - 200 * eV) < 1e-8
     assert eval(repr(o), d).value.units == eV
@@ -86,10 +110,16 @@ def test_encut():
     a.encut = (200 * eV).rescale(hartree)
     assert a.encut.units == hartree
     assert abs(a.encut - 200 * eV) < 1e-8
-    assert abs(float(o.output_map(structure=structure, vasp=a)['encut']) - 200) < 1e-8
-    assert abs(float(eval(repr(o), d).output_map(
-        structure=structure, vasp=a)['encut']) - 200) < 1e-8
-    assert abs(float(loads(dumps(o)).output_map(structure=structure, vasp=a)['encut']) - 200) < 1e-8
+    assert abs(
+        float(o.output_map(structure=structure, vasp=a)['encut']) - 200) < 1e-8
+    assert abs(
+        float(
+            eval(repr(o), d).output_map(structure=structure, vasp=a)['encut'])
+        - 200) < 1e-7
+    assert abs(
+        float(
+            loads(dumps(o)).output_map(structure=structure, vasp=a)['encut']) -
+        200) < 1e-8
     assert abs(eval(repr(o), d).value - 200 * eV) < 1e-8
     assert abs(loads(dumps(o)).value - 200 * eV) < 1e-8
     assert eval(repr(o), d).value.units == hartree
@@ -107,15 +137,22 @@ def test_encut():
     a.encutgw = (200 * eV).rescale(hartree)
     assert a.encutgw.units == hartree
     assert abs(a.encutgw - 200 * eV) < 1e-8
-    assert abs(float(o.output_map(structure=structure, vasp=a)['encutgw']) - 200) < 1e-8
-    assert abs(float(eval(repr(o), d).output_map(
-        structure=structure, vasp=a)['encutgw']) - 200) < 1e-8
-    assert abs(float(loads(dumps(o)).output_map(
-        structure=structure, vasp=a)['encutgw']) - 200) < 1e-8
-    assert abs(eval(repr(o), d).value - 200 * eV) < 1e-8
+    assert abs(
+        float(o.output_map(structure=structure, vasp=a)['encutgw']) - 200
+    ) < 1e-8
+    assert abs(
+        float(
+            eval(repr(o), d).output_map(structure=structure, vasp=a)
+            ['encutgw']) - 200) < 1e-7
+    assert abs(
+        float(
+            loads(dumps(o)).output_map(structure=structure, vasp=a)['encutgw'])
+        - 200) < 1e-8
+    assert abs(eval(repr(o), d).value - 200 * eV) < 1e-6
     assert abs(loads(dumps(o)).value - 200 * eV) < 1e-8
     assert eval(repr(o), d).value.units == hartree
     assert loads(dumps(o)).value.units == hartree
+
 
 if __name__ == "__main__":
     from sys import argv
