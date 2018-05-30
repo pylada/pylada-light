@@ -1,4 +1,7 @@
-language: cpp
+dist: trusty
+python:
+  - 3.6
+language: python
 compiler:
   - gcc
 before_install:
