@@ -69,11 +69,10 @@ def machine_dependent_call_modifier(formatter=None, comm=None, env=None):
     if len(getattr(comm, 'machines', [])) != 0:
         nfile = comm.nodefile()
         formatter['placement'] = "-machinefile {0}".format(nfile)
-        logger.debug("config/mpi: machine_dep_call_mod: nodefile: \"%s\"" % nfile)
         if logger.isEnabledFor(logging.debug):
+            logger.debug("config/mpi: machine_dep_call_mod: nodefile: \"%s\"" % nfile)
             with open(nfile) as fin:
-                fin.write("config/mpi: machine_dep_call_mod: nodefile contents: \"%s\"" %
-                          fin.read())
+                logger.debug("config/mpi: machine_dep_call_mod: nodefile contents: \"%s\"" %fin.read())
 
 
 def modify_global_comm(communicator):
