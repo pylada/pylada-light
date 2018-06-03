@@ -208,9 +208,9 @@ try:
     setup(
         name="pylada",
         version="1.0",
+        test_require=['mpi4py', 'pytest', 'pytest-bdd'],
         install_requires=[
-            'numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py',
-            'six', 'traitlets', 'f90nml>=1.0', 'pytest-bdd'
+            'numpy', 'scipy', 'pytest', 'quantities', 'cython', 'six', 'traitlets', 'f90nml>=1.0'
         ],
         platforms=['GNU/Linux', 'Unix', 'Mac OS-X'],
         zip_safe=False,
