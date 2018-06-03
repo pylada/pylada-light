@@ -1,270 +1,138 @@
-from os.path import basename, dirname, join, abspath
-from os import getcwd, chdir
-from setuptools import setup, Extension
+""" Pylada: A material science framework """
+
+from os.path import dirname, join, abspath
 from distutils.command.build import build as dBuild
-from setuptools.command.install import install as dInstall
-from setuptools.command.build_ext import build_ext as dBuildExt
-from setuptools.command.bdist_egg import bdist_egg as dBuildDistEgg
-from setuptools.command.sdist import sdist as dSDist
-from setuptools.command.egg_info import egg_info as dEggInfo
-from setuptools.command.develop import develop as dDevelop
-from distutils.dir_util import mkpath
-
-source_dir = dirname(abspath(__file__))
-package_dir = join(source_dir, 'pkg_install')
-long_description = open(join(source_dir, 'README.rst'), 'r').read()
-mkpath(package_dir)
+from numpy.distutils.core import setup, Extension
+from Cython.Build import cythonize
 
 
-def cmake_cache_line(variable, value, type='STRING'):
-    return "set(%s \"%s\" CACHE %s \"\")\n" % (variable, value, type)
+def description():
+    """ Adds readme as description of package """
+    source_dir = dirname(__file__)
+    with open(join(source_dir, 'README.rst'), 'r') as readme:
+        return readme.read()
 
 
-def cmake_executable():
-    """ Path to cmake executable """
-    from distutils.spawn import find_executable
-    cmake = find_executable('cmake')
-    if cmake is None:
-        raise RuntimeError('Could not find cmake executable in path')
-    return cmake
+def has_flag(compiler, flagname):
+    """Return a boolean indicating whether a flag name is supported on
+    the specified compiler.
+    """
+    from tempfile import NamedTemporaryFile
+    from distutils.errors import CompileError
+
+    with NamedTemporaryFile('w', suffix='.cpp') as tempfile:
+        tempfile.write('int main (int argc, char **argv) { return 0; }')
+        try:
+            compiler.compile([tempfile.name], extra_postargs=[flagname])
+        except CompileError:
+            return False
+    return True
+
+
+def cpp_flag(compiler):
+    """Return the -std=c++[11/14] compiler flag.
+    The c++14 is prefered over c++11 (when it is available).
+    """
+    if has_flag(compiler, '-std=c++11'):
+        return '-std=c++11'
+    else:
+        raise RuntimeError('Unsupported compiler -- at least C++11 support '
+                           'is needed!')
 
 
 class Build(dBuild):
-    """ Build that runs cmake. """
-
-    def configure_cmdl(self, filename):
-        """ Creates cmake command-line
-
-            First puts variables into a cache file. This is safer that going through the
-            command-line.
-        """
-        from sys import executable
-        # other args
-        other_args = [
-            cmake_cache_line('nobins', 'TRUE', 'BOOL'),
-            cmake_cache_line('PYTHON_EXECUTABLE', executable, 'PATH'),
-            cmake_cache_line('PYTHON_BINARY_DIR', package_dir, 'PATH'),
-            cmake_cache_line('CMAKE_BUILD_TYPE', 'Release', 'STRING'),
-            cmake_cache_line('CMAKE_OSX_DEPLOYMENT_TARGET', '10.9', 'STRING'),
-            '\n',
-        ]
-
-        with open(filename, 'w') as file:
-            file.writelines(other_args)
-        return ['-C%s' % filename]
-
-    def _configure(self, build_dir):
-        from distutils import log
-        from distutils.spawn import spawn
-
-        current_dir = getcwd()
-        mkpath(build_dir)
-        command_line = self.configure_cmdl(join(build_dir, 'Variables.cmake'))
-        log.info("CMake: configuring with variables in %s " % join(
-            build_dir, 'Variables.cmake'))
-        cmake = cmake_executable()
-
-        try:
-            chdir(build_dir)
-            spawn([cmake] + command_line + [source_dir])
-        finally:
-            chdir(current_dir)
-
-    def _build(self, build_dir):
-        from distutils import log
-        from distutils.spawn import spawn
-
-        log.info("CMake: building in %s" % build_dir)
-        current_dir = getcwd()
-        cmake = cmake_executable()
-
-        try:
-            chdir(build_dir)
-            spawn([cmake, '--build', '.'])
-        finally:
-            chdir(current_dir)
-
-    def cmake_build(self):
-        build_dir = join(dirname(abspath(__file__)), self.build_base)
-        self._configure(build_dir)
-        self._build(build_dir)
+    """ Build that gets eigen """
 
     def run(self):
-        self.cmake_build()
-        try:
-            prior = getattr(self.distribution, 'running_binary', False)
-            self.distribution.running_binary = True
-            self.distribution.have_run['egg_info'] = 0
-            dBuild.run(self)
-        finally:
-            self.distribution.running_binary = prior
+        """ Runs build after downloading eigen """
+        from os import makedirs
+        from os.path import exists
+        from six.moves.urllib.request import urlretrieve
+        import tarfile
+        from shutil import move, rmtree
+        makedirs(self.build_base, exist_ok=True)
+        version = "3.3.4"
+        url = "https://github.com/eigenteam/eigen-git-mirror/" \
+            "archive/%s.tar.gz" % version
+        finaldir = join(self.build_base, "eigen-include")
+        if not exists(join(finaldir, "Eigen", "Core")):
+            if exists(finaldir):
+                rmtree(finaldir)
+            tarpath = join(self.build_base, "eigen.tar.bz2")
+            urlretrieve(url, tarpath)
+            with tarfile.open(tarpath, "r:*") as tfile:
+                tfile.extractall(self.build_base)
+            move(
+                join(self.build_base, "eigen-git-mirror-%s" % version),
+                finaldir)
+
+        dBuild.run(self)
 
 
-class Install(dInstall):
-    def run(self):
-        from distutils import log
-        self.distribution.run_command('build')
-        current_cwd = getcwd()
-        build_dir = join(dirname(abspath(__file__)), self.build_base)
-        cmake = cmake_executable()
-        pkg = abspath(self.install_lib)
-        log.info("CMake: Installing package to %s" % pkg)
-        try:
-            chdir(build_dir)
-            self.spawn([cmake, '-DPYTHON_PKG_DIR=\'%s\'' % pkg, '..'])
-            self.spawn([cmake, '--build', '.', '--target', 'install'])
-        finally:
-            chdir(current_cwd)
-
-        try:
-            prior = getattr(self.distribution, 'running_binary', False)
-            self.distribution.running_binary = True
-            self.distribution.have_run['egg_info'] = 0
-            dInstall.run(self)
-        finally:
-            self.distribution.running_binary = prior
-
-
-class BuildExt(dBuildExt):
-    def __init__(self, *args, **kwargs):
-        dBuildExt.__init__(self, *args, **kwargs)
-
-    def run(self):
-        pass
-
-
-class BuildDistEgg(dBuildDistEgg):
-    def __init__(self, *args, **kwargs):
-        dBuildDistEgg.__init__(self, *args, **kwargs)
-
-    def run(self):
-
-        try:
-            prior = getattr(self.distribution, 'running_binary', False)
-            self.distribution.running_binary = True
-            self.run_command('build')
-            dBuildDistEgg.run(self)
-        finally:
-            self.distribution.running_binary = prior
-
-
-class EggInfo(dEggInfo):
-    def __init__(self, *args, **kwargs):
-        dEggInfo.__init__(self, *args, **kwargs)
-
-    def run(self):
-        from setuptools.command.egg_info import manifest_maker
-        from os import listdir
-        which_template = 'MANIFEST.source.in'
-
-        dist = self.distribution
-        old_values = dist.ext_modules, dist.ext_package, \
-            dist.packages, dist.package_dir
-        if len(listdir(package_dir)) != 0  \
-                and getattr(self.distribution, 'running_binary', True):
-            which_template = 'MANIFEST.binary.in'
-        else:
-            dist.ext_modules, dist.ext_package = None, None
-            dist.packages, dist.package_dir = None, None
-
-        try:
-            old_template = manifest_maker.template
-            manifest_maker.template = which_template
-            dEggInfo.run(self)
-        finally:
-            manifest_maker.template = old_template
-            dist.ext_modules, dist.ext_package = old_values[:2]
-            dist.packages, dist.package_dir = old_values[2:]
-
-
-class Develop(dDevelop):
-    def run(self):
-        if not self.uninstall:
-            build = self.distribution.get_command_obj("build")
-            build.cmake_build()
-        dDevelop.run(self)
-
-
-class SDist(dSDist):
-    def __init__(self, *args, **kwargs):
-        dSDist.__init__(self, *args, **kwargs)
-
-    def run(self):
-        dist = self.distribution
-        try:
-            old_values = dist.ext_modules, dist.ext_package, \
-                dist.packages, dist.package_dir
-            dist.ext_modules, dist.ext_package = None, None
-            dist.packages, dist.package_dir = None, None
-            dSDist.run(self)
-        finally:
-            dist.ext_modules, dist.ext_package = old_values[:2]
-            dist.packages, dist.package_dir = old_values[2:]
-
-
-try:
-    cwd = getcwd()
-    chdir(source_dir)
-    setup(
-        name="pylada",
-        version="1.0",
-        install_requires=[
-            'numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py',
-            'six', 'traitlets', 'f90nml>=1.0', 'pytest-bdd'
-        ],
-        platforms=['GNU/Linux', 'Unix', 'Mac OS-X'],
-        zip_safe=False,
-        cmdclass={
-            'build': Build,
-            'install': Install,
-            'build_ext': BuildExt,
-            'bdist_egg': BuildDistEgg,
-            'egg_info': EggInfo,
-            'develop': Develop
-        },
-        author=["Peter Graf"],
-        author_email="peter.graf@nrel.gov",
-        description="Productivity environment for Density Functional Theory",
-        license="GPL-2",
-        url="https://github.com/pylada/pylada",
-        ext_modules=[
-            Extension(u, []) for u in [
-                'pylada.crystal.cutilities',
-                'pylada.crystal.defects.cutilities',
-                'pylada.decorations._cutilities',
-                'pylada.ewald',
-            ]
-        ],
-        ext_package='pylada',
-        packages=[
-            'pylada', 'pylada.physics', 'pylada.jobfolder',
-            'pylada.jobfolder.tests', 'pylada.crystal', 'pylada.crystal.tests',
-            'pylada.crystal.defects', 'pylada.decorations',
-            'pylada.decorations.tests', 'pylada.misc', 'pylada.config',
-            'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
-            'pylada.ewald.tests', 'pylada.process', 'pylada.process.tests',
-            'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
-            'pylada.vasp.extract.tests', 'pylada.vasp.nlep',
-            'pylada.vasp.incar', 'pylada.vasp.incar.tests', 'pylada.tools',
-            'pylada.tools.tests', 'pylada.tools.input',
-            'pylada.tools.input.tests', 'pylada.espresso',
-            'pylada.espresso.tests'
-        ],
-        package_dir={'': str(basename(package_dir))},
-        include_package_data=True,
-        keywords="Physics",
-        classifiers=[
-            'Development Status :: 0 - Beta',
-            'Intended Audience :: Developers',
-            'Intended Audience :: Science/Research',
-            'License :: OSI Approved :: GNU Public License v3 (GPLv3)',
-            'Operating System :: OS Independent',
-            'Programming Language :: Python :: 2.6',
-            'Programming Language :: Python :: 2.7',
-            'Topic :: Scientific/Engineering',
-            'Topic :: Software Development :: Libraries :: Python Modules',
-            'Topic :: Software Development :: Libraries :: Application Frameworks',
-        ],
-        long_description=long_description)
-finally:
-    chdir(cwd)
+setup(
+    name="pylada",
+    version="1.0",
+    build_requires=["cython", "numpy"],
+    install_requires=[
+        'numpy', 'scipy', 'pytest', 'quantities', 'six', 'traitlets',
+        'f90nml>=1.0', 'pytest-bdd'
+    ],
+    platforms=['GNU/Linux', 'Unix', 'Mac OS-X'],
+    cmdclass={
+        'build': Build,
+    },
+    author=["Peter Graf", "Mayeul d'Avezac"],
+    author_email=["peter.graf@nrel.gov", "m.davezac@imperial.ac.uk"],
+    description="Productivity environment for Density Functional Theory",
+    license="GPL-2",
+    url="https://github.com/pylada/pylada-light",
+    ext_modules=cythonize([
+        Extension(
+            "pylada.ewald.utilities", [
+                join("ewald", u) for u in
+                ["cyewald.pyx"]
+            ], include_dirs=[abspath(dirname(__file__))], language="c++"),
+        Extension(
+            "pylada.ewald.qq", [
+                join("ewald", u) for u in
+                ["ewald.h", "ewaldcc.cc", "ep_com.f90", "ewaldf.f90"]
+            ], include_dirs=[abspath(dirname(__file__))], language="c++")
+    ]),
+    #  ext_modules=[
+    #  Extension(u, []) for u in [
+    #  'pylada.crystal.cutilities',
+    #  'pylada.crystal.defects.cutilities',
+    #  'pylada.decorations._cutilities',
+    #  'pylada.ewald',
+    #  ]
+    #  ],
+    package_dir={"pylada": dirname(__file__)},
+    ext_package='pylada',
+    packages=[
+        'pylada', 'pylada.physics', 'pylada.jobfolder',
+        'pylada.jobfolder.tests', 'pylada.crystal', 'pylada.crystal.tests',
+        'pylada.crystal.defects', 'pylada.decorations',
+        'pylada.decorations.tests', 'pylada.misc', 'pylada.config',
+        'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
+        'pylada.ewald.tests', 'pylada.process', 'pylada.process.tests',
+        'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
+        'pylada.vasp.extract.tests', 'pylada.vasp.nlep', 'pylada.vasp.incar',
+        'pylada.vasp.incar.tests', 'pylada.tools', 'pylada.tools.tests',
+        'pylada.tools.input', 'pylada.tools.input.tests', 'pylada.espresso',
+        'pylada.espresso.tests'
+    ],
+    include_package_data=True,
+    keywords="Physics",
+    classifiers=[
+        'Development Status :: 0 - Beta',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: GNU Public License v3 (GPLv3)',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Software Development :: Libraries :: Application Frameworks',
+    ],
+    long_description=description())

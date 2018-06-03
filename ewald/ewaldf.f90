@@ -1,4 +1,4 @@
-subroutine ewaldf(ipr,eewald,fewa,fewac,stress, natot,rc,zz,ecut,avec,mxdnat, error)
+subroutine ewaldf(ipr,eewald,fewa,fewac,stress, natot,rc,zz,ecut,avec,mxdnat, error) bind(C)
   ! computes the ewald energy, forces and stresses.
   !
   ! adapted from jlm plane-wave program
@@ -40,7 +40,6 @@ subroutine ewaldf(ipr,eewald,fewa,fewac,stress, natot,rc,zz,ecut,avec,mxdnat, er
   real(kind=dble) :: ssumg(6),ssumr(6),fsub(3),ssub(6),ssum0(6)  
 
   real(kind=dble) :: fsumr(3,mxdnat),fsumg(9,mxdnat)
-  real(kind=dble), external :: std_erfc
   real(kind=dble) :: dummy, arg, cosg, enorm, alpha, esub, esum0, esumg, exp1
   real(kind=dble) :: exp2, expg, expgi, expgr, gcut, esumr, factor, gdt
   real(kind=dble) :: gmod2, qpv, rmod, sepi, seps, sfac2, sfaci, sfacr, sing
@@ -58,7 +57,7 @@ subroutine ewaldf(ipr,eewald,fewa,fewac,stress, natot,rc,zz,ecut,avec,mxdnat, er
   upperbound = 1e0
   do while (alpha .gt. 0d0 .and. upperbound .gt. 1d-7 .and. abs(ecut) .ge. 1e-12) 
     alpha = alpha - 0.1d0
-    upperbound = 2.d0 * tot_charge_squared * sqrt(alpha/pi) * std_erfc( sqrt(ecut/4e0/alpha) )
+    upperbound = 2.d0 * tot_charge_squared * sqrt(alpha/pi) * erfc( sqrt(ecut/4e0/alpha) )
   enddo
   if (upperbound .ge. 1e-7 .or. alpha .le. 0d0) then
     error = 1
@@ -245,7 +244,7 @@ subroutine ewaldf(ipr,eewald,fewa,fewac,stress, natot,rc,zz,ecut,avec,mxdnat, er
            rmod = sqrt(rmod)
            arg = seps*rmod
            if (arg .lt. 25.0) then
-             exp1 = std_erfc(arg) / rmod
+             exp1 = erfc(arg) / rmod
              exp2 = (exp1 + sepi*exp(-arg*arg))/(rmod*rmod)
              esum0 = esum0 + exp1
              ssum0(1) = ssum0(1) + exp2 * real(ir(1)*ir(1))
@@ -316,7 +315,7 @@ subroutine ewaldf(ipr,eewald,fewa,fewac,stress, natot,rc,zz,ecut,avec,mxdnat, er
                rmod = sqrt(rmod)
                arg = seps*rmod
                if (arg .lt. 25.0) then
-                 exp1 = std_erfc(arg) / rmod
+                 exp1 = erfc(arg) / rmod
                  exp2 = (exp1 + sepi*exp(-arg*arg))/(rmod*rmod)
                  esub = esub + exp1
                  fsub(1) = fsub(1) + rp(1) * exp2
