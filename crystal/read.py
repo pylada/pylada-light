@@ -81,7 +81,7 @@ def poscar(path="POSCAR", types=None):
         if scale < 1.E-8:
             scale = abs(scale / vol) ** (1.0 / 3)
         logger.info(result)
-        logger.info("scale: ", scale)
+        logger.info("scale: %s" % scale)
         result.scale = scale * angstrom
         # checks for vasp 5 input.
         is_vasp_5 = True
