@@ -10,3 +10,4 @@ dist/
 notebooks/tmp
 notebooks/dummy.py
 notebooks/root.dict
+.pytest_cache/
