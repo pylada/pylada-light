@@ -20,7 +20,3 @@ RUN useradd -ms /bin/bash pylada
 USER pylada
 RUN echo "module load mpi" >> /home/pylada/.bashrc
 RUN python2 -m pip install --user f90nml && python3 -m pip install --user f90nml
-
-USER root
-RUN microdnf install -y dnf
-USER pylada
