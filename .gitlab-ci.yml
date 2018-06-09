@@ -21,7 +21,7 @@ stages:
   stage: test
   script:
     - cd build
-    - ctest .
+    - ctest -V .
 
 build:gcc-python2:
   <<: *building
