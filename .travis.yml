@@ -3,11 +3,7 @@ sudo: required
 services:
   - docker
 script:
-  - source .docker/pylada.sh && pylada setup gcc -DPYTHON_EXECUTABLE=python3 -DCMAKE_BUILD_TYPE=Release
-  - source .docker/pylada.sh && pylada build gcc lookup_dependencies
-  - source .docker/pylada.sh && pylada build gcc
-  - source .docker/pylada.sh && pylada test gcc -V
-  - source .docker/pylada.sh && pylada cmd gcc ../.install_from_pip.sh
+  - .travis/install_from_pip.sh
 
 notifications:
   slack:
