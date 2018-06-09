@@ -10,5 +10,7 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
   python -c "import pylada; pylada.test()"
 fi
 EOF
-source .docker/pylada.sh
-pylada cmd bash -lc "source install_from_pip.sh"
+
+docker run -it --rm -v $(pwd):/project -w /project \
+        --env "CC=$ccomp" --env "CXX=$cxxcomp" --cap-add SYS_PTRACE \
+        bash -lc "source install_from_pip.sh"
