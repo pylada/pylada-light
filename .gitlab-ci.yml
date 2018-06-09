@@ -20,6 +20,8 @@ stages:
 .testing: &testing
   stage: test
   script:
+    - source ~/.bashrc
+    - module load mpi
     - cd build
     - ctest -V .
 
