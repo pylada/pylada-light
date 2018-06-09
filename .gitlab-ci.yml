@@ -28,28 +28,28 @@ build:gcc-python2:
   variables:
     CC: gcc
     CXX: g++
-    PYTHON_EXEC: python2
+    PYTHON_EXEC: /usr/bin/python2
 
 build:llvm-python2:
   <<: *building
   variables:
     CC: clang
     CXX: clang++
-    PYTHON_EXEC: python2
+    PYTHON_EXEC: /usr/bin/python2
 
 build:gcc-python3:
   <<: *building
   variables:
     CC: gcc
     CXX: g++
-    PYTHON_EXEC: python3
+    PYTHON_EXEC: /usr/bin/python3
 
 build:llvm-python3:
   <<: *building
   variables:
     CC: clang
     CXX: clang++
-    PYTHON_EXEC: python3
+    PYTHON_EXEC: /usr/bin/python3
 
 test:gcc-python2:
   <<: *testing
