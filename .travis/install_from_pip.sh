@@ -3,6 +3,8 @@ set -e
 set -o
 
 cat > install_from_pip.sh << EOF
+#!/bin/bash
+source ~/.bashrc
 set -e
 set -o
 if [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
@@ -10,7 +12,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
   python -c "import pylada; pylada.test()"
 fi
 EOF
+chmod u+x install_from_pip.sh
 
 docker run -it --rm -v $(pwd):/project -w /project \
         --env "CC=$ccomp" --env "CXX=$cxxcomp" --cap-add SYS_PTRACE \
-        bash -lc "source install_from_pip.sh"
+        ./install_from_pip.sh
