@@ -38,7 +38,6 @@ find_python_package(six)
 find_python_package(traitlets)
 # only needed for build. So can install it locally in build dir.
 lookup_python_package(cython)
-find_program(cython_EXECUTABLE NAMES cython PATHS "${EXTERNAL_ROOT}/python")
 # Finds additional info, like libraries, include dirs...
 # no need check numpy features, it's all handled by cython.
 set(no_numpy_feature_tests TRUE)
