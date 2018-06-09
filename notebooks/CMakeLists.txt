@@ -1,15 +1,11 @@
-find_program(RUNIPY_PROGRAM runipy PATHS ${EXTERNAL_ROOT}/python)
-function(add_notebook_test filename)
-  string(REPLACE " " "_" name "${filename}")
-  configure_file("${filename}.ipynb" "${CMAKE_CURRENT_BINARY_DIR}/${name}.ipynb" COPYONLY)
-  add_test(
-    NAME notebook_${name}
-    COMMAND
-      ${LOCAL_PYTHON_EXECUTABLE} ${RUNIPY_PROGRAM}
-      "${CMAKE_CURRENT_BINARY_DIR}/${name}.ipynb"
-  )
-  set_tests_properties(notebook_${name} PROPERTIES LABELS "python;notebook")
-endfunction()
+file(COPY "Creating a Job Folder.ipynb"
+        "IPython high-throughput interface.ipynb"
+    DESTINATION "${PYTHON_BINARY_DIR}/pylada/notebooks")
+install(FILES "Creating a Job Folder.ipynb"
+        "IPython high-throughput interface.ipynb"
+    DESTINATION "${PYTHON_PKG_DIR}/pylada/crystal/notebooks/")
 
-add_notebook_test("Creating a Job Folder")
-add_notebook_test("IPython high-throughput interface")
+if(tests)
+    add_pytest(test_*.py INSTALL PREFIX "pylada.notebooks" FAKE_INIT LABELS
+        notebooks)
+endif(tests)

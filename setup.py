@@ -78,11 +78,7 @@ class Build(dBuild):
         current_dir = getcwd()
         cmake = cmake_executable()
 
-        try:
-            chdir(build_dir)
-            spawn([cmake, '--build', '.'])
-        finally:
-            chdir(current_dir)
+        spawn([cmake, '--build', build_dir])
 
     def cmake_build(self):
         build_dir = join(dirname(abspath(__file__)), self.build_base)
@@ -112,7 +108,7 @@ class Install(dInstall):
         try:
             chdir(build_dir)
             self.spawn([cmake, '-DPYTHON_PKG_DIR=\'%s\'' % pkg, '..'])
-            self.spawn([cmake, '--build', '.', '--target', 'install'])
+            self.spawn([cmake, '--build', build_dir, '--target', 'install'])
         finally:
             chdir(current_cwd)
 
@@ -210,7 +206,8 @@ try:
         version="1.0",
         install_requires=[
             'numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py',
-            'six', 'traitlets', 'f90nml>=1.0', 'pytest-bdd'
+            'six', 'traitlets', 'f90nml>=1.0', 'pytest-bdd', 'nbconvert',
+            'nbformat', 'jupyter_client', 'IPython'
         ],
         platforms=['GNU/Linux', 'Unix', 'Mac OS-X'],
         zip_safe=False,

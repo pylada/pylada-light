@@ -22,13 +22,15 @@ create_environment_script(
 
 if(tests)
     lookup_python_package(pytest)
-    lookup_python_package(runipy)
+    find_python_package(nbconvert)
+    find_python_package(nbformat)
     lookup_python_package(pytest_bdd PIPNAME pytest-bdd)
     # Not required per se but usefull for testing process
     find_python_package(mpi4py)
     find_program(MPIEXEC NAMES mpiexec mpirun)
 endif()
 
+find_python_package(IPython)
 find_python_package(numpy)
 find_python_package(quantities)
 find_python_package(f90nml)
@@ -36,6 +38,7 @@ find_python_package(six)
 find_python_package(traitlets)
 # only needed for build. So can install it locally in build dir.
 lookup_python_package(cython)
+find_program(cython_EXECUTABLE NAMES cython PATHS "${EXTERNAL_ROOT}/python")
 # Finds additional info, like libraries, include dirs...
 # no need check numpy features, it's all handled by cython.
 set(no_numpy_feature_tests TRUE)
