@@ -62,7 +62,7 @@ EOF
     chmod u+x build_$name/docker_script.sh
     docker run -it --rm -v $(pwd):/project -w $directory \
         --env "CC=$ccomp" --env "CXX=$cxxcomp" --cap-add SYS_PTRACE \
-        pylada:dnf ./docker_script.sh
+        mdavezac/pylada-light ./docker_script.sh
 }
 
 function build_pylada {
