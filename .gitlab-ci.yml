@@ -6,6 +6,7 @@ stages:
 .building: &building
   stage: build
   script:
+    - source ~/.bashrc
     - module load mpi
     - mkdir -p build && cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=$PYTHON_EXEC ..
