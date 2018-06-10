@@ -3,7 +3,9 @@ sudo: required
 services:
   - docker
 script:
-  - .travis/install_from_pip.sh
+  - docker pull mdavezac/pylada-light
+  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light python3 -m pip install -e .
+  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light python3 -c "from pylada import tests; test()"
 
 notifications:
   slack:
