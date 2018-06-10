@@ -6,6 +6,6 @@ install(FILES "Creating a Job Folder.ipynb"
     DESTINATION "${PYTHON_PKG_DIR}/pylada/crystal/notebooks/")
 
 if(tests)
-    add_pytest(test_*.py INSTALL PREFIX "pylada.notebooks" FAKE_INIT LABELS
+    add_pytest(test_*.py INSTALL PREFIX "pylada.notebooks" NO_FAKE_INIT LABELS
         notebooks)
 endif(tests)

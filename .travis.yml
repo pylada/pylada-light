@@ -4,6 +4,9 @@ services:
   - docker
 script:
   - docker pull mdavezac/pylada-light
+  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light source /etc/bashrc
+  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light .travis/install_from_pip.sh
+  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light .travis/install_from_pip.sh
   - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light .travis/install_from_pip.sh
 
 notifications:

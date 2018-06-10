@@ -207,7 +207,7 @@ try:
         install_requires=[
             'numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py',
             'six', 'traitlets', 'f90nml>=1.0', 'pytest-bdd', 'nbconvert',
-            'nbformat', 'jupyter_client', 'IPython'
+            'nbformat', 'ipykernel', 'IPython'
         ],
         platforms=['GNU/Linux', 'Unix', 'Mac OS-X'],
         zip_safe=False,
