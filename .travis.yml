@@ -4,8 +4,7 @@ services:
   - docker
 script:
   - docker pull mdavezac/pylada-light
-  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light python3 -m pip install -e .
-  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light python3 -c "from pylada import tests; test()"
+  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light .travis/install_from_pip.sh
 
 notifications:
   slack:
