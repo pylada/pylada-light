@@ -16,8 +16,6 @@ RUN microdnf install -y gcc gcc-c++ gcc-gfortran cmake make clang git \
         python3-nbconvert python3-nbformat python3-ipykernel python3-traitlets \
         python3-quantities python3-Cython
 
-RUN useradd -ms /bin/bash pylada
-USER pylada
-RUN echo "module load mpi" >> /home/pylada/.bashrc
+RUN echo "module load mpi" >> ~/.bashrc
 RUN python2 -m pip install --user f90nml && python3 -m pip install --user f90nml
 
