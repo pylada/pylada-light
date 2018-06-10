@@ -92,7 +92,7 @@ def primitive(structure, double tolerance=1e-8):
                 if i == k or j == k:
                     continue
                 trial = array([first, second, third]).T
-                if abs(det(trial) < 1e-12):
+                if abs(det(trial)) < abs(volume) * 1e-12:
                     continue
                 if abs(det(trial)) > volume - 3.0 * tolerance:
                     continue
@@ -117,6 +117,7 @@ def primitive(structure, double tolerance=1e-8):
 
     # now creates new lattice.
     result.clear()
+    logger.debug("Found potential cell {!r}".format(new_cell))
     result.cell = gruber(new_cell)
     invcell = inv(result.cell)
     for site in structure:

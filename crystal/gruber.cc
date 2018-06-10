@@ -49,7 +49,7 @@ struct Gruber {
       : cell(types::rMatrix3d::Zero()), tol(_tol), itermax(_itermax), nochange(0) {}
 
   types::rMatrix3d operator()(types::rMatrix3d const &_in) {
-    if(std::abs(_in.determinant()) < 1e-6)
+    if(std::abs(_in.determinant()) < 1e-13)
       throw std::runtime_error("Singular matrix");
     iterations = 0;
     cell = _in;

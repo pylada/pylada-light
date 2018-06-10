@@ -1,16 +1,10 @@
-language: cpp
-compiler:
-  - gcc
-before_install:
-  - .travis/setup.sh
+sudo: required
+
+services:
+  - docker
 script:
-  - mkdir build
-  - cd build
-  - CXX="g++-4.8" CC="gcc-4.8" cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
-  - make lookup_dependencies # eigen
-  - make
-  - ctest .. -V
-  - ../.travis/install_from_pip.sh
+  - docker pull mdavezac/pylada-light
+  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light .travis/install_from_pip.sh
 
 notifications:
   slack:

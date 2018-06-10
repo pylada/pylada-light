@@ -22,13 +22,15 @@ create_environment_script(
 
 if(tests)
     lookup_python_package(pytest)
-    lookup_python_package(runipy)
+    find_python_package(nbconvert)
+    find_python_package(nbformat)
     lookup_python_package(pytest_bdd PIPNAME pytest-bdd)
     # Not required per se but usefull for testing process
     find_python_package(mpi4py)
     find_program(MPIEXEC NAMES mpiexec mpirun)
 endif()
 
+find_python_package(IPython)
 find_python_package(numpy)
 find_python_package(quantities)
 find_python_package(f90nml)

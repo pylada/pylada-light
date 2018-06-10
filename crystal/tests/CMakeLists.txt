@@ -25,6 +25,8 @@
 
 if(tests)
     add_pytest(test_*.py INSTALL PREFIX "pylada.crystal" FAKE_INIT LABELS crystal)
-    file(COPY issue20.poscar DESTINATION "${PYTHON_BINARY_DIR}/pylada/crystal/tests")
-    install(FILES issue20.poscar DESTINATION "${PYTHON_PKG_DIR}/pylada/crystal/tests/")
+    file(COPY issue20.poscar not_singular_cell.poscar DESTINATION
+        "${PYTHON_BINARY_DIR}/pylada/crystal/tests")
+    install(FILES issue20.poscar not_singular_cell.poscar DESTINATION
+        "${PYTHON_PKG_DIR}/pylada/crystal/tests/")
 endif(tests)
