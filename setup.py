@@ -205,7 +205,7 @@ try:
         name="pylada",
         version="1.0",
         install_requires=[
-            'numpy', 'scipy', 'pytest', 'quantities', 'cython', 'mpi4py',
+            'numpy', 'scipy', 'pytest', 'quantities', 'cython',
             'six', 'traitlets', 'f90nml>=1.0', 'pytest-bdd', 'nbconvert',
             'nbformat', 'ipykernel', 'IPython'
         ],
