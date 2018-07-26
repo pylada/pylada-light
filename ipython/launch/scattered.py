@@ -47,7 +47,6 @@ def launch(self, event, jobfolders):
     from ... import pbs_string, default_pbs, qsub_exe, default_comm
     from . import get_walltime, get_mppalloc, get_queues, scattered_script
     from .. import logger
-    from ..magics import Pylada
 
     if not hasattr(pylada, 'ipython_qstat'):
         logger.warning("Missing ipython_qstat function: cannot check for jobs already in queue")
