@@ -340,7 +340,7 @@ def crystal(file='fort.34'):
     return result
 
 
-def icsd_cif_a(filename):
+def icsd_cif_a(filename, make_primitive=True):
     """ Reads lattice from the ICSD \*cif files.
 
         It will not work in the case of other \*cif.
@@ -351,6 +351,7 @@ def icsd_cif_a(filename):
     """
     from pylada import logger
     import re
+    from copy import deepcopy
     from os.path import basename
     from numpy.linalg import norm
     from numpy import array, transpose
@@ -564,7 +565,10 @@ def icsd_cif_a(filename):
 
     logger.info("crystal/read: icsd_cif_a: structure: %s" % structure)
 
-    prim = primitive(structure)
+    if make_primitive:
+        prim = primitive(structure)
+    else:
+        prim = deepcopy(structure)
     logger.info("crystal/read: icsd_cif_a: primitive structure: %s" % prim)
 
     return prim
