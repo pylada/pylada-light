@@ -64,6 +64,11 @@ def machine_dependent_call_modifier(formatter=None, comm=None, env=None):
 
         :return: ignored
     """
+    pass
+
+
+def machine_dependent_call_modifier_nodefiles(formatter=None, comm=None, env=None):
+    """ Version of machine_dependent_call_modifier that creates a nodefile """
     import logging
     from pylada import logger
     if len(getattr(comm, 'machines', [])) != 0:
@@ -284,7 +289,7 @@ python {scriptcommand}
 """ Default pbs/slurm script. """
 
 
-do_multiple_mpi_programs = True
+do_multiple_mpi_programs = False
 """ Whether to get address of host machines at start of calculation. """
 
 # Figure out machine hostnames for a particular job.
