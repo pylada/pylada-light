@@ -23,7 +23,17 @@
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 from pytest import fixture, mark
+
 from pylada.process.tests.fixtures import comm, executable, jobfolders
+
+
+@fixture
+def do_multiple_mpi_programs():
+    import pylada
+    old = pylada.do_multiple_mpi_programs
+    pylada.do_multiple_mpi_programs = True
+    yield True
+    pylada.do_multiple_mpi_programs = False
 
 
 @fixture
@@ -64,7 +74,7 @@ def test_cannot_poll_before_starting(program):
         program.wait()
 
 
-def test_cannot_start_twice(tmpdir, root, comm):
+def test_cannot_start_twice(tmpdir, root, comm, do_multiple_mpi_programs):
     from pytest import raises
     from pylada.process import AlreadyStarted
     program = jobfolder_process(tmpdir, root)
@@ -77,7 +87,7 @@ def test_cannot_start_twice(tmpdir, root, comm):
     program.kill()
 
 
-def test_completes(program, comm, tmpdir, root):
+def test_completes(program, comm, tmpdir, root, do_multiple_mpi_programs):
     from numpy import all, arange, abs, array
     from pylada.jobfolder.massextract import MassExtract
     from pylada.jobfolder import save
@@ -92,17 +102,20 @@ def test_completes(program, comm, tmpdir, root):
     order = array(list(extract.order.values())).flatten()
     assert all(arange(8) - order == 0)
     pi = array(list(extract.pi.values())).flatten()
-    expected = [0.0, 3.2, 3.162353, 3.150849, 3.146801, 3.144926, 3.143907,
-                3.143293]
+    expected = [
+        0.0, 3.2, 3.162353, 3.150849, 3.146801, 3.144926, 3.143907, 3.143293
+    ]
     assert all(abs(pi - array(expected)) < 1e-5)
     error = array(list(extract.error.values())).flatten()
-    expected = [3.141593, 0.05840735, 0.02076029, 0.009256556, 0.005207865,
-                0.00333321, 0.002314774, 0.001700664]
+    expected = [
+        3.141593, 0.05840735, 0.02076029, 0.009256556, 0.005207865, 0.00333321,
+        0.002314774, 0.001700664
+    ]
     assert all(abs(error - array(expected)) < 1e-5)
     assert all(n['n'] == comm['n'] for n in extract.comm)
 
 
-def test_restart(program, comm):
+def test_restart(program, comm, do_multiple_mpi_programs):
     program.start(comm)
     program.wait()
     assert program.poll()
@@ -113,7 +126,8 @@ def test_restart(program, comm):
 
 
 @mark.parametrize('Process', [jobfolder_process, pool_process])
-def test_failed_job_discovery(tmpdir, comm, root, executable, Process):
+def test_failed_job_discovery(tmpdir, comm, root, executable, Process,
+                              do_multiple_mpi_programs):
     """ Tests JobFolderProcess. Includes failure modes.  """
     from pytest import raises
     from pylada.process import Fail
@@ -134,7 +148,8 @@ def test_failed_job_discovery(tmpdir, comm, root, executable, Process):
 
 
 @mark.parametrize('Process', [jobfolder_process, pool_process])
-def test_restart_failed_job(tmpdir, comm, root, executable, Process):
+def test_restart_failed_job(tmpdir, comm, root, executable, Process,
+                            do_multiple_mpi_programs):
     from pytest import raises
     from pylada.process import Fail
     from pylada.process.tests.functional import Functional
@@ -156,7 +171,7 @@ def test_restart_failed_job(tmpdir, comm, root, executable, Process):
 
 
 @mark.parametrize('Process', [jobfolder_process, pool_process])
-def test_update(tmpdir, executable, comm, Process):
+def test_update(tmpdir, executable, comm, Process, do_multiple_mpi_programs):
     from copy import deepcopy
     from pylada.jobfolder.massextract import MassExtract
     from pylada.jobfolder import save
@@ -188,7 +203,8 @@ def test_update(tmpdir, executable, comm, Process):
 
 
 @mark.parametrize('Process', [jobfolder_process, pool_process])
-def test_update_with_deleteold(tmpdir, executable, comm, Process):
+def test_update_with_deleteold(tmpdir, executable, comm, Process,
+                               do_multiple_mpi_programs):
     # creates and start computing first set of jobs
     root = jobfolders(executable, 0, 3)
     program = Process(tmpdir, root, keepalive=True)
@@ -205,7 +221,8 @@ def test_update_with_deleteold(tmpdir, executable, comm, Process):
 
 
 @mark.parametrize('Process', [jobfolder_process, pool_process])
-def test_update_with_fail(tmpdir, executable, comm, Process):
+def test_update_with_fail(tmpdir, executable, comm, Process,
+                          do_multiple_mpi_programs):
     """ Tests JobFolderProcess with update and failure. """
     from pytest import raises
     from pylada.process import Fail
