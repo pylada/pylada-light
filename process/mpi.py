@@ -3,14 +3,14 @@
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
 #
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
+#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to
+#  submit large numbers of jobs on supercomputers. It provides a python interface to physical input,
+#  such as crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential
+#  programs. It is able to organise and launch computational jobs on PBS and SLURM.
 #
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
+#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU
+#  General Public License as published by the Free Software Foundation, either version 3 of the
+#  License, or (at your option) any later version.
 #
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
@@ -20,15 +20,15 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 
-from pylada.error import IOError, ValueError
+from .. import error
 
 
-class NodeFileExists(IOError):
+class NodeFileExists(error.IOError):
     """ Thrown when nodefile already exists. """
     pass
 
 
-class MPISizeError(ValueError):
+class MPISizeError(error.ValueError):
     """ Thrown when too few/many processes are requested. """
     pass
 
@@ -53,14 +53,14 @@ class Communicator(dict):
         self.machines = {}
         """ Holds map of machines this communicator can access. """
         self.parent = None
-        """ Reference to parent communicator from which machines are acquired. 
+        """ Reference to parent communicator from which machines are acquired.
 
             If None, then this should be :py:data:`pylada.default_comm`, eg the very
             first communicator setup at the start of the application.
         """
 
     def lend(self, nprocs):
-        """ Lend n processes from this communicator. 
+        """ Lend n processes from this communicator.
 
             After the call, this communicator will not have acccess to the machines
             lent to the returned communicator. They should be given back when
@@ -104,15 +104,14 @@ class Communicator(dict):
         return result
 
     def split(self, n=2):
-        """ Creates list of splitted Communicator. 
+        """ Creates list of splitted Communicator.
 
-            List of machines is also splitted. 
+            List of machines is also splitted.
         """
-        from pylada.error import ValueError
         if self._nodefile is not None:
             raise NodeFileExists("Comm already used in other process.")
         if n < 1:
-            raise ValueError("Cannot split communicator in less than two. ")
+            raise error.ValueError("Cannot split communicator in less than two. ")
         if n > self['n']:
             raise MPISizeError("Cannot split {0} processes "
                                "into {0} communicators.".format(self['n'], n))
@@ -120,7 +119,7 @@ class Communicator(dict):
         return [self.lend(N // n + (1 if i < N % n else 0)) for i in range(n)]
 
     def acquire(self, other, n=None):
-        """ Acquires the processes from another communicator. 
+        """ Acquires the processes from another communicator.
 
             Use at your risk... Family lines could become tangled, eg to which
             communicator will the processes return when self is destroyed? In
@@ -151,7 +150,7 @@ class Communicator(dict):
         other.cleanup()
 
     def nodefile(self, dir=None):
-        """ Returns name of temporary nodefile. 
+        """ Returns name of temporary nodefile.
 
             This file should be cleaned up once the mpi process is finished by
             calling :py:meth:`~Communicator.cleanup`. It is an error to call this
@@ -165,11 +164,13 @@ class Communicator(dict):
         if self._nodefile is not None:
             logger.debug('process/mpi.py: old nodefile: %s' % self._nodefile)
             raise NodeFileExists("Please call cleanup first.  nodefile: \"%s\""
-                                 % (self._nodefile,))
+                                 % (self._nodefile, ))
         if self['n'] == 0:
             raise MPISizeError("No processes in this communicator.")
 
-        with NamedTemporaryFile(dir=RelativePath(dir).path, delete=False, prefix='pylada_comm') as file:
+        with NamedTemporaryFile(
+                dir=RelativePath(dir).path, delete=False,
+                prefix='pylada_comm') as file:
             logger.debug('process/mpi.py: new nodefile: %s' % file.name)
             for machine, slots in self.machines.items():
                 if slots == 0:
@@ -214,7 +215,7 @@ class Communicator(dict):
                 pass
 
     def __getstate__(self):
-        """ Pickles a communicator. 
+        """ Pickles a communicator.
 
             Does not save parent.
         """
@@ -269,20 +270,28 @@ def create_global_comm(nprocs, dir=None):
         formatter = Communicator(n=nprocs).copy()
         formatter['program'] = executable + ' ' + filename
 
-        logger.debug("process.mpi: create_global_comm: formatter: %s" % formatter)
+        logger.debug(
+            "process.mpi: create_global_comm: formatter: %s" % formatter)
         logger.debug("process.mpi: filename: \"%s\"" % filename)
         logger.debug("===content:===\n%s===end===" % open(filename).read())
-        logger.debug("process.mpi: create_global_comm: mpirun_exe: %s "  % mpirun_exe)
+        logger.debug(
+            "process.mpi: create_global_comm: mpirun_exe: %s " % mpirun_exe)
         logger.debug("process.mpi: *** launch ***")
 
-        process = launch(mpirun_exe, stdout=PIPE, formatter=formatter,
-                         stderr=PIPE, env=environ)
+        process = launch(
+            mpirun_exe,
+            stdout=PIPE,
+            formatter=formatter,
+            stderr=PIPE,
+            env=environ)
         logger.debug("process.mpi: create_global_comm: process: %s" % process)
         logger.debug("process.mpi: *** start process.communicate ***")
 
         stdout, stderr = process.communicate()
-        logger.debug("process.mpi: === start stdout ===\n%s\n=== end ===" % stdout)
-        logger.debug("process.mpi: === start stderr ===\n%s\n=== end ===" % stderr)
+        logger.debug(
+            "process.mpi: === start stdout ===\n%s\n=== end ===" % stdout)
+        logger.debug(
+            "process.mpi: === start stderr ===\n%s\n=== end ===" % stderr)
         logger.debug("process.mpi: *** start process.communicate ***")
     finally:
         if filename is not None and exists(filename):
@@ -291,9 +300,12 @@ def create_global_comm(nprocs, dir=None):
             except:
                 pass
     # we use that to deduce the number of machines and processes per machine.
-    processes = [line.group(1) for line
-                 in finditer('PYLADA MACHINE HOSTNAME:\s*(\S*)', stdout)]
-    logger.debug("  process.mpi: create_global_comm: processes: %s" % processes)
+    processes = [
+        line.group(1)
+        for line in finditer(r'PYLADA MACHINE HOSTNAME:\s*(\S*)', stdout)
+    ]
+    logger.debug(
+        "  process.mpi: create_global_comm: processes: %s" % processes)
     logger.debug("process.mpi: nprocs: create_global_comm: %s" % nprocs)
     # sanity check.
     if nprocs != len(processes):
@@ -304,8 +316,8 @@ def create_global_comm(nprocs, dir=None):
                           'Standard output reads as follows:\n{0}\n'
                           'Standard error reads as follows:\n{1}\n'
                           'environment variables were set as follows:\n{2}\n'
-                          'following script was run:\n{3}\n'
-                          .format(stdout, stderr, envstring, script))
+                          'following script was run:\n{3}\n'.format(
+                              stdout, stderr, envstring, script))
     # now set up the default communicator.
     machines = set(processes)
     pylada.default_comm = Communicator(pylada.default_comm)
