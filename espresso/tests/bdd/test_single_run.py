@@ -1,22 +1,29 @@
-from pytest_bdd import scenarios, given, when, then, parsers
+import re
+
 import pytest
+from pytest_bdd import given, scenarios, then, when
 
 scenarios("features/single_run.feature")
 
 
-@given(parsers.parse("a pwscf object setup as follows\n{text}"))
-def pwscf(text):
-    from quantities import Ry
+@given("a simple pwscf object")
+def pwscf():
     from pylada.espresso import Pwscf
+    from quantities import Ry
     pwscf = Pwscf()
-    exec(text, globals(), {'pwscf': pwscf, 'Ry': Ry})
+    pwscf.system.ecutwfc = 12.0*Ry
+    pwscf.kpoints.subtitle = None
+    pwscf.kpoints.value = "2\n"\
+        "0.25 0.25 0.75 3.0\n"\
+        "0.25 0.25 0.25 1.0\n"
+    pwscf.add_specie('Al', 'Al.pz-vbc.UPF')
     return pwscf
 
 
-@given(parsers.parse("a fake pseudo '{filename}' in the working directory"))
-def pseudo_filename(tmpdir, filename):
-    tmpdir.join(filename).ensure(file=True)
-    return tmpdir.join(filename)
+@given("a fake pseudo 'Al.pz-vbc.UPF' in the working directory")
+def pseudo_filename(tmpdir):
+    tmpdir.join('Al.pz-vbc.UPF').ensure(file=True)
+    return tmpdir.join('Al.pz-vbc.UPF')
 
 
 @given("an aluminum structure")
@@ -91,11 +98,11 @@ def second_yield(passon):
     assert isinstance(extract, Extract)
 
 
-@then(parsers.parse("a valid {filename} exists"))
-def check_pwscf_input(tmpdir, filename, pwscf):
+@then("a valid pwscf.in exists")
+def check_pwscf_input(tmpdir, pwscf):
     from pylada.espresso import Pwscf
     actual = Pwscf()
-    actual.read(tmpdir.join(filename))
+    actual.read(tmpdir.join("pwscf.in"))
     assert abs(actual.system.ecutwfc - pwscf.system.ecutwfc) < 1e-8
     assert actual.kpoints.subtitle == pwscf.kpoints.subtitle
     assert actual.kpoints.value.rstrip().lstrip() == pwscf.kpoints.value.rstrip().lstrip()
@@ -107,24 +114,24 @@ def unsuccessfull_run(passon):
     assert extract.success == False
 
 
-@then(parsers.parse("the marker file '{filename}' exists"))
-def check_marker_file(tmpdir, filename):
-    assert tmpdir.join(filename).check(file=True)
+@then("the marker file .pylada_is_running exists")
+def check_marker_file(tmpdir):
+    assert tmpdir.join('.pylada_is_running').check(file=True)
 
 
-@then(parsers.parse("the output file '{filename}' exists"))
-def check_output_file(tmpdir, filename):
-    assert tmpdir.join(filename).check(file=True)
+@then('the output file pwscf.out exists')
+def check_output_file(tmpdir):
+    assert tmpdir.join("pwscf.out").check(file=True)
 
 
-@then(parsers.parse("the error file '{filename}' exists"))
-def check_error_file(tmpdir, filename):
-    assert tmpdir.join(filename).check(file=True)
+@then('the output file pwscf.err exists')
+def check_err_file(tmpdir):
+    assert tmpdir.join("pwscf.err").check(file=True)
 
 
-@then(parsers.parse("the marker file '{filename}' has been removed"))
-def check_marker_file_disappeared(tmpdir, filename):
-    assert tmpdir.join(filename).check(file=False)
+@then("the marker file .pylada_is_running has been removed")
+def check_marker_file_disappeared(tmpdir):
+    assert tmpdir.join(".pylada_is_running").check(file=False)
 
 
 @then("the run is successful")

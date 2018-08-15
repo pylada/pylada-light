@@ -1,5 +1,5 @@
-from pytest_bdd import scenarios, given, when, then, parsers
 import pytest
+from pytest_bdd import given, scenarios, then, when
 
 scenarios("features/writing_input.feature")
 
@@ -10,46 +10,45 @@ def empty_pwscf():
     return Pwscf()
 
 
-@given(parsers.parse("mandatory attribute pwscf.system.ecutwfc is set to {value:f} {units:S}"))
-def set_ecutwfc(empty_pwscf, value, units):
+@given("mandatory attribute pwscf.system.ecutwfc is set to 14.0 Ry")
+def set_ecutwfc(empty_pwscf):
     import quantities
-    empty_pwscf.system.ecutwfc = value * getattr(quantities, units)
+    empty_pwscf.system.ecutwfc = 14.0 * quantities.Ry
 
 
-@given(parsers.parse("pwscf.{namelist:w}.{attribute:w} is set to {value:f}"))
-def set_an_attribute0(empty_pwscf, namelist, attribute, value):
-    # equivalent to pwscf.namelist.attribute = value
-    # with namelist and attribute replaced by their values
-    setattr(getattr(empty_pwscf, namelist), attribute, value)
+@given("pwscf.electrons.whawha is set to 1.5")
+def set_an_attribute0(empty_pwscf):
+    setattr(getattr(empty_pwscf, "electrons"), "whawha", 1.5)
 
 
-@when(parsers.parse("writing to {filename:S} without specifying a structure"))
-def writing_no_structure(empty_pwscf, tmpdir, filename):
-    empty_pwscf.write(tmpdir.join(filename))
+@when("writing to pwscf.in without specifying a structure")
+def writing_no_structure(empty_pwscf, tmpdir):
+    empty_pwscf.write(tmpdir.join("pwscf.in"))
 
 
-@then(parsers.parse("the file {filename:S} appears and can be read"))
-def read_pwscf(tmpdir, filename):
+@then("the file pwscf.in appears and can be read")
+def read_pwscf(tmpdir):
     from pylada.espresso import Pwscf
-    assert tmpdir.join(filename).check(file=True)
+    assert tmpdir.join("pwscf.in").check(file=True)
     result = Pwscf()
-    result.read(tmpdir.join(filename))
+    result.read(tmpdir.join("pwscf.in"))
     return result
+
 
 pwscf_out = pytest.fixture(read_pwscf)
 
 
-@then(parsers.parse("pwscf.{namelist:w}.{attribute:w} is equal to {value:f}"))
-def check_float_attribute_exists(pwscf_out, namelist, attribute, value):
+@then("pwscf.electrons.whawha is equal to 1.5")
+def check_float_attribute_exists(pwscf_out):
     from numpy import abs
-    assert hasattr(getattr(pwscf_out, namelist), attribute)
-    actual = float(getattr(getattr(pwscf_out, namelist), attribute))
-    assert abs(actual - value) < 1e-12
+    assert hasattr(getattr(pwscf_out, "electrons"), "whawha")
+    actual = float(getattr(getattr(pwscf_out, "electrons"), "whawha"))
+    assert abs(actual - 1.5) < 1e-12
 
 
-@then(parsers.parse("wavefunction cutoff is equal to {value:f} {units:S}"))
-def check_ecutwfc(pwscf_out, value, units):
+@then("wavefunction cutoff is equal to 14.0 Ry")
+def check_ecutwfc(pwscf_out):
     import quantities
     from numpy import allclose
-    assert pwscf_out.system.ecutwfc.units == getattr(quantities, units)
-    assert allclose(float(pwscf_out.system.ecutwfc), value)
+    assert pwscf_out.system.ecutwfc.units == quantities.Ry
+    assert allclose(float(pwscf_out.system.ecutwfc), 14.0)

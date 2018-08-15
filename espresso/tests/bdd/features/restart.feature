@@ -4,15 +4,7 @@ Feature: run with restart
    copied over from one pwscf run to another.
 
 Background:
-    Given a pwscf object setup as follows
-        pwscf.system.ecutwfc = 12.0*Ry
-        pwscf.kpoints.subtitle = None
-        pwscf.kpoints.value = "2\n"\
-            "0.25 0.25 0.75 3.0\n"\
-            "0.25 0.25 0.25 1.0\n"
-        pwscf.control.calculation = 'vc-relax'
-        pwscf.cell.factor = 2.0
-        pwscf.add_specie('Si', 'Si.pz-vbc.UPF')
+    Given a simple pwscf object
     And a distorted diamond structure
 
 

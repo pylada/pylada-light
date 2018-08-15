@@ -1,7 +1,5 @@
-from pytest_bdd import scenarios, given, when, then, parsers
 import pytest
-
-scenarios("features/restart.feature")
+from pytest_bdd import given, scenarios, then, when
 
 
 @pytest.fixture
@@ -10,10 +8,20 @@ def passon():
     return []
 
 
-@given(parsers.parse("a pwscf object setup as follows\n{text}"))
-def pwscf(text):
-    from pylada.espresso.tests.bdd.test_single_run import pwscf
-    return pwscf(text)
+@given("a simple pwscf object")
+def pwscf():
+    from pylada.espresso import Pwscf
+    from quantities import Ry
+    pwscf = Pwscf()
+    pwscf.system.ecutwfc = 12.0*Ry
+    pwscf.kpoints.subtitle = None
+    pwscf.kpoints.value = "2\n"\
+        "0.25 0.25 0.75 3.0\n"\
+        "0.25 0.25 0.25 1.0\n"
+    pwscf.control.calculation = 'vc-relax'
+    pwscf.cell.factor = 2.0
+    pwscf.add_specie('Si', 'Si.pz-vbc.UPF')
+    return pwscf
 
 
 @given("a distorted diamond structure")
@@ -32,7 +40,8 @@ def extract(tmpdir, distorted_diamond, pwscf):
     src = data_path("restarted", "first")
     tmpdir.join("first", "Si.pz-vbc.UPF").ensure(file=True)
     print("WTF", src)
-    program = copyoutput(tmpdir.join("first_copy.py"), src, tmpdir.join("first"))
+    program = copyoutput(
+        tmpdir.join("first_copy.py"), src, tmpdir.join("first"))
     return pwscf(distorted_diamond, tmpdir.join("first"), program=str(program))
 
 
@@ -42,7 +51,8 @@ def iter_second_call(tmpdir, extract, pwscf, distorted_diamond):
     assert extract.output_path == tmpdir.join("first", "pwscf.out")
     assert extract.success
     from six import next
-    iterator = pwscf.iter(distorted_diamond, tmpdir.join("second"), restart=extract)
+    iterator = pwscf.iter(
+        distorted_diamond, tmpdir.join("second"), restart=extract)
     next(iterator)
 
 
@@ -55,9 +65,14 @@ def run_second(tmpdir, extract, pwscf, distorted_diamond, passon):
     pwscf.control.calculation = None
     src = data_path("restarted", "second")
     tmpdir.join("second", "Si.pz-vbc.UPF").ensure(file=True)
-    program = copyoutput(tmpdir.join("second_copy.py"), src, tmpdir.join("second"))
-    passon.append(pwscf(distorted_diamond, tmpdir.join("second"), restart=extract,
-                        program=str(program)))
+    program = copyoutput(
+        tmpdir.join("second_copy.py"), src, tmpdir.join("second"))
+    passon.append(
+        pwscf(
+            distorted_diamond,
+            tmpdir.join("second"),
+            restart=extract,
+            program=str(program)))
 
 
 @then("the structure on input is the output of the first call")
@@ -115,3 +130,6 @@ def check_start_from_wfcn(tmpdir):
 def check_restarted_from_wfc(passon):
     extract = passon[-1]
     assert extract.started_from_wavefunctions_file
+
+
+scenarios("features/restart.feature")

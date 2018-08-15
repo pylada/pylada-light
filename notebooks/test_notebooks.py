@@ -16,4 +16,4 @@ def test_notebooks(tmpdir, filename):
         notebook = read(notebook_file, as_version=4)
     preprocessor = ExecutePreprocessor(kernel_name='python%i' %
                                        version_info.major)
-    preprocessor.preprocess(notebook, {'metada': {'path': str(tmpdir)}})
+    preprocessor.preprocess(notebook, {'metadata': {'path': str(tmpdir)}})
