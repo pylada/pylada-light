@@ -1,3 +1,4 @@
+"""Calls an external process"""
 ###############################
 #  This file is part of PyLaDa.
 #
@@ -35,17 +36,22 @@ class CallProcess(Process):
         .. _pickles: http://docs.python.org/library/pickle.html
     """
 
-    def __init__(self, functional, outdir, stdout=None, stderr=None,
-                 maxtrials=1, dompi=False, **kwargs):
+    def __init__(self,
+                 functional,
+                 outdir,
+                 stdout=None,
+                 stderr=None,
+                 maxtrials=1,
+                 dompi=False,
+                 **kwargs):
         """ Initializes a process.
 
             :param functional:
               A python callable. It should also be pickle-able.
-            :param str outdir: 
+            :param str outdir:
               Path where the python child process should be executed.
             :param str stdout:
-              Optional path to an output file where the callable's output shall be
-              streamed.
+              Optional path to an output file where the callable's output shall be streamed.
             :param str stderr:
               Optional path to an error file where the callable's errors shall be
               streamed.
@@ -54,7 +60,7 @@ class CallProcess(Process):
               process.
             :param int maxtrials:
               Maximum number of times to try re-launching each process upon
-              failure. 
+              failure.
             :param kwargs:
               Keyword arguments to the callables should be given here, as keyword
               arguments to :py:class:`CallProcess`.
@@ -63,10 +69,6 @@ class CallProcess(Process):
         super(CallProcess, self).__init__(maxtrials=maxtrials)
         self.functional = functional
         """ Functional to execute. """
-        try:
-            self.functional = self.functional
-        except:
-            pass
         self.outdir = RelativePath(outdir)
         """ Execution directory of the folder. """
         self.outdir = RelativePath(outdir).path
@@ -122,7 +124,9 @@ class CallProcess(Process):
         from ..misc import local_path
         # creates temp input script.
         local_path(self.outdir).ensure(dir=True)
-        with NamedTemporaryFile(dir=self.outdir, suffix='.py', delete=False, mode='w') as stdin:
+        with NamedTemporaryFile(
+                dir=self.outdir, suffix='.py', delete=False,
+                mode='w') as stdin:
             if self.dompi:
                 params = self.params
                 stdin.write("from sys import path\n"
@@ -131,8 +135,8 @@ class CallProcess(Process):
                             "from pickle import loads\n"
                             "params, functional = loads({1!r})\n\n"
                             "params['comm'] = MPI.COMM_WORLD\n"
-                            "functional(**params)\n"
-                            .format(pypath, dumps((params, self.functional))))
+                            "functional(**params)\n".format(
+                                pypath, dumps((params, self.functional))))
             else:
                 params = {'comm': self._comm}
                 params.update(self.params)
@@ -140,16 +144,20 @@ class CallProcess(Process):
                             "path[:] = {0!r}\n\n"
                             "from pickle import loads\n"
                             "params, functional = loads({1!r})\n\n"
-                            "functional(**params)\n"
-                            .format(pypath, dumps((params, self.functional))))
+                            "functional(**params)\n".format(
+                                pypath, dumps((params, self.functional))))
             self._stdin = stdin.name
 
         # now create process. maxtrials is one if Extract exists, so that we can
         # check success using that instead.
-        self.process = ProgramProcess(executable, cmdline=[self._stdin],
-                                      outdir=self.outdir, stdout=self.stdout,
-                                      stderr=self.stderr, maxtrials=1,
-                                      dompi=self.dompi)
+        self.process = ProgramProcess(
+            executable,
+            cmdline=[self._stdin],
+            outdir=self.outdir,
+            stdout=self.stdout,
+            stderr=self.stderr,
+            maxtrials=1,
+            dompi=self.dompi)
         self.process.start(comm=self._comm.lend('all') if self.dompi else None)
         return False
 
