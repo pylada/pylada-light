@@ -51,13 +51,16 @@ def transform(structure, rotation, translation=None):
 
 
 def specieset(structure):
-    """ Returns ordered set of species.
+    """ Returns set of species (without repetitions) in the original order
 
-        Especially usefull with VASP since we are sure what the list of species
+        Especially usefull with VASP since we are sure that the list of species
         is always ordered the same way.
     """
-    return sorted({a.type for a in structure})
+    l = [a.type for a in structure]
 
+    seen = set()
+
+    return [x for x in l if not (x in seen or seen.add(x))] 
 
 def vasp_ordered(structure, site=False):
     """ Returns a structure with correct VASP order of ions.
