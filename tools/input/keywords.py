@@ -138,7 +138,7 @@ class ValueKeyword(BaseKeyword):
     @property
     def raw(self):
         """ Returns raw value for CRYSTAL input. """
-        from collections import Iterable
+        from collections.abc import Iterable
         if self.value == None:
             return ''  # otherwise, fails to find attribute.
         if isinstance(self.value, str):
