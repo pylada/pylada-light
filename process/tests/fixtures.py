@@ -23,7 +23,19 @@
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-from pytest import fixture
+from pytest import fixture, mark
+
+
+def has_mpi4py():
+    try:
+        import mpi4py
+        return True
+    except ImportError:
+        return False
+
+
+mpi4py_required = mark.skipif(
+    not has_mpi4py(), reason="mpi4py is not installed.")
 
 
 @fixture
@@ -49,5 +61,4 @@ def jobfolders(executable, start=0, end=8):
         job = root / str(n)
         job.functional = Functional(executable, [n])
         job.params['sleep'] = 0.01
-
     return root

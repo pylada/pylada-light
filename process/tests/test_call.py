@@ -22,11 +22,15 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from pylada.process.tests.fixtures import executable, comm
+from pylada.process.tests.fixtures import comm, executable, mpi4py_required
 
 
+@mpi4py_required
 def test_process_functional(executable, comm, tmpdir):
-    """ Tests CallProcess. Includes failure modes.  """
+    """Tests CallProcess.
+
+    Includes failure modes.
+    """
     from pytest import raises
     from numpy import all, arange, abs, array
     from pylada.process.call import CallProcess
@@ -50,11 +54,14 @@ def test_process_functional(executable, comm, tmpdir):
     extract = functional.Extract(str(tmpdir))
     assert extract.success
     assert all(arange(8) - extract.order == 0)
-    expected = [0.0, 3.2, 3.162353, 3.150849, 3.146801, 3.144926, 3.143907,
-                3.143293]
+    expected = [
+        0.0, 3.2, 3.162353, 3.150849, 3.146801, 3.144926, 3.143907, 3.143293
+    ]
     assert all(abs(extract.pi - array(expected)) < 1e-5)
-    expected = [3.141593, 0.05840735, 0.02076029, 0.009256556, 0.005207865,
-                0.00333321, 0.002314774, 0.001700664]
+    expected = [
+        3.141593, 0.05840735, 0.02076029, 0.009256556, 0.005207865, 0.00333321,
+        0.002314774, 0.001700664
+    ]
     assert all(abs(extract.error - array(expected)) < 1e-5)
     assert all(n['n'] == comm['n'] for n in extract.comm)
     # restart
@@ -68,14 +75,18 @@ def test_process_functional(executable, comm, tmpdir):
     extract = functional.Extract(str(tmpdir))
     assert extract.success
     assert all(arange(8) - extract.order == 0)
-    expected = [0.0, 3.2, 3.162353, 3.150849, 3.146801, 3.144926, 3.143907,
-                3.143293]
+    expected = [
+        0.0, 3.2, 3.162353, 3.150849, 3.146801, 3.144926, 3.143907, 3.143293
+    ]
     assert all(abs(extract.pi - array(expected)) < 1e-5)
-    expected = [3.141593, 0.05840735, 0.02076029, 0.009256556, 0.005207865,
-                0.00333321, 0.002314774, 0.001700664]
+    expected = [
+        3.141593, 0.05840735, 0.02076029, 0.009256556, 0.005207865, 0.00333321,
+        0.002314774, 0.001700664
+    ]
     assert all(abs(extract.error - array(expected)) < 1e-5)
 
 
+@mpi4py_required
 def test_fail_midway(executable, tmpdir, comm):
     from pytest import raises
     from pylada.process.call import CallProcess
@@ -83,13 +94,17 @@ def test_fail_midway(executable, tmpdir, comm):
     from pylada.process.tests.functional import Functional
 
     functional = Functional(executable, [50], fail='midway')
-    program = CallProcess(functional, outdir=str(tmpdir),
-                          stderr=str(tmpdir.join('error')), dompi=False)
+    program = CallProcess(
+        functional,
+        outdir=str(tmpdir),
+        stderr=str(tmpdir.join('error')),
+        dompi=False)
     with raises(Fail):
         program.start(comm)
         program.wait()
 
 
+@mpi4py_required
 def test_full_execution(executable, tmpdir, comm):
     from pylada.process.call import CallProcess
     from pylada.process.tests.functional import Functional

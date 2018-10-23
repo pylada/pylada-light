@@ -22,9 +22,11 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from pylada.process.tests.fixtures import executable, jobfolders
-from pytest import mark, fixture
+from pytest import fixture, mark
+
 from pylada.process.pool import PoolProcess
+from pylada.process.tests.fixtures import (executable, jobfolders,
+                                           mpi4py_required,)
 
 
 @fixture
@@ -36,13 +38,14 @@ def comm():
 
 
 def processalloc(job):
-    """ returns a random number between 1 and 4 included. """
+    """returns a random number between 1 and 4 included."""
     from random import randint
     return randint(1, 4)
 
 
+@mpi4py_required
 def test_failures(tmpdir, executable, comm):
-    """ Tests whether scheduling jobs works on known failure cases. """
+    """Tests whether scheduling jobs works on known failure cases."""
     from pylada import default_comm
     from pylada.process.tests.functional import Functional
     root = jobfolders(executable, 0, 8)
@@ -51,8 +54,8 @@ def test_failures(tmpdir, executable, comm):
         d = {'1': 1, '0': 3, '3': 3, '2': 3, '5': 3, '4': 2, '7': 2, '6': 1}
         return d[job.name[1:-1]]
 
-    program = PoolProcess(root, processalloc=processalloc_test1,
-                          outdir=str(tmpdir))
+    program = PoolProcess(
+        root, processalloc=processalloc_test1, outdir=str(tmpdir))
     program._comm = comm
     for i in range(10000):
         jobs = program._getjobs()
@@ -60,18 +63,20 @@ def test_failures(tmpdir, executable, comm):
             (jobs, [program._alloc[u] for u in jobs])
 
 
+@mpi4py_required
 @mark.parametrize('nprocs, njobs', [(8, 20), (16, 20)])
 def test_getjobs(comm, tmpdir, executable, nprocs, njobs):
-    """ Test scheduling. """
+    """Test scheduling."""
     root = jobfolders(executable, 0, 8)
 
     def processalloc(job):
-        """ returns a random number between 1 and 4 included. """
+        """returns a random number between 1 and 4 included."""
         from random import randint
         return randint(1, comm['n'])
 
     for j in range(100):
-        program = PoolProcess(root, processalloc=processalloc, outdir=str(tmpdir))
+        program = PoolProcess(
+            root, processalloc=processalloc, outdir=str(tmpdir))
         program._comm = comm
         for i in range(1000):
             jobs = program._getjobs()

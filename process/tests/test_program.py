@@ -22,9 +22,10 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from pylada.process.tests.fixtures import comm, executable
+from pylada.process.tests.fixtures import comm, executable, mpi4py_required
 
 
+@mpi4py_required
 def test_program(tmpdir, comm, executable):
     """ Tests ProgramProcess. Includes failure modes.  """
     from pytest import raises
@@ -34,10 +35,11 @@ def test_program(tmpdir, comm, executable):
 
     stdout = str(tmpdir.join('stdout'))
     program = ProgramProcess(
-        executable, outdir=str(tmpdir),
+        executable,
+        outdir=str(tmpdir),
         cmdline=['--sleep', 0, '--order', 4],
-        stdout=stdout, dompi=True
-    )
+        stdout=stdout,
+        dompi=True)
     # program not started. should fail.
     with raises(NotStarted):
         program.poll()
@@ -61,6 +63,7 @@ def test_program(tmpdir, comm, executable):
     assert program.process is None
 
 
+@mpi4py_required
 def test_fail_on_poll_midway(tmpdir, comm, executable):
     """ Tests ProgramProcess. Includes failure modes.  """
     from pytest import raises
@@ -69,16 +72,19 @@ def test_fail_on_poll_midway(tmpdir, comm, executable):
 
     stdout = str(tmpdir.join('stdout'))
     program = ProgramProcess(
-        executable, outdir=str(tmpdir), stderr=str(tmpdir.join('OMG')),
+        executable,
+        outdir=str(tmpdir),
+        stderr=str(tmpdir.join('OMG')),
         cmdline=['--sleep', 0, '--order', 50, '--fail-mid-call'],
-        stdout=stdout, dompi=True
-    )
+        stdout=stdout,
+        dompi=True)
     with raises(Fail):
         program.start(comm)
         while not program.poll():
             continue
 
 
+@mpi4py_required
 def test_fail_on_poll_midway(tmpdir, comm, executable):
     """ Tests ProgramProcess. Includes failure modes.  """
     from pytest import raises
@@ -87,39 +93,47 @@ def test_fail_on_poll_midway(tmpdir, comm, executable):
 
     stdout = str(tmpdir.join('stdout'))
     program = ProgramProcess(
-        executable, outdir=str(tmpdir), stderr=str(tmpdir.join('OMG')),
+        executable,
+        outdir=str(tmpdir),
+        stderr=str(tmpdir.join('OMG')),
         cmdline=['--sleep', 0, '--order', 50, '--fail-mid-call'],
-        stdout=stdout, dompi=True
-    )
+        stdout=stdout,
+        dompi=True)
     with raises(Fail):
         program.start(comm)
         program.wait()
 
 
+@mpi4py_required
 def test_fail_at_end(executable, tmpdir, comm):
     from pytest import raises
     from pylada.process.program import ProgramProcess
     from pylada.process import Fail
     stdout = str(tmpdir.join('stdout'))
     program = ProgramProcess(
-        executable, outdir=str(tmpdir), stderr=str(tmpdir.join('OMG')),
+        executable,
+        outdir=str(tmpdir),
+        stderr=str(tmpdir.join('OMG')),
         cmdline=['--sleep', 0, '--order', 50, '--fail-at-end'],
-        stdout=stdout, dompi=True
-    )
+        stdout=stdout,
+        dompi=True)
     with raises(Fail):
         program.start(comm)
         program.wait()
 
 
+@mpi4py_required
 def test_full_execution(executable, tmpdir, comm):
     from pylada.process.program import ProgramProcess
     from pylada.process import Fail
     stdout = str(tmpdir.join('stdout'))
     program = ProgramProcess(
-        executable, outdir=str(tmpdir), stderr=str(tmpdir.join('OMG')),
+        executable,
+        outdir=str(tmpdir),
+        stderr=str(tmpdir.join('OMG')),
         cmdline=['--sleep', 0, '--order', 50],
-        stdout=stdout, dompi=True
-    )
+        stdout=stdout,
+        dompi=True)
     program.start(comm)
     program.wait()
     assert True
