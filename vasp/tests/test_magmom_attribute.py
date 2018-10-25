@@ -78,7 +78,7 @@ def test_computed_magmom(vasp, structure):
     vasp.magmom = True
     assert 'MAGMOM' in vasp._input['magmom'].output_map(vasp=vasp, structure=structure)
     actual = vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM']
-    assert actual == '2*0.0 4*-1.0 8*0.0'
+    assert actual == '4*-1.0 2*0.0 8*0.0'
 
 
 def test_magmom_from_string(vasp, structure):
@@ -114,4 +114,4 @@ def test_complex_magmom(vasp, structure):
     vasp.magmom = True
     assert 'MAGMOM' in vasp._input['magmom'].output_map(vasp=vasp, structure=structure)
     actual = vasp._input['magmom'].output_map(vasp=vasp, structure=structure)['MAGMOM']
-    assert actual == '2*0.0 1.0 -1.0 2*1.0 8*0.0'
+    assert actual == '1.0 -1.0 2*1.0 2*0.0 8*0.0'
