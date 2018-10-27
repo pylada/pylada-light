@@ -1,4 +1,4 @@
-image: registry.gitlab.com/mdavezac/pylada-light
+image: docker.io/mdavezac/pylada-light
 stages:
   - build
   - test
@@ -6,7 +6,7 @@ stages:
 .building: &building
   stage: build
   script:
-    - source ~/.bashrc
+    - source /etc/bashrc
     - module load mpi
     - mkdir -p build && cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=$PYTHON_EXEC ..
@@ -20,7 +20,7 @@ stages:
 .testing: &testing
   stage: test
   script:
-    - source ~/.bashrc
+    - source /etc/bashrc
     - module load mpi
     - cd build
     - ctest -V .
