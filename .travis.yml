@@ -9,8 +9,6 @@ script:
   - sudo docker exec -t pyla bash -lc "python3 -m pytest pkg_install/pylada"
   - sudo docker exec -t pyla bash -lc "cd build; cmake -Dtests=ON .; make"
   - sudo docker exec -t pyla bash -lc "cd build; ctest . -LE python"
-  - sudo docker constainer stop pyla
-  - sudo docker constainer rm pyla
 
 notifications:
   slack:
