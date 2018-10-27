@@ -138,7 +138,7 @@ class ValueKeyword(BaseKeyword):
     @property
     def raw(self):
         """ Returns raw value for CRYSTAL input. """
-        from collections import Iterable
+        from collections.abc import Iterable
         if self.value == None:
             return ''  # otherwise, fails to find attribute.
         if isinstance(self.value, str):
@@ -200,11 +200,11 @@ class ValueKeyword(BaseKeyword):
         return '{0.__class__.__name__}({1})'.format(self, ', '.join(args))
 
     def _addrepr_args(self):
-        from inspect import getargspec
+        from inspect import getfullargspec
         args = []
         if 'keyword' in self.__dict__:
             args.append('keyword={0.keyword!r}'.format(self))
-        iargs = getargspec(self.__class__.__init__)
+        iargs = getfullargspec(self.__class__.__init__)
         doaddval = False
         if iargs.args is None or 'value' not in iargs.args:
             doaddval = True
@@ -556,11 +556,11 @@ class ChoiceKeyword(BaseKeyword):
         return {self.keyword: str(self.value)}
 
     def _addrepr_args(self):
-        from inspect import getargspec
+        from inspect import getfullargspec
         args = []
         if 'keyword' in self.__dict__:
             args.append('keyword={0.keyword!r}'.format(self))
-        iargs = getargspec(self.__class__.__init__)
+        iargs = getfullargspec(self.__class__.__init__)
         doaddval = False
         if iargs.args is None or 'value' not in iargs.args:
             doaddval = True

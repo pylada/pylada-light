@@ -296,8 +296,8 @@ def _create_elements_py(filename="_elements.py"):
     orbital_radii = _orbital_radii()
     pettifor_numbers = _pettifor_numbers()
 
-    re_swf = re.compile("(rainbow|NI3|volcano|\_flash|K\_H2O).swf\s*(?!\")")
-    re_atomweight = re.compile(":\s*\[?\s*(\d+(?:\.\d+)?)\s*\]?")
+    re_swf = re.compile(r"(rainbow|NI3|volcano|\_flash|K\_H2O).swf\s*(?!\")")
+    re_atomweight = re.compile(r":\s*\[?\s*(\d+(?:\.\d+)?)\s*\]?")
     results = {}
     for name in atom_list:
 
@@ -336,7 +336,7 @@ def _create_elements_py(filename="_elements.py"):
                 string = file.read()
         soup = BeautifulSoup(string)
         # electron affinity
-        found = re.search("of\s+{0}\s+is\s+(\S+)".format(name.lower()), string)
+        found = re.search(r"of\s+{0}\s+is\s+(\S+)".format(name.lower()), string)
         if found.group(1) == "no":
             atom.electron_affinity = None
         else:
@@ -453,19 +453,19 @@ def _create_elements_py(filename="_elements.py"):
 
         attrs = {"href": "../periodicity/enthalpy_fusion/"}
         fusion = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        fusion = re.search(":\s*(?:about)?\s*(\S+)", fusion)
+        fusion = re.search(r":\s*(?:about)?\s*(\S+)", fusion)
         if fusion is not None and fusion.group(1) != "no":
             atom.fusion = float(fusion.group(1)) * pq.kilo * pq.J / pq.mol
 
         attrs = {"href": "../periodicity/enthalpy_vaporisation/"}
         vaporization = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        vaporization = re.search(":\s*(?:about)?\s*(\S+)", vaporization)
+        vaporization = re.search(r":\s*(?:about)?\s*(\S+)", vaporization)
         if vaporization is not None and vaporization.group(1) != "no":
             atom.vaporization = float(vaporization.group(1)) * pq.kilo * pq.J / pq.mol
 
         attrs = {"href": "../periodicity/enthalpy_atomisation/"}
         atomization = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        atomization = re.search(":\s*(?:about)?\s*(\S+)", atomization)
+        atomization = re.search(r":\s*(?:about)?\s*(\S+)", atomization)
         if atomization is not None and atomization.group(1) != "no":
             atom.atomization = float(atomization.group(1)) * pq.kilo * pq.J / pq.mol
 
@@ -482,80 +482,80 @@ def _create_elements_py(filename="_elements.py"):
 
         attrs = {"href": "../periodicity/melting_point/"}
         melting_point = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        melting_point = re.search(":\s*(?:\(white P\)|about|maybe about)?\s*(\S+)", melting_point)
+        melting_point = re.search(r":\s*(?:\(white P\)|about|maybe about)?\s*(\S+)", melting_point)
         if melting_point is not None and melting_point.group(1) != "no":
             atom.melting_point = float(melting_point.group(1)) * pq.Kelvin
 
         attrs = {"href": "../periodicity/boiling_point/"}
         boiling_point = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        boiling_point = re.search(":\s*(?:about)?\s*(\S+)", boiling_point)
+        boiling_point = re.search(r":\s*(?:about)?\s*(\S+)", boiling_point)
         if boiling_point is not None and boiling_point.group(1) != "no":
             atom.boiling_point = float(boiling_point.group(1)) * pq.Kelvin
 
         attrs = {"href": "../periodicity/critical_temperature/"}
         critical_temperature = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        critical_temperature = re.search(":\s*(?:about)?\s*(\S+)", critical_temperature)
+        critical_temperature = re.search(r":\s*(?:about)?\s*(\S+)", critical_temperature)
         if critical_temperature is not None and critical_temperature.group(1) != "no":
             atom.critical_temperature = float(critical_temperature.group(1)) * pq.Kelvin
 
         attrs = {"href": "../periodicity/thermal_conductivity/"}
         thermal_conductivity = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        thermal_conductivity = re.search(":\s*(?:about)?\s*(\S+)", thermal_conductivity)
+        thermal_conductivity = re.search(r":\s*(?:about)?\s*(\S+)", thermal_conductivity)
         if thermal_conductivity is not None and thermal_conductivity.group(1) != "no":
             atom.thermal_conductivity = float(thermal_conductivity.group(1)) * pq.W / pq.m / pq.K
 
         attrs = {"href": "../periodicity/coeff_thermal_expansion/"}
         thermal_expansion = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        thermal_expansion = re.search(":\s*(?:about)?\s*(\S+)", thermal_expansion)
+        thermal_expansion = re.search(r":\s*(?:about)?\s*(\S+)", thermal_expansion)
         if thermal_expansion is not None and thermal_expansion.group(1) != "no":
             atom.thermal_expansion = float(thermal_expansion.group(1)) * pq.micro / pq.K
 
         attrs = {"href": "../periodicity/density/"}
         density = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        density = re.search(":\s*(?:about)?\s*(\S+)", density)
+        density = re.search(r":\s*(?:about)?\s*(\S+)", density)
         if density is not None and density.group(1) != "no":
             atom.density = float(density.group(1)) / 1000 * pq.g * pq.cm**3
 
         attrs = {"href": "../periodicity/molar_volume/"}
         molar_volume = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        molar_volume = re.search(":\s*(?:about)?\s*(\S+)", molar_volume)
+        molar_volume = re.search(r":\s*(?:about)?\s*(\S+)", molar_volume)
         if molar_volume is not None and molar_volume.group(1) != "no":
             atom.molar_volume = float(molar_volume.group(1)) * pq.cm**3 / pq.mol
 
         attrs = {"href": "../periodicity/velocity_sound/"}
         sound_velocity = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        sound_velocity = re.search(":\s*(?:about)?\s*(\S+)", sound_velocity)
+        sound_velocity = re.search(r":\s*(?:about)?\s*(\S+)", sound_velocity)
         if sound_velocity is not None and sound_velocity.group(1) != "no":
             atom.sound_velocity = float(sound_velocity.group(1)) * pq.m / pq.s
 
         attrs = {"href": "../periodicity/youngs_modulus/"}
         young_modulus = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        young_modulus = re.search(":\s*(?:about)?\s*(\S+)", young_modulus)
+        young_modulus = re.search(r":\s*(?:about)?\s*(\S+)", young_modulus)
         if young_modulus is not None and young_modulus.group(1) != "no":
             atom.young_modulus = float(young_modulus.group(1)) * pq.GPa
 
         attrs = {"href": "../periodicity/rigidity_modulus/"}
         rigidity_modulus = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        rigidity_modulus = re.search(":\s*(?:about)?\s*(\S+)", rigidity_modulus)
+        rigidity_modulus = re.search(r":\s*(?:about)?\s*(\S+)", rigidity_modulus)
         if rigidity_modulus is not None and rigidity_modulus.group(1) != "no":
             atom.rigidity_modulus = float(rigidity_modulus.group(1)) * pq.GPa
 
         attrs = {"href": "../periodicity/bulk_modulus/"}
         bulk_modulus = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        bulk_modulus = re.search(":\s*(?:about)?\s*(\S+)", bulk_modulus)
+        bulk_modulus = re.search(r":\s*(?:about)?\s*(\S+)", bulk_modulus)
         if bulk_modulus is not None and bulk_modulus.group(1) != "no":
             atom.bulk_modulus = float(bulk_modulus.group(1)) * pq.GPa
 
         attrs = {"href": "../periodicity/poissons_ratio/"}
         poisson_ratio = soup.findChild(name="a", attrs=attrs).parent.prettify()
-        poisson_ratio = re.search(":\s*(?:about)?\s*(\S+)", poisson_ratio)
+        poisson_ratio = re.search(r":\s*(?:about)?\s*(\S+)", poisson_ratio)
         if poisson_ratio is not None and poisson_ratio.group(1) != "no":
             atom.poisson_ratio = float(poisson_ratio.group(1)) * pq.dimensionless
 
         attrs = {"href": "../periodicity/electrical_resistivity/"}
         electrical_resistivity = soup.findChild(name="a", attrs=attrs).parent.prettify()
         electrical_resistivity = re.search(
-            ":\s*(?:about)?\s*(\d+(?:\.\d+)?)", electrical_resistivity)
+            r":\s*(?:about)?\s*(\d+(?:\.\d+)?)", electrical_resistivity)
         if electrical_resistivity is not None and electrical_resistivity.group(1) not in ["no", "&gt;"]:
             atom.electrical_resistivity = float(
                 electrical_resistivity.group(1)) * 1e-8 * pq.ohm * pq.m
