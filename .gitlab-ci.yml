@@ -1,4 +1,4 @@
-image: registry.gitlab.com/mdavezac/pylada-light
+image: docker.io/mdavezac/pylada-light
 stages:
   - build
   - test
@@ -6,7 +6,7 @@ stages:
 .building: &building
   stage: build
   script:
-    - source ~/.bashrc
+    - source /etc/bashrc
     - module load mpi
     - mkdir -p build && cd build
     - cmake -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=$PYTHON_EXEC ..
@@ -20,24 +20,10 @@ stages:
 .testing: &testing
   stage: test
   script:
-    - source ~/.bashrc
+    - source /etc/bashrc
     - module load mpi
     - cd build
     - ctest -V .
-
-build:gcc-python2:
-  <<: *building
-  variables:
-    CC: gcc
-    CXX: g++
-    PYTHON_EXEC: /usr/bin/python2
-
-build:llvm-python2:
-  <<: *building
-  variables:
-    CC: clang
-    CXX: clang++
-    PYTHON_EXEC: /usr/bin/python2
 
 build:gcc-python3:
   <<: *building
@@ -52,16 +38,6 @@ build:llvm-python3:
     CC: clang
     CXX: clang++
     PYTHON_EXEC: /usr/bin/python3
-
-test:gcc-python2:
-  <<: *testing
-  dependencies:
-    - build:gcc-python2
-
-test:llvm-python2:
-  <<: *testing
-  dependencies:
-    - build:llvm-python2
 
 test:gcc-python3:
   <<: *testing

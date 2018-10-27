@@ -4,11 +4,15 @@ services:
   - docker
 script:
   - docker pull mdavezac/pylada-light
-  - sudo docker run -it -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light .travis/install_from_pip.sh
+  - sudo docker run --name pyla -dt -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light bash -l
+  - sudo docker exec -t pyla bash -lc "python3 -m pip install -e ."
+  - sudo docker exec -t pyla bash -lc "python3 -m pytest pkg_install/pylada"
+  - sudo docker exec -t pyla bash -lc "cd build; cmake -Dtests=ON .; make"
+  - sudo docker exec -t pyla bash -lc "cd build; ctest . -LE python"
 
 notifications:
   slack:
     matrix:
     - pylada:J4ytpqLv9KJqG18zAnENZVRL
     rooms:
-      secure: HjsbOCT//OjseJlfoomf/QiMVDbkpOjicy4u9Gd23yKcImCKuZTs9nzgmOK5yN7rdaoVQ+ewbKY+6knZLrLlsuvC3ElPaw2rOdqSXoohVltvBxiBaIFm/EdAqXxK0mebfY2JCNbJEK//AnAqZcxPs/OVKRUF1pLhVPM6ZvrK7ic=
+
