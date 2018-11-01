@@ -25,23 +25,22 @@ General
    <http://www.gnu.org/licenses/>.
 ******************************/
 
-#include "FCMangle.h"
 #include "ewald/ewald.h"
 
 namespace {
-extern "C" void FC_GLOBAL(ewaldf, EWALDF)(const int *const,    // verbosity
-                                          double *const,       // Energy
-                                          double *const,       // forces (reduced)
-                                          double *const,       // forces (cartesian)
-                                          const double *const, // stress
-                                          const int *const,    // number of atoms
-                                          const double *const, // reduced atomic coordinates.
-                                          const double *const, // atomic charges
-                                          const double *const, // real space cutoff
-                                          const double *const, // cell vectors
-                                          const int *const,    // dimension of arrays.
-                                          int *const           // ERROR
-                                          );
+extern "C" void ewaldf(const int *const,    // verbosity
+                       double *const,       // Energy
+                       double *const,       // forces (reduced)
+                       double *const,       // forces (cartesian)
+                       const double *const, // stress
+                       const int *const,    // number of atoms
+                       const double *const, // reduced atomic coordinates.
+                       const double *const, // atomic charges
+                       const double *const, // real space cutoff
+                       const double *const, // cell vectors
+                       const int *const,    // dimension of arrays.
+                       int *const           // ERROR
+);
 }
 namespace pylada {
 int ewaldc(const int verbosity, double &energy, double *const reduced_forces,
@@ -49,9 +48,8 @@ int ewaldc(const int verbosity, double &energy, double *const reduced_forces,
            const double *const reduced_atomic_coords, const double *const atomic_charges,
            const double real_space_cutoff, const double *const cell_vectors) {
   int error;
-  FC_GLOBAL(ewaldf, EWALDF)
-  (&verbosity, &energy, reduced_forces, cartesian_forces, stress, &natoms, reduced_atomic_coords,
-   atomic_charges, &real_space_cutoff, cell_vectors, &natoms, &error);
+  ewaldf(&verbosity, &energy, reduced_forces, cartesian_forces, stress, &natoms,
+         reduced_atomic_coords, atomic_charges, &real_space_cutoff, cell_vectors, &natoms, &error);
   return error;
 }
-} // namespace Pylada
+} // namespace pylada

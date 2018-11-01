@@ -1,4 +1,4 @@
-subroutine ewaldf(ipr,eewald,fewa,fewac,stress, natot,rc,zz,ecut,avec,mxdnat, error)
+subroutine ewaldf(ipr,eewald,fewa,fewac,stress, natot,rc,zz,ecut,avec,mxdnat, error) bind(C)
   ! computes the ewald energy, forces and stresses.
   !
   ! adapted from jlm plane-wave program
@@ -40,7 +40,6 @@ subroutine ewaldf(ipr,eewald,fewa,fewac,stress, natot,rc,zz,ecut,avec,mxdnat, er
   real(kind=dble) :: ssumg(6),ssumr(6),fsub(3),ssub(6),ssum0(6)  
 
   real(kind=dble) :: fsumr(3,mxdnat),fsumg(9,mxdnat)
-  real(kind=dble), external :: std_erfc
   real(kind=dble) :: dummy, arg, cosg, enorm, alpha, esub, esum0, esumg, exp1
   real(kind=dble) :: exp2, expg, expgi, expgr, gcut, esumr, factor, gdt
   real(kind=dble) :: gmod2, qpv, rmod, sepi, seps, sfac2, sfaci, sfacr, sing
