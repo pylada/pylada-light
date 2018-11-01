@@ -25,6 +25,7 @@
 ###############################
 
 add_library(cutilities STATIC smith_normal_form.cc gruber.cc noopt.cc)
+set_property(TARGET cutilities PROPERTY CXX_STANDARD 11)
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   set_target_properties(cutilities PROPERTIES COMPILE_FLAGS "-fPIC")
 endif()

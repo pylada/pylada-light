@@ -11,4 +11,12 @@ module ep_param
   real(kind=dbl)              :: rcut_const0, RCUT_ewaldA
   real(kind=dbl)              :: PEGS
 
+
+   interface
+     real(kind=8) function std_erfc(x) bind(C)
+        real(kind=8), intent(in) :: x
+     end function
+   end interface
+
+
 end module ep_param

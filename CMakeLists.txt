@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.7)
 project (Pylada C CXX Fortran)
 set (Pylada_VERSION_MAJOR 1)
 set (Pylada_VERSION_MINOR 0)
@@ -29,13 +29,6 @@ set (Pylada_VERSION_MINOR 0)
 # Location where cmake first looks for cmake modules.
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 include(LookUp-GreatCMakeCookOff)
-
-include(FortranCInterface)
-FortranCInterface_HEADER(${PROJECT_BINARY_DIR}/FCMangle.h
-                         MACRO_NAMESPACE "FC_"
-                         SYMBOL_NAMESPACE "FC_" )
-
-include(AddCPP11Flags)
 
 option(tests "Compile tests." on)
 option(external_program_tests
