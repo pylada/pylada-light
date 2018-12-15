@@ -1,4 +1,7 @@
-from collections.abc import MutableSequence
+try:
+    from collections.abc import MutableSequence
+except ImportError:
+    from collections import MutableSequence
 
 
 class Structure(MutableSequence):

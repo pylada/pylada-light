@@ -32,7 +32,13 @@ else:
 
 def create_initstring(classname, base, method, excludes):
     """ Creates a string defining the __init__ method. """
-    from inspect import getfullargspec
+    
+    try:
+        from inspect import getfullargspec
+        old = False
+    except ImportError:
+        from inspect import getargspec as getfullargspec
+        old = True
 
     # creates line:  def __init__(self, ...):
     # keywords are deduced from arguments with defaults.
@@ -83,7 +89,11 @@ def create_initstring(classname, base, method, excludes):
             if key in args.args[ninitargs:]:
                 result += ", {0} = {0}".format(key)
     # add a keyword dict if present in initargs
-    if initargs.varkw is not None or initargs.defaults is not None:
+    if old:
+        keywords = initargs.keywords
+    else:
+        keywords = initargs.varkw
+    if keywords is not None or initargs.defaults is not None:
         result += ', **kwargs'
     result += ')\n\n'
     # deals with issues on how to print first argument.
@@ -112,7 +122,12 @@ def create_initstring(classname, base, method, excludes):
 
 def create_iter(iter, excludes):
     """ Creates the iterator method. """
-    from inspect import getfullargspec
+    try:
+        from inspect import getfullargspec
+        old = False
+    except ImportError:
+        from inspect import getargspec as getfullargspec
+        old = True
 
     # make stateless.
     result = "from pylada.tools import stateless, assign_attributes\n"\
@@ -167,7 +182,11 @@ def create_iter(iter, excludes):
             else:
                 result += ", {0}=self.{0}".format(key)
     # adds arguments to overloaded function.
-    if args.varkw is not None:
+    if old:
+        keywords = args.keywords
+    else:
+        keywords = args.varkw
+    if keywords is not None:
         result += ", **kwargs"
     result += "): yield o\n"
 
@@ -176,7 +195,12 @@ def create_iter(iter, excludes):
 
 def create_call_from_iter(iter, excludes):
     """ Creates a call method relying on existence of iter method. """
-    from inspect import getfullargspec
+    try:
+        from inspect import getfullargspec
+        old = False
+    except ImportError:
+        from inspect import getargspec as getfullargspec
+        old = True
 
     # creates line:  def call(self, ...):
     # keywords are deduced from arguments with defaults.
@@ -198,8 +222,12 @@ def create_call_from_iter(iter, excludes):
     # then add kwargs,
     if args.args is None or 'comm' not in args.args:
         callargs.append('comm=None')
-    if args.varkw is not None:
-        callargs.append('**' + args.varkw)
+    if old:
+        keywords = args.keywords
+    else:
+        keywords = args.varkw
+    if keywords is not None:
+        callargs.append('**' + keywords)
     result = "def __call__({0}):\n".format(', '.join(callargs))
 
     # adds standard doc string.
@@ -233,8 +261,12 @@ def create_call_from_iter(iter, excludes):
     # adds arguments to overloaded function.
     if args.args is None or 'comm' not in args.args:
         iterargs.append('comm=comm')
-    if args.varkw is not None:
-        iterargs.append("**" + args.varkw)
+    if old:
+        keywords = args.keywords
+    else:
+        keywords = args.varkw
+    if keywords is not None:
+        iterargs.append("**" + keywords)
     result += "  result  = None\n"                                               \
               "  for program in self.iter({0}):\n"                               \
               "    if getattr(program, 'success', False):\n"                     \
@@ -251,7 +283,12 @@ def create_call_from_iter(iter, excludes):
 
 def create_call(call, excludes):
     """ Creates the call method. """
-    from inspect import getfullargspec
+    try:
+        from inspect import getfullargspec
+        old = False
+    except ImportError:
+        from inspect import getargspec as getfullargspec
+        old = True
 
     # make stateless.
     result = "from pylada.tools import stateless, assign_attributes\n"\
@@ -306,7 +343,11 @@ def create_call(call, excludes):
                 result += ", {0}=self.{0}".format(key)
     result = result.replace('(, ', '(')
     # adds arguments to overloaded function.
-    if args.varkw is not None:
+    if old:
+        keywords = args.keywords
+    else:
+        keywords = args.varkw
+    if keywords is not None:
         result += ", **kwargs"
     result += ")\n"
 
@@ -397,7 +438,12 @@ def makeclass(classname, base, iter=None, call=None,
 
 def makefunc(name, iter, module=None):
     """ Creates function from iterable. """
-    from inspect import getfullargspec
+    try:
+        from inspect import getfullargspec
+        old = False
+    except ImportError:
+        from inspect import getargspec as getfullargspec
+        old = True
 
     # creates header line of function calls.
     # keywords are deduced from arguments with defaults.
@@ -419,8 +465,12 @@ def makefunc(name, iter, module=None):
     if 'comm' not in args.args:
         callargs.append('comm=None')
     # adds **kwargs keyword if necessary.
-    if args.varkw is not None:
-        callargs.append('**{0}'.format(args.varkw))
+    if old:
+        keywords = args.keywords
+    else:
+        keywords = args.varkw
+    if keywords is not None:
+        callargs.append('**{0}'.format(keywords))
     funcstring = "def {0}({1}):\n".format(name, ', '.join(callargs))
 
     # adds standard doc string.
@@ -448,8 +498,12 @@ def makefunc(name, iter, module=None):
             iterargs.append("{0}".format(key))
     if args.args is None or 'comm' not in args.args:
         iterargs.append('comm=comm')
-    if args.varkw is not None:
-        iterargs.append('**' + args.varkw)
+    if old:
+        keywords = args.keywords
+    else:
+        keywords = args.varkw
+    if keywords is not None:
+        iterargs.append('**' + keywords)
     funcstring += "{0}):\n"                                                      \
                   "    if getattr(program, 'success', False):\n"                 \
                   "      result = program\n"                                     \
