@@ -138,9 +138,9 @@ class ValueKeyword(BaseKeyword):
     @property
     def raw(self):
         """ Returns raw value for CRYSTAL input. """
-        try:
+        if version_info[0] >= 3:
             from collections.abc import Iterable
-        except ImportError:
+        else:
             from collections import Iterable
             
         if self.value == None:
@@ -204,9 +204,9 @@ class ValueKeyword(BaseKeyword):
         return '{0.__class__.__name__}({1})'.format(self, ', '.join(args))
 
     def _addrepr_args(self):
-        try:
+        if version_info[0] >= 3:
             from inspect import getfullargspec
-        except ImportError:
+        else:
             from inspect import getargspec as getfullargspec
         args = []
         if 'keyword' in self.__dict__:
@@ -563,9 +563,9 @@ class ChoiceKeyword(BaseKeyword):
         return {self.keyword: str(self.value)}
 
     def _addrepr_args(self):
-        try:
+        if version_info[0] >= 3:
             from inspect import getfullargspec
-        except ImportError:
+        else:
             from inspect import getargspec as getfullargspec
         args = []
         if 'keyword' in self.__dict__:

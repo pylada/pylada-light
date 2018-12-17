@@ -1,6 +1,7 @@
-try:
+from sys import version_info
+if version_info[0] >= 3:
     from collections.abc import MutableSequence
-except ImportError:
+else:
     from collections import MutableSequence
 
 

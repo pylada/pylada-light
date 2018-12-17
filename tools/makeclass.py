@@ -25,20 +25,19 @@ import sys
 if sys.version_info.major == 2:
     def __func_name(func):
         return func.func_name
+    old = True
 else:
     def __func_name(func):
         return func.__name__
-
+    old = False
 
 def create_initstring(classname, base, method, excludes):
     """ Creates a string defining the __init__ method. """
-    
-    try:
-        from inspect import getfullargspec
-        old = False
-    except ImportError:
+
+    if old:
         from inspect import getargspec as getfullargspec
-        old = True
+    else:
+        from inspect import getfullargspec
 
     # creates line:  def __init__(self, ...):
     # keywords are deduced from arguments with defaults.
@@ -122,12 +121,10 @@ def create_initstring(classname, base, method, excludes):
 
 def create_iter(iter, excludes):
     """ Creates the iterator method. """
-    try:
-        from inspect import getfullargspec
-        old = False
-    except ImportError:
+    if old:
         from inspect import getargspec as getfullargspec
-        old = True
+    else:
+        from inspect import getfullargspec
 
     # make stateless.
     result = "from pylada.tools import stateless, assign_attributes\n"\
@@ -195,12 +192,10 @@ def create_iter(iter, excludes):
 
 def create_call_from_iter(iter, excludes):
     """ Creates a call method relying on existence of iter method. """
-    try:
-        from inspect import getfullargspec
-        old = False
-    except ImportError:
+    if old:
         from inspect import getargspec as getfullargspec
-        old = True
+    else:
+        from inspect import getfullargspec
 
     # creates line:  def call(self, ...):
     # keywords are deduced from arguments with defaults.
@@ -283,12 +278,10 @@ def create_call_from_iter(iter, excludes):
 
 def create_call(call, excludes):
     """ Creates the call method. """
-    try:
-        from inspect import getfullargspec
-        old = False
-    except ImportError:
+    if old:
         from inspect import getargspec as getfullargspec
-        old = True
+    else:
+        from inspect import getfullargspec
 
     # make stateless.
     result = "from pylada.tools import stateless, assign_attributes\n"\
@@ -438,12 +431,10 @@ def makeclass(classname, base, iter=None, call=None,
 
 def makefunc(name, iter, module=None):
     """ Creates function from iterable. """
-    try:
-        from inspect import getfullargspec
-        old = False
-    except ImportError:
+    if old:
         from inspect import getargspec as getfullargspec
-        old = True
+    else:
+        from inspect import getfullargspec
 
     # creates header line of function calls.
     # keywords are deduced from arguments with defaults.
