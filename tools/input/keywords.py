@@ -124,6 +124,7 @@ class ValueKeyword(BaseKeyword):
         .. CRYSTAL_: http://www.crystal.unito.it/
         .. VASP_: http://www.vasp.at/
     """
+    from sys import version_info
 
     def __init__(self, keyword=None, value=None):
         """ Initializes a keyword with a value. """
