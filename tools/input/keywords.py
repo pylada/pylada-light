@@ -19,7 +19,7 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
+from sys import version_info
 
 class BaseKeyword(object):
     """ Defines keyword input to different functionals. 
@@ -124,8 +124,7 @@ class ValueKeyword(BaseKeyword):
         .. CRYSTAL_: http://www.crystal.unito.it/
         .. VASP_: http://www.vasp.at/
     """
-    from sys import version_info
-
+    
     def __init__(self, keyword=None, value=None):
         """ Initializes a keyword with a value. """
         super(ValueKeyword, self).__init__(keyword=keyword)
