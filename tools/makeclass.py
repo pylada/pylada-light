@@ -3,14 +3,14 @@
 #
 #  Copyright (C) 2013 National Renewable Energy Lab
 #
-#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to submit
-#  large numbers of jobs on supercomputers. It provides a python interface to physical input, such as
-#  crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential programs. It
-#  is able to organise and launch computational jobs on PBS and SLURM.
+#  PyLaDa is a high throughput computational platform for Physics. It aims to make it easier to
+#  submit large numbers of jobs on supercomputers. It provides a python interface to physical input,
+#  such as crystal structures, as well as to a number of DFT (VASP, CRYSTAL) and atomic potential
+#  programs.  It is able to organise and launch computational jobs on PBS and SLURM.
 #
-#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU General
-#  Public License as published by the Free Software Foundation, either version 3 of the License, or (at
-#  your option) any later version.
+#  PyLaDa is free software: you can redistribute it and/or modify it under the terms of the GNU
+#  General Public License as published by the Free Software Foundation, either version 3 of the
+#  License, or (at your option) any later version.
 #
 #  PyLaDa is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
@@ -19,6 +19,8 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+
+# pylint: disable=deprecated-method,too-many-branches,too-many-arguments,exec-used
 
 """ Creates functionals (classes) from a method. """
 import sys
@@ -78,7 +80,7 @@ def create_initstring(classname, base, method, excludes):
         # first add args without defaults.
         # fails if not present in method's default arguments.
         ninitargs = len(initargs.args) - len(initargs.defaults)
-        for i, key in enumerate(initargs.args[1:ninitargs]):
+        for key in initargs.args[1:ninitargs]:
             if key in excludes:
                 raise Exception('Cannot ignore {1} when synthesizing {0}.'.format(classname, key))
             if key not in args.args[nargs:]:
@@ -87,7 +89,7 @@ def create_initstring(classname, base, method, excludes):
             result += ", {0}".format(key)
     if initargs.defaults is not None and args.defaults is not None:
         # then add keyword arguments, ignoring thosse that are not in method
-        for i, (key, value) in enumerate(zip(initargs.args[nargs:], initargs.defaults)):
+        for key, value in zip(initargs.args[nargs:], initargs.defaults):
             if key in args.args[ninitargs:]:
                 result += ", {0} = {0}".format(key)
     # add a keyword dict if present in initargs
@@ -119,12 +121,12 @@ def create_initstring(classname, base, method, excludes):
     return result
 
 
-def create_iter(iter, excludes):
+def create_iter(iterator, excludes):
     """ Creates the iterator method. """
     # make stateless.
     result = "from pylada.tools import stateless, assign_attributes\n"\
              "@assign_attributes(ignore=['overwrite'])\n@stateless\n"
-    # creates line:  def iter(self, ...):
+    # creates line:  def iterator(self, ...):
     # keywords are deduced from arguments with defaults.
     # others will not be added.
     args = func_signature(iter)
@@ -144,7 +146,7 @@ def create_iter(iter, excludes):
     result += ", **kwargs):\n"
 
     # adds standard doc string.
-    doc = iter.__doc__
+    doc = iterator.__doc__
     if doc is not None and '\n' in doc:
         first_line = doc[:doc.find('\n')].rstrip().lstrip()
         result +=\
@@ -153,13 +155,13 @@ def create_iter(iter, excludes):
             ":py:func:`{2} <{1.__module__}.{2}>`.\n"     \
             "     Please see that function for the description of its parameters.\n"\
             "  \"\"\"\n"\
-            .format(first_line, iter, __func_name(iter))
+            .format(first_line, iterator, __func_name(iterator))
     # import iterations method
     result += "  from pylada.tools import SuperCall\n"
-    result += "  from {0.__module__} import {1}\n".format(iter, __func_name(iter))
+    result += "  from {0.__module__} import {1}\n".format(iterator, __func_name(iterator))
     # add iteration line:
     result += "  for o in {0}(SuperCall(self.__class__, self)"     \
-              .format(__func_name(iter))
+              .format(__func_name(iterator))
     if args.args is not None and len(args.args) > 1:
         # first add arguments without default (except for first == self).
         nargs = len(args.args) - len(args.defaults)
@@ -210,7 +212,7 @@ def create_call_from_iter(iter, excludes):
     result = "def __call__({0}):\n".format(', '.join(callargs))
 
     # adds standard doc string.
-    doc = iter.__doc__
+    doc = iterator.__doc__
     if doc is not None and '\n' in doc:
         first_line = doc[:doc.find('\n')].rstrip().lstrip()
         result +=                                                                  \
@@ -223,7 +225,7 @@ def create_call_from_iter(iter, excludes):
             "        programs.\n"                                                    \
             "     :type comm: :py:class:`~pylada.process.mpi.Communicator`\n\n"        \
             "  \"\"\"\n"                                                             \
-            .format(first_line, iter, __func_name(iter))
+            .format(first_line, iterator, __func_name(iterator))
     # add iteration line:
     iterargs = []
     if args.args is not None and len(args.args) > 1:
@@ -293,10 +295,10 @@ def create_call(call, excludes):
             "  \"\"\"\n"                                                           \
             .format(first_line, call, __func_name(call))
         # import iterations method
-    result += "  from pylada.tools import SuperCall\n".format(call)
+    result += "  from pylada.tools import SuperCall\n"
     result += "  from {0.__module__} import {1}\n".format(call, __func_name(call))
     # add iteration line:
-    result += "  return {1}(SuperCall(self.__class__, self)".format(call, __func_name(call))
+    result += "  return {0}(SuperCall(self.__class__, self)".format(__func_name(call))
     if args.args is not None and len(args.args) > 1:
         # first add arguments without default (except for first == self).
         nargs = len(args.args) - len(args.defaults)
@@ -320,9 +322,9 @@ def create_call(call, excludes):
     return result
 
 
-def makeclass(classname, base, iter=None, call=None,
+def makeclass(classname, base, iterator=None, call=None,
               doc=None, excludes=None, module=None):
-    """ Creates a class from a function. 
+    """ Creates a class from a function.
 
         Makes it easy to create a class which works just like the input method.
         This means we don't have to write the boiler plate methods of a class,
@@ -340,7 +342,7 @@ def makeclass(classname, base, iter=None, call=None,
         :param type base:
            Base class, e.g. for a method using VASP, this would be
            :py:class:`Vasp <pylada.vasp.Vasp>`.
-        :param function iter:
+        :param function iterator:
            The iteration version of the method being wrapped into a class, e.g.
            would override :py:meth:`Vasp.iter <pylada.vasp.Vasp.iter>`.  Ignored if
            None.
@@ -354,7 +356,7 @@ def makeclass(classname, base, iter=None, call=None,
            List of strings indicating arguments (with defaults) of the methods
            which should *not* be turned into an attribute. If None, defaults to
            ``['structure', 'outdir', 'comm']``.
-        :param bool withkword: 
+        :param bool withkword:
            Whether to include ``**kwargs`` when calling the __init__ method of
            the *base* class. Only effective if the method accepts variable
            keyword arguments in the first place.
@@ -365,7 +367,7 @@ def makeclass(classname, base, iter=None, call=None,
           given on input. Furthermore it contains an `Extract` class-attribute
           coming from either ``iter``, ``call``, ``base``, in that order.
     """
-    basemethod = iter if iter is not None else call
+    basemethod = iterator if iterator is not None else call
     if basemethod is None:
         raise ValueError('One of iter or call should not be None.')
     if excludes is None:
@@ -376,33 +378,33 @@ def makeclass(classname, base, iter=None, call=None,
 
     # creates __init__
     exec(create_initstring(classname, base, basemethod, excludes), funcs)
-    if iter is not None:
-        exec(create_iter(iter, excludes), funcs)
+    if iterator is not None:
+        exec(create_iter(iterator, excludes), funcs)
     if call is not None:
         exec(create_call(call, excludes), funcs)
-    elif iter is not None:
-        exec(create_call_from_iter(iter, excludes), funcs)
+    elif iterator is not None:
+        exec(create_call_from_iter(iterator, excludes), funcs)
 
-    d = {'__init__': funcs['__init__']}
-    if call is not None or iter is not None:
-        d['__call__'] = funcs['__call__']
-    if iter is not None:
-        d['iter'] = funcs['iter']
-    if doc is not None and len(doc.rstrip().lstrip()) > 0:
-        d['__doc__'] = doc + "\n\nThis class was automagically generated by "\
+    methods = {'__init__': funcs['__init__']}
+    if call is not None or iterator is not None:
+        methods['__call__'] = funcs['__call__']
+    if iterator is not None:
+        methods['iter'] = funcs['iter']
+    if doc is not None and doc.rstrip().lstrip():
+        methods['__doc__'] = doc + "\n\nThis class was automagically generated by "\
                              ":py:func:`pylada.tools.makeclass`."
-    if hasattr(iter, 'Extract'):
-        d['Extract'] = iter.Extract
+    if hasattr(iterator, 'Extract'):
+        methods['Extract'] = iterator.Extract
     elif hasattr(call, 'Extract'):
-        d['Extract'] = call.Extract
+        methods['Extract'] = call.Extract
     elif hasattr(base, 'Extract'):
-        d['Extract'] = base.Extract
+        methods['Extract'] = base.Extract
     if module is not None:
-        d['__module__'] = module
-    return type(classname, (base,), d)
+        methods['__module__'] = module
+    return type(classname, (base,), methods)
 
 
-def makefunc(name, iter, module=None):
+def makefunc(name, iterator, module=None):
     """ Creates function from iterable. """
     # creates header line of function calls.
     # keywords are deduced from arguments with defaults.
@@ -410,12 +412,12 @@ def makefunc(name, iter, module=None):
     args = func_signature(iter)
     funcstring = "def {0}(".format(name)
     callargs = []
-    if args.args is not None and len(args.args) > 0:
+    if args.args is not None and args.args:
         # first add arguments without default (except for first == self).
         nargs = len(args.args) - len(args.defaults)
         for key in args.args[:nargs]:
             callargs.append(str(key))
-    if args.args is not None and len(args.args) > 0:
+    if args.args is not None and args.args:
         # then add arguments with default
         nargs = len(args.args) - len(args.defaults)
         for key, value in zip(args.args[nargs:], args.defaults):
@@ -430,7 +432,7 @@ def makefunc(name, iter, module=None):
     funcstring = "def {0}({1}):\n".format(name, ', '.join(callargs))
 
     # adds standard doc string.
-    doc = iter.__doc__
+    doc = iterator.__doc__
     if doc is not None and '\n' in doc:
         first_line = doc[:doc.find('\n')].rstrip().lstrip()
         funcstring +=\
@@ -443,13 +445,13 @@ def makefunc(name, iter, module=None):
             "        programs.\n"                                                  \
             "    :type comm: :py:class:`~pylada.process.mpi.Communicator`\n\n"       \
             "  \"\"\"\n"\
-            .format(first_line, iter, __func_name(iter))
+            .format(first_line, iterator, __func_name(iterator))
     # create function body...
     funcstring += "  from {0.__module__} import {1}\n"\
-                  "  for program in {1}(".format(iter, __func_name(iter))
+                  "  for program in {1}(".format(iterator, __func_name(iterator))
     # ... including detailed call to iterator function.
     iterargs = []
-    if args.args is not None and len(args.args) > 0:
+    if args.args is not None and args.args:
         for key in args.args:
             iterargs.append("{0}".format(key))
     if args.args is None or 'comm' not in args.args:
