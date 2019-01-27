@@ -1,12 +1,16 @@
 sudo: required
 
+env:
+  - PYTHON_EXECUTABLE=python2
+  - PYTHON_EXECUTABLE=python3
+  
 services:
   - docker
 script:
   - docker pull mdavezac/pylada-light
   - sudo docker run --name pyla -dt -v $(pwd):/project -w /project --cap-add SYS_PTRACE mdavezac/pylada-light bash -l
-  - sudo docker exec -t pyla bash -lc "python3 -m pip install -e ."
-  - sudo docker exec -t pyla bash -lc "python3 -m pytest pkg_install/pylada"
+  - sudo docker exec -t pyla bash -lc "$PYTHON_EXECUTABLE -m pip install -e ."
+  - sudo docker exec -t pyla bash -lc "$PYTHON_EXECUTABLE -m pytest pkg_install/pylada"
   - sudo docker exec -t pyla bash -lc "cd build; cmake -Dtests=ON .; make"
   - sudo docker exec -t pyla bash -lc "cd build; ctest . -LE python"
 

@@ -48,3 +48,28 @@ test:llvm-python3:
   <<: *testing
   dependencies:
     - build:llvm-python3
+
+
+build:gcc-python2:
+  <<: *building
+  variables:
+    CC: gcc
+    CXX: g++
+    PYTHON_EXEC: /usr/bin/python2
+
+build:llvm-python2:
+  <<: *building
+  variables:
+    CC: clang
+    CXX: clang++
+    PYTHON_EXEC: /usr/bin/python2
+
+test:gcc-python2:
+  <<: *testing
+  dependencies:
+    - build:gcc-python2
+
+test:llvm-python2:
+  <<: *testing
+  dependencies:
+    - build:llvm-python2

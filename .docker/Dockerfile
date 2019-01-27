@@ -11,8 +11,11 @@ RUN microdnf install -y gcc gcc-c++ gcc-gfortran clang cmake make git \
         quantum-espresso-mpich \
         python3-numpy python3-devel python3-mpi4py-mpich python3-ipython \
         python3-nbconvert python3-nbformat python3-ipykernel python3-traitlets \
-        python3-quantities python3-Cython
+        python3-quantities python3-Cython \
+        python2-numpy python2-devel python2-mpi4py-mpich python2-ipython \
+        python2-nbconvert python2-nbformat python2-ipykernel python2-traitlets \
+        python2-quantities python2-Cython
 
 RUN echo "module load mpi" >> /etc/bashrc
-RUN python3 -m pip install --user f90nml
+RUN python3 -m pip install --user f90nml && python2 -m pip install --user f90nml
 
