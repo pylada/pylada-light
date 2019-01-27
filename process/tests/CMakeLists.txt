@@ -37,7 +37,7 @@ if(tests)
     set(fake_exec "${PYTHON_BINARY_DIR}/pylada/process/tests/pifunctional.py")
 
     if(MPIEXEC AND mpi4py_FOUND)
-        add_test(pifunctional ${MPIEXEC} -n 4 ${fake_exec} --order 4)
+        add_test(pifunctional ${MPIEXEC} -n 2 ${fake_exec} --order 4)
         set_tests_properties(pifunctional PROPERTIES LABELS "python;mpi;process")
     endif()
 
