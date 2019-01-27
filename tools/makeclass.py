@@ -127,7 +127,7 @@ def create_iter(iter, excludes):
     # creates line:  def iter(self, ...):
     # keywords are deduced from arguments with defaults.
     # others will not be added.
-    args = func_signature(iterator)
+    args = func_signature(iter)
     result += "def iter(self"
     if args.args is not None and len(args.args) > 1:
         # first add arguments without default (except for first == self).
@@ -182,12 +182,12 @@ def create_iter(iter, excludes):
     return result
 
 
-def create_call_from_iter(iterator, excludes):
-    """ Creates a call method relying on existence of iterator method. """
+def create_call_from_iter(iter, excludes):
+    """ Creates a call method relying on existence of iter method. """
     # creates line:  def call(self, ...):
     # keywords are deduced from arguments with defaults.
     # others will not be added.
-    args = func_signature(iterator)
+    args = func_signature(iter)
     callargs = ['self']
     if args.args is not None and len(args.args) > 1:
         # first add arguments without default (except for first == self).
@@ -407,7 +407,7 @@ def makefunc(name, iter, module=None):
     # creates header line of function calls.
     # keywords are deduced from arguments with defaults.
     # others will not be added.
-    args = func_signature(iterator)
+    args = func_signature(iter)
     funcstring = "def {0}(".format(name)
     callargs = []
     if args.args is not None and len(args.args) > 0:
