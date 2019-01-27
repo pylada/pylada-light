@@ -1,5 +1,6 @@
 import pytest
 from pytest_bdd import given, scenarios, then, when
+from pylada.espresso.tests.fixtures import diamond_structure
 
 
 @pytest.fixture
@@ -25,13 +26,11 @@ def pwscf():
 
 
 @given("a distorted diamond structure")
-def distorted_diamond():
+def distorted_diamond(diamond_structure):
     from numpy.random import random
-    from pylada.espresso.tests.fixtures import diamond_structure
-    structure = diamond_structure()
-    structure[1].pos += random(3) * 0.005 - 0.0025
-    structure.cell += random((3, 3)) * 0.005 - 0.0025
-    return structure
+    diamond_structure[1].pos += random(3) * 0.005 - 0.0025
+    diamond_structure.cell += random((3, 3)) * 0.005 - 0.0025
+    return diamond_structure
 
 
 @given("we run pwscf once")
@@ -39,7 +38,6 @@ def extract(tmpdir, distorted_diamond, pwscf):
     from pylada.espresso.tests.bdd.fixtures import copyoutput, data_path
     src = data_path("restarted", "first")
     tmpdir.join("first", "Si.pz-vbc.UPF").ensure(file=True)
-    print("WTF", src)
     program = copyoutput(
         tmpdir.join("first_copy.py"), src, tmpdir.join("first"))
     return pwscf(distorted_diamond, tmpdir.join("first"), program=str(program))
