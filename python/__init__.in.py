@@ -73,9 +73,10 @@ def __find_config_files(pattern="*.py", rcfile=False):
     from py.path import local
     from os import environ
     filenames = local(__file__).dirpath("config").listdir(fil=pattern, sort=True)
-    if 'LADA_CONFIG_DIR' in environ:
-        configdir = expandvars(expanduser(environ["LADA_CONFIG_DIR"]))
-        filenames += local(configdir).listdir(fil=pattern, sort=True)
+    for envdir in ['PYLADA_CONFIG_DIR', 'LADA_CONFIG_DIR']:
+        if envdir in environ:
+            configdir = expandvars(expanduser(environ[envdir]))
+            filenames += local(configdir).listdir(fil=pattern, sort=True)
     pylada = local(expanduser("~/.pylada"))
     if pylada.isdir():
         filenames += pylada.listdir(fil=pattern, sort=True)
