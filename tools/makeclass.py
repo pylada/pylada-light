@@ -23,21 +23,29 @@
 """ Creates functionals (classes) from a method. """
 import sys
 if sys.version_info.major == 2:
+    from inspect import getargspec as func_signature
+
     def __func_name(func):
         return func.func_name
+
+    def __kwargs(initargs):
+        return initargs.keywords
 else:
+    from inspect import getfullargspec as func_signature
+
     def __func_name(func):
         return func.__name__
+
+    def __kwargs(initargs):
+        return initargs.varkw
 
 
 def create_initstring(classname, base, method, excludes):
     """ Creates a string defining the __init__ method. """
-    from inspect import getfullargspec
-
     # creates line:  def __init__(self, ...):
     # keywords are deduced from arguments with defaults.
     # others will not be added.
-    args = getfullargspec(method)
+    args = func_signature(method)
     result = "def __init__(self"
     if args.defaults is not None:
         nargs = len(args.args) - len(args.defaults)
@@ -65,7 +73,7 @@ def create_initstring(classname, base, method, excludes):
     # creates line: super(BASECLASS, self).__init__(...)
     # arguments are taken from BASECLASS.__init__
     result += "  super(self.__class__, self).__init__("
-    initargs = getfullargspec(base.__init__)
+    initargs = func_signature(base.__init__)
     if initargs.args is not None and len(initargs) > 1:
         # first add args without defaults.
         # fails if not present in method's default arguments.
@@ -83,7 +91,8 @@ def create_initstring(classname, base, method, excludes):
             if key in args.args[ninitargs:]:
                 result += ", {0} = {0}".format(key)
     # add a keyword dict if present in initargs
-    if initargs.varkw is not None or initargs.defaults is not None:
+    keywords = __kwargs(initargs)
+    if keywords is not None or initargs.defaults is not None:
         result += ', **kwargs'
     result += ')\n\n'
     # deals with issues on how to print first argument.
@@ -112,15 +121,13 @@ def create_initstring(classname, base, method, excludes):
 
 def create_iter(iter, excludes):
     """ Creates the iterator method. """
-    from inspect import getfullargspec
-
     # make stateless.
     result = "from pylada.tools import stateless, assign_attributes\n"\
              "@assign_attributes(ignore=['overwrite'])\n@stateless\n"
     # creates line:  def iter(self, ...):
     # keywords are deduced from arguments with defaults.
     # others will not be added.
-    args = getfullargspec(iter)
+    args = func_signature(iter)
     result += "def iter(self"
     if args.args is not None and len(args.args) > 1:
         # first add arguments without default (except for first == self).
@@ -167,7 +174,8 @@ def create_iter(iter, excludes):
             else:
                 result += ", {0}=self.{0}".format(key)
     # adds arguments to overloaded function.
-    if args.varkw is not None:
+    keywords = __kwargs(args)
+    if keywords is not None:
         result += ", **kwargs"
     result += "): yield o\n"
 
@@ -176,12 +184,10 @@ def create_iter(iter, excludes):
 
 def create_call_from_iter(iter, excludes):
     """ Creates a call method relying on existence of iter method. """
-    from inspect import getfullargspec
-
     # creates line:  def call(self, ...):
     # keywords are deduced from arguments with defaults.
     # others will not be added.
-    args = getfullargspec(iter)
+    args = func_signature(iter)
     callargs = ['self']
     if args.args is not None and len(args.args) > 1:
         # first add arguments without default (except for first == self).
@@ -198,8 +204,9 @@ def create_call_from_iter(iter, excludes):
     # then add kwargs,
     if args.args is None or 'comm' not in args.args:
         callargs.append('comm=None')
-    if args.varkw is not None:
-        callargs.append('**' + args.varkw)
+    keywords = __kwargs(args)
+    if keywords is not None:
+        callargs.append('**' + keywords)
     result = "def __call__({0}):\n".format(', '.join(callargs))
 
     # adds standard doc string.
@@ -233,8 +240,9 @@ def create_call_from_iter(iter, excludes):
     # adds arguments to overloaded function.
     if args.args is None or 'comm' not in args.args:
         iterargs.append('comm=comm')
-    if args.varkw is not None:
-        iterargs.append("**" + args.varkw)
+    keywords = __kwargs(args)
+    if keywords is not None:
+        iterargs.append("**" + keywords)
     result += "  result  = None\n"                                               \
               "  for program in self.iter({0}):\n"                               \
               "    if getattr(program, 'success', False):\n"                     \
@@ -251,15 +259,13 @@ def create_call_from_iter(iter, excludes):
 
 def create_call(call, excludes):
     """ Creates the call method. """
-    from inspect import getfullargspec
-
     # make stateless.
     result = "from pylada.tools import stateless, assign_attributes\n"\
              "@assign_attributes(ignore=['overwrite'])\n@stateless\n"
     # creates line:  def iter(self, ...):
     # keywords are deduced from arguments with defaults.
     # others will not be added.
-    args = getfullargspec(call)
+    args = func_signature(call)
     result += "def __call__(self"
     if args.args is not None and len(args.args) > 1:
         # first add arguments without default (except for first == self).
@@ -306,7 +312,8 @@ def create_call(call, excludes):
                 result += ", {0}=self.{0}".format(key)
     result = result.replace('(, ', '(')
     # adds arguments to overloaded function.
-    if args.varkw is not None:
+    keywords = __kwargs(args)
+    if keywords is not None:
         result += ", **kwargs"
     result += ")\n"
 
@@ -397,12 +404,10 @@ def makeclass(classname, base, iter=None, call=None,
 
 def makefunc(name, iter, module=None):
     """ Creates function from iterable. """
-    from inspect import getfullargspec
-
     # creates header line of function calls.
     # keywords are deduced from arguments with defaults.
     # others will not be added.
-    args = getfullargspec(iter)
+    args = func_signature(iter)
     funcstring = "def {0}(".format(name)
     callargs = []
     if args.args is not None and len(args.args) > 0:
@@ -419,8 +424,9 @@ def makefunc(name, iter, module=None):
     if 'comm' not in args.args:
         callargs.append('comm=None')
     # adds **kwargs keyword if necessary.
-    if args.varkw is not None:
-        callargs.append('**{0}'.format(args.varkw))
+    keywords = __kwargs(args)
+    if keywords is not None:
+        callargs.append('**{0}'.format(keywords))
     funcstring = "def {0}({1}):\n".format(name, ', '.join(callargs))
 
     # adds standard doc string.
@@ -448,8 +454,9 @@ def makefunc(name, iter, module=None):
             iterargs.append("{0}".format(key))
     if args.args is None or 'comm' not in args.args:
         iterargs.append('comm=comm')
-    if args.varkw is not None:
-        iterargs.append('**' + args.varkw)
+    keywords = __kwargs(args)
+    if keywords is not None:
+        iterargs.append('**' + keywords)
     funcstring += "{0}):\n"                                                      \
                   "    if getattr(program, 'success', False):\n"                 \
                   "      result = program\n"                                     \

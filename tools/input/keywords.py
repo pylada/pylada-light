@@ -19,7 +19,7 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-
+from sys import version_info
 
 class BaseKeyword(object):
     """ Defines keyword input to different functionals. 
@@ -124,7 +124,7 @@ class ValueKeyword(BaseKeyword):
         .. CRYSTAL_: http://www.crystal.unito.it/
         .. VASP_: http://www.vasp.at/
     """
-
+    
     def __init__(self, keyword=None, value=None):
         """ Initializes a keyword with a value. """
         super(ValueKeyword, self).__init__(keyword=keyword)
@@ -138,7 +138,11 @@ class ValueKeyword(BaseKeyword):
     @property
     def raw(self):
         """ Returns raw value for CRYSTAL input. """
-        from collections.abc import Iterable
+        if version_info[0] >= 3:
+            from collections.abc import Iterable
+        else:
+            from collections import Iterable
+            
         if self.value == None:
             return ''  # otherwise, fails to find attribute.
         if isinstance(self.value, str):
@@ -200,7 +204,10 @@ class ValueKeyword(BaseKeyword):
         return '{0.__class__.__name__}({1})'.format(self, ', '.join(args))
 
     def _addrepr_args(self):
-        from inspect import getfullargspec
+        if version_info[0] >= 3:
+            from inspect import getfullargspec
+        else:
+            from inspect import getargspec as getfullargspec
         args = []
         if 'keyword' in self.__dict__:
             args.append('keyword={0.keyword!r}'.format(self))
@@ -556,7 +563,10 @@ class ChoiceKeyword(BaseKeyword):
         return {self.keyword: str(self.value)}
 
     def _addrepr_args(self):
-        from inspect import getfullargspec
+        if version_info[0] >= 3:
+            from inspect import getfullargspec
+        else:
+            from inspect import getargspec as getfullargspec
         args = []
         if 'keyword' in self.__dict__:
             args.append('keyword={0.keyword!r}'.format(self))
