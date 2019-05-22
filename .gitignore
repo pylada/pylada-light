@@ -11,3 +11,6 @@ notebooks/tmp
 notebooks/dummy.py
 notebooks/root.dict
 .pytest_cache/
+pip-wheel-metadata/
+pylada/_version.py
+.clang/

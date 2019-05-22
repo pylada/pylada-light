@@ -52,13 +52,8 @@ __all__ = [
     "error", "crystal", "physics", "misc", "tools", "ewald", "decorations",
     "periodic_table", "vasp", "process", "jobfolder", "logger", "espresso", "physics"]
 
-from collections import namedtuple
-version_info = namedtuple('version_info', ['major', 'minor'])\
-    (int("@Pylada_VERSION_MAJOR@"), int("@Pylada_VERSION_MINOR@"))
-""" Tuple containing version info. """
-version = "{0[0]}.{0[1]}".format(version_info)
-""" String containing version info. """
-
+# noqa: E0611, E114
+from _version import version, version_info
 
 def __find_config_files(pattern="*.py", rcfile=False):
     """ Finds configuration files
