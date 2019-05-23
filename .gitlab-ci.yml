@@ -8,9 +8,7 @@ stages:
   script:
     - source /etc/bashrc
     - module load mpi
-    - mkdir -p build && cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DPYTHON_EXECUTABLE=$PYTHON_EXEC ..
-    - make -j 2 VERBOSE=1
+    - $PYTHON_EXECUTABLE -m pip install -e .[dev]
   artifacts:
     paths:
       - build
@@ -22,22 +20,21 @@ stages:
   script:
     - source /etc/bashrc
     - module load mpi
-    - cd build
-    - ctest -V .
+    - $PYTHON_EXECUTABLE -m pytest
 
 build:gcc-python3:
   <<: *building
   variables:
     CC: gcc
     CXX: g++
-    PYTHON_EXEC: /usr/bin/python3
+    PYTHON_EXECUTABLE: /usr/bin/python3
 
 build:llvm-python3:
   <<: *building
   variables:
     CC: clang
     CXX: clang++
-    PYTHON_EXEC: /usr/bin/python3
+    PYTHON_EXECUTABLE: /usr/bin/python3
 
 test:gcc-python3:
   <<: *testing
