@@ -138,7 +138,7 @@ def copy_folder(self, event):
             print('Copying', jobsource.name, 'to', jobdest.name)
             a = ''
             while a not in ['n', 'y']:
-                a = six.raw_input('{0} already exists. Overwrite? [y/n]'.format(jobdest.name))
+                a = six.moves.input('{0} already exists. Overwrite? [y/n]'.format(jobdest.name))
             if a == 'n':
                 print(jobdest.name, 'not overwritten.')
                 continue
@@ -212,7 +212,7 @@ def delete_folder(self, event):
         if not args.force:
             a = ''
             while a not in ['n', 'y']:
-                a = six.raw_input("Delete {0} and its subfolders? [y/n]".format(cjf[folder].name))
+                a = six.moves.input("Delete {0} and its subfolders? [y/n]".format(cjf[folder].name))
             if a == 'n':
                 print(cjf[folder].name, "not deleted.")
                 return
@@ -229,7 +229,7 @@ def delete_folder(self, event):
         if not args.force:
             a = ''
             while a not in ['n', 'y']:
-                a = six.raw_input("Delete {0}? [y/n]".format(cjf[folder].name))
+                a = six.moves.input("Delete {0}? [y/n]".format(cjf[folder].name))
             if a == 'n':
                 print(cjf[folder].name, "not deleted.")
                 return

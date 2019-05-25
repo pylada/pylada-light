@@ -1,4 +1,4 @@
-cdef extern from "crystal/defects/third_order.h" namespace "pylada":
+cdef extern from "pylada/crystal/defects/third_order.h" namespace "pylada":
     double __third_order "pylada::third_order"(const double *matrix, int n)
 
 def third_order(matrix, int n):

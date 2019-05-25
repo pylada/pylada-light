@@ -38,6 +38,6 @@ def random_matrix(n=10):
 def test_third_order_regression(cell):
     from numpy import abs
     from pylada.crystal.defects import third_order as pyto
-    from pylada.crystal.defects.cutilities import third_order as cto
+    from pylada.crystal.defects._defects import third_order as cto
 
     assert abs(pyto(cell, 10) - cto(cell, 10)) < 1e-8

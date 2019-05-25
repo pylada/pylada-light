@@ -20,9 +20,9 @@
    <http://www.gnu.org/licenses/>.
 ******************************/
 
-#include "crystal/cutilities.h"
-#include "crystal/fuzzy.h"
-#include "crystal/types.h"
+#include "pylada/crystal/cutilities.h"
+#include "pylada/crystal/fuzzy.h"
+#include "pylada/crystal/types.h"
 #include <Eigen/Dense>
 #include <cstdlib>
 #include <stdexcept>

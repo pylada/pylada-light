@@ -191,10 +191,15 @@ class RelativePath(object):
 
     @property
     def hook(self):
-        from inspect import ismethod, getargspec
+        from inspect import ismethod
+        from sys import version_info
+        if version_info[0] < 3:
+            from inspect import getargspec
+        else:
+            from inspect import getfullargspec as getargspec
         if self._hook is None:
             return lambda x: None
-        N = len(getargspec(self._hook)[0])
+        N = len(getargspec(self._hook).args)
         if ismethod(self._hook):
             N -= 1
         if N == 0:

@@ -26,7 +26,7 @@
 #ifndef PYLADA_CRYSTAL_THIRD_ORDER_H
 #define PYLADA_CRYSTAL_THIRD_ORDER_H
 
-#include "crystal/types.h"
+#include "pylada/crystal/types.h"
 
 namespace pylada {
 types::t_real third_order(types::t_real const *_matrix, int _n);

@@ -1,11 +1,11 @@
 import numpy as np
 cimport numpy as np
 
-cdef extern from "crystal/types.h" namespace "pylada::types":
+cdef extern from "pylada/crystal/types.h" namespace "pylada::types":
     ctypedef int t_int
     ctypedef double t_real
 
-cdef extern from "crystal/cutilities.h" namespace "pylada":
+cdef extern from "pylada/crystal/cutilities.h" namespace "pylada":
     void snf "pylada::smith_normal_form" (t_int *_S, t_int *_L, t_int *_R) except +
     void c_gruber "pylada::gruber"(t_real *out, t_real *_in, size_t itermax, t_real _tol) except +
 

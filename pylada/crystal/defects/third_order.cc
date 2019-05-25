@@ -20,8 +20,8 @@
    <http://www.gnu.org/licenses/>.
 ******************************/
 
-#include "crystal/defects/third_order.h"
-#include "crystal/types.h"
+#include "pylada/crystal/defects/third_order.h"
+#include "pylada/crystal/types.h"
 #include <Eigen/Dense>
 #include <cstdlib>
 

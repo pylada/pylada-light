@@ -89,7 +89,7 @@ def savefolders(self, event):
             return
         a = 'y'       # testValidProgram: force yes to allow automated testing
         while a not in ['n', 'y']:
-            a = six.raw_input("File %s already exists.\nOverwrite? [y/n] " % jobfolder_path)
+            a = six.moves.input("File %s already exists.\nOverwrite? [y/n] " % jobfolder_path)
         if a == 'n':
             print("Aborting.")
             return

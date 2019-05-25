@@ -23,7 +23,7 @@
 
 def test_ndimiterator_against_product():
     from numpy import all
-    from pylada.decorations._cutilities import NDimIterator
+    from pylada.decorations._decorations import NDimIterator
     from itertools import product
 
     limits = 1, 3, 4, 5
@@ -37,7 +37,7 @@ def test_ndimiterator_against_product():
 
 def test_ndimiterator_yields_same_numpy_array():
     from numpy import all, ndarray
-    from pylada.decorations._cutilities import NDimIterator
+    from pylada.decorations._decorations import NDimIterator
     from itertools import product
 
     previous = None

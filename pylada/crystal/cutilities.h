@@ -1,7 +1,7 @@
 #ifndef PYLADA_SMITH_NORMAL_FORM_H
 #define PYLADA_SMITH_NORMAL_FORM_H
 
-#include "crystal/types.h"
+#include "pylada/crystal/types.h"
 #include <Eigen/Core>
 
 namespace pylada {

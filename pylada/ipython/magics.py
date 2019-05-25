@@ -156,7 +156,7 @@ class Pylada(Magics):
             message = "Cancel all jobs? [y/n] "
             key = ''
             while key not in ['n', 'y']:
-                key = six.raw_input(message)
+                key = six.moves.input(message)
                 if key == 'n':
                     return
 

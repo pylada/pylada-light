@@ -11,7 +11,7 @@ def test_notebooks(tmpdir, filename):
     from nbformat import read
     from nbconvert.preprocessors import ExecutePreprocessor
     from sys import version_info
-    directory = join(dirname(pylada.__file__), 'notebooks')
+    directory = dirname(__file__)
     with open(join(directory, filename + ".ipynb")) as notebook_file:
         notebook = read(notebook_file, as_version=4)
     preprocessor = ExecutePreprocessor(kernel_name='python%i' %

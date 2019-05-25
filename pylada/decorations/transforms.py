@@ -160,7 +160,7 @@ class Transforms(object):
         """
         from numpy import dot, zeros
         from numpy.linalg import inv
-        from ._cutilities import _is_integer
+        from ._decorations import _is_integer
         cell = getattr(cell, 'cell', cell)
         invcell = inv(cell)
         result = zeros(shape=(len(self.space_group) - 1), dtype='bool')

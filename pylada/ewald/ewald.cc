@@ -25,7 +25,7 @@ General
    <http://www.gnu.org/licenses/>.
 ******************************/
 
-#include "ewald/ewald.h"
+#include "pylada/ewald/ewald.h"
 
 namespace {
 extern "C" void ewaldf(const int *const,    // verbosity

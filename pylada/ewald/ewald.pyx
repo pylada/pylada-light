@@ -30,7 +30,7 @@
 __docformat__ = "restructuredtext en"
 __all__ = ['ewald']
 
-cdef extern from "ewald/ewald.h" namespace "pylada":
+cdef extern from "pylada/ewald/ewald.h" namespace "pylada":
     int ewaldc(int verbosity, double &energy, double * reduced_forces, double *cartesian_forces,
                double * stress, int natoms, double * reduced_atomic_coords, double * atomic_charges,
                double real_space_cutoff, double * cell_vectors);
@@ -57,7 +57,7 @@ def ewald(structure, charges=None, cutoff=15, verbose=False, **kwargs):
             Cutoff energy when computing reciprocal space part. Defaults to :py:math:`15 Ry`.
 
     """
-    from . import physics, error
+    from .. import physics, error
     from numpy import array, dot, zeros, require
     from numpy.linalg import inv
     from quantities import elementary_charge as em, Ry, a0, angstrom

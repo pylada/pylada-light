@@ -53,7 +53,7 @@ __all__ = [
     "periodic_table", "vasp", "process", "jobfolder", "logger", "espresso", "physics"]
 
 # noqa: E0611, E114
-from _version import version, version_info
+from ._version import version, version_info
 
 def __find_config_files(pattern="*.py", rcfile=False):
     """ Finds configuration files

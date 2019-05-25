@@ -19,11 +19,8 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-add_library(ewaldf90 STATIC ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
-set_property(TARGET ewaldf90 PROPERTY CXX_STANDARD 11)
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-  set_target_properties(ewaldf90 PROPERTIES COMPILE_FLAGS "-fPIC")
-endif()
-add_python_module("pylada" CPP GLOB *.py ewald.pyx)
-target_link_libraries(pylada.ewald-cython ewaldf90)
-add_subdirectory(tests)
+add_cython_target(ewald_cython ewald.pyx CXX)
+Python3_add_library(ewald MODULE
+    ${ewald_cython} ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
+target_include_directories(ewald PRIVATE "${PROJECT_SOURCE_DIR}")
+install(TARGETS ewald LIBRARY DESTINATION pylada/ewald)

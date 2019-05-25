@@ -40,7 +40,7 @@ def Extract(outdir=None):
     with chdir(outdir):
         if not exists('OUTCAR'):
             return Extract(False, outdir, None, functional)
-        with open('OUTCAR', 'r') as file:
+        with open('OUTCAR', 'rb') as file:
             indiv, value = load(file)
     return Extract(True, outdir, indiv, functional)
 

@@ -36,7 +36,7 @@ class Iterator(object):
     def reset(self):
         from numpy import count_nonzero, ones, logical_and
         from ..error import ValueError
-        from ._cutilities import FCIterator
+        from ._decorations import FCIterator
 
         # creates list of color iterators, as per Hart, Nelson, Forcade.
         self.iterators = []
@@ -110,7 +110,7 @@ def defects(lattice, cellsize, defects):
     """ Generates defects on a lattice """
     from numpy import zeros, dot, all
     from .transforms import Transforms
-    from ._cutilities import _lexcompare
+    from ._decorations import _lexcompare
     from . import hf_groups
 
     # sanity check

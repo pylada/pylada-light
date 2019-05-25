@@ -43,7 +43,7 @@ def supercells(lattice, sizerange):
     from numpy import dot, array
     from numpy.linalg import inv
     from ..crystal import space_group
-    from ._cutilities import _is_integer
+    from ._decorations import _is_integer
 
     sizerange = sorted([k for k in sizerange if k > 0])
     results = {}
@@ -130,7 +130,7 @@ def hf_groups(lattice, sizerange):
 def generate_bitstrings(lattice, sizerange):
     """ Generator over bitstrings """
     from numpy import dot, all
-    from ._cutilities import _lexcompare, NDimIterator
+    from ._decorations import _lexcompare, NDimIterator
     transforms = Transforms(lattice)
     for hfgroups in hf_groups(lattice, sizerange):
         for hfgroup in hfgroups:

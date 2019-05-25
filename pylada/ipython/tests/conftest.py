@@ -22,10 +22,13 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
+from pytest import fixture
 
-add_cython_target(defects_cython _defects.pyx CXX)
-Python3_add_library(_defects MODULE ${defects_cython} third_order.cc)
-target_link_libraries(_defects PRIVATE Eigen3::Eigen)
-target_include_directories(_defects PRIVATE
-        "${PROJECT_SOURCE_DIR}" "${NumPy_INCLUDE_DIRS}")
-install(TARGETS _defects LIBRARY DESTINATION pylada/crystal/defects)
+
+@fixture
+def shell():
+    from IPython.core.interactiveshell import InteractiveShell
+    shell = InteractiveShell.instance()
+    shell.magic("load_ext pylada")
+
+    return shell

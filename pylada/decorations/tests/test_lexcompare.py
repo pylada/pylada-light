@@ -23,7 +23,7 @@
 
 def test_lexcompare():
     from numpy import array
-    from pylada.decorations._cutilities import _lexcompare
+    from pylada.decorations._decorations import _lexcompare
     from itertools import product
     r = [u for u in product(list(range(3)), list(range(4)), list(range(5)))]
     for i in range(len(r)):

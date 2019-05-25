@@ -2,6 +2,7 @@
 from pathlib import Path
 from sys import platform
 
+from setuptools import find_packages
 from skbuild import setup
 
 tests_require = ["pytest", "pytest-bdd"]
@@ -33,22 +34,7 @@ setup(
     description="Productivity environment for Density Functional Theory",
     license="GPL-2",
     url="https://github.com/pylada/pylada",
-    packages=[
-        "pylada",
-        "pylada.errors",
-        # 'pylada.physicr', 'pylada.jobfolder',
-        # 'pylada.jobfolder.tests', 'pylada.crystal', 'pylada.crystal.tests',
-        # 'pylada.crystal.defects', 'pylada.decorations',
-        # 'pylada.decorations.tests', 'pylada.misc', 'pylada.config',
-        # 'pylada.ipython', 'pylada.ipython.tests', 'pylada.ipython.launch',
-        # 'pylada.ewald.tests', 'pylada.process', 'pylada.process.tests',
-        # 'pylada.vasp', 'pylada.vasp.tests', 'pylada.vasp.extract',
-        # 'pylada.vasp.extract.tests', 'pylada.vasp.nlep',
-        # 'pylada.vasp.incar', 'pylada.vasp.incar.tests', 'pylada.tools',
-        # 'pylada.tools.tests', 'pylada.tools.input',
-        # 'pylada.tools.input.tests', 'pylada.espresso',
-        # 'pylada.espresso.tests'
-    ],
+    packages=["pylada." + p for p in find_packages("pylada")],
     include_package_data=True,
     keywords="Physics",
     classifiers=[

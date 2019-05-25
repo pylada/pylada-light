@@ -23,7 +23,7 @@
 #ifndef PYLADA_CRYSTAL_FUZZY_H
 #define PYLADA_CRYSTAL_FUZZY_H
 
-#include "crystal/types.h"
+#include "pylada/crystal/types.h"
 #include <type_traits>
 #include <cstdlib>
 #include <cmath>

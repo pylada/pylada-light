@@ -181,7 +181,7 @@ class AbstractMassExtract(six.with_metaclass(ABCMeta, object)):
 
     def __len__(self):
         """ Returns length of output dictionary. """
-        return len(self.keys())
+        return len(list(self.keys()))
 
     def __contains__(self, key):
         """ Returns True if key is valid and not empty. """
@@ -200,7 +200,7 @@ class AbstractMassExtract(six.with_metaclass(ABCMeta, object)):
             pattern = translate_to_regex(pattern)
         if len(pattern) == 0:
             return compile("", flags)
-        if pattern[-1] in ('/', '\Z', '$'):
+        if pattern[-1] in ('/', r'\Z', '$'):
             return compile(pattern, flags)
         return compile(pattern + r"(?=/|\Z)(?ms)", flags)
 

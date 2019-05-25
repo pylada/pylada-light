@@ -24,17 +24,23 @@
 #  with PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-add_library(cutilities STATIC smith_normal_form.cc gruber.cc noopt.cc)
-set_property(TARGET cutilities PROPERTY CXX_STANDARD 11)
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-  set_target_properties(cutilities PROPERTIES COMPILE_FLAGS "-fPIC")
-endif()
-add_python_module("pylada.crystal" CPP GLOB *.py cutilities.pyx _space_group.pyx _primitive.pyx
-  _coordination_shells.pyx _map_sites.pyx)
-target_link_libraries(pylada.crystal.cutilities-cython cutilities)
-if(TARGET Lookup-Eigen3)
-  add_dependencies(cutilities Lookup-Eigen3)
-endif()
+set(cython_sources
+    cutilities.pyx _space_group.pyx _primitive.pyx _coordination_shells.pyx _map_sites.pyx)
+
+foreach(filename ${cython_sources})
+    get_filename_component(name "${filename}" NAME_WE)
+    add_cython_target(cython_${name} ${filename} CXX)
+    Python3_add_library(${name} MODULE ${cython_${name}})
+    target_link_libraries(${name} PRIVATE Eigen3::Eigen)
+    target_include_directories(${name} PRIVATE
+        "${PROJECT_SOURCE_DIR}" "${NumPy_INCLUDE_DIRS}")
+    install(TARGETS ${name} LIBRARY DESTINATION pylada/crystal)
+endforeach()
+
+add_library(c_utils OBJECT smith_normal_form.cc gruber.cc noopt.cc)
+target_include_directories(c_utils PRIVATE "${PROJECT_SOURCE_DIR}")
+target_link_libraries(c_utils PRIVATE Eigen3::Eigen)
+target_link_libraries(cutilities PRIVATE c_utils)
 
 add_subdirectory(defects)
-add_subdirectory(tests)
+# add_subdirectory(tests)

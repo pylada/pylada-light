@@ -683,7 +683,7 @@ def third_order_charge_correction(structure, charge=None, n=30, epsilon=1.0, **k
     """
     from quantities import elementary_charge, eV, pi, angstrom
     from pylada.physics import a0, Ry
-    from .cutilities import third_order
+    from ._defects import third_order
 
     if charge is None:
         charge = 1e0

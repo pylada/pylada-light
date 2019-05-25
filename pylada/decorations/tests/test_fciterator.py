@@ -22,7 +22,7 @@
 
 
 def test_fciterator():
-    from pylada.decorations._cutilities import FCIterator
+    from pylada.decorations._decorations import FCIterator
     result = [False, False, False, True, True], \
              [False, False, True, False, True], \
              [False, True, False, False, True], \

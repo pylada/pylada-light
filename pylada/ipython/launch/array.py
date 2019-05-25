@@ -110,10 +110,10 @@ def launch_single(self, event, jobfolder):
     if exists(pbsscript):
         a = ''
         while a not in ['n', 'y']:
-            a = six.raw_input("PBS script {0} already exists.\n"
-                              "Only one array job per jobfolder can be launched at"
-                              "a time.\nAre you sure this job is not currently running"
-                              "[y/n]? ".format(pbsscript))
+            a = six.moves.input("PBS script {0} already exists.\n"
+                                "Only one array job per jobfolder can be launched at"
+                                "a time.\nAre you sure this job is not currently running"
+                                "[y/n]? ".format(pbsscript))
         if a == 'n':
             print("Aborting.")
             return

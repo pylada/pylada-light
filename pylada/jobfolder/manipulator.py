@@ -261,7 +261,7 @@ class JobParams(AbstractMassExtract):
         if name in self.jobfolder and is_interactive:
             a = ''
             while a not in ['n', 'y']:
-                a = six.raw_input(
+                a = six.moves.input(
                     "Modifying existing folder parameters {0}.\nIs this OK? [y/n] ".format(name))
             if a == 'n':
                 print("Aborting.")
@@ -278,7 +278,7 @@ class JobParams(AbstractMassExtract):
                 print(key)
             a = ''
             while a != 'n' and a != 'y':
-                a = six.raw_input('Ok? [y/n] ')
+                a = six.moves.input('Ok? [y/n] ')
             if a == 'n':
                 print("Aborting.")
                 return
@@ -321,7 +321,7 @@ class JobParams(AbstractMassExtract):
                     print(key)
             a = ''
             while a != 'n' and a != 'y':
-                a = six.raw_input("Is the above OK? [n/y] ")
+                a = six.moves.input("Is the above OK? [n/y] ")
             if a == 'n':
                 print("Aborting.")
                 return

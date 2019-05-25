@@ -139,8 +139,9 @@ def export(self, event):
                 return
             a = ''
             while a not in ['n', 'y']:
-                a = six.raw_input("File {0} already exists.\nOverwrite? [y/n] "
-                                  .format(args.filename))
+                a = six.moves.input(
+                    "File {0} already exists.\nOverwrite? [y/n] "
+                    .format(args.filename))
             if a == 'n':
                 print("Aborted.")
                 return

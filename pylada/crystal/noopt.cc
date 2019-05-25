@@ -20,7 +20,7 @@
    <http://www.gnu.org/licenses/>.
 ******************************/
 
-#include "types.h"
+#include "pylada/crystal/types.h"
 
 namespace pylada {
 namespace details {
