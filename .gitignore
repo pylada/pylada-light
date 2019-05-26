@@ -139,3 +139,5 @@ pip-wheel-metadata/
 pylada/_version.py
 .clang/
 *.so
+
+pylada/process/tests/pifunctional.py

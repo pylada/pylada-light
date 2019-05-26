@@ -1,8 +1,5 @@
 from sys import version_info
-if version_info[0] >= 3:
-    from collections.abc import MutableSequence
-else:
-    from collections import MutableSequence
+from ..misc import MutableSequence
 
 
 class Structure(MutableSequence):
@@ -142,8 +139,8 @@ class Structure(MutableSequence):
 
     def extend(self, args):
         """ Adds atoms to structure """
-        from collections import Sequence
         from .atom import Atom
+        from ..misc import Sequence
         from .. import error
         for arg in args:
             if isinstance(arg, Atom):
@@ -163,7 +160,7 @@ class Structure(MutableSequence):
         self._atoms.insert(index, atom)
 
     def __setitem__(self, index, atom):
-        from collections import Sequence
+        from ..misc import Sequence
         from .atom import Atom
         from .. import error
         if isinstance(atom, Sequence):

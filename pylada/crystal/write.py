@@ -68,7 +68,8 @@ def poscar(structure, file='POSCAR', vasp5=None, substitute=None, direct=True):
         with open(file, 'w') as fileobj:
             return poscar(structure, fileobj, vasp5, substitute, direct)
 
-    from numpy import matrix, dot, identity
+    from numpy import dot, identity
+    from numpy.linalg import inv
     from . import specieset
 
     if vasp5 is None:
@@ -89,10 +90,10 @@ def poscar(structure, file='POSCAR', vasp5=None, substitute=None, direct=True):
     for s in species:
         string += "{0} ".format(len([0 for atom in structure if atom.type == s]))
     if direct:
-        inv_cell = matrix(structure.cell).I
+        inv_cell = inv(structure.cell)
         d_or_c = '\ndirect\n'
     else:
-        inv_cell = matrix(identity(3))
+        inv_cell = identity(3)
         d_or_c = '\ncartesian\n'
     selective_dynamics =\
         any([len(getattr(atom, 'freeze', '')) != 0 for atom in structure])
@@ -105,7 +106,7 @@ def poscar(structure, file='POSCAR', vasp5=None, substitute=None, direct=True):
             if atom.type != s:
                 continue
             string += "  {0[0]:20.16f} {0[1]:20.16f} {0[2]:20.16f}"\
-                      .format(dot(inv_cell, atom.pos).tolist()[0])
+                      .format(dot(inv_cell, atom.pos))
             freeze = getattr(atom, 'freeze', '')
             if selective_dynamics:
                 string += "  {0} {1} {2}\n"\

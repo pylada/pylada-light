@@ -1157,7 +1157,7 @@ class Relaxation(BaseKeyword):
                 7: 'volume'}[instance.isif]
 
     def __set__(self, instance, value):
-        from collections import Iterable
+        from ..misc import Iterable
         from ..error import ValueError
 
         if value is None:

@@ -1026,8 +1026,7 @@ class Vasp(AttrBlock):
 
     def _copy_additional_files(self, outdir):
         """ Copy files from attribute files """
-        from collections import Sequence
-        from ..misc import local_path, copyfile, chdir
+        from ..misc import local_path, copyfile, chdir, Sequence
         files = getattr(self, 'files', [])
         if files is None:
             return

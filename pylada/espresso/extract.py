@@ -179,7 +179,7 @@ class Extract(object):
 
     @property
     @make_cached
-    @grepper("Forces acting on atoms.*\n\n((?:\s*atom .* force = .*\n)*)")
+    @grepper(r"Forces acting on atoms.*\n\n((?:\s*atom .* force = .*\n)*)")
     def forces(self, match):
         """ Greps forces from pwscf.out """
         from numpy import array
@@ -192,7 +192,7 @@ class Extract(object):
 
     @property
     @make_cached
-    @grepper("\!\s*total energy\s*=\s*(\S*) Ry", fail=True)
+    @grepper(r"\!\s*total energy\s*=\s*(\S*) Ry", fail=True)
     def total_energy(self, match):
         """ Total energy at the end of the calculation """
         from quantities import Ry
@@ -200,7 +200,7 @@ class Extract(object):
 
     @property
     @make_cached
-    @grepper("total \s* stress .*kbar.*\n((?:.*\n){3})", fail=True)
+    @grepper(r"total \s* stress .*kbar.*\n((?:.*\n){3})", fail=True)
     def stress(self, match):
         from quantities import kilobar
         from numpy import array

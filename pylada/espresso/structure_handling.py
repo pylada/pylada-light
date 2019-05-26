@@ -113,7 +113,7 @@ def read_cell_and_scale(system, cell_parameters):
 
 
 def _get_scale(system):
-    from collections import Sequence
+    from ..misc import Sequence
     from quantities import bohr_radius, angstrom
     celldm = getattr(system, 'celldm', None)
     if celldm == 'A':

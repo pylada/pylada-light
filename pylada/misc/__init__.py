@@ -483,7 +483,7 @@ class Redirect:
 
     def __init__(self, filename, units='out', append=False):
         """ Creates a redirection context. """
-        from collections import Sequence
+        from ..misc import Sequence
         from ..error import input as InputError
         units = set(units) if isinstance(units, Sequence) else {units}
         if len(units - {'in', 'out', 'err'}) != 0:
@@ -525,6 +525,8 @@ class Redirect:
         del self.file
 
 if version_info[0] == 2:
+    from collections import Sequence, Iterable, MutableSequence, Mapping
     cmdl_input = raw_input
 else:
+    from typing import Sequence, Iterable, MutableSequence, Mapping
     cmdl_input = input

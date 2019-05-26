@@ -1015,7 +1015,7 @@ class Relaxation(SpecialVaspParam):
             if dof == 'all':
                 dof = 'ionic cellshape volume'
             ionic = re.search("ion(ic|s)?", dof) is not None
-            cellshape = re.search("cell(\s+|-|_)?(?:shape)?", dof) is not None
+            cellshape = re.search(r"cell(\s+|-|_)?(?:shape)?", dof) is not None
             volume = re.search("volume", dof) is not None
 
             # static calculation.

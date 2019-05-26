@@ -70,7 +70,7 @@ class Card(HasTraits):
             elif not doing_title:
                 break
         else:
-            logger.warn("Card %s could not find itself when reading input" % self.name)
+            logger.warning("Card %s could not find itself when reading input" % self.name)
 
 
 def read_cards(stream):

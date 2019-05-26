@@ -23,7 +23,7 @@
 """ Special dictioanry class to forward attributes indefinitely. """
 __docformat__ = "restructuredtext en"
 __all__ = ['ForwardingDict']
-from collections.abc import MutableMapping
+from pylada.misc import MutableMapping
 
 
 class ForwardingDict(MutableMapping):

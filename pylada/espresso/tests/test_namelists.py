@@ -74,7 +74,7 @@ def WithTraitLets():
 ])
 def test_scalar_namelist_attributes(simple_namelist, name, type_, value):
     from numpy import abs, allclose
-    from collections import Sequence
+    from pylada.misc import Sequence
 
     nl = Namelist(simple_namelist)
     assert hasattr(nl, name)

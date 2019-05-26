@@ -71,7 +71,7 @@ class Namelist(HasTraits):
 
     def __setattr__(self, name, value):
         """ Non-private attributes become part of the namelist proper """
-        from collections import Mapping
+        from ..misc import Mapping
         if name[0] == '_' or self.has_trait(name):
             super(Namelist, self).__setattr__(name, value)
         elif isinstance(value, Mapping) and not isinstance(value, Namelist):
