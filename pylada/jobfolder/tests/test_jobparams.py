@@ -174,7 +174,9 @@ def test_setting_attribute_for_some_jobs(jobparams, extra_folder):
 
 
 def test_deleting_folder(jobparams):
-    del jobparams['/*/1']
+    from unittest.mock import patch
+    with patch("pylada.misc.cmdl_input", return_value="y"):
+        del jobparams['/*/1']
     assert '/this/1/' not in jobparams
     assert '/that/1/' not in jobparams
     assert '/that/2/' in jobparams
@@ -183,6 +185,7 @@ def test_deleting_folder(jobparams):
 
 def test_concatenate_jobfolders(jobparams, jobfolder, functional, extra_folder):
     from copy import deepcopy
+    from unittest.mock import patch
     from pylada.jobfolder import JobFolder, JobParams
 
     # jobparams owns a reference to jobfolder
@@ -194,7 +197,8 @@ def test_concatenate_jobfolders(jobparams, jobfolder, functional, extra_folder):
     # change values of all individuals
     jobparams.indiv = 2
     # this should reset them except for the extra folder (since not in jobfolder)
-    jobparams.concatenate(jobfolder)
+    with patch("pylada.misc.cmdl_input", return_value="y"):
+        jobparams.concatenate(jobfolder)
 
     for name, value in jobparams.functional.items():
         assert repr(value) == repr(functional)
@@ -208,6 +212,7 @@ def test_concatenate_jobfolders(jobparams, jobfolder, functional, extra_folder):
 
 def test_concatenate_jobparams_and_indexing(jobparams, jobfolder, functional, extra_folder):
     from copy import deepcopy
+    from unittest.mock import patch
     from pylada.jobfolder import JobFolder, JobParams
 
     # jobparams owns a reference to jobfolder
@@ -216,9 +221,11 @@ def test_concatenate_jobparams_and_indexing(jobparams, jobfolder, functional, ex
     jobfolder = deepcopy(jobfolder)
     jobparams['/this/0/another'] = extra_folder
 
-    del jobparams['/*/1']
+    with patch("pylada.misc.cmdl_input", return_value="y"):
+        del jobparams['/*/1']
     jobparams.indiv = 2
-    jobparams.concatenate(JobParams(jobfolder)['/*/1'])
+    with patch("pylada.misc.cmdl_input", return_value="y"):
+        jobparams.concatenate(JobParams(jobfolder)['/*/1'])
 
     for name, value in jobparams.functional.items():
         assert repr(value) == repr(functional)

@@ -53,7 +53,6 @@ def copy_folder(self, event):
         '--nodeepcopy' is used, then the functionals are shared between source
         and destination.
     """
-    import six
     from argparse import ArgumentParser
     from os.path import join, normpath, relpath
     from copy import deepcopy
@@ -138,7 +137,7 @@ def copy_folder(self, event):
             print('Copying', jobsource.name, 'to', jobdest.name)
             a = ''
             while a not in ['n', 'y']:
-                a = six.moves.input('{0} already exists. Overwrite? [y/n]'.format(jobdest.name))
+                a = cmdl_input('{0} already exists. Overwrite? [y/n]'.format(jobdest.name))
             if a == 'n':
                 print(jobdest.name, 'not overwritten.')
                 continue
@@ -178,9 +177,9 @@ def delete_folder(self, event):
           This magic function does not check whether job-folders are 'on' or
           'off'. The recursive option should be used with care.
     """
-    import six
     from argparse import ArgumentParser
     from os.path import join, normpath
+    from ..misc import cmdl_input
     from ..interactive import jobfolder as cjf
 
     parser = ArgumentParser(prog='%deletefolder',
@@ -212,7 +211,7 @@ def delete_folder(self, event):
         if not args.force:
             a = ''
             while a not in ['n', 'y']:
-                a = six.moves.input("Delete {0} and its subfolders? [y/n]".format(cjf[folder].name))
+                a = cmdl_input("Delete {0} and its subfolders? [y/n]".format(cjf[folder].name))
             if a == 'n':
                 print(cjf[folder].name, "not deleted.")
                 return
@@ -229,7 +228,7 @@ def delete_folder(self, event):
         if not args.force:
             a = ''
             while a not in ['n', 'y']:
-                a = six.moves.input("Delete {0}? [y/n]".format(cjf[folder].name))
+                a = cmdl_input("Delete {0}? [y/n]".format(cjf[folder].name))
             if a == 'n':
                 print(cjf[folder].name, "not deleted.")
                 return

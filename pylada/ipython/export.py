@@ -26,13 +26,12 @@ __docformat__ = "restructuredtext en"
 
 def export(self, event):
     """ Tars files from a calculation.  """
-    import six
     import argparse
     import tarfile
     from os import getcwd
     from os.path import exists, isfile, extsep, relpath, dirname, join
     from glob import iglob
-    from ..misc import RelativePath
+    from ..misc import RelativePath, cmdl_input
     from .. import interactive
     from . import get_shell
     shell = get_shell(self)
@@ -139,7 +138,7 @@ def export(self, event):
                 return
             a = ''
             while a not in ['n', 'y']:
-                a = six.moves.input(
+                a = cmdl_input(
                     "File {0} already exists.\nOverwrite? [y/n] "
                     .format(args.filename))
             if a == 'n':

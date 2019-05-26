@@ -202,7 +202,7 @@ class AbstractMassExtract(six.with_metaclass(ABCMeta, object)):
             return compile("", flags)
         if pattern[-1] in ('/', r'\Z', '$'):
             return compile(pattern, flags)
-        return compile(pattern + r"(?=/|\Z)(?ms)", flags)
+        return compile(r"(?ms)" + pattern + r"(?=/|\Z)", flags)
 
     @abstractmethod
     def __iter_alljobs__(self):

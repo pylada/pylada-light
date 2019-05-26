@@ -130,9 +130,9 @@ class Pylada(Magics):
 
             >>> %qdel "anti-ferro"
         """
-        import six
         import pylada
         from pylada import qdel_exe
+        from pylada.misc import cmdl_input
 
         if not hasattr(pylada, 'ipython_qstat'):
             raise RuntimeError(
@@ -156,7 +156,7 @@ class Pylada(Magics):
             message = "Cancel all jobs? [y/n] "
             key = ''
             while key not in ['n', 'y']:
-                key = six.moves.input(message)
+                key = cmdl_input(message)
                 if key == 'n':
                     return
 

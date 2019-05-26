@@ -208,7 +208,12 @@ class RelativePath(object):
 
     @hook.setter
     def hook(self, value):
+        from sys import version_info
         from inspect import ismethod, getargspec, isfunction
+        if version_info[0] == 2:
+            from inspect import getargspec
+        else:
+            from inspect import getfullargspec as getargspec
 
         if value is None:
             self._hook = None

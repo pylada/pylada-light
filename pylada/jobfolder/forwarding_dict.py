@@ -23,7 +23,7 @@
 """ Special dictioanry class to forward attributes indefinitely. """
 __docformat__ = "restructuredtext en"
 __all__ = ['ForwardingDict']
-from collections import MutableMapping
+from collections.abc import MutableMapping
 
 
 class ForwardingDict(MutableMapping):

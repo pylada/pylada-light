@@ -249,8 +249,8 @@ class JobParams(AbstractMassExtract):
             .. warning:: The right-hand-side is *always* deep-copied_.
               .. _deep-copied:: http://docs.python.org/library/copy.html
         """
-        import six
         from .. import is_interactive
+        from ..misc import cmdl_input
         from copy import deepcopy
 
         if isinstance(jobfolder, JobParams):
@@ -261,7 +261,7 @@ class JobParams(AbstractMassExtract):
         if name in self.jobfolder and is_interactive:
             a = ''
             while a not in ['n', 'y']:
-                a = six.moves.input(
+                a = cmdl_input(
                     "Modifying existing folder parameters {0}.\nIs this OK? [y/n] ".format(name))
             if a == 'n':
                 print("Aborting.")
@@ -270,15 +270,15 @@ class JobParams(AbstractMassExtract):
 
     def __delitem__(self, name):
         """ Deletes items from job-folder. """
-        import six
         from .. import is_interactive
+        from ..misc import cmdl_input
         if is_interactive:
             print("Deleting the following jobs:")
             for key in self[name].keys():
                 print(key)
             a = ''
             while a != 'n' and a != 'y':
-                a = six.moves.input('Ok? [y/n] ')
+                a = cmdl_input('Ok? [y/n] ')
             if a == 'n':
                 print("Aborting.")
                 return
@@ -301,11 +301,11 @@ class JobParams(AbstractMassExtract):
             .. warning: New jobs are always added at the root of the job-folder.
               Make sure the jobs bear the names you want.
         """
-        import six
         from .jobfolder import JobFolder
         from .. import is_interactive
-        keys = jobfolder.keys()
+        from ..misc import cmdl_input
         if is_interactive:
+            keys = list(jobfolder.keys())
             if len(keys) == 0:
                 print("Empty input job-folder. Aborting.")
                 return
@@ -321,14 +321,14 @@ class JobParams(AbstractMassExtract):
                     print(key)
             a = ''
             while a != 'n' and a != 'y':
-                a = six.moves.input("Is the above OK? [n/y] ")
+                a = cmdl_input("Is the above OK? [n/y] ")
             if a == 'n':
                 print("Aborting.")
                 return
         rootadd = jobfolder
         if isinstance(rootadd, JobParams):
             rootadd = JobFolder()
-            for key in keys:
+            for key in jobfolder.keys():
                 job = rootadd / key
                 rootadd[key] = jobfolder.jobfolder[key]
 

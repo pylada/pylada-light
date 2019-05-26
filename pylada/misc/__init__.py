@@ -27,6 +27,7 @@ __all__ = ['testValidProgram', 'copyfile', 'Changedir',
            'mkdtemp', 'Redirect', 'local_path']
 
 from types import ModuleType
+from sys import version_info
 
 from .changedir import Changedir
 from .relativepath import RelativePath
@@ -522,3 +523,8 @@ class Redirect:
         self.file.close()
         del self.old
         del self.file
+
+if version_info[0] == 2:
+    cmdl_input = raw_input
+else:
+    cmdl_input = input

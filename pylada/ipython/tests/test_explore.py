@@ -31,7 +31,7 @@ def test(shell, tmpdir):
     from dummy import functional
     from unittest.mock import patch
 
-    with patch("six.moves.input", return_value="y"):
+    with patch("pylada.misc.cmdl_input", return_value="y"):
 
         root = JobFolder()
         for type, trial, size in [
