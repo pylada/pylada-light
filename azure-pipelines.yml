@@ -18,12 +18,12 @@ steps:
 
   - script: |
       apt install fortran
-    name: test
+    name: gfort2
     condition: eq(variables['Agent.OS'], 'Linux')
 
   - script: |
       brew install gcc
-    name: test
+    name: gfort1
     condition: ne(variables['Agent.OS'], 'Linux')
 
   - script: |
