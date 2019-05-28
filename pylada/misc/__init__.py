@@ -525,8 +525,8 @@ class Redirect:
         del self.file
 
 if version_info[0] == 2:
-    from collections import Sequence, Iterable, MutableSequence, Mapping
+    from collections import Sequence, Iterable, MutableSequence, Mapping, MutableMapping
     cmdl_input = raw_input
 else:
-    from typing import Sequence, Iterable, MutableSequence, Mapping
+    from typing import Sequence, Iterable, MutableSequence, Mapping, MutableMapping
     cmdl_input = input

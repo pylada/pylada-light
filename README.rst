@@ -28,13 +28,6 @@ access.
 Installation
 ------------
 
-There are currently two pre-requisites:
-
-- `CMake <http://www.cmake.org/>`__, a cross-platform build system
-- `git <http://git-scm.com/>`__, a distributed version control system
-
-Both are generally available on Linux and OS/X (via `homebrew <http://brew.sh/>`__ for instance). 
-
 The simplest approach is to install via
 `pip <https://pip.pypa.io/en/latest/>`__:
 
@@ -65,42 +58,23 @@ The simplest approach is to install via
 Installation for development
 ----------------------------
 
-There are two approaches for developping with pylada. One is to use the
-bare-bone cmake build system. The other is to two have pip setup the cmake
-system for you.
-
-In either case, the source should first be obtained from the github repo.
-
-- bare-bone
-
-    .. code:: bash
-
-        cd /path/to/source
-        mkdir build
-        cd build
-        cmake ..
-        make
-        make test
-
-    The usual cmake options apply. In order to facilitate debugging, a script
-    :bash:`localpython.sh` exists in the build directory to a run a python
-    session that will know where to find the pylada package that is being
-    developped.  For instance :bash:`./localpython.sh -m IPython` will launch
-    an ipython session where the current pylada can be imported.
-
-
-- pip develop
+- python setup.py develop
 
     .. code:: bash
 
         mkvirtualenv --system-site-packages pylada
         source pylada/bin/activate
-        pip install -e git+https://github.com/pylada/pylada-light#egg=pylada
-        cd pylada/src/pylada/build
-        make test
+        git clone https://github.com/pylada/pylada-light
+        cd pylada-light
+        pip install cython setuptools wheel scikit-build cmake ninja numpy conan
+        python setup.py develop
+        python setup.py tests
     
     The above creates a virtual environment and installs pylada inside it in
     development mode. This means that the virtual environment will know about
     the pylada flavor in development. It is possible to edit a file, do
     :bash:`make`, launch python and debug. One just needs to active the virtual
     environment once per session.
+
+    When modifying files that are built (`.pyx`, `.cc`, `.h`), it is necessary to run `python
+    setup.py develop` again.

@@ -1,6 +1,5 @@
 import pytest
 from pytest_bdd import given, scenarios, then, when
-from pylada.espresso.tests.fixtures import diamond_structure
 
 
 @pytest.fixture

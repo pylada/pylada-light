@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from pylada.process.tests.fixtures import comm, executable, mpi4py_required
+from .conftest import mpi4py_required
 
 
 @mpi4py_required

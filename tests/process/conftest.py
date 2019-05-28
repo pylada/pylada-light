@@ -41,8 +41,7 @@ mpi4py_required = mark.skipif(
 @fixture
 def executable():
     from os.path import join, dirname
-    from pylada.process.tests.pifunctional import __file__ as executable
-    return join(dirname(executable), "pifunctional.py")
+    return join(dirname(__file__), "pifunctional.py")
 
 
 @fixture

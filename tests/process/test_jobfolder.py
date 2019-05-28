@@ -24,8 +24,7 @@
 ###############################
 from pytest import fixture, mark
 
-from pylada.process.tests.fixtures import (comm, executable, jobfolders,
-                                           mpi4py_required,)
+from .conftest import jobfolders, mpi4py_required
 
 
 @fixture

@@ -21,10 +21,10 @@
 ###############################
 from pytest import mark
 from itertools import chain
-from pylada.decorations.tests import fccsets
-from pylada.decorations.tests import ternarysets
-from pylada.decorations.tests import diamondsets
-from pylada.decorations.tests import zincblendesets
+from . import fccsets
+from . import ternarysets
+from . import diamondsets
+from . import zincblendesets
 
 
 @mark.parametrize('lattice, natoms, expected', chain(

@@ -22,10 +22,7 @@
 # -*- coding: utf-8 -*-
 from pytest import fixture
 from pylada.espresso import Pwscf
-from pylada.espresso.tests.fixtures import check_aluminum_functional, check_aluminum_structure
-import pylada.espresso.tests.fixtures
-aluminum_file = pylada.espresso.tests.fixtures.aluminum_file
-diamond_structure = pylada.espresso.tests.fixtures.diamond_structure
+from .conftest import check_aluminum_functional, check_aluminum_structure
 
 
 @fixture

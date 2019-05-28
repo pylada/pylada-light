@@ -11,14 +11,11 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
     "version_info = Version()\n"
     "version = f\"{version_info}\"\n"
 )
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/_version.py" DESTINATION pylada)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
+    __init__.py error.py onexit.py record.py
+    DESTINATION pylada)
 
 add_subdirectory(crystal)
 add_subdirectory(decorations)
 add_subdirectory(ewald)
-
-configure_file("process/tests/pifunctional.in.py"
-    "${CMAKE_CURRENT_BINARY_DIR}/process/tests/pifunctional.py")
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/process/tests/pifunctional.py"
-    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-    DESTINATION pylada/process/tests)

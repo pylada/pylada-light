@@ -79,3 +79,6 @@ find_package(NumPy REQUIRED)
 find_package(Eigen3 NO_MODULE)
 
 add_subdirectory(pylada)
+
+configure_file("tests/process/pifunctional.in.py"
+    "${PROJECT_SOURCE_DIR}/tests/process/pifunctional.py")

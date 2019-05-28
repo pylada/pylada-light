@@ -22,23 +22,23 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from pylada.process.tests.fixtures import comm, executable, mpi4py_required
+from .conftest import mpi4py_required
 
 
 @mpi4py_required
-def test_process_functional(executable, comm, tmpdir):
-    """Tests CallProcess.
+def test_iterator(executable, tmpdir, comm):
+    """Tests IteratorProcess.
 
     Includes failure modes.
     """
     from pytest import raises
     from numpy import all, arange, abs, array
-    from pylada.process.call import CallProcess
-    from pylada.process import NotStarted
+    from pylada.process.iterator import IteratorProcess
+    from pylada.process import Fail, NotStarted
     from pylada.process.tests.functional import Functional
 
     functional = Functional(executable, list(range(8)))
-    program = CallProcess(functional, outdir=str(tmpdir), dompi=False)
+    program = IteratorProcess(functional, outdir=str(tmpdir))
     # program not started. should fail.
     with raises(NotStarted):
         program.poll()
@@ -47,8 +47,7 @@ def test_process_functional(executable, comm, tmpdir):
         program.wait()
 
     # now starting for real.
-    assert program.start(comm) == False
-    assert program.process is not None
+    program.start(comm)
     while not program.poll():
         continue
     extract = functional.Extract(str(tmpdir))
@@ -65,11 +64,13 @@ def test_process_functional(executable, comm, tmpdir):
     assert all(abs(extract.error - array(expected)) < 1e-5)
     assert all(n['n'] == comm['n'] for n in extract.comm)
     # restart
-    assert program.start(comm)
+    assert program.poll()
+    program.start(comm)
     assert program.process is None
+    assert program.poll()
     # true restart
-    program = CallProcess(functional, outdir=str(tmpdir), dompi=False)
-    assert program.start(comm)
+    program = IteratorProcess(functional, outdir=str(tmpdir))
+    program.start(comm)
     assert program.process is None
     assert program.poll()
     extract = functional.Extract(str(tmpdir))
@@ -89,16 +90,12 @@ def test_process_functional(executable, comm, tmpdir):
 @mpi4py_required
 def test_fail_midway(executable, tmpdir, comm):
     from pytest import raises
-    from pylada.process.call import CallProcess
+    from pylada.process.iterator import IteratorProcess
     from pylada.process import Fail
     from pylada.process.tests.functional import Functional
 
     functional = Functional(executable, [50], fail='midway')
-    program = CallProcess(
-        functional,
-        outdir=str(tmpdir),
-        stderr=str(tmpdir.join('error')),
-        dompi=False)
+    program = IteratorProcess(functional, outdir=str(tmpdir))
     with raises(Fail):
         program.start(comm)
         program.wait()
@@ -106,10 +103,10 @@ def test_fail_midway(executable, tmpdir, comm):
 
 @mpi4py_required
 def test_full_execution(executable, tmpdir, comm):
-    from pylada.process.call import CallProcess
+    from pylada.process.iterator import IteratorProcess
     from pylada.process.tests.functional import Functional
     functional = Functional(executable, [50])
-    program = CallProcess(functional, outdir=str(tmpdir), dompi=False)
+    program = IteratorProcess(functional, outdir=str(tmpdir))
     program.start(comm)
     program.wait()
     assert True

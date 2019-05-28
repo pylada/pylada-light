@@ -24,9 +24,6 @@
 """ Pwscf Extraction Tests """
 from py.test import fixture, mark
 from pylada.espresso.extract import Extract
-import pylada.espresso.tests.fixtures
-aluminum_pwscf = pylada.espresso.tests.fixtures.aluminum_pwscf
-aluminum_structure = pylada.espresso.tests.fixtures.aluminum_structure
 
 
 @fixture

@@ -126,25 +126,5 @@ locals().update(__exec_config_files(rcfile=True, logger=logger))
 from . import error, crystal, physics, misc, tools, ewald, decorations, periodic_table, vasp, \
     process, jobfolder, logger, espresso
 
-# Add a function to easily run the tests
-try:
-    from pytest import mark
-except ImportError:
-    pass
-else:
-    # Make sure this function is not run by pytest, to avoid infinit
-    # recursion
-    @mark.skipif(True, "Helper function to aggregate tests")
-    def test(**kwargs):
-        """ Run all pylada python tests
-
-            Does not tests that require external programs such as vasp. Those should be run via
-            ctest.
-        """
-        from os.path import dirname
-        from pytest import main
-        return main(dirname(__file__), **kwargs)
-
-
 # Make this an IPython module
 from .ipython import load_ipython_extension, unload_ipython_extension

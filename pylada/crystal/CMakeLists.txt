@@ -25,7 +25,7 @@
 ###############################
 
 set(cython_sources
-    cutilities.pyx _space_group.pyx _primitive.pyx _coordination_shells.pyx _map_sites.pyx)
+    _space_group.pyx _primitive.pyx _coordination_shells.pyx _map_sites.pyx)
 
 foreach(filename ${cython_sources})
     get_filename_component(name "${filename}" NAME_WE)
@@ -37,10 +37,11 @@ foreach(filename ${cython_sources})
     install(TARGETS ${name} LIBRARY DESTINATION pylada/crystal)
 endforeach()
 
-add_library(c_utils OBJECT smith_normal_form.cc gruber.cc noopt.cc)
-target_include_directories(c_utils PRIVATE "${PROJECT_SOURCE_DIR}")
-target_link_libraries(c_utils PRIVATE Eigen3::Eigen)
-target_link_libraries(cutilities PRIVATE c_utils)
+add_cython_target(cython_cutilities cutilities.pyx CXX)
+Python3_add_library(cutilities MODULE ${cython_cutilities} smith_normal_form.cc gruber.cc noopt.cc)
+target_include_directories(cutilities PRIVATE 
+    "${PROJECT_SOURCE_DIR}" "${NumPy_INCLUDE_DIRS}")
+target_link_libraries(cutilities PRIVATE Eigen3::Eigen)
+install(TARGETS cutilities LIBRARY DESTINATION pylada/crystal)
 
 add_subdirectory(defects)
-# add_subdirectory(tests)

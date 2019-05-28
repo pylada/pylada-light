@@ -140,4 +140,4 @@ pylada/_version.py
 .clang/
 *.so
 
-pylada/process/tests/pifunctional.py
+tests/process/pifunctional.py
