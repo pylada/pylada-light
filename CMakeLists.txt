@@ -81,4 +81,7 @@ find_package(Eigen3 NO_MODULE)
 add_subdirectory(pylada)
 
 configure_file("tests/process/pifunctional.in.py"
-    "${PROJECT_SOURCE_DIR}/tests/process/pifunctional.py")
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/process/pifunctional.py")
+file(COPY "${CMAKE_CURRENT_BINARY_DIR}/tests/process/pifunctional.py"
+    FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/tests/process)

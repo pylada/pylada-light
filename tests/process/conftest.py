@@ -53,11 +53,173 @@ def comm():
 
 
 def jobfolders(executable, start=0, end=8):
-    from pylada.process.tests.functional import Functional
     from pylada.jobfolder.jobfolder import JobFolder
     root = JobFolder()
     for n in range(start, end):
         job = root / str(n)
-        job.functional = Functional(executable, [n])
+        job.functional = FakeFunctional(executable, [n])
         job.params['sleep'] = 0.01
     return root
+
+
+
+class ExtractSingle(object):
+
+    def __init__(self, outdir):
+        from os.path import exists, isfile, isdir, join
+        from re import search
+        from pylada.misc import RelativePath
+        super(ExtractSingle, self).__init__()
+
+        outdir = RelativePath(outdir).path
+        if isdir(outdir):
+            outdir = join(outdir, 'stdout')
+        self.directory = outdir
+        self.success = False
+        if not exists(outdir):
+            return
+        if not isfile(outdir):
+            return
+
+        try:
+            with open(outdir, 'r') as file:
+                line = next(file)
+                regex = search("pi to order (\d+) is approximately (\S+), "
+                               "Error is (\S+) "
+                               "\s*-- slept (\S+) seconds at each iteration -- "
+                               "\s*mpi world size is (\d+)", line)
+                if regex is None:
+                    return
+                self.order = int(regex.group(1))
+                self.pi = float(regex.group(2))
+                self.error = float(regex.group(3))
+                self.sleep = float(regex.group(4))
+                self.comm = {'n': int(regex.group(5))}
+
+                line = next(file)
+                if line[:line.find(':')].rstrip().lstrip() != 'sysname':
+                    self.success = False
+                    return
+                self.system = line[line.find(':') + 1:].rstrip().lstrip()
+                line = next(file)
+                self.nodename = line[line.find(':') + 1:].rstrip().lstrip()
+                line = next(file)
+                self.release = line[line.find(':') + 1:].rstrip().lstrip()
+                line = next(file)
+                self.compilation = line[line.find(':') + 1:].rstrip().lstrip()
+                line = next(file)
+                self.version = line[line.find(':') + 1:].rstrip().lstrip()
+                line = next(file)
+                self.machine = line[line.find(':') + 1:].rstrip().lstrip()
+        except:
+            self.success = False
+        else:
+            self.success = True
+
+
+class ExtractMany(object):
+
+    def __init__(self, outdir, order=None):
+        from glob import iglob
+        from os.path import join, basename
+        from pylada.misc import RelativePath
+
+        super(ExtractMany, self).__init__()
+
+        self.directory = RelativePath(outdir).path
+        checkdir = order is None
+
+        if checkdir:
+            order = []
+            for file in iglob(join(self.directory, 'stdout*')):
+                o = int(basename(file)[6:])
+                extract = ExtractSingle(file)
+                if not extract.success:
+                    continue
+                if extract.order == o:
+                    order.append(o)
+
+        self.order = []
+        self.sleep = []
+        self.pi = []
+        self.error = []
+        self.system = []
+        self.version = []
+        self.machine = []
+        self.nodename = []
+        self.release = []
+        self.comm = []
+        self.success = False
+        error = False
+        try:
+            for o in order:
+                extract = ExtractSingle(join(self.directory, 'stdout') + str(o))
+                if not extract.success:
+                    error = True
+                    continue
+                if extract.order != o:
+                    error = True
+                    continue
+                self.order.append(o)
+                self.pi.append(extract.pi)
+                self.error.append(extract.error)
+                self.system.append(extract.system)
+                self.version.append(extract.version)
+                self.nodename.append(extract.nodename)
+                self.machine.append(extract.machine)
+                self.release.append(extract.release)
+                self.comm.append(extract.comm)
+        except:
+            self.success = False
+        else:
+            self.success = not error
+
+
+class FakeFunctional(object):
+
+    def __init__(self, program, order=4, sleep=0, fail=None):
+        super(FakeFunctional, self).__init__()
+        self.program = program
+        self.order = order
+        self.sleep = sleep
+        assert fail in [None, "midway", "end"]
+        self.fail = fail
+
+    def iter(self, outdir=None, sleep=None, overwrite=False, comm=None):
+        from copy import deepcopy
+        from os.path import join
+        from pylada.process.program import ProgramProcess
+        from pylada.misc import RelativePath
+        self = deepcopy(self)
+        outdir = RelativePath(outdir).path
+        if sleep is not None:
+            self.sleep = sleep
+        order = self.order if hasattr(self.order, '__iter__') else [self.order]
+        for o in order:
+            stdout = join(outdir, 'stdout{0}'.format(o))
+            stderr = join(outdir, 'stderr{0}'.format(o))
+            if overwrite == False:
+                extract = ExtractSingle(stdout)
+                if extract.success:
+                    yield extract
+                    continue
+            cmdline = ['--order', str(o), '--sleep', str(self.sleep)]
+            if self.fail == 'midway':
+                cmdline.append('--fail-mid-call')
+            elif self.fail == 'end':
+                cmdline.append('--fail-at-end')
+            yield ProgramProcess(self.program, cmdline=cmdline, outdir=outdir,
+                                 stdout=stdout, stderr=stderr, dompi=True, comm=comm)
+
+    def __call__(self, outdir=None, sleep=None, overwrite=False, comm=None):
+        from pylada.misc import RelativePath
+        outdir = RelativePath(outdir).path
+        for program in self.iter(outdir, sleep, overwrite):
+            if getattr(program, 'success', False) == False:
+                program.start(comm)
+                program.wait()
+        return self.Extract(outdir)
+
+    def Extract(self, outdir):
+        order = self.order if hasattr(self.order, '__iter__') else [self.order]
+        return ExtractMany(outdir, order=order)

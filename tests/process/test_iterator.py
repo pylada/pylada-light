@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from .conftest import mpi4py_required
+from .conftest import mpi4py_required, FakeFunctional
 
 
 @mpi4py_required
@@ -35,9 +35,8 @@ def test_iterator(executable, tmpdir, comm):
     from numpy import all, arange, abs, array
     from pylada.process.iterator import IteratorProcess
     from pylada.process import Fail, NotStarted
-    from pylada.process.tests.functional import Functional
 
-    functional = Functional(executable, list(range(8)))
+    functional = FakeFunctional(executable, list(range(8)))
     program = IteratorProcess(functional, outdir=str(tmpdir))
     # program not started. should fail.
     with raises(NotStarted):
@@ -92,9 +91,8 @@ def test_fail_midway(executable, tmpdir, comm):
     from pytest import raises
     from pylada.process.iterator import IteratorProcess
     from pylada.process import Fail
-    from pylada.process.tests.functional import Functional
 
-    functional = Functional(executable, [50], fail='midway')
+    functional = FakeFunctional(executable, [50], fail='midway')
     program = IteratorProcess(functional, outdir=str(tmpdir))
     with raises(Fail):
         program.start(comm)
@@ -104,8 +102,7 @@ def test_fail_midway(executable, tmpdir, comm):
 @mpi4py_required
 def test_full_execution(executable, tmpdir, comm):
     from pylada.process.iterator import IteratorProcess
-    from pylada.process.tests.functional import Functional
-    functional = Functional(executable, [50])
+    functional = FakeFunctional(executable, [50])
     program = IteratorProcess(functional, outdir=str(tmpdir))
     program.start(comm)
     program.wait()

@@ -28,7 +28,46 @@ from pytest import fixture
 @fixture
 def shell():
     from IPython.core.interactiveshell import InteractiveShell
+
     shell = InteractiveShell.instance()
     shell.magic("load_ext pylada")
 
     return shell
+
+
+def Extract(outdir=None):
+    from os.path import exists
+    from os import getcwd
+    from collections import namedtuple
+    from pickle import load
+    from pylada.misc import chdir
+
+    if outdir == None:
+        outdir = getcwd()
+    Extract = namedtuple("Extract", ["success", "directory", "indiv", "functional"])
+    if not exists(outdir):
+        return Extract(False, outdir, None, functional)
+    with chdir(outdir):
+        if not exists("OUTCAR"):
+            return Extract(False, outdir, None, functional)
+        with open("OUTCAR", "rb") as file:
+            indiv, value = load(file)
+    return Extract(True, outdir, indiv, functional)
+
+
+def call_functional(indiv, outdir=None, value=False, **kwargs):
+    from pylada.misc import local_path
+    from pickle import dump
+
+    path = local_path(outdir)
+    path.ensure(dir=True)
+    dump((indiv, value), path.join("OUTCAR").open("wb"))
+    return Extract(outdir)
+
+
+call_functional.Extract = Extract
+
+
+@fixture
+def functional():
+    return call_functional

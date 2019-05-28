@@ -46,7 +46,6 @@ def processalloc(job):
 def test_failures(tmpdir, executable, comm):
     """Tests whether scheduling jobs works on known failure cases."""
     from pylada import default_comm
-    from pylada.process.tests.functional import Functional
     root = jobfolders(executable, 0, 8)
 
     def processalloc_test1(job):

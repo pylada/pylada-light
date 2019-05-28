@@ -23,12 +23,6 @@ from pytest import fixture, mark
 
 
 @fixture
-def functional():
-    from pylada.jobfolder.tests.dummy import functional
-    return functional
-
-
-@fixture
 def jobfolder(functional):
     from pylada.jobfolder import JobFolder
     root = JobFolder()

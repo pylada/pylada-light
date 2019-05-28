@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from .conftest import mpi4py_required
+from .conftest import mpi4py_required, ExtractSingle
 
 
 @mpi4py_required
@@ -31,7 +31,6 @@ def test_program(tmpdir, comm, executable):
     from pytest import raises
     from pylada.process.program import ProgramProcess
     from pylada.process import NotStarted
-    from pylada.process.tests.functional import ExtractSingle as Extract
 
     stdout = str(tmpdir.join('stdout'))
     program = ProgramProcess(
@@ -52,7 +51,7 @@ def test_program(tmpdir, comm, executable):
     assert program.process is not None
     while not program.poll():
         continue
-    extract = Extract(stdout)
+    extract = ExtractSingle(stdout)
     assert extract.success
     assert abs(extract.pi - 3.146801e+00) < 1e-2 * extract.error
     assert abs(extract.error - 0.005207865) < 1e-2 * extract.error

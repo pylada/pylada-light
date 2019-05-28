@@ -24,11 +24,10 @@
 ###############################
 
 
-def test(shell, tmpdir):
+def test(shell, tmpdir, functional):
     from os.path import join
     from pylada.jobfolder import JobFolder
     import pylada
-    from dummy import functional
     from unittest.mock import patch
 
     with patch("pylada.misc.cmdl_input", return_value="y"):

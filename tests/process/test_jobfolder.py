@@ -24,7 +24,7 @@
 ###############################
 from pytest import fixture, mark
 
-from .conftest import jobfolders, mpi4py_required
+from .conftest import jobfolders, mpi4py_required, FakeFunctional
 
 
 @fixture
@@ -138,11 +138,10 @@ def test_failed_job_discovery(tmpdir, comm, root, executable, Process,
     """
     from pytest import raises
     from pylada.process import Fail
-    from pylada.process.tests.functional import Functional
 
     with raises(Fail):
         job = root / str(666)
-        job.functional = Functional(executable, [50], fail='end')
+        job.functional = FakeFunctional(executable, [50], fail='end')
         program = Process(tmpdir, root)
         assert program.nbjobsleft > 0
         program.start(comm)
@@ -160,11 +159,10 @@ def test_restart_failed_job(tmpdir, comm, root, executable, Process,
                             do_multiple_mpi_programs):
     from pytest import raises
     from pylada.process import Fail
-    from pylada.process.tests.functional import Functional
 
     with raises(Fail):
         job = root / str(666)
-        job.functional = Functional(executable, [50], fail='end')
+        job.functional = FakeFunctional(executable, [50], fail='end')
         program = Process(tmpdir, root)
         program.start(comm)
         program.wait()

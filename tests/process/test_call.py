@@ -22,7 +22,7 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
-from .conftest import comm, executable, mpi4py_required
+from .conftest import executable, mpi4py_required, FakeFunctional
 
 
 @mpi4py_required
@@ -35,9 +35,8 @@ def test_process_functional(executable, comm, tmpdir):
     from numpy import all, arange, abs, array
     from pylada.process.call import CallProcess
     from pylada.process import NotStarted
-    from pylada.process.tests.functional import Functional
 
-    functional = Functional(executable, list(range(8)))
+    functional = FakeFunctional(executable, list(range(8)))
     program = CallProcess(functional, outdir=str(tmpdir), dompi=False)
     # program not started. should fail.
     with raises(NotStarted):
@@ -91,9 +90,8 @@ def test_fail_midway(executable, tmpdir, comm):
     from pytest import raises
     from pylada.process.call import CallProcess
     from pylada.process import Fail
-    from pylada.process.tests.functional import Functional
 
-    functional = Functional(executable, [50], fail='midway')
+    functional = FakeFunctional(executable, [50], fail='midway')
     program = CallProcess(
         functional,
         outdir=str(tmpdir),
@@ -107,8 +105,7 @@ def test_fail_midway(executable, tmpdir, comm):
 @mpi4py_required
 def test_full_execution(executable, tmpdir, comm):
     from pylada.process.call import CallProcess
-    from pylada.process.tests.functional import Functional
-    functional = Functional(executable, [50])
+    functional = FakeFunctional(executable, [50])
     program = CallProcess(functional, outdir=str(tmpdir), dompi=False)
     program.start(comm)
     program.wait()

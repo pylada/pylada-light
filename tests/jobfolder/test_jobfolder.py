@@ -23,9 +23,8 @@ from pytest import fixture
 
 
 @fixture
-def root():
+def root(functional):
     from pylada.jobfolder import JobFolder
-    from pylada.jobfolder.tests.dummy import functional
     sizes = [10, 15, 20, 25]
     root = JobFolder()
     for type, trial, size in [('this', 0, 10), ('this', 1, 15), ('that', 2, 20), ('that', 1, 20)]:
@@ -71,8 +70,7 @@ def test_getitem_and_contains(root):
     assert '2' in root['that']
 
 
-def test_values_iteration(root):
-    from pylada.jobfolder.tests.dummy import functional
+def test_values_iteration(root, functional):
     for jobfolder in root.values():
         assert repr(jobfolder.functional) == repr(functional)
 

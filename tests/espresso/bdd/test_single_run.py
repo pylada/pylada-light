@@ -78,7 +78,7 @@ def second_step(passon):
 
 @when("running pwscf")
 def run_nonscf(tmpdir, aluminum, pwscf, passon):
-    from pylada.espresso.tests.bdd.fixtures import copyoutput, data_path
+    from .conftest import copyoutput, data_path
     src = data_path("nonscf")
     program = copyoutput(tmpdir, src, tmpdir)
     passon.append(pwscf(aluminum, tmpdir, program=str(program)))

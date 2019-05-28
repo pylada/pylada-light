@@ -24,12 +24,11 @@
 ###############################
 
 
-def test(shell, tmpdir):
+def test(shell, tmpdir, functional):
     from os.path import join
     from os import getcwd
     from pylada.jobfolder import JobFolder
     from pylada import interactive
-    from dummy import functional
 
     root = JobFolder()
     for type, trial, size in [

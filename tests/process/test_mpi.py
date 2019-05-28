@@ -19,9 +19,20 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
+from pytest import fixture
+
+@fixture
+def doplacement():
+    import pylada
+
+    old = pylada.do_multiple_mpi_programs
+    pylada.do_multiple_mpi_programs = True
+    yield True
+
+    pylada.do_multiple_mpi_programs = old
 
 
-def test():
+def test_mpicomm(doplacement):
     """ Test MPI Communicator. """
     from pylada.process.mpi import Communicator, MPISizeError
 
@@ -33,7 +44,7 @@ def test():
     assert newcomm['n'] == 5
     assert newcomm.parent() is root
     assert len(newcomm.machines) == 1
-    assert root.machines[newcomm.machines.keys()[0]] == 3
+    assert root.machines[list(newcomm.machines.keys())[0]] == 3
     assert root['n'] == 27
     newcomm.cleanup()
     assert newcomm['n'] == 0
@@ -46,7 +57,7 @@ def test():
     assert sum(newcomm.machines.values()) == newcomm['n']
     assert newcomm.parent() is root
     assert len(newcomm.machines) == 1
-    key = newcomm.machines.keys()[0]
+    key = list(newcomm.machines.keys())[0]
     assert key not in root.machines
     assert newcomm.machines[key] == 8
     assert root['n'] == 24
@@ -83,8 +94,8 @@ def test():
         assert comm['n'] == 8
         assert sum(comm.machines.values()) == comm['n']
         assert len(comm.machines) == 1
-        assert comm.machines.keys()[0] not in machines
-        machines.append(comm.machines.keys()[0])
+        assert list(comm.machines.keys())[0] not in machines
+        machines.append(list(comm.machines.keys())[0])
     for comm in comms:
         comm.cleanup()
     assert root['n'] == 32

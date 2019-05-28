@@ -34,7 +34,7 @@ def distorted_diamond(diamond_structure):
 
 @given("we run pwscf once")
 def extract(tmpdir, distorted_diamond, pwscf):
-    from pylada.espresso.tests.bdd.fixtures import copyoutput, data_path
+    from .conftest import copyoutput, data_path
     src = data_path("restarted", "first")
     tmpdir.join("first", "Si.pz-vbc.UPF").ensure(file=True)
     program = copyoutput(
@@ -55,7 +55,7 @@ def iter_second_call(tmpdir, extract, pwscf, distorted_diamond):
 
 @when("we follow with a static calculation")
 def run_second(tmpdir, extract, pwscf, distorted_diamond, passon):
-    from pylada.espresso.tests.bdd.fixtures import copyoutput, data_path
+    from .conftest import copyoutput, data_path
     assert extract.input_path == tmpdir.join("first", "pwscf.in")
     assert extract.output_path == tmpdir.join("first", "pwscf.out")
     assert extract.success

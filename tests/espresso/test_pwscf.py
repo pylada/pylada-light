@@ -130,12 +130,11 @@ def test_atomic_specie(tmpdir, espresso):
     assert set([u.split()[2] for u in lines]) == {'A.upf', 'B.upf', 'X.upf'}
 
 
-def test_iteration(tmpdir, aluminum_file, espresso):
+def test_iteration(tmpdir, aluminum_file, espresso, Extract):
     """ Checks iterations goes through the expected steps """
     from sys import executable as python
     from os.path import dirname, join
     from pylada.espresso import read_structure
-    from pylada.espresso.tests.extract import Extract
     structure = read_structure(aluminum_file)
     espresso.read(aluminum_file)
     espresso.program = python + " " + join(dirname(__file__), 'dummy_pwscf.py')
