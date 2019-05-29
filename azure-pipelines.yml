@@ -8,11 +8,6 @@ steps:
       architecture: x64
 
   - script: |
-      apt install fortran
-    name: test
-    condition: ne(variables['Agent.OS'], 'Linux')
-
-  - script: |
       brew install gcc
     name: test
     condition: ne(variables['Agent.OS'], 'Linux')
