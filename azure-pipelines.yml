@@ -1,37 +1,39 @@
-strategy:
-    imageName: macos-10.13
-    pythonVersion: 3.7
-
 pool:
-  vmImage: $(imageName)
+  vmImage: macos-10.13
 
 steps:
   - task: UsePythonVersion@0
     inputs:
-      versionSpec: $(pythonVersion)
-      addToPath: true
+      versionSpec: 3.6
+      architecture: x64
 
   - script: |
       apt install fortran
-    name: gfort2
-    condition: eq(variables['Agent.OS'], 'Linux')
-
-  - script: |
-      brew install gcc
-    name: gfort1
+    name: test
     condition: ne(variables['Agent.OS'], 'Linux')
 
   - script: |
-      python3 -m pip  install .[dev]
+      brew install gcc
+    name: test
+    condition: ne(variables['Agent.OS'], 'Linux')
+
+  - script: |
+      pip install -e.[dev]
     name: setup
 
   - script: |
-      python3 -m pip install pytest-cov
-      python3 -m pip pytest --junitxml=junit/pytest.xml \
+      pip install pytest-cov
+      pytest --junitxml=junit/pytest.xml \
           --cov=src/muse \
           --cov-report=xml:coverage/coverage.xml \
           --cov-report=html:coverage
     name: test_with_coverage
+    condition: eq(variables['Agent.OS'], 'Linux')
+
+  - script: |
+      pytest --junitxml=junit/pytest.xml
+    name: test
+    condition: ne(variables['Agent.OS'], 'Linux')
 
   - task: PublishTestResults@2
     inputs:
