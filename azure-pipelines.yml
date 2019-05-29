@@ -9,12 +9,11 @@ steps:
 
   - script: |
       brew install gcc
-    name: test
-    condition: ne(variables['Agent.OS'], 'Linux')
+    name: setup
 
   - script: |
       pip install .[dev]
-    name: setup
+    name: build
 
   - script: |
       cd tests
@@ -24,12 +23,6 @@ steps:
           --cov-report=xml:coverage/coverage.xml \
           --cov-report=html:coverage
     name: test_with_coverage
-    condition: eq(variables['Agent.OS'], 'Linux')
-
-  - script: |
-      pytest --junitxml=junit/pytest.xml
-    name: test
-    condition: ne(variables['Agent.OS'], 'Linux')
 
   - task: PublishTestResults@2
     inputs:
@@ -42,4 +35,3 @@ steps:
       codeCoverageTool: cobertura
       summaryFileLocation: coverage/coverage.xml
       reportDirectory: coverage
-    condition: and(succeededOrFailed(), eq(variables['Agent.OS'], 'Linux'))
