@@ -1,11 +1,6 @@
 strategy:
-  matrix:
-    linux-36:
-      imageName: ubuntu-16.04
-      pythonVersion: 3.6
-    umac:
-      imageName: macos-10.13
-      pythonVersion: 3.7
+    imageName: macos-10.13
+    pythonVersion: 3.7
 
 pool:
   vmImage: $(imageName)
@@ -14,7 +9,6 @@ steps:
   - task: UsePythonVersion@0
     inputs:
       versionSpec: $(pythonVersion)
-      architecture: x64
 
   - script: |
       apt install fortran
@@ -27,7 +21,7 @@ steps:
     condition: ne(variables['Agent.OS'], 'Linux')
 
   - script: |
-      pip install -e.[dev]
+      pip install .[dev]
     name: setup
 
   - script: |
