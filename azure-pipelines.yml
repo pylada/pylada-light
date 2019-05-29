@@ -12,13 +12,12 @@ steps:
     name: setup
 
   - script: |
-      pip install .[dev]
+      python3 -m pip install .[dev]
     name: build
 
   - script: |
       cd tests
-      pip install pytest-cov
-      pytest --junitxml=junit/pytest.xml \
+      python3 -m pytests --junitxml=junit/pytest.xml \
           --cov=src/muse \
           --cov-report=xml:coverage/coverage.xml \
           --cov-report=html:coverage
