@@ -30,7 +30,7 @@ set(cython_sources
 foreach(filename ${cython_sources})
     get_filename_component(name "${filename}" NAME_WE)
     add_cython_target(cython_${name} ${filename} CXX)
-    Python3_add_library(${name} MODULE ${cython_${name}})
+    Python_add_library(${name} MODULE ${cython_${name}})
     target_link_libraries(${name} PRIVATE Eigen3::Eigen)
     target_include_directories(${name} PRIVATE
         "${PROJECT_SOURCE_DIR}" "${NumPy_INCLUDE_DIRS}")
@@ -38,7 +38,7 @@ foreach(filename ${cython_sources})
 endforeach()
 
 add_cython_target(cython_cutilities cutilities.pyx CXX)
-Python3_add_library(cutilities MODULE ${cython_cutilities} smith_normal_form.cc gruber.cc noopt.cc)
+Python_add_library(cutilities MODULE ${cython_cutilities} smith_normal_form.cc gruber.cc noopt.cc)
 target_include_directories(cutilities PRIVATE 
     "${PROJECT_SOURCE_DIR}" "${NumPy_INCLUDE_DIRS}")
 target_link_libraries(cutilities PRIVATE Eigen3::Eigen)

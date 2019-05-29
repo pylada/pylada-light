@@ -20,7 +20,7 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 add_cython_target(ewald_cython ewald.pyx CXX)
-Python3_add_library(ewald MODULE
+Python_add_library(ewald MODULE
     ${ewald_cython} ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
 target_include_directories(ewald PRIVATE "${PROJECT_SOURCE_DIR}")
 install(TARGETS ewald LIBRARY DESTINATION pylada/ewald)
