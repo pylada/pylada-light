@@ -1,4 +1,3 @@
-image: docker.io/mdavezac/pylada-light
 stages:
   - build
   - test
@@ -24,6 +23,7 @@ stages:
 
 build:gcc-python3:
   <<: *building
+  image: registry.gitlab.com/mdavezac/pylada-light:python3
   variables:
     CC: gcc
     CXX: g++
@@ -31,6 +31,7 @@ build:gcc-python3:
 
 build:llvm-python3:
   <<: *building
+  image: registry.gitlab.com/mdavezac/pylada-light:python3
   variables:
     CC: clang
     CXX: clang++
@@ -38,6 +39,7 @@ build:llvm-python3:
 
 test:gcc-python3:
   <<: *testing
+  image: registry.gitlab.com/mdavezac/pylada-light:python3
   dependencies:
     - build:gcc-python3
   variables:
@@ -45,6 +47,7 @@ test:gcc-python3:
 
 test:llvm-python3:
   <<: *testing
+  image: registry.gitlab.com/mdavezac/pylada-light:python3
   dependencies:
     - build:llvm-python3
   variables:
