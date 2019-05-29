@@ -1,15 +1,10 @@
+set(version "${Pylada_VERSION_MAJOR}, ${Pylada_VERSION_MINOR}, ${Pylada_VERSION_PATCH}")
+set(verstr "${Pylada_VERSION_MAJOR}.${Pylada_VERSION_MINOR}.${Pylada_VERSION_PATCH}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
-    "from typing import NamedTuple\n\n\n"
-    "class Version(NamedTuple):\n"
-    "    major: int = ${Pylada_VERSION_MAJOR}\n"
-    "    minor: int = ${Pylada_VERSION_MINOR}\n"
-    "    patch: int = ${Pylada_VERSION_PATCH}\n"
-    "\n"
-    "    def __str__(self):\n"
-    "        return f\"{self.major}.{self.minor}.{self.patch}\"\n"
-    "\n\n"
-    "version_info = Version()\n"
-    "version = f\"{version_info}\"\n"
+    "from collections import namedtuple\n\n\n"
+    "Version = namedtuple('Version', ['major', 'minor', 'patch'])\n\n"
+    "version_info = Version(${version})\n"
+    "version = '${verstr}'\n"
 )
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
