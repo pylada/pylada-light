@@ -9,6 +9,7 @@ steps:
   - task: UsePythonVersion@0
     inputs:
       versionSpec: $(pythonVersion)
+      addToPath: true
 
   - script: |
       apt install fortran
@@ -16,17 +17,17 @@ steps:
     condition: eq(variables['Agent.OS'], 'Linux')
 
   - script: |
-      brew install gcc python3
+      brew install gcc
     name: gfort1
     condition: ne(variables['Agent.OS'], 'Linux')
 
   - script: |
-      pip install .[dev]
+      python3 -m pip  install .[dev]
     name: setup
 
   - script: |
-      pip install pytest-cov
-      pytest --junitxml=junit/pytest.xml \
+      python3 -m pip install pytest-cov
+      python3 -m pip pytest --junitxml=junit/pytest.xml \
           --cov=src/muse \
           --cov-report=xml:coverage/coverage.xml \
           --cov-report=html:coverage

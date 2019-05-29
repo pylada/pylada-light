@@ -19,7 +19,7 @@ stages:
   script:
     - source /etc/bashrc
     - module load mpi
-    - pip install pytest
+    - $PYTHON_EXECUTABLE -m pip install pytest
     - $PYTHON_EXECUTABLE -m pytest
 
 build:gcc-python3:
