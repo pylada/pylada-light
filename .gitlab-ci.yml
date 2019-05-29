@@ -19,6 +19,7 @@ stages:
   script:
     - source /etc/bashrc
     - module load mpi
+    - cd tests
     - $PYTHON_EXECUTABLE -m pip install pytest
     - $PYTHON_EXECUTABLE -m pytest
 

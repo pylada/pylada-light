@@ -18,10 +18,11 @@ steps:
     condition: ne(variables['Agent.OS'], 'Linux')
 
   - script: |
-      pip install -e.[dev]
+      pip install .[dev]
     name: setup
 
   - script: |
+      cd tests
       pip install pytest-cov
       pytest --junitxml=junit/pytest.xml \
           --cov=src/muse \
