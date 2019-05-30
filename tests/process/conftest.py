@@ -84,10 +84,10 @@ class ExtractSingle(object):
         try:
             with open(outdir, 'r') as file:
                 line = next(file)
-                regex = search("pi to order (\d+) is approximately (\S+), "
-                               "Error is (\S+) "
-                               "\s*-- slept (\S+) seconds at each iteration -- "
-                               "\s*mpi world size is (\d+)", line)
+                regex = search(r"pi to order (\d+) is approximately (\S+), "
+                               r"Error is (\S+) "
+                               r"\s*-- slept (\S+) seconds at each iteration -- "
+                               r"\s*mpi world size is (\d+)", line)
                 if regex is None:
                     return
                 self.order = int(regex.group(1))
