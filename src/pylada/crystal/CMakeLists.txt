@@ -32,16 +32,14 @@ foreach(filename ${cython_sources})
     add_cython_target(cython_${name} ${filename} CXX)
     Python_add_library(${name} MODULE ${cython_${name}})
     target_link_libraries(${name} PRIVATE Eigen3::Eigen)
-    target_include_directories(${name} PRIVATE
-        "${PROJECT_SOURCE_DIR}" "${NumPy_INCLUDE_DIRS}")
-    install(TARGETS ${name} LIBRARY DESTINATION pylada/crystal)
+    target_include_directories(${name} PRIVATE "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}")
+    install(TARGETS ${name} LIBRARY DESTINATION ${PY_ROOT_DIR}/crystal)
 endforeach()
 
 add_cython_target(cython_cutilities cutilities.pyx CXX)
 Python_add_library(cutilities MODULE ${cython_cutilities} smith_normal_form.cc gruber.cc noopt.cc)
-target_include_directories(cutilities PRIVATE 
-    "${PROJECT_SOURCE_DIR}" "${NumPy_INCLUDE_DIRS}")
+target_include_directories(cutilities PRIVATE "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}")
 target_link_libraries(cutilities PRIVATE Eigen3::Eigen)
-install(TARGETS cutilities LIBRARY DESTINATION pylada/crystal)
+install(TARGETS cutilities LIBRARY DESTINATION ${PY_ROOT_DIR}/crystal)
 
 add_subdirectory(defects)

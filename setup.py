@@ -25,7 +25,7 @@ if platform.lower() == "darwin":
     cmake_args.append("-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=10.9")
 
 setup(
-    name="Pylada",
+    name="pylada",
     version="1.1.0",
     install_requires=install_requires,
     platforms=["GNU/Linux", "Unix", "Mac OS-X"],
@@ -34,7 +34,8 @@ setup(
     description="Productivity environment for Density Functional Theory",
     license="GPL-2",
     url="https://github.com/pylada/pylada",
-    packages=find_packages(exclude="tests"),
+    packages=[''] + find_packages("src", exclude="tests"),
+    package_dir={"": "src"},
     keywords="Physics",
     classifiers=[
         "Development Status :: 0 - Beta",
@@ -48,7 +49,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: Libraries :: Application Frameworks",
     ],
-    long_description=open(join(dirname(__file__), "README.rst"), 'r').read(),
+    long_description=open(join(dirname(__file__), "README.rst"), "r").read(),
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     extras_require={"dev": tests_require},

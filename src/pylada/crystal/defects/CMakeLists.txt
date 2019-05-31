@@ -26,6 +26,5 @@
 add_cython_target(defects_cython _defects.pyx CXX)
 Python_add_library(_defects MODULE ${defects_cython} third_order.cc)
 target_link_libraries(_defects PRIVATE Eigen3::Eigen)
-target_include_directories(_defects PRIVATE
-        "${PROJECT_SOURCE_DIR}" "${NumPy_INCLUDE_DIRS}")
-install(TARGETS _defects LIBRARY DESTINATION pylada/crystal/defects)
+target_include_directories(_defects PRIVATE "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}")
+install(TARGETS _defects LIBRARY DESTINATION ${PY_ROOT_DIR}/crystal/defects)

@@ -6,10 +6,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
     "version_info = Version(${version})\n"
     "version = '${verstr}'\n"
 )
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
-    __init__.py error.py onexit.py record.py
-    DESTINATION pylada)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/_version.py" DESTINATION ${PY_ROOT_DIR})
 
 add_subdirectory(crystal)
 add_subdirectory(decorations)

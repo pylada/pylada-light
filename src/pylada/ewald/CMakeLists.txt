@@ -22,5 +22,5 @@
 add_cython_target(ewald_cython ewald.pyx CXX)
 Python_add_library(ewald MODULE
     ${ewald_cython} ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
-target_include_directories(ewald PRIVATE "${PROJECT_SOURCE_DIR}")
-install(TARGETS ewald LIBRARY DESTINATION pylada/ewald)
+target_include_directories(ewald PRIVATE "${PY_HEADER_DIR}")
+install(TARGETS ewald LIBRARY DESTINATION ${PY_ROOT_DIR}/ewald)

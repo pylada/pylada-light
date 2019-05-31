@@ -94,7 +94,9 @@ find_package(Cython REQUIRED)
 find_package(NumPy REQUIRED)
 find_package(Eigen3 NO_MODULE)
 
-add_subdirectory(pylada)
+set(PY_ROOT_DIR "src/pylada")
+set(PY_HEADER_DIR "${PROJECT_SOURCE_DIR}/src")
+add_subdirectory(${PY_ROOT_DIR})
 
 configure_file("tests/process/pifunctional.in.py"
     "${CMAKE_CURRENT_BINARY_DIR}/tests/process/pifunctional.py")

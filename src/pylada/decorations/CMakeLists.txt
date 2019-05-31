@@ -22,6 +22,5 @@
 
 add_cython_target(decorations_cython _decorations.pyx CXX)
 Python_add_library(_decorations MODULE ${decorations_cython})
-target_include_directories(_decorations PRIVATE
-        "${PROJECT_SOURCE_DIR}" "${NumPy_INCLUDE_DIRS}")
-install(TARGETS _decorations LIBRARY DESTINATION pylada/decorations)
+target_include_directories(_decorations PRIVATE "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}")
+install(TARGETS _decorations LIBRARY DESTINATION ${PY_ROOT_DIR}/decorations)
