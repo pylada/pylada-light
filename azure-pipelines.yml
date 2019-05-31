@@ -16,7 +16,6 @@ steps:
     name: build
 
   - script: |
-      cd tests
       python3 -m pytests --junitxml=junit/pytest.xml \
           --cov=src/muse \
           --cov-report=xml:coverage/coverage.xml \

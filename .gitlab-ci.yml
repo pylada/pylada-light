@@ -3,7 +3,6 @@
     - source /etc/bashrc
     - module load mpi
     - $PYTHON_EXECUTABLE -m pip install -e .[dev]
-    - cd tests
     - $PYTHON_EXECUTABLE -m pip install pytest
     - $PYTHON_EXECUTABLE -m pytest
 
