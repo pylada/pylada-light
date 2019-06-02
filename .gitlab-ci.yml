@@ -5,7 +5,7 @@
 
 build:gcc-python3:
   <<: *building
-  image: registry.gitlab.com/mdavezac/pylada-light:python3
+  image: registry.gitlab.com/mdavezac/pylada-light:python3-gcc
   variables:
     CC: gcc
     CXX: g++
@@ -13,7 +13,7 @@ build:gcc-python3:
 
 build:llvm-python3:
   <<: *building
-  image: registry.gitlab.com/mdavezac/pylada-light:python3
+  image: registry.gitlab.com/mdavezac/pylada-light:python3-clang
   variables:
     CC: clang
     CXX: clang++
