@@ -341,9 +341,9 @@ def crystal(file='fort.34'):
 
 
 def icsd_cif_a(filename, make_primitive=True):
-    """ Reads lattice from the ICSD \*cif files.
+    """ Reads lattice from the ICSD cif files.
 
-        It will not work in the case of other \*cif.
+        It will not work in the case of other cif files.
         It is likely to produce wrong output if the site occupations are fractional.
         If the occupation is > 0.5 it will treat it as 1 and
         in the case occupation < 0.5 it will treat it as 0 and

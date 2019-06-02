@@ -37,7 +37,7 @@ def symmetrically_inequivalent_sites(lattice, type):
         of operations are performed. 
 
         :note:
-          lattice sites can be defined as occupiable by more than one atomic type\:
+          lattice sites can be defined as occupiable by more than one atomic type:
           lattice.site.type[i] = ["Al", "Mg"]. These sites will be counted if
           type in lattice.site.type, where type is the input parameter.
 
@@ -111,7 +111,7 @@ def coordination_inequivalent_sites(lattice, type, tolerance=0.25):
         number of first neighbors.
 
         :note:
-          lattice sites can be defined as occupiable by more than one atomic type\:
+          lattice sites can be defined as occupiable by more than one atomic type:
           lattice.site.type[i] = ["Al", "Mg"]. These sites will be counted if
           type in lattice.site.type, where type is the input parameter.
 

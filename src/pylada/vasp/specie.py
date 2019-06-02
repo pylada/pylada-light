@@ -211,7 +211,7 @@ class Specie(object):
         import re
         self.potcar_exists()
         with self.read_potcar() as potcar:
-            r = re.compile("ENMAX\s+=\s+(\S+);\s+ENMIN")
+            r = re.compile(r"ENMAX\s+=\s+(\S+);\s+ENMIN")
             p = r.search(potcar.read())
             if p is None:
                 raise AssertionError("Could not retrieve ENMAX from " + self.directory)

@@ -1450,7 +1450,7 @@ class ExtractBase(object):
         from re import search, M as re_M
         from numpy import array
         regex = r"I would recommend the setting:\s*\n"                             \
-            "\s*dimension x,y,z NGX =\s+(\d+)\s+NGY =\s+(\d+)\s+NGZ =\s+(\d+)"
+            r"\s*dimension x,y,z NGX =\s+(\d+)\s+NGY =\s+(\d+)\s+NGZ =\s+(\d+)"
         with self.__outcar__() as file:
             result = search(regex, file.read(), re_M)
         if result is None:
