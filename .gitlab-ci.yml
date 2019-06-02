@@ -18,3 +18,19 @@ build:llvm-python3:
     CC: clang
     CXX: clang++
     PYTHON_EXECUTABLE: /usr/bin/python3
+
+build:gcc-python2:
+  <<: *building
+  image: registry.gitlab.com/mdavezac/pylada-light:python2-gcc
+  variables:
+    CC: gcc
+    CXX: g++
+    PYTHON_EXECUTABLE: /usr/bin/python2
+
+build:llvm-python2:
+  <<: *building
+  image: registry.gitlab.com/mdavezac/pylada-light:python2-clang
+  variables:
+    CC: clang
+    CXX: clang++
+    PYTHON_EXECUTABLE: /usr/bin/python2
