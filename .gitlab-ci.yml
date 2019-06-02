@@ -1,6 +1,6 @@
 .building: &building
   script:
-    - $PYTHON_EXECUTABLE -m pip install -e .[dev]
+    - $PYTHON_EXECUTABLE -m pip install .[dev]
     - $PYTHON_EXECUTABLE -m pytest
 
 build:gcc-python3:
