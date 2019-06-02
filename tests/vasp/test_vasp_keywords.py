@@ -261,4 +261,4 @@ def test_add_keyword(vasp, structure, tmpdir, inval, outval, strval):
     vasp.write_incar(structure, path=str(tmpdir.join("INCAR")))
     with open(str(tmpdir.join("INCAR")), "r") as file:
         text = file.read()
-    assert search("(^|\n)ATTRIBUTE\s*=\s*" + strval + "\n", text) is not None
+    assert search(r"(^|\n)ATTRIBUTE\s*=\s*" + strval + "\n", text) is not None

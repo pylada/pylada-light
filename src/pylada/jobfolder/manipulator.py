@@ -167,7 +167,7 @@ class JobParams(AbstractMassExtract):
         if "only_existing" not in self.__dict__:
             super(JobParams, self).__setattr__(name, value)
         # some cached attributes.
-        if match("_cached_attr\S+", name):
+        if match(r"_cached_attr\S+", name):
             super(JobParams, self).__setattr__(name, value)
         # Look for other attriubtes in current instance.
         try:

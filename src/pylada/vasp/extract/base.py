@@ -960,7 +960,7 @@ class ExtractBase(object):
     def ionic_charges(self):
         """ Greps ionic_charges from OUTCAR."""
         # Line like:    ZVAL   =  12.00  6.00
-        regex = """^\s*ZVAL\s*=\s*(.*)$"""
+        regex = r"""^\s*ZVAL\s*=\s*(.*)$"""
         result = self._find_last_OUTCAR(regex)
         if result is None:
             raise GrepError("Could not find ionic_charges in OUTCAR")
@@ -986,7 +986,7 @@ class ExtractBase(object):
     def nelect(self):
         """ Greps nelect from OUTCAR."""
         # Find line like:    NELECT =      48.0000    total number of electrons
-        regex = """^\s*NELECT\s*=\s*(\S+)\s+total\s+number\s+of\s+electrons\s*$"""
+        regex = r"^\s*NELECT\s*=\s*(\S+)\s+total\s+number\s+of\s+electrons\s*$"
         result = self._find_last_OUTCAR(regex)
         if result is None:
             raise GrepError("Could not find energy in OUTCAR")
@@ -1070,8 +1070,8 @@ class ExtractBase(object):
     def nelmdl(self):
         """ Greps NELMDL from OUTCAR. """
         regex = r"""^\s*NELM\s*=\s*\d+\s*;"""\
-            """\s*NELMIN\s*=\s*\d+\s*;"""\
-            """\s*NELMDL\s*=\s*(-?\d+)"""
+            r"""\s*NELMIN\s*=\s*\d+\s*;"""\
+             r"""\s*NELMDL\s*=\s*(-?\d+)"""
         result = self._find_first_OUTCAR(regex)
         if result is None:
             return None
@@ -1090,7 +1090,7 @@ class ExtractBase(object):
     @make_cached
     def nbands(self):
         """ Number of bands in calculation. """
-        result = self._find_first_OUTCAR("""NBANDS\s*=\s*(\d+)""")
+        result = self._find_first_OUTCAR(r"""NBANDS\s*=\s*(\d+)""")
         if result is None:
             raise GrepError("Could not find NBANDS in OUTCAR.")
         return int(result.group(1))
@@ -1099,7 +1099,7 @@ class ExtractBase(object):
     @make_cached
     def nbprocs(self):
         """ Number of bands in calculation. """
-        result = self._find_first_OUTCAR("""running\s+on\s+(\d+)\s+nodes""")
+        result = self._find_first_OUTCAR(r"""running\s+on\s+(\d+)\s+nodes""")
         if result is None:
             raise GrepError("Could not find number of processes in OUTCAR.")
         return int(result.group(1))
@@ -1155,11 +1155,11 @@ class ExtractBase(object):
     @property
     @make_cached
     def energy_sigma0(self):
-        """ Greps total energy extrapolated to $\sigma=0$ from OUTCAR. """
+        """ Greps total energy extrapolated to sigma=0 from OUTCAR. """
         if not self.is_dft:
             raise AttributeError('not a DFT calculation.')
         from quantities import eV
-        regex = """energy\s+without\s+entropy\s*=\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
+        regex = r"""energy\s+without\s+entropy\s*=\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
         result = self._find_last_OUTCAR(regex)
         if result is None:
             raise GrepError("Could not find sigma0 energy in OUTCAR")
@@ -1168,12 +1168,12 @@ class ExtractBase(object):
     @property
     @make_cached
     def energies_sigma0(self):
-        """ Greps total energy extrapolated to $\sigma=0$ from OUTCAR. """
+        """ Greps total energy extrapolated to sigma=0 from OUTCAR. """
         if not self.is_dft:
             raise AttributeError('not a DFT calculation.')
         from numpy import array
         from quantities import eV
-        regex = """energy\s+without\s+entropy\s*=\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
+        regex = r"""energy\s+without\s+entropy\s*=\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
         try:
             result = [float(u.group(2)) for u in self._search_OUTCAR(regex)]
         except TypeError:
@@ -1190,7 +1190,7 @@ class ExtractBase(object):
             raise AttributeError('not a DFT calculation.')
         from numpy import array
         from quantities import eV
-        regex = """energy\s+without\s+entropy =\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
+        regex = r"""energy\s+without\s+entropy =\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
         try:
             result = [float(u.group(1)) for u in self._search_OUTCAR(regex)]
         except TypeError:
@@ -1306,7 +1306,7 @@ class ExtractBase(object):
             raise AttributeError('not a DFT calculation.')
         from numpy import array
         from quantities import eV
-        regex = """energy\s+without\s+entropy=\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
+        regex = r"""energy\s+without\s+entropy=\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
         try:
             result = [float(u.group(1)) for u in self._search_OUTCAR(regex)]
         except TypeError:
@@ -1322,7 +1322,7 @@ class ExtractBase(object):
         if not self.is_dft:
             raise AttributeError('not a DFT calculation.')
         from quantities import eV
-        regex = """energy\s+without\s+entropy=\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
+        regex = r"""energy\s+without\s+entropy=\s*(\S+)\s+energy\(sigma->0\)\s+=\s+(\S+)"""
         result = self._find_last_OUTCAR(regex)
         if result is None:
             raise GrepError("Could not find energy in OUTCAR")
@@ -1432,7 +1432,7 @@ class ExtractBase(object):
         from re import search, M as re_M
         from numpy import array
         regex = r"(?!I would recommend the setting:\s*\n)"                         \
-            "\s*dimension x,y,z NGX =\s+(\d+)\s+NGY =\s+(\d+)\s+NGZ =\s+(\d+)"
+            r"\s*dimension x,y,z NGX =\s+(\d+)\s+NGY =\s+(\d+)\s+NGZ =\s+(\d+)"
         with self.__outcar__() as file:
             result = search(regex, file.read(), re_M)
         if result is None:
@@ -1695,8 +1695,8 @@ class ExtractBase(object):
         if self.isif < 1:
             return None
         pattern                                                                    \
-            = """\s*Total\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s*\n"""    \
-            """\s*in kB\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s*\n"""
+            = r"""\s*Total\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s*\n"""    \
+            r"""\s*in kB\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s*\n"""
         result = []
         with self.__outcar__() as file:
             for regex in finditer(pattern, file.read(), M):
@@ -1734,11 +1734,11 @@ class ExtractBase(object):
         from numpy import array
         from quantities import angstrom, eV
         from re import finditer, M
-        pattern = """ *POSITION\s*TOTAL-FORCE\s*\(eV\/Angst\)\s*\n"""              \
-                  """\s*-+\s*\n"""                                                 \
-                  """(?:\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s*\n)+"""             \
-                  """\s*-+\s*\n"""                                                 \
-                  """\s*total drift"""
+        pattern = r""" *POSITION\s*TOTAL-FORCE\s*\(eV\/Angst\)\s*\n"""              \
+                  r"""\s*-+\s*\n"""                                                 \
+                  r"""(?:\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s*\n)+"""             \
+                  r"""\s*-+\s*\n"""                                                 \
+                  r"""\s*total drift"""
         with self.__outcar__() as file:
             for regex in finditer(pattern, file.read(), M):
                 pass
