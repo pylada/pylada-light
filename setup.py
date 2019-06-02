@@ -1,11 +1,24 @@
 """Setup PyLada."""
+import setuptools
+
+old_setup = setuptools.setup
+
+def wrapped_setup(*args, **kwargs):
+    pckd = kwargs.pop("package_dir", {})
+    pckd[''] = "src"
+    kwargs['package_dir'] = pckd
+    return old_setup(*args, **kwargs)
+
+setuptools.setup = wrapped_setup
+
+
 from os.path import dirname, join
 from sys import platform
 
 from setuptools import find_packages
 from skbuild import setup
 
-tests_require = ["pytest", "pytest-bdd"]
+tests_require = ["pytest<4.6.0", "pytest-bdd"]
 install_requires = [
     "numpy",
     "scipy",
@@ -34,7 +47,7 @@ setup(
     description="Productivity environment for Density Functional Theory",
     license="GPL-2",
     url="https://github.com/pylada/pylada",
-    packages=[''] + find_packages("src", exclude="tests"),
+    packages=find_packages("src", exclude="tests"),
     package_dir={"": "src"},
     keywords="Physics",
     classifiers=[

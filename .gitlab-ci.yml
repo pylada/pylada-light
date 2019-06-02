@@ -1,9 +1,6 @@
 .building: &building
   script:
-    - source /etc/bashrc
-    - module load mpi
     - $PYTHON_EXECUTABLE -m pip install -e .[dev]
-    - $PYTHON_EXECUTABLE -m pip install pytest
     - $PYTHON_EXECUTABLE -m pytest
 
 build:gcc-python3:
