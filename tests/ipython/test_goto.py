@@ -47,7 +47,7 @@ def test(shell, tmpdir, functional):
     shell.magic("explore jobfolder")
     shell.magic("savefolders {0}/dict".format(tmpdir))
     for name, job in root.items():
-        result = job.compute(outdir=join(tmpdir, name))
+        result = job.compute(outdir=str(tmpdir.join(name)))
         assert result.success
         assert {
             "this/0": 10,

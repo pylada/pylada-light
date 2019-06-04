@@ -29,14 +29,14 @@ set(cython_sources
 
 foreach(filename ${cython_sources})
     get_filename_component(name "${filename}" NAME_WE)
-    add_cython_target(cython_${name} ${filename} CXX)
+    add_cython_target(cython_${name} ${filename} CXX ${PYVER}})
     Python_add_library(${name} MODULE ${cython_${name}})
     target_link_libraries(${name} PRIVATE Eigen3::Eigen)
     target_include_directories(${name} PRIVATE "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}")
     install(TARGETS ${name} LIBRARY DESTINATION ${PY_ROOT_DIR}/crystal)
 endforeach()
 
-add_cython_target(cython_cutilities cutilities.pyx CXX)
+add_cython_target(cython_cutilities cutilities.pyx CXX ${PYVER})
 Python_add_library(cutilities MODULE ${cython_cutilities} smith_normal_form.cc gruber.cc noopt.cc)
 target_include_directories(cutilities PRIVATE "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}")
 target_link_libraries(cutilities PRIVATE Eigen3::Eigen)

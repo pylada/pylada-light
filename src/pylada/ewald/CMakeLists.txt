@@ -19,7 +19,7 @@
 #  You should have received a copy of the GNU General Public License along with PyLaDa.  If not, see
 #  <http://www.gnu.org/licenses/>.
 ###############################
-add_cython_target(ewald_cython ewald.pyx CXX)
+add_cython_target(ewald_cython ewald.pyx CXX ${PYVER})
 Python_add_library(ewald MODULE
     ${ewald_cython} ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
 target_include_directories(ewald PRIVATE "${PY_HEADER_DIR}")

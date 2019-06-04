@@ -20,6 +20,11 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 from pytest import fixture, mark
+from sys import version_info
+if version_info[0] == 2:
+    from mock import patch
+else:
+    from unittest.mock import patch
 
 
 @fixture
@@ -168,7 +173,6 @@ def test_setting_attribute_for_some_jobs(jobparams, extra_folder):
 
 
 def test_deleting_folder(jobparams):
-    from unittest.mock import patch
     with patch("pylada.misc.cmdl_input", return_value="y"):
         del jobparams['/*/1']
     assert '/this/1/' not in jobparams
@@ -179,7 +183,6 @@ def test_deleting_folder(jobparams):
 
 def test_concatenate_jobfolders(jobparams, jobfolder, functional, extra_folder):
     from copy import deepcopy
-    from unittest.mock import patch
     from pylada.jobfolder import JobFolder, JobParams
 
     # jobparams owns a reference to jobfolder
@@ -206,7 +209,6 @@ def test_concatenate_jobfolders(jobparams, jobfolder, functional, extra_folder):
 
 def test_concatenate_jobparams_and_indexing(jobparams, jobfolder, functional, extra_folder):
     from copy import deepcopy
-    from unittest.mock import patch
     from pylada.jobfolder import JobFolder, JobParams
 
     # jobparams owns a reference to jobfolder

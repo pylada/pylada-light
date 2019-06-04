@@ -72,14 +72,14 @@ def test(Class, withposcar, tmpdir):
         try:
             chdir(playdir)
             v.istart, v.icharge = None, None
-            assert Class(Extract(tmpdir, False)).incar_string(vasp=v) is None
+            assert Class(Extract(str(tmpdir), False)).incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert not exists(join(playdir, CHGCAR))
             assert not exists(join(playdir, WAVECAR))
             assert not exists(join(playdir, POSCAR))
 
             v.istart, v.icharge = None, None
-            r = loads(dumps(Class(Extract(tmpdir, False))))
+            r = loads(dumps(Class(Extract(str(tmpdir), False))))
             assert r.incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert r.value.directory == tmpdir
@@ -92,25 +92,25 @@ def test(Class, withposcar, tmpdir):
             rmtree(playdir)
 
     # empty prior run.
-    with open(join(tmpdir, CHGCAR), "w") as file:
+    with tmpdir.join(CHGCAR).open("w") as file:
         pass
-    with open(join(tmpdir, WAVECAR), "w") as file:
+    with tmpdir.join(WAVECAR).open("w") as file:
         pass
-    with open(join(tmpdir, CONTCAR), "w") as file:
+    with tmpdir.join(CONTCAR).open("w") as file:
         pass
     for v, istart, icharg in [(Vasp(True), 0, 12), (Vasp(False), 0, 2)]:
         playdir = mkdtemp()
         try:
             chdir(playdir)
             v.istart, v.icharge = None, None
-            assert Class(Extract(tmpdir, True)).incar_string(vasp=v) is None
+            assert Class(Extract(str(tmpdir), True)).incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert not exists(join(playdir, CHGCAR))
             assert not exists(join(playdir, WAVECAR))
             assert not exists(join(playdir, POSCAR))
 
             v.istart, v.icharge = None, None
-            r = loads(dumps(Class(Extract(tmpdir, True))))
+            r = loads(dumps(Class(Extract(str(tmpdir), True))))
             assert r.incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert r.value.directory == tmpdir
@@ -123,16 +123,16 @@ def test(Class, withposcar, tmpdir):
             rmtree(playdir)
 
     # prior run with charge and contcar only.
-    with open(join(tmpdir, CHGCAR), "w") as file:
+    with tmpdir.join(CHGCAR).open("w") as file:
         file.write('hello')
-    with open(join(tmpdir, CONTCAR), "w") as file:
+    with tmpdir.join(CONTCAR).open("w") as file:
         file.write('hello')
     for v, istart, icharg in [(Vasp(True), 0, 11), (Vasp(False), 0, 1)]:
         playdir = mkdtemp()
         try:
             chdir(playdir)
             v.istart, v.icharge = None, None
-            assert Class(Extract(tmpdir, True)).incar_string(vasp=v) is None
+            assert Class(Extract(str(tmpdir), True)).incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert exists(join(playdir, CHGCAR))
             assert not exists(join(playdir, WAVECAR))
@@ -144,7 +144,7 @@ def test(Class, withposcar, tmpdir):
             remove(join(playdir, CHGCAR))
 
             v.istart, v.icharge = None, None
-            r = loads(dumps(Class(Extract(tmpdir, True))))
+            r = loads(dumps(Class(Extract(str(tmpdir), True))))
             assert r.incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert r.value.directory == tmpdir
@@ -161,14 +161,14 @@ def test(Class, withposcar, tmpdir):
             rmtree(playdir)
 
     # prior run with charge and wavecar.
-    with open(join(tmpdir, WAVECAR), "w") as file:
+    with tmpdir.join(WAVECAR).open("w") as file:
         file.write('hello')
     for v, istart, icharg in [(Vasp(True), 1, 11), (Vasp(False), 1, 1)]:
         playdir = mkdtemp()
         try:
             chdir(playdir)
             v.istart, v.icharge = None, None
-            assert Class(Extract(tmpdir, True)).incar_string(vasp=v) is None
+            assert Class(Extract(str(tmpdir), True)).incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert exists(join(playdir, CHGCAR))
             assert exists(join(playdir, WAVECAR))
@@ -181,7 +181,7 @@ def test(Class, withposcar, tmpdir):
             remove(join(playdir, WAVECAR))
 
             v.istart, v.icharge = None, None
-            r = loads(dumps(Class(Extract(tmpdir, True))))
+            r = loads(dumps(Class(Extract(str(tmpdir), True))))
             assert r.incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert r.value.directory == tmpdir
@@ -198,17 +198,17 @@ def test(Class, withposcar, tmpdir):
             rmtree(playdir)
 
     # prior run with wavecar only.
-    remove(join(tmpdir, CHGCAR))
-    with open(join(tmpdir, CHGCAR), "w") as file:
+    remove(str(tmpdir.join(CHGCAR)))
+    with tmpdir.join(CHGCAR).open("w") as file:
         pass
-    with open(join(tmpdir, CONTCAR), "w") as file:
+    with tmpdir.join(CONTCAR).open("w") as file:
         pass
     for v, istart, icharg in [(Vasp(True), 1, 10), (Vasp(False), 1, 0)]:
         playdir = mkdtemp()
         try:
             chdir(playdir)
             v.istart, v.icharge = None, None
-            assert Class(Extract(tmpdir, True)).incar_string(vasp=v) is None
+            assert Class(Extract(str(tmpdir), True)).incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert not exists(join(playdir, CHGCAR))
             assert exists(join(playdir, WAVECAR))
@@ -216,7 +216,7 @@ def test(Class, withposcar, tmpdir):
             remove(join(playdir, WAVECAR))
 
             v.istart, v.icharge = None, None
-            r = loads(dumps(Class(Extract(tmpdir, True))))
+            r = loads(dumps(Class(Extract(str(tmpdir), True))))
             assert r.incar_string(vasp=v) is None
             assert v.istart == istart and v.icharg == icharg
             assert r.value.directory == tmpdir

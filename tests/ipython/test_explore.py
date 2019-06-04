@@ -22,13 +22,17 @@
 #  You should have received a copy of the GNU General Public License along with
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
+from sys import version_info
+if version_info[0] == 2:
+    from mock import patch
+else:
+    from unittest.mock import patch
 
 
 def test(shell, tmpdir, functional):
     from os.path import join
     from pylada.jobfolder import JobFolder
     import pylada
-    from unittest.mock import patch
 
     with patch("pylada.misc.cmdl_input", return_value="y"):
 
@@ -103,7 +107,7 @@ def test(shell, tmpdir, functional):
         for name, job in root.items():
             if name == "this/1":
                 continue
-            job.compute(outdir=join(tmpdir, name))
+            job.compute(outdir=str(tmpdir.join(name)))
 
         shell.magic("explore results".format(tmpdir))
         assert {"/this/0/", "/that/1/", "/that/2/"} == set(

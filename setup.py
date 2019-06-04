@@ -1,5 +1,6 @@
 """Setup PyLada."""
 import setuptools
+from sys import version_info
 
 old_setup = setuptools.setup
 
@@ -32,6 +33,8 @@ install_requires = [
     "ipykernel",
     "IPython",
 ]
+if version_info[0] == 2:
+    tests_require.append("mock")
 
 cmake_args = []
 if platform.lower() == "darwin":

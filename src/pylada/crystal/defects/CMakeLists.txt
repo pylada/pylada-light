@@ -23,7 +23,7 @@
 #  PyLaDa.  If not, see <http://www.gnu.org/licenses/>.
 ###############################
 
-add_cython_target(defects_cython _defects.pyx CXX)
+add_cython_target(defects_cython _defects.pyx CXX ${PYVER})
 Python_add_library(_defects MODULE ${defects_cython} third_order.cc)
 target_link_libraries(_defects PRIVATE Eigen3::Eigen)
 target_include_directories(_defects PRIVATE "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}")
