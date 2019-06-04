@@ -9,14 +9,14 @@ steps:
 
   - script: |
       brew install gcc
+      python3 -m pip install pytest-cov
     name: setup
 
   - script: |
-      python3 -m pip install .[dev]
+      python3 -m pip install -v .[dev]
     name: build
 
   - script: |
-      python3 -m pip install pytest-cov
       python3 -m pytest --junitxml=junit/pytest.xml \
           --cov=src/muse \
           --cov-report=xml:coverage/coverage.xml \
