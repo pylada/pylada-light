@@ -1,7 +1,7 @@
 .building: &building
   script:
     - $PYTHON_EXECUTABLE -m pip install setuptools wheel scikit-build  ninja
-    - $PYTHON_EXECUTABLE -m pip install cmake
+    - $PYTHON_EXECUTABLE -m pip install cmake!=3.16.3
     - $PYTHON_EXECUTABLE -m pip install cython numpy
     - $PYTHON_EXECUTABLE -m pip install .[dev]
     - $PYTHON_EXECUTABLE -m pytest
