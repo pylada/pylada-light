@@ -34,17 +34,14 @@ if(NOT TARGET Eigen3::Eigen)
             -G "${CMAKE_GENERATOR}"
             -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/eigen
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        COMMAND_ECHO STDOUT
     )
     execute_process(
         COMMAND ${CMAKE_COMMAND}
             --build ${CMAKE_CURRENT_BINARY_DIR}/eigen
-        COMMAND_ECHO STDOUT
     )
     execute_process(
         COMMAND ${CMAKE_COMMAND}
             --install ${CMAKE_CURRENT_BINARY_DIR}/eigen
-        COMMAND_ECHO STDOUT
     )
     find_package(Eigen3 PATHS ${CMAKE_CURRENT_BINARY_DIR}/eigen REQUIRED NO_MODULE)
     set(EIGEN_DOWNLOADED TRUE CACHE BOOL "eigen was downloaded")
