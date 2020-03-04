@@ -22,7 +22,9 @@ if(tests)
   enable_testing()
 endif(tests)
 
-find_package (Eigen3 3.3 NO_MODULE)
+if(CHECK_FOR_EIGEN_FIRST)
+    find_package (Eigen3 3.3 NO_MODULE)
+endif()
 if(NOT TARGET Eigen3::Eigen)
     execute_process(
         COMMAND ${CMAKE_COMMAND} -S ${PROJECT_SOURCE_DIR}/cmake_modules/eigen
