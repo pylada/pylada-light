@@ -14,28 +14,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(-Wall)
 endif()
 
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/master/conan.cmake"
-        "${CMAKE_BINARY_DIR}/conan.cmake")
-endif()
-include(${CMAKE_BINARY_DIR}/conan.cmake)
-
-if(NOT CONAN_BUILD)
-    set(CONAN_BUILD "missing")
-endif()
-set(_GLIBCXX_USE_CXX11_ABI TRUE)
-
-conan_check(REQUIRED)
-conan_cmake_run(REQUIRES eigen/3.3.5@conan/stable
-    BASIC_SETUP
-    OPTIONS "${CONAN_OPTIONS}"
-    KEEP_RPATHS
-    CMAKE_TARGETS
-    NO_OUTPUT_DIRS
-    BUILD ${CONAN_BUILD}
-    # import headers to help vim find them
-    IMPORTS "include, * -> conan/include")
 
 option(tests "Compile tests." on)
 option(external_program_tests
@@ -43,6 +21,32 @@ option(external_program_tests
 if(tests)
   enable_testing()
 endif(tests)
+
+find_package (Eigen3 3.3 NO_MODULE)
+if(NOT TARGET Eigen3::Eigen)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -S ${PROJECT_SOURCE_DIR}/cmake_modules/eigen
+            -B ${CMAKE_CURRENT_BINARY_DIR}/eigen
+            -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+            -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+            -G "${CMAKE_GENERATOR}"
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/eigen
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        COMMAND_ECHO STDOUT
+    )
+    execute_process(
+        COMMAND ${CMAKE_COMMAND}
+            --build ${CMAKE_CURRENT_BINARY_DIR}/eigen
+        COMMAND_ECHO STDOUT
+    )
+    execute_process(
+        COMMAND ${CMAKE_COMMAND}
+            --install ${CMAKE_CURRENT_BINARY_DIR}/eigen
+        COMMAND_ECHO STDOUT
+    )
+    find_package(Eigen3 PATHS ${CMAKE_CURRENT_BINARY_DIR}/eigen REQUIRED NO_MODULE)
+    set(EIGEN_DOWNLOADED TRUE CACHE BOOL "eigen was downloaded")
+endif()
 
 set(OLD_CMAKE_FIND_FRAMEWORK "${CMAKE_FIND_FRAMEWORK}")
 set(CMAKE_FIND_FRAMEWORK LAST)

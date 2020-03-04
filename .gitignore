@@ -141,3 +141,9 @@ src/pylada/_version.py
 *.so
 
 tests/process/pifunctional.py
+shell.nix
+.envrc
+.local/
+.vim/
+.direnv/
+.clang

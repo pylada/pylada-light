@@ -66,9 +66,9 @@ Installation for development
         source pylada/bin/activate
         git clone https://github.com/pylada/pylada-light
         cd pylada-light
-        pip install cython setuptools wheel scikit-build cmake ninja numpy conan
+        pip install cython setuptools wheel scikit-build cmake ninja numpy
         python setup.py develop
-        python setup.py tests
+        python setup.py test
     
     The above creates a virtual environment and installs pylada inside it in
     development mode. This means that the virtual environment will know about
