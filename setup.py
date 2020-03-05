@@ -1,6 +1,10 @@
 """Setup PyLada."""
+from os.path import dirname, join
+from sys import platform, version_info
+
 import setuptools
-from sys import version_info
+from setuptools import find_packages
+from skbuild import setup
 
 old_setup = setuptools.setup
 
@@ -13,11 +17,7 @@ def wrapped_setup(*args, **kwargs):
 setuptools.setup = wrapped_setup
 
 
-from os.path import dirname, join
-from sys import platform
 
-from setuptools import find_packages
-from skbuild import setup
 
 tests_require = ["pytest<4.6.0", "pytest-bdd"]
 install_requires = [
