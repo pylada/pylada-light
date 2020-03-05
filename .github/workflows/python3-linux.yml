@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python package
+name: Linux-Python3
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.6, 3.7, 3.8]
+        python-version: [3.6, 3.8]
 
     steps:
     - uses: actions/checkout@v2
@@ -27,11 +27,11 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y build-essential gfortran gcc g++
-        python -m pip install --upgrade pip
-        pip install setuptools wheel scikit-build cmake ninja numpy
+        python3 -m pip install --upgrade pip
+        python3 -m pip install setuptools wheel scikit-build cmake ninja numpy
     - name: Install package
-      run: pip install .
+      run: python3 -m pip install .
     - name: Test with pytest
       run: |
-        pip install pytest pytest-bdd
-        pytest
+        python3 -m pip install pytest pytest-bdd
+        python3 -m pytest
