@@ -229,7 +229,7 @@ class Incar(object):
     def symmetries(self, value):
         if value is None:
             self.isym = None
-        elif str(value).lower() == "off" or value is "0" or value is False:
+        elif str(value).lower() == "off" or value == "0" or value is False:
             self.params["isym"] = 0
         elif str(value).lower() == "on" or value is True or value is True:
             self.symprec = None
