@@ -17,8 +17,6 @@ def wrapped_setup(*args, **kwargs):
 setuptools.setup = wrapped_setup
 
 
-
-
 tests_require = ["pytest<4.6.0", "pytest-bdd"]
 install_requires = [
     "numpy",

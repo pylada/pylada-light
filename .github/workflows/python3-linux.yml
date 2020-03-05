@@ -26,7 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y build-essential gfortran gcc g++
+        sudo apt install -y build-essential gfortran gcc g++ quantum-espresso
         python3 -m pip install --upgrade pip
         python3 -m pip install setuptools wheel scikit-build cmake ninja numpy
     - name: Install package
