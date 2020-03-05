@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 project(Pylada
-    VERSION 1.1.0
+    VERSION 1.0.1
     DESCRIPTION "A pythonic computation material science platform"
     HOMEPAGE_URL "https://www.github.com/pylada/pylada-light"
     LANGUAGES C CXX Fortran)

@@ -42,7 +42,7 @@ if platform.lower() == "darwin":
 
 setup(
     name="pylada",
-    version="1.1.0",
+    version="1.0.1",
     install_requires=install_requires,
     platforms=["GNU/Linux", "Unix", "Mac OS-X"],
     author=["Peter Graf", "Mayeul d'Avezac"],
