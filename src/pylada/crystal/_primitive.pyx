@@ -55,6 +55,7 @@ cdef __translations(structure, double tolerance):
 
 def primitive(structure, double tolerance=1e-8):
     """ Tries to compute the primitive cell of the input structure """
+    # The tolerance is the absolute tolerance on the translations
     from numpy.linalg import inv, det
     from numpy import all, abs, array, dot, allclose, round
     from . import gruber, into_cell, into_voronoi, into_cell
@@ -92,9 +93,9 @@ def primitive(structure, double tolerance=1e-8):
                 if i == k or j == k:
                     continue
                 trial = array([first, second, third]).T
-                if abs(det(trial)) < abs(volume) * 1e-12:
+                if abs(det(trial)) < abs(volume)/len(structure)*(1 - 3*tolerance): # The volume of the cell cannot be smaller than the specific volume 
                     continue
-                if abs(det(trial)) > volume - 3.0 * tolerance:
+                if abs(det(trial)) > volume*(1 - 3.0 * tolerance):
                     continue
 
                 if det(trial) < 0e0:
@@ -105,12 +106,12 @@ def primitive(structure, double tolerance=1e-8):
                         logger.error(msg)
                         raise error.RuntimeError(msg)
                 integer_cell = dot(inv(trial), cell)
-                if allclose(integer_cell, round(integer_cell + 1e-7), 1e-8):
+                if allclose(integer_cell, round(integer_cell + 1e-7), tolerance): # This needs to be a supercell within the specified tolerance
                     new_cell = trial
                     volume = abs(det(trial))
 
     # Found the new cell with smallest volume (e.g. primivite)
-    if abs(structure.volume - volume) < tolerance:
+    if abs(structure.volume - volume) < 1e-12: # It actually did not change
         msg = "Found translation but no primitive cell."
         logger.error(msg)
         raise error.RuntimeError(msg)
@@ -123,7 +124,7 @@ def primitive(structure, double tolerance=1e-8):
     for site in structure:
         pos = into_cell(site.pos, result.cell, invcell)
         for unique in result:
-            if site.type == unique.type and allclose(unique.pos, pos, tolerance):
+            if site.type == unique.type and allclose(unique.pos, pos, abs(structure.volume / result.volume) * tolerance): # The difference between pos and unique pos is that of site.pos and the image of unique.pos
                 break
         else:
             result.append(site.copy())
@@ -134,7 +135,7 @@ def primitive(structure, double tolerance=1e-8):
         logger.error(msg)
         raise error.RuntimeError(msg)
 
-    if abs(len(structure) * result.volume - len(result) * structure.volume) > tolerance:
+    if abs(result.volume - len(result) / len(structure) * structure.volume) > 3*result.volume*tolerance:
         msg = "Size and volumes do not match."
         logger.error(msg)
         raise error.RuntimeError(msg)
