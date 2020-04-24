@@ -19,6 +19,7 @@ setuptools.setup = wrapped_setup
 
 tests_require = ["pytest<4.6.0", "pytest-bdd"]
 install_requires = [
+    "py",
     "numpy",
     "scipy",
     "quantities",
