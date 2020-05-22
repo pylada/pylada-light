@@ -874,7 +874,11 @@ class IStruc(AliasKeyword):
         from ..error import ValueError
         from ..crystal import write, read, specieset
         from . import files
-
+        try:
+            from pylada import is_vasp_4
+        except:
+            is_vasp_4 = False
+        
         istruc = self._value
         if istruc is None:
             istruc = 0
@@ -922,7 +926,7 @@ class IStruc(AliasKeyword):
             raise ValueError('Structure scale is zero')
         if structure.volume < 1e-8:
             raise ValueError('Structure volume is zero')
-        write.poscar(structure, join(outdir, 'POSCAR'))
+        write.poscar(structure, join(outdir, 'POSCAR'), vasp5=not is_vasp_4)
         return None
 
 
