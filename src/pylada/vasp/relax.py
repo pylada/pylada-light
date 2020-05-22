@@ -50,9 +50,9 @@ class RelaxExtract(Extract):
             from os.path import relpath, join, exists
             from itertools import chain
 
-            for dir in chain(iglob(join(join(self.rootpath, 'relax_cellshape'), '*/')),
-                             iglob(join(join(self.rootpath, 'relax_ions'), '*/'))):
-                if not exists(join(self.rootpath, join(dir, 'OUTCAR'))):
+            for dir in chain(iglob(join(self.rootpath, 'relax_cellshape', '*/')),
+                             iglob(join(self.rootpath, 'relax_ions', '*/'))):
+                if not exists(join(self.rootpath, dir, 'OUTCAR')):
                     continue
                 try:
                     result = Extract(dir[:-1])
@@ -235,7 +235,7 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
         # Invokes vasp/functional.Vasp.__init__
         # and vasp/functional: iter, which calls bringup,
         # which calls write_incar, write_kpoints, etc.
-        fulldir = join(outdir, join("relax_cellshape", str(nb_steps)))
+        fulldir = join(outdir, "relax_cellshape", str(nb_steps))
         for u in vasp.iter\
                 (
                     relaxed_structure,
@@ -246,7 +246,7 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
                 ):
             yield u
 
-        output = vasp.Extract(join(outdir, join("relax_cellshape", str(nb_steps))))
+        output = vasp.Extract(join(outdir, "relax_cellshape", str(nb_steps)))
         if not output.success:
             ExternalRunFailed("VASP calculations did not complete.")
         relaxed_structure = output.structure
@@ -266,7 +266,7 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
 
     # performs ionic calculation.
     while (maxcalls <= 0 or nb_steps < maxcalls + 1) and relaxation.find("ionic") != -1:
-        fulldir = join(outdir, join("relax_ions", str(nb_steps)))
+        fulldir = join(outdir, "relax_ions", str(nb_steps))
         for u in vasp.iter\
                 (
                     relaxed_structure,
@@ -277,7 +277,7 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
                 ):
             yield u
 
-        output = vasp.Extract(join(outdir, join("relax_ions", str(nb_steps))))
+        output = vasp.Extract(join(outdir, "relax_ions", str(nb_steps)))
         if not output.success:
             ExternalRunFailed("VASP calculations did not complete.")
         relaxed_structure = output.structure
@@ -302,7 +302,7 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
     if (maxcalls <= 0 or nb_steps < maxcalls + 2) \
             and relaxation.find("relgw") != -1:
 
-        fulldir = join(outdir, join("relax_gwcalc", str(nb_steps)))
+        fulldir = join(outdir, "relax_gwcalc", str(nb_steps))
         for u in vasp.iter\
                 (
                     relaxed_structure,
@@ -313,7 +313,7 @@ def iter_relax(vasp, structure, outdir=None, first_trial=None,
                 ):
             yield u
 
-        output = vasp.Extract(join(outdir, join("relax_gwcalc", str(nb_steps))))
+        output = vasp.Extract(join(outdir, "relax_gwcalc", str(nb_steps)))
         if not output.success:
             ExternalRunFailed("VASP calculations did not complete.")
         relaxed_structure = output.structure
@@ -491,11 +491,11 @@ def iter_epitaxial(vasp, structure, outdir=None, direction=[0, 0, 1], epiconv=1e
     # direction for the direction in which to search, and expand/contract in that direction.
     xstart = 0.0
     for u in vasp.iter(change_structure(xstart),
-                       outdir=join(outdir, join("relax_ions", "{0:0<12.10}".format(xstart))),
+                       outdir=join(outdir, "relax_ions", "{0:0<12.10}".format(xstart)),
                        restart=None if len(allcalcs) == 0 else allcalcs[-1],
                        **kwargs):
                             yield u
-    estart = vasp.Extract(join(join(outdir, 'relax_ions'), '{0:0<12.10}'.format(xstart)))
+    estart = vasp.Extract(join(outdir, 'relax_ions', '{0:0<12.10}'.format(xstart)))
     allcalcs.append(estart)
 
     # then checks stress for actual direction to look at.
@@ -503,33 +503,33 @@ def iter_epitaxial(vasp, structure, outdir=None, direction=[0, 0, 1], epiconv=1e
     xend = initstep if stress_direction > 0e0 else -initstep
     # compute xend value.
     for u in vasp.iter(change_structure(xend),
-                       outdir=join(outdir, join("relax_ions", "{0:0<12.10}".format(xend))),
+                       outdir=join(outdir, "relax_ions", "{0:0<12.10}".format(xend)),
                        restart=None if len(allcalcs) == 0 else allcalcs[-1],
                        **kwargs):
                             yield u
-    eend = vasp.Extract(join(join(outdir, 'relax_ions'), '{0:0<12.10}'.format(xend)))
+    eend = vasp.Extract(join(outdir, 'relax_ions', '{0:0<12.10}'.format(xend)))
     allcalcs.append(eend)
     # make sure xend is on other side of stress tensor sign.
     while stress_direction * component(allcalcs[-1].stress) > 0e0:
         xstart, estart = xend, eend
         xend += initstep if stress_direction > 0e0 else -initstep
         for u in vasp.iter(change_structure(xend),
-                           outdir=join(outdir, join("relax_ions", "{0:0<12.10}".format(xend))),
+                           outdir=join(outdir, "relax_ions", "{0:0<12.10}".format(xend)),
                            restart=None if len(allcalcs) == 0 else allcalcs[-1],
                            **kwargs):
                                 yield u
-        eend = vasp.Extract(join(join(outdir, 'relax_ions'), '{0:0<12.10}'.format(xend)))
+        eend = vasp.Extract(join(outdir, 'relax_ions', '{0:0<12.10}'.format(xend)))
         allcalcs.append(eend)
 
     # now we have a bracket. We start bisecting it.
     while abs(estart.total_energy - eend.total_energy) > epiconv * float(len(structure)):
         xmid = 0.5 * (xend + xstart)
         for u in vasp.iter(change_structure(xmid),
-                           outdir=join(outdir, join("relax_ions", "{0:0<12.10}".format(xmid))),
+                           outdir=join(outdir, "relax_ions", "{0:0<12.10}".format(xmid)),
                            restart=None if len(allcalcs) == 0 else allcalcs[-1],
                            **kwargs):
                                 yield u
-        emid = vasp.Extract(join(join(outdir, 'relax_ions'), '{0:0<12.10}'.format(xmid)))
+        emid = vasp.Extract(join(outdir, 'relax_ions', '{0:0<12.10}'.format(xmid)))
         allcalcs.append(emid)
         if stress_direction * component(emid.stress) > 0:
             xstart, estart = xmid, emid
