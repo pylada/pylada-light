@@ -47,10 +47,10 @@ The simplest approach is to install via
 
     .. code:: bash
 
-        mkvirtualenv --system-site-packages pylada
+        python -m venv pylada
         source pylada/bin/activate
         pip install git+https://github.com/pylada/pylada-light
-    
+
     This last approach is recommended since it keeps the pylada environment
     isolated from the rest of the system. Susbsequently, this environment can
     be accessed by running the second line.
@@ -62,19 +62,20 @@ Installation for development
 
     .. code:: bash
 
-        mkvirtualenv --system-site-packages pylada
+        python -m venv pylada
         source pylada/bin/activate
         git clone https://github.com/pylada/pylada-light
         cd pylada-light
-        pip install cython setuptools wheel scikit-build cmake ninja numpy
-        python setup.py develop
+        python -m pip install cython setuptools wheel scikit-build cmake ninja numpy
+        python -m pip install -e .[dev]
         python setup.py test
-    
+        ln -s src/pylada . # because https://github.com/scikit-build/scikit-build/issues/363
+
     The above creates a virtual environment and installs pylada inside it in
     development mode. This means that the virtual environment will know about
     the pylada flavor in development. It is possible to edit a file, do
-    :bash:`make`, launch python and debug. One just needs to active the virtual
-    environment once per session.
+    :bash:`make`, launch python and debug. One just needs to active the
+    virtual environment once per session.
 
-    When modifying files that are built (`.pyx`, `.cc`, `.h`), it is necessary to run `python
-    setup.py develop` again.
+    When modifying files that are built (`.pyx`, `.cc`, `.h`), it may be
+    necessary to run `python setup.py develop` again.

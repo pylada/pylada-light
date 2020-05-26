@@ -8,6 +8,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/_version.py" DESTINATION ${PY_ROOT_DIR})
 
+include_directories("${PYTHON_INCLUDE_DIR}")
 add_subdirectory(crystal)
 add_subdirectory(decorations)
 add_subdirectory(ewald)

@@ -21,6 +21,10 @@
 ###############################
 
 add_cython_target(decorations_cython _decorations.pyx CXX ${PYVER}})
-Python_add_library(_decorations MODULE ${decorations_cython})
-target_include_directories(_decorations PRIVATE "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}")
+add_library(_decorations MODULE ${decorations_cython})
+python_extension_module(_decorations)
+target_include_directories(
+    _decorations PRIVATE
+    "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}" "${PYTHON_INCLUDE_DIR}"
+)
 install(TARGETS _decorations LIBRARY DESTINATION ${PY_ROOT_DIR}/decorations)
