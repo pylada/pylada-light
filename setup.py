@@ -31,6 +31,7 @@ install_requires = [
     "nbformat",
     "ipykernel",
     "IPython",
+    "black",
 ]
 if version_info[0] == 2:
     tests_require.append("mock")
