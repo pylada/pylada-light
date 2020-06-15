@@ -73,8 +73,8 @@ def poscar(structure, file='POSCAR', vasp5=None, substitute=None, direct=True):
     from . import specieset
 
     if vasp5 is None:
-        import pylada
-        vasp5 = not getattr(pylada, 'is_vasp_4', True)
+        from pylada import is_vasp_4
+        vasp5 = not is_vasp_4
 
     string = "{0}\n{1}\n".format(getattr(structure, 'name', ''),
                                  float(structure.scale.rescale(angstrom)))
