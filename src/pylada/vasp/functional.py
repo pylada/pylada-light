@@ -1117,6 +1117,7 @@ class Vasp(AttrBlock):
     
     def write_potcar(self, file, structure):
         """ Writes the potcar file """
+        from ..crystal import specieset
         for s in specieset(structure):
             outLines = self.species[s].read_potcar()
             file.writelines(outLines)
