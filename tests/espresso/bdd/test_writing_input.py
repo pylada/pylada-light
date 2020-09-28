@@ -4,7 +4,7 @@ from pytest_bdd import given, scenarios, then, when
 scenarios("features/writing_input.feature")
 
 
-@given("a Pwscf object")
+@given("a Pwscf object", target_fixture="empty_pwscf")
 def empty_pwscf():
     from pylada.espresso import Pwscf
     return Pwscf()

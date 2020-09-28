@@ -8,7 +8,7 @@ def passon():
     return []
 
 
-@given("a simple pwscf object")
+@given("a simple pwscf object", target_fixture="pwscf")
 def pwscf():
     from pylada.espresso import Pwscf
     from quantities import Ry
@@ -24,7 +24,7 @@ def pwscf():
     return pwscf
 
 
-@given("a distorted diamond structure")
+@given("a distorted diamond structure", target_fixture="distorted_diamond")
 def distorted_diamond(diamond_structure):
     from numpy.random import random
     diamond_structure[1].pos += random(3) * 0.005 - 0.0025
@@ -32,7 +32,7 @@ def distorted_diamond(diamond_structure):
     return diamond_structure
 
 
-@given("we run pwscf once")
+@given("we run pwscf once", target_fixture="extract")
 def extract(tmpdir, distorted_diamond, pwscf):
     from .conftest import copyoutput, data_path
     src = data_path("restarted", "first")
