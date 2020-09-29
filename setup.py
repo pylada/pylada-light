@@ -8,16 +8,18 @@ from skbuild import setup
 
 old_setup = setuptools.setup
 
+
 def wrapped_setup(*args, **kwargs):
     pckd = kwargs.pop("package_dir", {})
-    pckd[''] = "src"
-    kwargs['package_dir'] = pckd
+    pckd[""] = "src"
+    kwargs["package_dir"] = pckd
     return old_setup(*args, **kwargs)
+
 
 setuptools.setup = wrapped_setup
 
 
-tests_require = ["pytest<4.6.0", "pytest-bdd"]
+tests_require = ["pytest>=6.1.0", "pytest-bdd>=4.0.1"]
 install_requires = [
     "py",
     "numpy",
@@ -66,8 +68,6 @@ setup(
         "Topic :: Software Development :: Libraries :: Application Frameworks",
     ],
     long_description=open(join(dirname(__file__), "README.rst"), "r").read(),
-    setup_requires=["pytest-runner"],
-    tests_require=["pytest"],
     extras_require={"dev": tests_require},
     cmake_args=cmake_args,
     cmake_languages=("CXX", "Fortran"),
