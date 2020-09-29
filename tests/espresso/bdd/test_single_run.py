@@ -1,12 +1,10 @@
-import re
-
 import pytest
 from pytest_bdd import given, scenarios, then, when
 
 scenarios("features/single_run.feature")
 
 
-@given("a simple pwscf object")
+@given("a simple pwscf object", target_fixture="pwscf")
 def pwscf():
     from pylada.espresso import Pwscf
     from quantities import Ry
@@ -26,7 +24,7 @@ def pseudo_filename(tmpdir):
     return tmpdir.join('Al.pz-vbc.UPF')
 
 
-@given("an aluminum structure")
+@given("an aluminum structure", target_fixture="aluminum")
 def aluminum():
     from quantities import bohr_radius
     from pylada.crystal.bravais import fcc
@@ -36,7 +34,7 @@ def aluminum():
     return result
 
 
-@given("a serial communicator")
+@given("a serial communicator", target_fixture="serialcomm")
 def serialcomm():
     return {'n': 1}
 
@@ -55,6 +53,7 @@ def true(tmpdir):
     result.write("#! %s\nfrom sys import exit\nexit(0)" % executable)
     result.chmod(S_IREAD | S_IWRITE | S_IEXEC)
     return result
+
 
 @when("iterating through the first step")
 def first_step(pwscf, tmpdir, aluminum, passon, true):
@@ -105,13 +104,16 @@ def check_pwscf_input(tmpdir, pwscf):
     actual.read(tmpdir.join("pwscf.in"))
     assert abs(actual.system.ecutwfc - pwscf.system.ecutwfc) < 1e-8
     assert actual.kpoints.subtitle == pwscf.kpoints.subtitle
-    assert actual.kpoints.value.rstrip().lstrip() == pwscf.kpoints.value.rstrip().lstrip()
+    assert (
+        actual.kpoints.value.rstrip().lstrip()
+        == pwscf.kpoints.value.rstrip().lstrip()
+    )
 
 
 @then("the extract object says the run is unsuccessful")
 def unsuccessfull_run(passon):
     extract = passon[-1]
-    assert extract.success == False
+    assert not extract.success
 
 
 @then("the marker file .pylada_is_running exists")

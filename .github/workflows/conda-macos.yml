@@ -23,6 +23,7 @@ jobs:
     - name: Set up conda-env
       run: |
         conda install setuptools wheel cmake ninja numpy
+        brew cask install gfortran
         pip install scikit-build
     - name: Install package
       run: python3 -m pip install .[dev]
