@@ -304,7 +304,7 @@ class Vasp(AttrBlock):
 
             .. _CONTCAR: http://cms.mpi.univie.ac.at/vasp/guide/node60.html
         """
-        self.isym = ChoiceKeyword(values=list(range(-1, 3)))
+        self.isym = ChoiceKeyword(values=list(range(-1, 4)))
         """ Symmetry scheme.
 
             .. seealso:: ISYM_
@@ -1017,8 +1017,9 @@ class Vasp(AttrBlock):
             # creates POTCAR file
             logger.debug("vasp/functional bringup: files.POTCAR: %s " % files.POTCAR)
             with open(files.POTCAR, 'w') as potcar:
-                self.write_potcar(potcar, structure)
-
+                for s in specieset(structure):
+                    outLines = self.species[s].read_potcar()
+                    potcar.writelines(outLines)
             # Add is running file marker.
             local_path(outdir).join('.pylada_is_running').ensure(file=True)
             self._copy_additional_files(outdir)
@@ -1114,14 +1115,7 @@ class Vasp(AttrBlock):
                 outLine = "{0[0]} {0[1]} {0[2]} {1}\n".format(
                     kpoint, 1 if len(kpoint) == 3 else kpoint[3])
                 file.write(outLine)
-    
-    def write_potcar(self, file, structure):
-        """ Writes the potcar file """
-        from ..crystal import specieset
-        for s in specieset(structure):
-            outLines = self.species[s].read_potcar()
-            file.writelines(outLines)
-    
+
     def __repr__(self, defaults=True, name=None):
         """ Returns representation of this instance """
         from ..tools.uirepr import uirepr

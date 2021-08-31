@@ -356,7 +356,10 @@ class Algo(ValueKeyword):
         if value is None:
             self._value = None
             return None
-        from pylada import is_vasp_4
+        try:
+            from pylada import is_vasp_4
+        except:
+            is_vasp_4 = False
         if not hasattr(value, 'lower'):
             raise TypeError("ALGO cannot be set with {0}.".format(value))
         lower = value.lower().rstrip().lstrip()
@@ -871,8 +874,7 @@ class IStruc(AliasKeyword):
         from ..error import ValueError
         from ..crystal import write, read, specieset
         from . import files
-        from pylada import is_vasp_4
-        
+
         istruc = self._value
         if istruc is None:
             istruc = 0
@@ -886,7 +888,7 @@ class IStruc(AliasKeyword):
             has_restart = vasp.restart.success
         if has_restart:
             structure = vasp.restart.structure
-
+            
         # determines which CONTCAR is the latest, if any exist.
         if istruc in [-1, 1]:
             last_contcar = latest_file(join(outdir, files.CONTCAR))
@@ -896,6 +898,7 @@ class IStruc(AliasKeyword):
             # specifically, the order of the atoms of a given specie are the same).
             if last_contcar is not None:
                 other = read.poscar(path=last_contcar, types=specieset(structure))
+                
                 if len(other) != len(structure):
                     raise ValueError('CONTCAR and input structure differ in size.')
                 for type in specieset(other):
@@ -908,6 +911,9 @@ class IStruc(AliasKeyword):
                         if a.type != type:
                             continue
                         a.pos = b.pos
+                        if len(getattr(b, 'freeze', '')) != 0:
+                            a.freeze = b.freeze
+    
                 structure.cell = other.cell
                 structure.scale = other.scale
                 print("setting cell and scale!")
@@ -920,7 +926,8 @@ class IStruc(AliasKeyword):
             raise ValueError('Structure scale is zero')
         if structure.volume < 1e-8:
             raise ValueError('Structure volume is zero')
-        write.poscar(structure, join(outdir, 'POSCAR'), vasp5=not is_vasp_4)
+        
+        write.poscar(structure, join(outdir, 'POSCAR'))
         return None
 
 
