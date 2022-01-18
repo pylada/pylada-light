@@ -269,12 +269,12 @@ class ExtractBase(object):
         """ Greps structure and total energy from OUTCAR. """
         if self.nsw == 0 or self.ibrion == -1:
             return self.initial_structure
-
+        
         try:
             result = self._contcar_structure
         except:
             result = self._grep_structure
-
+            
         # tries to find adequate name for structure.
         try:
             name = self.system
@@ -329,6 +329,7 @@ class ExtractBase(object):
         else:
             for force, atom in zip(forces, result):
                 atom.force = force
+        
         return result
 
     @property
@@ -447,7 +448,7 @@ class ExtractBase(object):
         """ Greps structure from CONTCAR. """
         from ...crystal import read
         from quantities import eV
-
+        
         result = read.poscar(self.__contcar__(), self.species)
         result.energy = float(self.total_energy.rescale(eV)) if self.is_dft else 0e0
         return result
@@ -470,8 +471,21 @@ class ExtractBase(object):
     @property
     @make_cached
     def species(self):
+        import re
         """ Greps species from OUTCAR. """
-        return [ u.group(1) for u in self._search_OUTCAR(r"""VRHFIN\s*=\s*(\S+)\s*:""") ]
+        result = []
+        for u in self._search_OUTCAR(r"""VRHFIN\s*=\s*(.*)$"""):
+            atom = u[1].split(":")[0].strip()
+            match = re.search(r"Z\s*=\s*(\S+)", u[1])
+            if match is None:
+                result.append(atom)
+            else:
+                result.append(atom + ("%3.2f"%(eval(match[1]))).strip(" 0"))
+        
+        # return [ u.group(1) for u in self._search_OUTCAR(r"""VRHFIN\s*=\s*(\S+)\s*:""") ]
+        # return [ u.group(1) for u in self._search_OUTCAR(r"""TITEL\s*=\s*\S*\s*(\S+)""") ]
+
+        return result
 
     @property
     @make_cached
