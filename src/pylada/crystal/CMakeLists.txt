@@ -29,7 +29,7 @@ set(cython_sources
 
 foreach(filename ${cython_sources})
     get_filename_component(name "${filename}" NAME_WE)
-    add_cython_target(cython_${name} ${filename} CXX ${PYVER}})
+    add_cython_target(cython_${name} ${filename} CXX ${PYVER})
     add_library(${name} MODULE ${cython_${name}})
     python_extension_module(${name})
     target_link_libraries(${name} Eigen3::Eigen)
