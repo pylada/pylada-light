@@ -180,7 +180,17 @@ class Cell(Namelist):
     cell_factor = Float(allow_none=True, default_value=None, min=0e0,
                         help="Used when constructing pseudopotential tables")
     factor = alias(cell_factor)
-    cell_dofree = CaselessStringEnum(['all', 'x', 'y', 'z', 'xy', 'xz', 'yz', 'shape', 'volume',
-                                      '2Dxy', '2Dshape'], default_value=None, allow_none=True,
+
+    #vladan
+    #cell_dofree = CaselessStringEnum(['all', 'x', 'y', 'z', 'xy', 'xz', 'yz', 'shape', 'volume',
+    #                                  '2Dxy', '2Dshape'], default_value=None, allow_none=True,
+    #                                 help="Degrees of freedom during relaxation")
+
+    cell_dofree = CaselessStringEnum(['all', 'a', 'b', 'c', 'fixa', 'fixb', 'fixc',
+                                      'x', 'y', 'z', 'xy', 'xz', 'yz', 'shape', 'volume',
+                                      '2Dxy', '2Dshape', 'epitaxial_ab', 'epitaxial_ac', 'epitaxial_bc'],
+                                     default_value=None, allow_none=True,
                                      help="Degrees of freedom during relaxation")
+
+
     dofree = alias(cell_dofree)

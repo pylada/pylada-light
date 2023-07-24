@@ -266,7 +266,8 @@ class Pwscf(HasTraits):
         if not overwrite:
             # Check with this instance's Extract, cos it is this calculation we shall
             # do here. Derived instance's Extract might be checking for other stuff.
-            extract = self.Extract(str(outdir))
+#vladan            extract = self.Extract(str(outdir))
+            extract = self.Extract(str(outdir),prefix=self.control.prefix)
             if extract.success:
                 yield extract  # in which case, returns extraction object.
                 return
@@ -296,7 +297,8 @@ class Pwscf(HasTraits):
                              stdin=stdin, stdout=stdout, stderr=stderr,
                              dompi=comm is not None)
         # yields final extraction object.
-        yield self.Extract(str(outdir))
+#vladan        yield self.Extract(str(outdir))
+        yield self.Extract(str(outdir),prefix=self.control.prefix)
 
     def pseudos_do_exist(self, structure, verbose=False):
         """ True if it all pseudos exist
@@ -329,7 +331,8 @@ class Pwscf(HasTraits):
             return structure
 
         # normalize: restart could be an Extract object, or a path
-        restart = self.Extract(restart)
+#vladan        restart = self.Extract(restart)
+        restart = self.Extract(str(outdir),prefix=self.control.prefix)
         if not restart.success:
             logger.critical("Cannot restart from unsuccessful calculation")
             raise error.RuntimeError("Cannot restart from unsuccessful calculation")

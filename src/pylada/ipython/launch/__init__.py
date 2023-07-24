@@ -167,7 +167,8 @@ def get_mppalloc(shell, event, withdefault=True):
             """ Returns number of processes for this job. """
             natom = len(job.structure)  # number of atoms.
             # Round down to a multiple of ppn
-            nnode = max(1, natom / event.ppn)
+#vladan            nnode = max(1, natom / event.ppn)
+            nnode = max(1, natom // event.ppn)
             nproc = nnode * event.ppn
             return nproc
     logger.info("launch/init: mppalloc b: %s" % mppalloc)
