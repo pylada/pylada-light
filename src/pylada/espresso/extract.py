@@ -176,6 +176,8 @@ class Extract(object):
         cards = [u for u in read_cards(self.output_path.open(mode='r'))
                  if u.name == 'cell_parameters']
         structure.cell = [u.split() for u in cards[-1].value.split('\n')]
+        # vladan: transposing so the cell vectors are rows and not columns
+        structure.cell = structure.cell.T
 
     @property
     @make_cached

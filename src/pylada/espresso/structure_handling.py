@@ -223,10 +223,26 @@ def add_structure(structure, f90namelist, cards):
         positions = card_dict['atomic_positions']
     positions.subtitle = 'alat'
     positions.value = ""
-    for atom in structure:
-        positions.value += "%s %18.12e %18.12e %18.12e\n" % (atom.type, atom.pos[0], atom.pos[1],
-                                                             atom.pos[2])
 
+    #vladan
+    #for atom in structure:
+    #    positions.value += "%s %18.12e %18.12e %18.12e\n" % (atom.type, atom.pos[0], atom.pos[1], atom.pos[2])
+
+    # new code for selective dynamics (by Matt Jank.)
+    selective_dynamics = any([len(getattr(atom, 'freeze', '')) != 0 for atom in structure])
+
+    for atom in structure:
+        if not selective_dynamics:
+            positions.value += "%s %18.12e %18.12e %18.12e\n" % (atom.type, atom.pos[0],
+                                                                 atom.pos[1], atom.pos[2])
+        else:
+            positions.value += "%s %18.12e %18.12e %18.12e %i %i %i\n"
+            %(atom.type, atom.pos[0],atom.pos[1], atom.pos[2],
+              'x' not in getattr(atom, 'freeze', ''),
+              'y' not in getattr(atom, 'freeze', ''),
+              'z' not in getattr(atom, 'freeze', '')) 
+    # end selective dynamics modification
+            
     __add_forces_to_input(cards, structure)
 
 

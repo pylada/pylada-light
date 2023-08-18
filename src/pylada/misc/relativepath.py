@@ -209,7 +209,8 @@ class RelativePath(object):
     @hook.setter
     def hook(self, value):
         from sys import version_info
-        from inspect import ismethod, getargspec, isfunction
+#vladan        from inspect import ismethod, getargspec, isfunction
+        from inspect import ismethod, isfunction
         if version_info[0] == 2:
             from inspect import getargspec
         else:

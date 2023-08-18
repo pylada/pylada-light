@@ -357,7 +357,8 @@ def icsd_cif_a(filename, make_primitive=True):
     from numpy import array, transpose
     from numpy import pi, sin, cos, sqrt, dot
 
-    lines = open(filename, 'r').readlines()
+#vladan    lines = open(filename, 'r').readlines()
+    lines = open(filename, 'r',encoding= 'unicode_escape').readlines()
     logger.info("crystal/read: icsd_cif_a: %s" % filename)
 
     sym_big = 0

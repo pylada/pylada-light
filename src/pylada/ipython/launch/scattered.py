@@ -110,13 +110,23 @@ def launch(self, event, jobfolders):
             # added by Peter Graf
             # avoid jobfolder which is already in the queue:
             qstuff = qstat(name)
+            # vladan
+            # qstat(name) will return all jobs with names whose first parts
+            # match the name. For example qstat('job.12') will return the
+            # both 'job.12' and 'job.123'. So, Peter's stuff has a bug, if
+            # 'job.123' is in the queue pylada will think 'job.12' is also.
+            # To deal with this one can do:
+            qstuff = [x for x in qstuff if x.split()[-1]==name]
             if (len(qstuff) > 0 and not event.force):
-                status = [x.split()[2] for x in qstuff]
+                #status = [x.split()[2] for x in qstuff]
+                status = qstuff[0].split()[2]
                 # status is a list like ['Q'], ['R'], ['H'], ['C'], ['R', 'C'], etc
                 # 'RHQ' is the status that the job is indeed in the queue, 'C' job completed and
                 # being removed from the queue if needed, a prefix can be used to distinguish two
                 # jobs with the same name
-                if len(set(status) & set('RHQ')) > 0:
+                queue_options=['R','H','Q','PD','C'] # I (vladan) find this to work better
+                #if len(set(status) & set('RHQ')) > 0: # this was before, also has problems
+                if (status in queue_options):
                     print(("Job %s is in the queue, will not be re-queued" % name))
                     continue
 

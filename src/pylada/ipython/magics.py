@@ -153,7 +153,8 @@ class Pylada(Magics):
                 message = "Are you sure you want to cancel"\
                     "the jobs listed above? [y/n] "
         else:
-            message = "Cancel all jobs? [y/n] "
+#vladan            message = "Cancel all jobs? [y/n] "
+            message = "Cancel all %s jobs? [y/n] " %(arg)
             key = ''
             while key not in ['n', 'y']:
                 key = cmdl_input(message)
