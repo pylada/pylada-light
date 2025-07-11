@@ -24,11 +24,12 @@
 ###############################
 
 add_cython_target(defects_cython _defects.pyx CXX ${PYVER})
-add_library(_defects MODULE ${defects_cython} third_order.cc)
-python_extension_module(_defects)
-target_link_libraries(_defects Eigen3::Eigen)
+
+python_add_library(_defects MODULE WITH_SOABI ${defects_cython} third_order.cc)
+
+target_link_libraries(_defects PRIVATE Eigen3::Eigen)
 target_include_directories(
     _defects PRIVATE
-    "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}" "${PYTHON_INCLUDE_DIR}"
+    "${PY_HEADER_DIR}" "${NumPy_INCLUDE_DIRS}" "${Python3_INCLUDE_DIR}"
 )
 install(TARGETS _defects LIBRARY DESTINATION ${PY_ROOT_DIR}/crystal/defects)

@@ -89,12 +89,23 @@ def poscar(path="POSCAR", types=None):
         for i in line:
             if not re.match(r"[A-Z][a-z]?", i):
                 is_vasp_5 = False
-                break
+                break  
         if is_vasp_5:
             text_types = deepcopy(line)
-            if types is not None and not set(text_types).issubset(set(types)):
-                raise error.ValueError("Unknown species in poscar: {0} not in {1}."
-                                       .format(text_types, types))
+
+            if types is not None:
+                # If partial H (e.g. H.75) are specified they will replace H
+                # in the order they were specified
+                for s in types:
+                    if s[0] == "H" and "." in s:
+                        for i,c in enumerate(text_types):
+                            if c == "H":
+                                text_types[i] = s
+                                break
+                            
+                if not set(text_types).issubset(set(types)):
+                    raise error.ValueError("Unknown species in poscar: {0} not in {1}."
+                                           .format(text_types, types))
             types = text_types
             line = poscar.readline().split()
         if types is None:

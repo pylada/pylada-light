@@ -1,5 +1,5 @@
 project(external CXX)
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.20.1)
 include("ExternalProject")
 
 if(NOT EIGEN_TAR_ARCHIVE)

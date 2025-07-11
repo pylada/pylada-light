@@ -20,8 +20,8 @@
 #  <http://www.gnu.org/licenses/>.
 ###############################
 add_cython_target(ewald_cython ewald.pyx CXX ${PYVER})
-add_library(ewald MODULE
-    ${ewald_cython} ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
-python_extension_module(ewald)
-target_include_directories(ewald PRIVATE "${PY_HEADER_DIR}")
+
+python_add_library(ewald MODULE WITH_SOABI ${ewald_cython} ep_com.f90 erfc.cc ewaldf.f90 ewald.cc)
+
+target_include_directories(ewald PRIVATE "${PY_HEADER_DIR}" "${Python3_INCLUDE_DIR}")
 install(TARGETS ewald LIBRARY DESTINATION ${PY_ROOT_DIR}/ewald)

@@ -65,7 +65,7 @@ def coordination_shells(structure, int nshells, center, tolerance=1e-12, natoms=
     from . import gruber, into_voronoi
 
     cdef int N = len(structure)
-    cell = gruber(structure.cell, 3e0*tolerance)
+    cell = gruber(structure.cell, tolerance = 3e0*tolerance)
     invcell = inv(cell)
     cdef double volume = structure.volume
     cdef int maxatoms = __natoms(natoms, nshells)
@@ -154,7 +154,7 @@ def __neighbors(structure, int nmax, center, tolerance=1e-12, natoms=0):
     from . import gruber, into_voronoi
 
     cdef int N = len(structure)
-    cell = gruber(structure.cell, 3e0*tolerance)
+    cell = gruber(structure.cell, tolerance = 3e0*tolerance)
     invcell = inv(cell)
     cdef double volume = structure.volume
     cdef int maxatoms = max([natoms, nmax + 2])

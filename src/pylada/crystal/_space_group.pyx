@@ -21,6 +21,7 @@
 ###############################
 import numpy as np
 cimport numpy as np
+np.import_array()
 
 cpdef __gvectors(double[:, ::1] cell, double tolerance):
     """ Computes all gvectors in prolate defined by cell """

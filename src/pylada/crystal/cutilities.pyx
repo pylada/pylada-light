@@ -1,5 +1,6 @@
 import numpy as np
 cimport numpy as np
+np.import_array()
 
 cdef extern from "pylada/crystal/types.h" namespace "pylada::types":
     ctypedef int t_int

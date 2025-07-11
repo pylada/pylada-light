@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
 project(Pylada
     VERSION 1.0.1
     DESCRIPTION "A pythonic computation material science platform"
@@ -49,21 +49,14 @@ endif()
 
 set(OLD_CMAKE_FIND_FRAMEWORK "${CMAKE_FIND_FRAMEWORK}")
 set(CMAKE_FIND_FRAMEWORK LAST)
-find_package(Python3 COMPONENTS Development Interpreter)
+find_package(Python COMPONENTS Development.Module Interpreter REQUIRED)
 set(CMAKE_FIND_FRAMEWORK "${OLD_CMAKE_FIND_FRAMEWORK}")
-if(NOT Python3_FOUND)
+if(Python2_VERSION_MAJOR EQUAL 2)
     set(CMAKE_FIND_FRAMEWORK LAST)
-    find_package(Python2 COMPONENTS Development Interpreter)
     set(CMAKE_FIND_FRAMEWORK "${OLD_CMAKE_FIND_FRAMEWORK}")
-endif()
-if(NOT Python3_FOUND AND NOT Python2_FOUND)
-    message(FATAL_ERROR "Could find neither python3 nor python2")
-endif()
-
-if(Python3_FOUND)
-    set(PYVER PY3)
-else()
     set(PYVER PY2)
+else()
+    set(PYVER PY3)
 endif()
 
 if(NOT SKBUILD)
@@ -85,7 +78,6 @@ if(NOT SKBUILD)
     list(APPEND CMAKE_MODULE_PATH "${SKBUILD_LOCATION}/resources/cmake")
 endif()
 
-find_package(PythonExtensions REQUIRED)
 find_package(Cython REQUIRED)
 find_package(NumPy REQUIRED)
 find_package(Eigen3 NO_MODULE)
